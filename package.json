@@ -20,7 +20,12 @@
     "@angular/platform-server": "^22.0.0",
     "@angular/router": "^22.0.0",
     "@angular/ssr": "^22.0.1",
+    "@jsverse/transloco": "^8.4.0",
+    "angular-oauth2-oidc": "^22.0.2",
     "express": "^5.1.0",
+    "highlight.js": "^11.11.1",
+    "marked": "^18.0.5",
+    "mermaid": "^11.16.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
