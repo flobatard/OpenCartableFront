@@ -1,5 +1,5 @@
 {
-  "name": "cartable-front",
+  "name": "open-cartable-front",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
@@ -7,7 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:CartableFront": "node dist/CartableFront/server/server.mjs"
+    "serve:ssr:OpenCartableFront": "node dist/OpenCartableFront/server/server.mjs"
   },
   "private": true,
   "packageManager": "npm@11.16.0",

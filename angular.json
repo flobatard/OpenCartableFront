@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "CartableFront": {
+    "OpenCartableFront": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -69,10 +69,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "CartableFront:build:production"
+              "buildTarget": "OpenCartableFront:build:production"
             },
             "development": {
-              "buildTarget": "CartableFront:build:development"
+              "buildTarget": "OpenCartableFront:build:development"
             }
           },
           "defaultConfiguration": "development"
