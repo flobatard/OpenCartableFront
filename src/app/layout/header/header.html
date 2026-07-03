@@ -1,5 +1,5 @@
 <header class="header">
-  <a routerLink="/" class="header__brand">
+  <a [routerLink]="['/', language.lang(), 'home']" class="header__brand">
     <img
       class="header__logo header__logo--light"
       src="opencartable-logo-horizontal.svg"
@@ -22,7 +22,7 @@
           class="btn btn--ghost header__lang"
           [class.header__lang--active]="language.lang() === lang"
           [attr.aria-pressed]="language.lang() === lang"
-          (click)="language.setLang(lang)"
+          (click)="language.switchTo(lang)"
         >
           {{ lang.toUpperCase() }}
         </button>

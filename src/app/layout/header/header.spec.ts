@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { Header } from './header';
 import { AuthService } from '../../core/auth/auth.service';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
@@ -48,7 +48,11 @@ describe('Header', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
   });
 
-  it('change la langue de l’interface au clic', async () => {
+  it('navigue vers la même page dans l’autre langue au clic et mémorise le choix', async () => {
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    vi.spyOn(router, 'url', 'get').mockReturnValue('/fr/home');
+
     const fixture = TestBed.createComponent(Header);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
@@ -57,9 +61,9 @@ describe('Header', () => {
       (b) => b.textContent?.trim() === 'EN',
     );
     enButton?.click();
-    await fixture.whenStable();
 
-    expect(el.textContent).toContain('Sign in');
+    expect(navigate).toHaveBeenCalledWith(['/', 'en', 'home']);
+    expect(localStorage.getItem('oc-lang')).toBe('en');
   });
 
   it('affiche le nom du prof et la déconnexion une fois authentifié', async () => {

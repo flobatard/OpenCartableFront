@@ -7,6 +7,7 @@ import type { AppEnvironment } from './environment.model';
 export const environment: AppEnvironment = {
   production: false,
   apiUrl: 'http://localhost:8000/api',
+  siteUrl: 'http://localhost:4200',
   oidc: {
     issuer: 'http://localhost:8080',
     clientId: 'opencartable-local',

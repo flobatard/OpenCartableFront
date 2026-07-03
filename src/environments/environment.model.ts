@@ -2,6 +2,8 @@
 export interface AppEnvironment {
   production: boolean;
   apiUrl: string;
+  /** Origine absolue du site (sans slash final) : liens SEO canonical/hreflang/og:url. */
+  siteUrl: string;
   oidc: {
     issuer: string;
     clientId: string;

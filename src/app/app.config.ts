@@ -5,7 +5,7 @@ import {
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser, PlatformLocation } from '@angular/common';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
@@ -16,6 +16,7 @@ import { firstValueFrom } from 'rxjs';
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
 import { TranslocoImportLoader } from './core/i18n/transloco-loader';
+import { langFromPath, LanguageService } from './core/i18n/language.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -50,14 +51,16 @@ export const appConfig: ApplicationConfig = {
       },
       loader: TranslocoImportLoader,
     }),
-    // Précharge la langue par défaut avant le premier rendu : sans cela, le HTML
-    // prerendered/SSR sortirait avec des chaînes vides — le pipe transloco rend ''
-    // tant que le JSON n'est pas chargé. La langue persistée de l'utilisateur est
-    // restaurée APRÈS l'hydratation (cf. App), pour que le premier rendu client
-    // corresponde au DOM serveur (pas de NG0500).
+    // Active la langue issue de l'URL AVANT le premier rendu, sur serveur ET client :
+    // le HTML prerendered/SSR sort dans la bonne langue (sinon chaînes vides), et le
+    // premier rendu client correspond au DOM serveur (pas de NG0500 sur header/footer).
+    // On lit PlatformLocation.pathname car REQUEST vaut null au prerender ; PlatformLocation
+    // reflète INITIAL_CONFIG.url au serveur et location au navigateur.
     provideAppInitializer(() => {
       const transloco = inject(TranslocoService);
-      return firstValueFrom(transloco.load(transloco.getActiveLang()));
+      const lang = langFromPath(inject(PlatformLocation).pathname);
+      inject(LanguageService).activate(lang);
+      return firstValueFrom(transloco.load(lang));
     }),
   ],
 };

@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
+import { LanguageService } from '../../core/i18n/language.service';
 
 /** Retour du code flow OIDC — route rendue uniquement côté navigateur (RenderMode.Client). */
 @Component({
@@ -11,7 +12,7 @@ import { AuthService } from '../../core/auth/auth.service';
   template: `
     @if (error()) {
       <p class="callback-message">{{ 'auth.error' | transloco }}</p>
-      <a routerLink="/">{{ 'header.home' | transloco }}</a>
+      <a [routerLink]="['/', language.lang(), 'home']">{{ 'header.home' | transloco }}</a>
     } @else {
       <p class="callback-message" aria-live="polite">{{ 'auth.signingIn' | transloco }}</p>
     }
@@ -32,6 +33,8 @@ export class AuthCallback implements OnInit {
   readonly #auth = inject(AuthService);
   readonly #router = inject(Router);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  protected readonly language = inject(LanguageService);
 
   readonly error = signal(false);
 

@@ -1,9 +1,8 @@
-import { afterNextRender, Component, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Header } from './layout/header/header';
 import { Footer } from './layout/footer/footer';
-import { LanguageService } from './core/i18n/language.service';
 
 @Component({
   selector: 'app-root',
@@ -12,13 +11,8 @@ import { LanguageService } from './core/i18n/language.service';
   styleUrl: './app.scss',
 })
 export class App {
-  readonly #language = inject(LanguageService);
-
-  constructor() {
-    // Après l'hydratation seulement : le premier rendu client doit rester dans la
-    // langue du HTML serveur (fr), sinon mismatch NG0500 pour un utilisateur en en.
-    afterNextRender(() => this.#language.init());
-  }
+  // La langue est posée depuis l'URL par l'app initializer (avant le premier rendu, serveur
+  // et client) : plus de restauration depuis le storage ici, qui entrerait en conflit avec l'URL.
 
   /** Lien d'évitement : déplace le focus sur le contenu sans recharger la page. */
   protected skipToContent(event: Event): void {

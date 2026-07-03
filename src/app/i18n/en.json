@@ -16,7 +16,9 @@
     "title": "OpenCartable",
     "subtitle": "Compose your courses, organize your resources and share them with your students through a simple link — no account needed.",
     "cta": "Discover the project",
-    "hint": "The course editor is coming soon."
+    "hint": "The course editor is coming soon.",
+    "metaTitle": "OpenCartable — compose courses and share them by link",
+    "metaDescription": "OpenCartable, a free self-hosted teaching platform: compose your courses, organize your resources and share them with your students through a simple link, no account needed."
   },
   "auth": {
     "signingIn": "Signing you in…",

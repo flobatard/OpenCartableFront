@@ -16,7 +16,9 @@
     "title": "OpenCartable",
     "subtitle": "Composez vos cours, organisez vos ressources et partagez-les à vos élèves par simple lien — sans compte à créer.",
     "cta": "Découvrir le projet",
-    "hint": "L'espace de composition arrive bientôt."
+    "hint": "L'espace de composition arrive bientôt.",
+    "metaTitle": "OpenCartable — cours à composer et partager par lien",
+    "metaDescription": "OpenCartable, plateforme pédagogique libre et auto-hébergée : composez vos cours, organisez vos ressources et partagez-les à vos élèves par simple lien, sans compte à créer."
   },
   "auth": {
     "signingIn": "Connexion en cours…",
