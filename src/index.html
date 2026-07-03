@@ -1,11 +1,27 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="utf-8">
-  <title>OpenCartableFront</title>
+  <title>OpenCartable</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <meta name="description" content="OpenCartable — plateforme pédagogique libre et auto-hébergée : composez vos cours et partagez-les à vos élèves par simple lien.">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
+  <link rel="icon" type="image/svg+xml" href="opencartable-symbol.svg">
+  <script>
+    /* Anti-FOUC : pose le thème avant le premier paint (préférence stockée, sinon OS). */
+    (function () {
+      try {
+        var t = localStorage.getItem('oc-theme');
+        if (t !== 'dark' && t !== 'light') {
+          t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        if (t === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>

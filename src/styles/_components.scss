@@ -1,0 +1,66 @@
+/* Boutons — cf. DESIGN_SYSTEM.md §8. */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border: none;
+  border-radius: var(--radius);
+  font: 500 14px/1.5 var(--font-sans);
+  color: var(--text-primary);
+  background: transparent;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn--primary {
+  background: var(--color-primary);
+  color: #fff;
+
+  &:hover {
+    background: var(--color-primary-hover);
+  }
+
+  /* En sombre, --color-primary passe à indigo-500 (blanc : 4.47:1 < AA) :
+     on garde indigo-600/700, seuls à tenir 4.5:1 avec du texte blanc. */
+  [data-theme='dark'] & {
+    background: var(--indigo-600);
+
+    &:hover {
+      background: var(--indigo-700);
+    }
+  }
+}
+
+.btn--secondary {
+  border: 1px solid var(--border-control);
+  color: var(--slate-700);
+
+  &:hover {
+    background: var(--bg-subtle);
+  }
+
+  [data-theme='dark'] & {
+    color: var(--slate-300);
+  }
+}
+
+.btn--accent {
+  background: var(--color-accent);
+  color: var(--slate-900);
+}
+
+.btn--ghost {
+  /* §8 : texte slate-600 — slate-500 tomberait à 4.25:1 sur le hover slate-100 */
+  color: var(--slate-600);
+
+  &:hover {
+    background: var(--bg-subtle);
+  }
+
+  [data-theme='dark'] & {
+    color: var(--slate-300);
+  }
+}

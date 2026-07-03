@@ -1,0 +1,55 @@
+/* Base globale : reset léger, thème, accessibilité. */
+
+:root {
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font: 400 16px/1.7 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--link);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+button {
+  font: 500 14px/1.5 var(--font-sans);
+}
+
+/* Lien d'évitement — visible uniquement au focus clavier */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 100;
+  padding: 9px 18px;
+  background: var(--bg-surface);
+  color: var(--link);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+
+  &:focus-visible {
+    top: 8px;
+  }
+}

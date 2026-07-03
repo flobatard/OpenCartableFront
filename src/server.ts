@@ -9,8 +9,23 @@ import { join } from 'node:path';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
+/**
+ * Protection SSRF : seuls les hôtes listés sont acceptés (en-tête Host).
+ * Le domaine n'étant connu qu'au déploiement, il se configure au runtime :
+ *   ALLOWED_HOSTS="cartable.example.org"   (séparés par des virgules)
+ * Derrière le reverse proxy de l'infra, autoriser les en-têtes X-Forwarded-* :
+ *   TRUST_PROXY_HEADERS="x-forwarded-host,x-forwarded-proto"
+ */
+const allowedHosts = (process.env['ALLOWED_HOSTS'] ?? 'localhost,127.0.0.1')
+  .split(',')
+  .map((host) => host.trim())
+  .filter(Boolean);
+const trustProxyHeaders = process.env['TRUST_PROXY_HEADERS']?.split(',')
+  .map((header) => header.trim())
+  .filter(Boolean);
+
 const app = express();
-const angularApp = new AngularNodeAppEngine();
+const angularApp = new AngularNodeAppEngine({ allowedHosts, trustProxyHeaders });
 
 /**
  * Example Express Rest API endpoints can be defined here.

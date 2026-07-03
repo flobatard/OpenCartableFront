@@ -1,0 +1,25 @@
+{
+  "header": {
+    "skipToContent": "Aller au contenu",
+    "home": "Accueil",
+    "themeToggle": "Activer le thème sombre",
+    "themeToggleDark": "Activer le thème clair",
+    "language": "Langue",
+    "login": "Se connecter",
+    "logout": "Se déconnecter"
+  },
+  "footer": {
+    "license": "Logiciel libre sous licence GNU AGPL v3",
+    "sourceCode": "Code source"
+  },
+  "home": {
+    "title": "OpenCartable",
+    "subtitle": "Composez vos cours, organisez vos ressources et partagez-les à vos élèves par simple lien — sans compte à créer.",
+    "cta": "Découvrir le projet",
+    "hint": "L'espace de composition arrive bientôt."
+  },
+  "auth": {
+    "signingIn": "Connexion en cours…",
+    "error": "La connexion n'a pas abouti. Réessayez depuis la page d'accueil."
+  }
+}

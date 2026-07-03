@@ -1,0 +1,134 @@
+/* Tokens du design system OpenCartable v1.2 — cf. DESIGN_SYSTEM.md §10.
+   Interface : AA · Contenu de cours (.course-content) : AAA. */
+
+:root {
+  /* Palette de base */
+  --indigo-900: #312e81;
+  --indigo-800: #3730a3;
+  --indigo-700: #4338ca;
+  --indigo-600: #4f46e5;
+  --indigo-500: #6366f1;
+  --indigo-400: #818cf8;
+  --indigo-300: #a5b4fc;
+  --indigo-100: #e0e7ff;
+  --indigo-50: #eef2ff;
+  --amber-800: #92400e;
+  --amber-700: #b45309;
+  --amber-500: #f59e0b;
+  --amber-400: #fbbf24;
+  --amber-100: #fef3c7;
+  --emerald-800: #065f46;
+  --emerald-700: #047857;
+  --emerald-500: #10b981;
+  --emerald-300: #6ee7b7;
+  --sky-800: #075985;
+  --sky-700: #0369a1;
+  --sky-500: #0ea5e9;
+  --sky-300: #7dd3fc;
+  --red-800: #991b1b;
+  --red-700: #b91c1c;
+  --red-500: #ef4444;
+  --red-300: #fca5a5;
+  --slate-900: #0f172a;
+  --slate-800: #1e293b;
+  --slate-700: #334155;
+  --slate-600: #475569;
+  --slate-500: #64748b;
+  --slate-400: #94a3b8;
+  --slate-300: #cbd5e1;
+  --slate-200: #e2e8f0;
+  --slate-100: #f1f5f9;
+  --slate-50: #f8fafc;
+
+  /* Interface — cible AA (clair) */
+  --color-primary: var(--indigo-600);
+  --color-primary-hover: var(--indigo-700);
+  --color-accent: var(--amber-500); /* aplat / liseré uniquement */
+  --bg-page: var(--slate-50);
+  --bg-surface: #ffffff;
+  --bg-subtle: var(--slate-100);
+  --text-primary: var(--slate-900);
+  --text-secondary: var(--slate-500); /* 4.76 AA */
+  --text-muted: var(--slate-400); /* désactivé / décoratif */
+  --link: var(--indigo-600); /* 6.29 AA */
+  --border: var(--slate-200); /* séparateur décoratif */
+  --border-control: var(--slate-500); /* contour porteur, 3:1 */
+  --focus-ring: var(--indigo-600);
+  --text-success: var(--emerald-700);
+  --text-info: var(--sky-700);
+  --text-warning: var(--amber-800);
+  --text-danger: var(--red-700);
+
+  /* Forme & typo */
+  --font-display: 'Outfit', system-ui, sans-serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-full: 999px;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+/* Contenu de cours — cible AAA (7:1) + présentation visuelle 1.4.8 */
+.course-content {
+  --text-secondary: var(--slate-600); /* 7.58 */
+  --link: var(--indigo-700); /* 7.90 */
+  --text-success: var(--emerald-800);
+  --text-info: var(--sky-800);
+  --text-warning: var(--amber-800);
+  --text-danger: var(--red-800);
+  max-width: 68ch;
+  line-height: 1.7;
+  text-align: left;
+}
+
+.course-content p {
+  margin-block: 0 1.5em;
+}
+
+/* Thème sombre */
+[data-theme='dark'] {
+  --color-primary: var(--indigo-500);
+  --color-primary-hover: var(--indigo-400);
+  --color-accent: var(--amber-400);
+  --bg-page: var(--slate-900);
+  --bg-surface: var(--slate-800);
+  --bg-subtle: var(--slate-700);
+  --text-primary: var(--slate-50);
+  --text-secondary: var(--slate-300); /* 9.85 */
+  --text-muted: var(--slate-500);
+  --link: var(--indigo-400); /* 4.90 AA */
+  --border: var(--slate-700);
+  --border-control: var(--slate-500);
+  --focus-ring: var(--indigo-400);
+  --text-success: var(--emerald-300);
+  --text-info: var(--sky-300);
+  --text-warning: var(--amber-400);
+  --text-danger: var(--red-300);
+}
+
+[data-theme='dark'] .course-content {
+  --text-secondary: var(--slate-300);
+  --link: var(--indigo-300); /* 7.34 */
+  --text-success: var(--emerald-300);
+  --text-info: var(--sky-300);
+  --text-danger: var(--red-300);
+}
+
+/* Focus visible — >=2px, >=3:1, partout (2.4.7 / 2.4.13) */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Mouvement réduit (2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

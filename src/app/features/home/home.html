@@ -1,0 +1,22 @@
+<section class="hero">
+  <img
+    class="hero__symbol hero__symbol--light"
+    src="opencartable-symbol.svg"
+    alt=""
+    width="72"
+    height="72"
+  />
+  <img
+    class="hero__symbol hero__symbol--dark"
+    src="opencartable-symbol-dark.svg"
+    alt=""
+    width="72"
+    height="72"
+  />
+  <h1 class="text-display">{{ 'home.title' | transloco }}</h1>
+  <p class="hero__subtitle">{{ 'home.subtitle' | transloco }}</p>
+  <a class="btn btn--primary" [href]="projectUrl" rel="noopener">
+    {{ 'home.cta' | transloco }}
+  </a>
+  <p class="hero__hint text-small">{{ 'home.hint' | transloco }}</p>
+</section>

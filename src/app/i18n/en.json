@@ -1,0 +1,25 @@
+{
+  "header": {
+    "skipToContent": "Skip to content",
+    "home": "Home",
+    "themeToggle": "Switch to dark theme",
+    "themeToggleDark": "Switch to light theme",
+    "language": "Language",
+    "login": "Sign in",
+    "logout": "Sign out"
+  },
+  "footer": {
+    "license": "Free software under the GNU AGPL v3 license",
+    "sourceCode": "Source code"
+  },
+  "home": {
+    "title": "OpenCartable",
+    "subtitle": "Compose your courses, organize your resources and share them with your students through a simple link — no account needed.",
+    "cta": "Discover the project",
+    "hint": "The course editor is coming soon."
+  },
+  "auth": {
+    "signingIn": "Signing you in…",
+    "error": "Sign-in did not complete. Try again from the home page."
+  }
+}

@@ -1,0 +1,66 @@
+/* Échelle typographique — cf. DESIGN_SYSTEM.md §5.
+   Titres : Outfit, tracking -0.02em · Corps/UI : Inter · Code : JetBrains Mono. */
+
+h1,
+h2,
+h3,
+h4,
+.text-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-block: 0 0.5em;
+}
+
+.text-display {
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+h3 {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+h4 {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.text-small {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.text-caption {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.text-micro {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--font-mono);
+}

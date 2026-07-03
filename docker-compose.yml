@@ -1,0 +1,15 @@
+# Le reverse proxy nginx (TLS, routage /api vers le backend) est fourni par
+# l'infra — hors périmètre de ce repo (cf. Descriptions.md §5.8).
+services:
+  front:
+    build: .
+    image: opencartable-front
+    ports:
+      - '4000:4000'
+    environment:
+      # Hôtes acceptés par la protection SSRF d'Angular SSR (en-tête Host).
+      # En production : le domaine public servi par le reverse proxy.
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      # Derrière le proxy, décommenter pour faire confiance aux en-têtes transmis :
+      # TRUST_PROXY_HEADERS: x-forwarded-host,x-forwarded-proto
+    restart: unless-stopped

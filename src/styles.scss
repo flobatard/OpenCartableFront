@@ -1,1 +1,7 @@
-/* You can add global styles to this file, and also import other style files */
+/* Les polices auto-hébergées (@fontsource) sont chargées via angular.json > styles
+   (RGPD : aucun appel à Google Fonts). */
+
+@use './styles/tokens';
+@use './styles/typography';
+@use './styles/base';
+@use './styles/components';
