@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
 import { langGuard } from './core/i18n/lang.guard';
 import { rootLangRedirect } from './core/i18n/root-redirect';
+import { onboardingGuard } from './core/users/onboarding.guard';
 
 export const routes: Routes = [
   {
@@ -28,8 +29,15 @@ export const routes: Routes = [
       {
         // Réservé au prof authentifié ; jamais rendu authentifié au serveur (cf. authGuard).
         path: 'subjects',
-        canActivate: [authGuard],
+        canActivate: [authGuard, onboardingGuard],
         loadComponent: () => import('./features/subjects/subjects').then((m) => m.Subjects),
+      },
+      {
+        // Onboarding bloquant post-login. PAS d'onboardingGuard ici (boucle) :
+        // le composant redirige lui-même si le profil est déjà complet.
+        path: 'onboarding',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/onboarding/onboarding').then((m) => m.Onboarding),
       },
       {
         path: '',

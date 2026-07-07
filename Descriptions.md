@@ -20,7 +20,9 @@ Un enseignant produit beaucoup de supports hétérogènes (PDF, images, schémas
 | Rôle | Authentification | Peut |
 |------|------------------|------|
 | **Prof** (toi) | OIDC / Zitadel | Créer / organiser / éditer cours, ressources et modules ; gérer les liens de partage |
-| **Élève** | Aucune (lien public) | Consulter un cours partagé, télécharger les documents, lancer les modules interactifs |
+| **Élève** | Optionnelle : aucune (lien public) ou compte OIDC / Zitadel | Consulter un cours partagé, télécharger les documents, lancer les modules interactifs — sans compte ; un compte (facultatif) porte un profil (système scolaire, niveaux, matières apprises) |
+
+Les rôles applicatifs sont **cumulables** : un même compte peut être prof *et* élève (ex. enseignant en reprise d'études). Tout compte passe par un **onboarding bloquant** à la première connexion (rôles → système scolaire → niveaux → matières, par contexte « enseigne »/« apprend »). L'accès par lien public reste le mode par défaut pour les élèves : le compte élève est une commodité de profil, jamais une condition d'accès aux cours partagés.
 
 ### Cas d'usage clés (user stories)
 - *En tant que prof*, je crée un cours « Suites numériques » et j'y agence un texte d'introduction, deux PDF, trois images et un quiz interactif, dans l'ordre que je veux.
@@ -105,8 +107,9 @@ C'est le cœur du projet. Chaque point ci-dessous est un vrai arbitrage à tranc
 ### 5.1 Authentification & double régime d'accès
 Le point structurant : **deux populations, deux modèles d'accès** sur la même API.
 - **Prof** : flow OIDC *Authorization Code + PKCE* entièrement géré **côté front** (client public Angular, pas de secret). Le back ne reçoit que le token : il ne fait **pas** de session, il valide le JWT Zitadel à chaque requête (signature via JWKS découvert depuis l'issuer, vérif `issuer` / `audience` / expiration) et lit les rôles dans les claims. Seuls deux réglages côté API : `OIDC_ISSUER` et `OIDC_AUDIENCE`.
-- **Élève** : **non authentifié**. L'accès est porté par un *token de partage* opaque (cf. 5.6), pas par une identité.
+- **Élève** : **non authentifié** pour la consultation. L'accès aux cours partagés est porté par un *token de partage* opaque (cf. 5.6), pas par une identité. Un élève *peut* toutefois créer un compte OIDC pour disposer d'un profil — cela ne change rien au régime d'accès aux liens publics.
 - Conséquence : des routes « admin » (JWT requis) et des routes « publiques » (token de partage requis) bien séparées, avec deux dépendances d'autorisation distinctes côté FastAPI.
+- **Comptes & profil** : le back auto-provisionne la ligne `users` (clé : `sub` OIDC) au premier `GET /api/v1/users/me` ; le front lit le flag `onboarding_complete` au retour du callback OIDC et redirige vers l'onboarding bloquant tant qu'il est faux (guard `onboardingGuard` sur les routes protégées). Les rôles applicatifs (`est_prof`/`est_eleve`, cumulables) vivent en base, indépendants des rôles Zitadel des claims.
 
 ### 5.2 Stockage & gestion des fichiers (S3)
 - **Bucket privé**, jamais exposé directement. L'API mint des **URL présignées** : `PUT` pour l'upload, `GET` (TTL court) pour la lecture/téléchargement.

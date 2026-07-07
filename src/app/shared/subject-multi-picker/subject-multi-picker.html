@@ -1,0 +1,22 @@
+<div class="subject-multi-picker">
+  <app-subject-picker [formControl]="picker" />
+
+  @if (chips().length) {
+    <ul class="subject-multi-picker__chips">
+      @for (node of chips(); track node.id) {
+        <li class="subject-multi-picker__chip-item">
+          <button
+            type="button"
+            class="subject-multi-picker__chip"
+            [disabled]="disabled()"
+            [attr.aria-label]="'subjects.multiPicker.remove' | transloco: { nom: node.nom }"
+            (click)="remove(node.id)"
+          >
+            <span class="subject-multi-picker__chip-nom">{{ node.nom }}</span>
+            <span class="subject-multi-picker__chip-x" aria-hidden="true">×</span>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>

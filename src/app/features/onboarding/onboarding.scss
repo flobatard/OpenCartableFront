@@ -1,0 +1,175 @@
+:host {
+  display: block;
+}
+
+.onboarding {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+}
+
+.onboarding__title {
+  margin: 0 0 4px;
+  color: var(--text-primary);
+}
+
+.onboarding__intro {
+  margin: 0 0 24px;
+  color: var(--text-secondary);
+}
+
+.onboarding__status {
+  color: var(--text-secondary);
+}
+
+.onboarding__error {
+  color: var(--text-danger);
+  margin: 12px 0;
+}
+
+/* Indicateur d'avancement : liste horizontale, étape courante soulignée. */
+.onboarding__steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.onboarding__step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.onboarding__step::before {
+  counter-increment: step;
+  content: counter(step);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg-subtle);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.onboarding__step--current {
+  border-bottom-color: var(--color-primary);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.onboarding__step--done {
+  color: var(--text-primary);
+}
+
+.onboarding__fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.onboarding__legend,
+.onboarding__step-title {
+  margin: 0 0 8px;
+  padding: 0;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.onboarding__hint {
+  margin: 0 0 16px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Cartes de rôle : deux grandes cibles cochables côte à côte. */
+.onboarding__role-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.onboarding__role-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    'checkbox title'
+    'checkbox hint';
+  column-gap: 10px;
+  padding: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.onboarding__role-card:has(.onboarding__role-checkbox:checked) {
+  border-color: var(--color-primary);
+  outline: 1px solid var(--color-primary);
+}
+
+.onboarding__role-checkbox {
+  grid-area: checkbox;
+  align-self: start;
+  width: 16px;
+  height: 16px;
+  margin: 3px 0 0;
+  accent-color: var(--color-primary);
+}
+
+.onboarding__role-title {
+  grid-area: title;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.onboarding__role-hint {
+  grid-area: hint;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.onboarding__radios {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.onboarding__radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.onboarding__radio:has(input:checked) {
+  border-color: var(--color-primary);
+  outline: 1px solid var(--color-primary);
+}
+
+.onboarding__radio input {
+  accent-color: var(--color-primary);
+}
+
+.onboarding__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}

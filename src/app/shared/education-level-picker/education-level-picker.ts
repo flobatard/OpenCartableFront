@@ -4,6 +4,7 @@ import {
   ElementRef,
   forwardRef,
   inject,
+  input,
   PLATFORM_ID,
   signal,
   viewChild,
@@ -44,6 +45,14 @@ let pickerUid = 0;
   ],
 })
 export class EducationLevelPicker implements ControlValueAccessor {
+  /**
+   * Restreint l'affichage aux arbres du système scolaire donné (`null` = tous).
+   * Filtre les racines : les enfants portent le système de leur racine. Une
+   * valeur d'un autre système reste préservée (contrat « ids inconnus ») —
+   * c'est au parent de la vider quand le système change.
+   */
+  readonly systeme = input<string | null>(null);
+
   readonly #levels = inject(EducationLevelService);
   readonly #host = inject<ElementRef<HTMLElement>>(ElementRef);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
@@ -58,8 +67,14 @@ export class EducationLevelPicker implements ControlValueAccessor {
 
   protected readonly panelId = `education-level-picker-${this.#uid}-panel`;
 
-  /** Lignes de l'arbre, toujours entièrement déplié (~22 nœuds). */
-  protected readonly rows = computed(() => flattenTree(this.tree()));
+  /** Racines visibles : tout l'arbre, ou celles du système demandé. */
+  readonly #filteredRoots = computed(() => {
+    const systeme = this.systeme();
+    return systeme ? this.tree().filter((root) => root.systeme === systeme) : this.tree();
+  });
+
+  /** Lignes de l'arbre, toujours entièrement déplié (~22 nœuds par système). */
+  protected readonly rows = computed(() => flattenTree(this.#filteredRoots()));
 
   protected readonly valueSet = computed(() => new Set(this.value()));
 

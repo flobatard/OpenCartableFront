@@ -74,3 +74,35 @@ export const EDUCATION_LEVELS_FIXTURE: EducationLevelNode[] = [
     ],
   },
 ];
+
+/** Arbre à deux systèmes scolaires (fr + uk) pour tester le filtrage par `systeme`. */
+export const EDUCATION_LEVELS_MULTI_SYSTEME_FIXTURE: EducationLevelNode[] = [
+  ...EDUCATION_LEVELS_FIXTURE,
+  {
+    id: 'uk-secondary',
+    parent_id: null,
+    nom: 'Secondary school',
+    code: 'uk.secondary',
+    systeme: 'uk',
+    cite: 2,
+    age_min: 11,
+    age_max: 16,
+    profondeur: 0,
+    position: 0,
+    children: [
+      {
+        id: 'uk-secondary-year7',
+        parent_id: 'uk-secondary',
+        nom: 'Year 7',
+        code: 'uk.secondary.year7',
+        systeme: 'uk',
+        cite: 2,
+        age_min: 11,
+        age_max: 12,
+        profondeur: 1,
+        position: 0,
+        children: [],
+      },
+    ],
+  },
+];

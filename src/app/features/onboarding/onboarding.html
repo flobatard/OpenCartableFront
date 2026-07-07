@@ -1,0 +1,141 @@
+<section class="onboarding">
+  <h1 class="onboarding__title">{{ 'onboarding.title' | transloco }}</h1>
+  <p class="onboarding__intro">{{ 'onboarding.intro' | transloco }}</p>
+
+  @if (loading()) {
+    <p class="onboarding__status" aria-live="polite">{{ 'onboarding.loading' | transloco }}</p>
+  } @else if (loadError()) {
+    <p class="onboarding__error">{{ 'onboarding.loadError' | transloco }}</p>
+    <button type="button" class="btn btn--secondary" (click)="loadProfile()">
+      {{ 'onboarding.retry' | transloco }}
+    </button>
+  } @else {
+    <ol class="onboarding__steps">
+      @for (step of steps(); track step; let i = $index) {
+        <li
+          class="onboarding__step"
+          [class.onboarding__step--current]="i === currentIndex()"
+          [class.onboarding__step--done]="i < currentIndex()"
+          [attr.aria-current]="i === currentIndex() ? 'step' : null"
+        >
+          {{ 'onboarding.steps.' + step | transloco }}
+        </li>
+      }
+    </ol>
+
+    <form class="onboarding__form" [formGroup]="form">
+      @switch (currentStep()) {
+        @case ('roles') {
+          <fieldset class="onboarding__fieldset">
+            <legend class="onboarding__legend">{{ 'onboarding.roles.legend' | transloco }}</legend>
+            <p class="onboarding__hint">{{ 'onboarding.roles.hint' | transloco }}</p>
+            <div class="onboarding__role-cards">
+              <label class="onboarding__role-card">
+                <input
+                  type="checkbox"
+                  class="onboarding__role-checkbox"
+                  [formControl]="form.controls.estProf"
+                />
+                <span class="onboarding__role-title">{{ 'onboarding.roles.prof' | transloco }}</span>
+                <span class="onboarding__role-hint">{{ 'onboarding.roles.profHint' | transloco }}</span>
+              </label>
+              <label class="onboarding__role-card">
+                <input
+                  type="checkbox"
+                  class="onboarding__role-checkbox"
+                  [formControl]="form.controls.estEleve"
+                />
+                <span class="onboarding__role-title">{{ 'onboarding.roles.eleve' | transloco }}</span>
+                <span class="onboarding__role-hint">{{ 'onboarding.roles.eleveHint' | transloco }}</span>
+              </label>
+            </div>
+          </fieldset>
+        }
+        @case ('systeme') {
+          <fieldset class="onboarding__fieldset">
+            <legend class="onboarding__legend">{{ 'onboarding.systeme.legend' | transloco }}</legend>
+            @if (levels.error()) {
+              <p class="onboarding__error">{{ 'onboarding.systeme.error' | transloco }}</p>
+              <button type="button" class="btn btn--secondary" (click)="levels.reload()">
+                {{ 'onboarding.retry' | transloco }}
+              </button>
+            } @else if (!systemes().length) {
+              <p class="onboarding__status" aria-live="polite">
+                {{ 'onboarding.systeme.loading' | transloco }}
+              </p>
+            } @else {
+              <div class="onboarding__radios">
+                @for (code of systemes(); track code) {
+                  <label class="onboarding__radio">
+                    <input
+                      type="radio"
+                      name="systeme"
+                      [checked]="systemeValue() === code"
+                      (change)="selectSysteme(code)"
+                    />
+                    <span>{{ systemeLabel(code) }}</span>
+                  </label>
+                }
+              </div>
+            }
+          </fieldset>
+        }
+        @case ('levelsTaught') {
+          <h2 class="onboarding__step-title">{{ 'onboarding.steps.levelsTaught' | transloco }}</h2>
+          <app-education-level-picker
+            [systeme]="systemeValue()"
+            [formControl]="form.controls.enseignement.controls.educationLevelIds"
+          />
+        }
+        @case ('subjectsTaught') {
+          <h2 class="onboarding__step-title">{{ 'onboarding.steps.subjectsTaught' | transloco }}</h2>
+          <app-subject-multi-picker [formControl]="form.controls.enseignement.controls.subjectIds" />
+        }
+        @case ('levelsLearned') {
+          <h2 class="onboarding__step-title">{{ 'onboarding.steps.levelsLearned' | transloco }}</h2>
+          <app-education-level-picker
+            [systeme]="systemeValue()"
+            [formControl]="form.controls.apprentissage.controls.educationLevelIds"
+          />
+        }
+        @case ('subjectsLearned') {
+          <h2 class="onboarding__step-title">{{ 'onboarding.steps.subjectsLearned' | transloco }}</h2>
+          <app-subject-multi-picker
+            [formControl]="form.controls.apprentissage.controls.subjectIds"
+          />
+        }
+      }
+
+      @if (submitError()) {
+        <p class="onboarding__error">{{ 'onboarding.submitError' | transloco }}</p>
+      }
+
+      <div class="onboarding__actions">
+        @if (currentIndex() > 0) {
+          <button type="button" class="btn btn--secondary" (click)="back()">
+            {{ 'onboarding.back' | transloco }}
+          </button>
+        }
+        @if (!isLast()) {
+          <button
+            type="button"
+            class="btn btn--primary"
+            [disabled]="!canProceed()"
+            (click)="next()"
+          >
+            {{ 'onboarding.next' | transloco }}
+          </button>
+        } @else {
+          <button
+            type="button"
+            class="btn btn--primary onboarding__submit"
+            [disabled]="!canProceed() || submitting()"
+            (click)="submit()"
+          >
+            {{ 'onboarding.submit' | transloco }}
+          </button>
+        }
+      </div>
+    </form>
+  }
+</section>

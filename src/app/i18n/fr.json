@@ -46,7 +46,56 @@
       "placeholder": "Choisir une matière",
       "searchPlaceholder": "Rechercher une matière…",
       "noResults": "Aucune matière trouvée."
+    },
+    "multiPicker": {
+      "remove": "Retirer {{ nom }}"
     }
+  },
+  "onboarding": {
+    "title": "Bienvenue sur OpenCartable",
+    "intro": "Quelques questions pour construire votre profil — deux minutes suffisent.",
+    "steps": {
+      "roles": "Vos rôles",
+      "systeme": "Système scolaire",
+      "levelsTaught": "Niveaux enseignés",
+      "subjectsTaught": "Matières enseignées",
+      "levelsLearned": "Niveaux étudiés",
+      "subjectsLearned": "Matières apprises"
+    },
+    "roles": {
+      "legend": "Que venez-vous faire ici ?",
+      "hint": "Les deux réponses peuvent être cochées.",
+      "prof": "J'enseigne",
+      "profHint": "Je compose des cours et je les partage à mes élèves.",
+      "eleve": "J'apprends",
+      "eleveHint": "Je suis des cours et je consulte des ressources."
+    },
+    "systeme": {
+      "legend": "Dans quel système scolaire ?",
+      "loading": "Chargement des systèmes scolaires…",
+      "error": "Impossible de charger les systèmes scolaires. Vérifiez votre connexion."
+    },
+    "systems": {
+      "fr": "France",
+      "de": "Allemagne",
+      "uk": "Royaume-Uni",
+      "es": "Espagne",
+      "it": "Italie",
+      "be": "Belgique",
+      "ch": "Suisse",
+      "nl": "Pays-Bas",
+      "pt": "Portugal",
+      "us": "États-Unis",
+      "ca": "Canada",
+      "ca-qc": "Canada (Québec)"
+    },
+    "back": "Précédent",
+    "next": "Suivant",
+    "submit": "Terminer",
+    "loading": "Chargement de votre profil…",
+    "loadError": "Impossible de charger votre profil. Vérifiez votre connexion.",
+    "submitError": "L'enregistrement n'a pas abouti. Réessayez.",
+    "retry": "Réessayer"
   },
   "educationLevels": {
     "picker": {

@@ -2,7 +2,10 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { EducationLevelPicker } from './education-level-picker';
 import { EducationLevelService } from '../../core/education-levels/education-level.service';
-import { EDUCATION_LEVELS_FIXTURE } from '../../testing/education-levels.fixture';
+import {
+  EDUCATION_LEVELS_FIXTURE,
+  EDUCATION_LEVELS_MULTI_SYSTEME_FIXTURE,
+} from '../../testing/education-levels.fixture';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
 
 describe('EducationLevelPicker', () => {
@@ -183,6 +186,26 @@ describe('EducationLevelPicker', () => {
     await fixture.whenStable();
 
     expect(el(fixture).querySelector('.education-level-picker__panel')).toBeNull();
+  });
+
+  it('filtre les racines par système scolaire via l’input systeme', async () => {
+    tree.set(EDUCATION_LEVELS_MULTI_SYSTEME_FIXTURE);
+    const fixture = await createComponent();
+    fixture.componentRef.setInput('systeme', 'uk');
+    await openPanel(fixture);
+
+    const labels = [
+      ...el(fixture).querySelectorAll('.education-level-picker__label'),
+    ].map((l) => l.textContent?.trim());
+    expect(labels).toEqual(['Secondary school', 'Year 7']);
+  });
+
+  it('sans input systeme, tous les systèmes sont affichés', async () => {
+    tree.set(EDUCATION_LEVELS_MULTI_SYSTEME_FIXTURE);
+    const fixture = await createComponent();
+    await openPanel(fixture);
+
+    expect(checkboxes(fixture)).toHaveLength(7); // 5 fr + 2 uk
   });
 
   it('affiche l’état vide quand l’arbre est vide', async () => {

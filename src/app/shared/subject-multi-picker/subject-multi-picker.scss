@@ -1,0 +1,45 @@
+:host {
+  display: block;
+}
+
+/* Chips des sélections — badge « matière » du DS §8 : indigo-50 / indigo-700,
+   radius 6, Inter 500 / 12 ; inversé en thème sombre (indigo-900 / indigo-100). */
+.subject-multi-picker__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.subject-multi-picker__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  background: var(--indigo-50);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--indigo-700);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+:host-context([data-theme='dark']) .subject-multi-picker__chip {
+  background: var(--indigo-900);
+  color: var(--indigo-100);
+}
+
+.subject-multi-picker__chip:disabled {
+  cursor: not-allowed;
+  color: var(--text-muted);
+}
+
+.subject-multi-picker__chip-x {
+  color: currentcolor;
+  opacity: 0.7;
+}
