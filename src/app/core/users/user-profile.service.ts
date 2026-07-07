@@ -68,7 +68,7 @@ export class UserProfileService {
    */
   async saveProfile(payload: OnboardingPayload): Promise<UserProfile> {
     const profile = await firstValueFrom(
-      this.#http.put<UserProfile>(`${this.#url}/onboarding`, payload),
+      this.#http.put<UserProfile>(`${this.#url}/profile`, payload),
     );
     this.#profile.set(profile);
     return profile;

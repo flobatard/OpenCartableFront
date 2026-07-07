@@ -70,7 +70,7 @@ describe('UserProfileService', () => {
     const updated = { ...USER_PROFILE_FIXTURE, onboarding_complete: true };
 
     const submit = service.saveProfile(payload);
-    const req = httpMock.expectOne(`${url}/onboarding`);
+    const req = httpMock.expectOne(`${url}/profile`);
     expect(req.request.method).toBe('PUT');
     expect(req.request.body).toEqual(payload);
     req.flush(updated);
