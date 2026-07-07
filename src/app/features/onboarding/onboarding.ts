@@ -1,12 +1,16 @@
 import { Component, computed, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { EducationLevelService } from '../../core/education-levels/education-level.service';
 import { LanguageService } from '../../core/i18n/language.service';
-import { OnboardingPayload } from '../../core/users/user-profile.model';
+import {
+  buildProfileForm,
+  payloadFromForm,
+  wireProfileFormCoherence,
+} from '../../core/users/profile-form';
 import { UserProfileService } from '../../core/users/user-profile.service';
 import { EducationLevelPicker } from '../../shared/education-level-picker/education-level-picker';
 import { SubjectMultiPicker } from '../../shared/subject-multi-picker/subject-multi-picker';
@@ -19,14 +23,6 @@ type OnboardingStep =
   | 'subjectsTaught'
   | 'levelsLearned'
   | 'subjectsLearned';
-
-/** Un bloc de sélections par contexte (enseigne / apprend). */
-function blocGroup() {
-  return new FormGroup({
-    educationLevelIds: new FormControl<string[]>([], { nonNullable: true }),
-    subjectIds: new FormControl<string[]>([], { nonNullable: true }),
-  });
-}
 
 /**
  * Onboarding bloquant post-login : rôles (cumulables) → système scolaire →
@@ -53,13 +49,7 @@ export class Onboarding implements OnInit {
 
   protected readonly levels = inject(EducationLevelService);
 
-  protected readonly form = new FormGroup({
-    estProf: new FormControl(false, { nonNullable: true }),
-    estEleve: new FormControl(false, { nonNullable: true }),
-    systeme: new FormControl<string | null>(null),
-    enseignement: blocGroup(),
-    apprentissage: blocGroup(),
-  });
+  protected readonly form = buildProfileForm();
 
   /** Miroir signal du formulaire (réactivité zoneless des computed/template). */
   readonly #formValue = toSignal(this.form.valueChanges, { initialValue: this.form.value });
@@ -117,22 +107,7 @@ export class Onboarding implements OnInit {
   });
 
   constructor() {
-    // Décocher un rôle vide ses sélections (ses étapes disparaissent).
-    this.form.controls.estProf.valueChanges.subscribe((estProf) => {
-      if (!estProf) {
-        this.form.controls.enseignement.reset();
-      }
-    });
-    this.form.controls.estEleve.valueChanges.subscribe((estEleve) => {
-      if (!estEleve) {
-        this.form.controls.apprentissage.reset();
-      }
-    });
-    // Changer de système invalide les niveaux choisis (ils lui appartiennent).
-    this.form.controls.systeme.valueChanges.subscribe(() => {
-      this.form.controls.enseignement.controls.educationLevelIds.setValue([]);
-      this.form.controls.apprentissage.controls.educationLevelIds.setValue([]);
-    });
+    wireProfileFormCoherence(this.form);
   }
 
   async ngOnInit(): Promise<void> {
@@ -187,26 +162,8 @@ export class Onboarding implements OnInit {
     }
     this.submitting.set(true);
     this.submitError.set(false);
-    const v = this.form.getRawValue();
-    const payload: OnboardingPayload = {
-      est_prof: v.estProf,
-      est_eleve: v.estEleve,
-      systeme_scolaire: v.systeme ?? '',
-      enseignement: v.estProf
-        ? {
-            education_level_ids: v.enseignement.educationLevelIds,
-            subject_ids: v.enseignement.subjectIds,
-          }
-        : null,
-      apprentissage: v.estEleve
-        ? {
-            education_level_ids: v.apprentissage.educationLevelIds,
-            subject_ids: v.apprentissage.subjectIds,
-          }
-        : null,
-    };
     try {
-      await this.#profiles.submitOnboarding(payload);
+      await this.#profiles.saveProfile(payloadFromForm(this.form));
       await this.#router.navigateByUrl(this.#target(), { replaceUrl: true });
     } catch {
       this.submitError.set(true);

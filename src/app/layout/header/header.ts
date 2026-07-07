@@ -4,10 +4,11 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
 import { APP_LANGS, LanguageService } from '../../core/i18n/language.service';
 import { ThemeService } from '../../core/theme/theme.service';
+import { UserMenu } from './user-menu';
 
 @Component({
   selector: 'app-header',
-  imports: [RouterLink, TranslocoPipe],
+  imports: [RouterLink, TranslocoPipe, UserMenu],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })
@@ -21,9 +22,5 @@ export class Header {
 
   protected login(): void {
     void this.auth.login(this.#router.url);
-  }
-
-  protected logout(): void {
-    void this.auth.logout();
   }
 }

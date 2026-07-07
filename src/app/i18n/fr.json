@@ -6,7 +6,9 @@
     "themeToggleDark": "Activer le thème clair",
     "language": "Langue",
     "login": "Se connecter",
-    "logout": "Se déconnecter"
+    "logout": "Se déconnecter",
+    "profile": "Mon profil",
+    "userMenu": "Menu utilisateur"
   },
   "footer": {
     "license": "Logiciel libre sous licence GNU AGPL v3",
@@ -50,6 +52,18 @@
     "multiPicker": {
       "remove": "Retirer {{ nom }}"
     }
+  },
+  "profile": {
+    "title": "Mon profil",
+    "intro": "Vos rôles, votre système scolaire et vos matières — modifiables à tout moment.",
+    "loading": "Chargement de votre profil…",
+    "loadError": "Impossible de charger votre profil. Vérifiez votre connexion.",
+    "retry": "Réessayer",
+    "teachingSection": "Mon enseignement",
+    "learningSection": "Mon apprentissage",
+    "save": "Enregistrer",
+    "saveSuccess": "Profil enregistré.",
+    "saveError": "L'enregistrement n'a pas abouti. Réessayez."
   },
   "onboarding": {
     "title": "Bienvenue sur OpenCartable",

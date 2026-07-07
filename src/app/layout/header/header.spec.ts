@@ -66,7 +66,7 @@ describe('Header', () => {
     expect(localStorage.getItem('oc-lang')).toBe('en');
   });
 
-  it('affiche le nom du prof et la déconnexion une fois authentifié', async () => {
+  it('affiche le menu utilisateur une fois authentifié', async () => {
     isAuthenticated.set(true);
     displayName.set('Prof');
 
@@ -74,8 +74,15 @@ describe('Header', () => {
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
 
-    expect(el.textContent).toContain('Prof');
-    expect(el.textContent).toContain('Se déconnecter');
+    const trigger = el.querySelector<HTMLButtonElement>('.user-menu__trigger');
+    expect(trigger?.textContent).toContain('Prof');
     expect(el.textContent).not.toContain('Se connecter');
+    // La déconnexion vit dans le menu, fermé par défaut.
+    expect(el.textContent).not.toContain('Se déconnecter');
+
+    trigger?.click();
+    await fixture.whenStable();
+    expect(el.textContent).toContain('Mon profil');
+    expect(el.textContent).toContain('Se déconnecter');
   });
 });

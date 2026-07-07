@@ -6,7 +6,9 @@
     "themeToggleDark": "Switch to light theme",
     "language": "Language",
     "login": "Sign in",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "profile": "My profile",
+    "userMenu": "User menu"
   },
   "footer": {
     "license": "Free software under the GNU AGPL v3 license",
@@ -50,6 +52,18 @@
     "multiPicker": {
       "remove": "Remove {{ nom }}"
     }
+  },
+  "profile": {
+    "title": "My profile",
+    "intro": "Your roles, school system and subjects — editable at any time.",
+    "loading": "Loading your profile…",
+    "loadError": "Could not load your profile. Check your connection.",
+    "retry": "Retry",
+    "teachingSection": "My teaching",
+    "learningSection": "My learning",
+    "save": "Save",
+    "saveSuccess": "Profile saved.",
+    "saveError": "Saving did not complete. Try again."
   },
   "onboarding": {
     "title": "Welcome to OpenCartable",

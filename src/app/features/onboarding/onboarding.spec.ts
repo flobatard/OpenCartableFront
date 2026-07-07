@@ -34,7 +34,7 @@ describe('Onboarding', () => {
   };
 
   let ensureLoaded: ReturnType<typeof vi.fn>;
-  let submitOnboarding: ReturnType<typeof vi.fn>;
+  let saveProfile: ReturnType<typeof vi.fn>;
   let navigateByUrl: ReturnType<typeof vi.fn>;
 
   async function createComponent(next: string | null = '/fr/subjects') {
@@ -44,7 +44,7 @@ describe('Onboarding', () => {
         provideRouter([]),
         { provide: EducationLevelService, useValue: levelsMock },
         { provide: SubjectService, useValue: subjectsMock },
-        { provide: UserProfileService, useValue: { ensureLoaded, submitOnboarding } },
+        { provide: UserProfileService, useValue: { ensureLoaded, saveProfile } },
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { queryParamMap: convertToParamMap(next ? { next } : {}) } },
@@ -121,7 +121,7 @@ describe('Onboarding', () => {
 
   beforeEach(() => {
     ensureLoaded = vi.fn().mockResolvedValue(USER_PROFILE_FIXTURE);
-    submitOnboarding = vi.fn().mockResolvedValue(USER_PROFILE_ONBOARDED_FIXTURE);
+    saveProfile = vi.fn().mockResolvedValue(USER_PROFILE_ONBOARDED_FIXTURE);
     levelsMock.tree.set(EDUCATION_LEVELS_MULTI_SYSTEME_FIXTURE);
     levelsMock.error.set(false);
     vi.clearAllMocks();
@@ -216,7 +216,7 @@ describe('Onboarding', () => {
     primaryButton(fixture).click(); // Terminer
     await fixture.whenStable();
 
-    expect(submitOnboarding).toHaveBeenCalledWith({
+    expect(saveProfile).toHaveBeenCalledWith({
       est_prof: true,
       est_eleve: true,
       systeme_scolaire: 'fr',
@@ -248,7 +248,7 @@ describe('Onboarding', () => {
   });
 
   it('affiche l’erreur de soumission et reste sur la page', async () => {
-    submitOnboarding.mockRejectedValue(new Error('down'));
+    saveProfile.mockRejectedValue(new Error('down'));
     const fixture = await createComponent();
 
     await checkRole(fixture, 0);

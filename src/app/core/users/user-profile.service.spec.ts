@@ -59,7 +59,7 @@ describe('UserProfileService', () => {
     expect(await retry).toEqual(USER_PROFILE_FIXTURE);
   });
 
-  it('submitOnboarding fait un PUT et remplace le signal', async () => {
+  it('saveProfile fait un PUT et remplace le signal', async () => {
     const payload: OnboardingPayload = {
       est_prof: true,
       est_eleve: false,
@@ -69,7 +69,7 @@ describe('UserProfileService', () => {
     };
     const updated = { ...USER_PROFILE_FIXTURE, onboarding_complete: true };
 
-    const submit = service.submitOnboarding(payload);
+    const submit = service.saveProfile(payload);
     const req = httpMock.expectOne(`${url}/onboarding`);
     expect(req.request.method).toBe('PUT');
     expect(req.request.body).toEqual(payload);

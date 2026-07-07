@@ -1,0 +1,148 @@
+:host {
+  display: block;
+}
+
+.profile {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+}
+
+.profile__title {
+  margin: 0 0 4px;
+  color: var(--text-primary);
+}
+
+.profile__intro {
+  margin: 0 0 24px;
+  color: var(--text-secondary);
+}
+
+.profile__status {
+  color: var(--text-secondary);
+}
+
+.profile__error {
+  color: var(--text-danger);
+  margin: 12px 0;
+}
+
+.profile__success {
+  color: var(--text-secondary);
+  margin: 12px 0;
+}
+
+.profile__fieldset {
+  margin: 0 0 28px;
+  padding: 0;
+  border: 0;
+}
+
+.profile__legend {
+  margin: 0 0 8px;
+  padding: 0;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.profile__section-title {
+  margin: 16px 0 8px;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.profile__hint {
+  margin: 0 0 16px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Cartes de rôle : deux grandes cibles cochables côte à côte. */
+.profile__role-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.profile__role-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    'checkbox title'
+    'checkbox hint';
+  column-gap: 10px;
+  padding: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.profile__role-card:has(.profile__role-checkbox:checked) {
+  border-color: var(--color-primary);
+  outline: 1px solid var(--color-primary);
+}
+
+.profile__role-checkbox {
+  grid-area: checkbox;
+  align-self: start;
+  width: 16px;
+  height: 16px;
+  margin: 3px 0 0;
+  accent-color: var(--color-primary);
+}
+
+.profile__role-title {
+  grid-area: title;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.profile__role-hint {
+  grid-area: hint;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.profile__radios {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.profile__radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.profile__radio:has(input:checked) {
+  border-color: var(--color-primary);
+  outline: 1px solid var(--color-primary);
+}
+
+.profile__radio input {
+  accent-color: var(--color-primary);
+}
+
+.profile__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.profile__actions .profile__success,
+.profile__actions .profile__error {
+  margin: 0;
+}

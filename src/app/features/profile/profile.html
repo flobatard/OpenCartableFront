@@ -1,0 +1,121 @@
+<section class="profile">
+  <h1 class="profile__title">{{ 'profile.title' | transloco }}</h1>
+  <p class="profile__intro">{{ 'profile.intro' | transloco }}</p>
+
+  @if (loading()) {
+    <p class="profile__status" aria-live="polite">{{ 'profile.loading' | transloco }}</p>
+  } @else if (loadError()) {
+    <p class="profile__error">{{ 'profile.loadError' | transloco }}</p>
+    <button type="button" class="btn btn--secondary" (click)="loadProfile()">
+      {{ 'profile.retry' | transloco }}
+    </button>
+  } @else {
+    <form class="profile__form" [formGroup]="form">
+      <fieldset class="profile__fieldset">
+        <legend class="profile__legend">{{ 'onboarding.roles.legend' | transloco }}</legend>
+        <p class="profile__hint">{{ 'onboarding.roles.hint' | transloco }}</p>
+        <div class="profile__role-cards">
+          <label class="profile__role-card">
+            <input
+              type="checkbox"
+              class="profile__role-checkbox"
+              [formControl]="form.controls.estProf"
+            />
+            <span class="profile__role-title">{{ 'onboarding.roles.prof' | transloco }}</span>
+            <span class="profile__role-hint">{{ 'onboarding.roles.profHint' | transloco }}</span>
+          </label>
+          <label class="profile__role-card">
+            <input
+              type="checkbox"
+              class="profile__role-checkbox"
+              [formControl]="form.controls.estEleve"
+            />
+            <span class="profile__role-title">{{ 'onboarding.roles.eleve' | transloco }}</span>
+            <span class="profile__role-hint">{{ 'onboarding.roles.eleveHint' | transloco }}</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="profile__fieldset">
+        <legend class="profile__legend">{{ 'onboarding.systeme.legend' | transloco }}</legend>
+        @if (levels.error()) {
+          <p class="profile__error">{{ 'onboarding.systeme.error' | transloco }}</p>
+          <button type="button" class="btn btn--secondary" (click)="levels.reload()">
+            {{ 'profile.retry' | transloco }}
+          </button>
+        } @else if (!systemes().length) {
+          <p class="profile__status" aria-live="polite">
+            {{ 'onboarding.systeme.loading' | transloco }}
+          </p>
+        } @else {
+          <div class="profile__radios">
+            @for (code of systemes(); track code) {
+              <label class="profile__radio">
+                <input
+                  type="radio"
+                  name="systeme"
+                  [checked]="systemeValue() === code"
+                  (change)="selectSysteme(code)"
+                />
+                <span>{{ systemeLabel(code) }}</span>
+              </label>
+            }
+          </div>
+        }
+      </fieldset>
+
+      @if (estProf()) {
+        <fieldset class="profile__fieldset">
+          <legend class="profile__legend">{{ 'profile.teachingSection' | transloco }}</legend>
+          <h2 class="profile__section-title">{{ 'onboarding.steps.levelsTaught' | transloco }}</h2>
+          <app-education-level-picker
+            [systeme]="systemeValue()"
+            [formControl]="form.controls.enseignement.controls.educationLevelIds"
+          />
+          <h2 class="profile__section-title">
+            {{ 'onboarding.steps.subjectsTaught' | transloco }}
+          </h2>
+          <app-subject-multi-picker
+            [formControl]="form.controls.enseignement.controls.subjectIds"
+          />
+        </fieldset>
+      }
+
+      @if (estEleve()) {
+        <fieldset class="profile__fieldset">
+          <legend class="profile__legend">{{ 'profile.learningSection' | transloco }}</legend>
+          <h2 class="profile__section-title">
+            {{ 'onboarding.steps.levelsLearned' | transloco }}
+          </h2>
+          <app-education-level-picker
+            [systeme]="systemeValue()"
+            [formControl]="form.controls.apprentissage.controls.educationLevelIds"
+          />
+          <h2 class="profile__section-title">
+            {{ 'onboarding.steps.subjectsLearned' | transloco }}
+          </h2>
+          <app-subject-multi-picker
+            [formControl]="form.controls.apprentissage.controls.subjectIds"
+          />
+        </fieldset>
+      }
+
+      <div class="profile__actions">
+        @if (saveSuccess()) {
+          <p class="profile__success" aria-live="polite">{{ 'profile.saveSuccess' | transloco }}</p>
+        }
+        @if (saveError()) {
+          <p class="profile__error">{{ 'profile.saveError' | transloco }}</p>
+        }
+        <button
+          type="button"
+          class="btn btn--primary profile__save"
+          [disabled]="!canSave()"
+          (click)="save()"
+        >
+          {{ 'profile.save' | transloco }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

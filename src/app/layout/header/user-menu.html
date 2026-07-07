@@ -1,0 +1,37 @@
+<div class="user-menu" (keydown.escape)="onEscape()" (focusout)="onFocusOut($event)">
+  <button
+    #menuTrigger
+    type="button"
+    class="user-menu__trigger"
+    aria-haspopup="menu"
+    [attr.aria-expanded]="open()"
+    [attr.aria-controls]="open() ? menuId : null"
+    (click)="toggle()"
+    (keydown)="onTriggerKeydown($event)"
+  >
+    <span class="user-menu__name text-small">{{ auth.displayName() }}</span>
+    <span class="user-menu__caret" aria-hidden="true">▾</span>
+  </button>
+
+  @if (open()) {
+    <div
+      class="user-menu__panel"
+      [id]="menuId"
+      role="menu"
+      [attr.aria-label]="'header.userMenu' | transloco"
+      (keydown)="onMenuKeydown($event)"
+    >
+      <a
+        class="user-menu__item"
+        role="menuitem"
+        [routerLink]="['/', language.lang(), 'profile']"
+        (click)="closeMenu()"
+      >
+        {{ 'header.profile' | transloco }}
+      </a>
+      <button type="button" class="user-menu__item" role="menuitem" (click)="logout()">
+        {{ 'header.logout' | transloco }}
+      </button>
+    </div>
+  }
+</div>

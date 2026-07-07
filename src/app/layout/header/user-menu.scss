@@ -1,0 +1,65 @@
+:host {
+  display: block;
+}
+
+/* Ancre du panneau : il se positionne sous le déclencheur. */
+.user-menu {
+  position: relative;
+}
+
+/* Déclencheur façon .btn--ghost : le nom de l'utilisateur + caret. */
+.user-menu__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.user-menu__trigger:hover {
+  background: var(--bg-subtle);
+}
+
+.user-menu__caret {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.user-menu__panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 180px;
+  padding: 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.user-menu__item {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.user-menu__item:hover {
+  background: var(--bg-subtle);
+}

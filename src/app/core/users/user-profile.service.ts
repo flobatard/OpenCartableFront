@@ -62,8 +62,11 @@ export class UserProfileService {
     return this.#inflight;
   }
 
-  /** Soumet l'onboarding ; la réponse (profil à jour) remplace le signal. */
-  async submitOnboarding(payload: OnboardingPayload): Promise<UserProfile> {
+  /**
+   * Soumet l'onboarding initial OU une édition du profil (le PUT a une
+   * sémantique de remplacement complet) ; la réponse remplace le signal.
+   */
+  async saveProfile(payload: OnboardingPayload): Promise<UserProfile> {
     const profile = await firstValueFrom(
       this.#http.put<UserProfile>(`${this.#url}/onboarding`, payload),
     );

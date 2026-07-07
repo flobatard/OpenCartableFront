@@ -52,10 +52,7 @@
     </button>
 
     @if (auth.isAuthenticated()) {
-      <span class="header__user text-small">{{ auth.displayName() }}</span>
-      <button type="button" class="btn btn--secondary" (click)="logout()">
-        {{ 'header.logout' | transloco }}
-      </button>
+      <app-user-menu />
     } @else {
       <button type="button" class="btn btn--secondary" (click)="login()">
         {{ 'header.login' | transloco }}

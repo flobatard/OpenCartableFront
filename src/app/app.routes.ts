@@ -40,6 +40,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/onboarding/onboarding').then((m) => m.Onboarding),
       },
       {
+        // Consultation/édition du profil — suppose l'onboarding terminé.
+        path: 'profile',
+        canActivate: [authGuard, onboardingGuard],
+        loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
+      },
+      {
         path: '',
         pathMatch: 'full',
         redirectTo: 'home',
