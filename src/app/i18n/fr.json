@@ -47,5 +47,14 @@
       "searchPlaceholder": "Rechercher une matière…",
       "noResults": "Aucune matière trouvée."
     }
+  },
+  "educationLevels": {
+    "picker": {
+      "placeholder": "Choisir des niveaux",
+      "selectedCount": "{{ count }} niveau(x) sélectionné(s)",
+      "listLabel": "Niveaux d'étude",
+      "remove": "Retirer {{ nom }}",
+      "empty": "Aucun niveau à afficher."
+    }
   }
 }

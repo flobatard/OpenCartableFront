@@ -1,0 +1,84 @@
+<div
+  class="education-level-picker"
+  [class.education-level-picker--open]="open()"
+  (focusout)="onFocusOut($event)"
+  (keydown.escape)="onEscape()"
+>
+  <div class="education-level-picker__control">
+    <button
+      #fieldBox
+      type="button"
+      class="education-level-picker__field"
+      [class.education-level-picker__field--empty]="!value().length"
+      [attr.aria-expanded]="open()"
+      [attr.aria-controls]="open() ? panelId : null"
+      [disabled]="disabled()"
+      (click)="toggle()"
+    >
+      <span class="education-level-picker__text">
+        @if (value().length) {
+          {{ 'educationLevels.picker.selectedCount' | transloco: { count: value().length } }}
+        } @else {
+          {{ 'educationLevels.picker.placeholder' | transloco }}
+        }
+      </span>
+      <span class="education-level-picker__caret" aria-hidden="true">▾</span>
+    </button>
+
+    @if (open()) {
+      <div
+        class="education-level-picker__panel"
+        [id]="panelId"
+        role="group"
+        [attr.aria-label]="'educationLevels.picker.listLabel' | transloco"
+      >
+        @if (rows().length) {
+          <ul class="education-level-picker__list">
+            @for (row of rows(); track row.node.id) {
+              <li
+                class="education-level-picker__row"
+                [class.education-level-picker__row--cycle]="row.depth === 0"
+                [style.padding-left.px]="8 + row.depth * 18"
+              >
+                <input
+                  type="checkbox"
+                  class="education-level-picker__checkbox"
+                  [id]="domId(row.node)"
+                  [checked]="valueSet().has(row.node.id)"
+                  [disabled]="disabled()"
+                  (change)="toggleValue(row.node)"
+                />
+                <label class="education-level-picker__label" [for]="domId(row.node)">
+                  {{ row.node.nom }}
+                </label>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="education-level-picker__empty">
+            {{ 'educationLevels.picker.empty' | transloco }}
+          </p>
+        }
+      </div>
+    }
+  </div>
+
+  @if (chips().length) {
+    <ul class="education-level-picker__chips">
+      @for (node of chips(); track node.id) {
+        <li class="education-level-picker__chip-item">
+          <button
+            type="button"
+            class="education-level-picker__chip"
+            [disabled]="disabled()"
+            [attr.aria-label]="'educationLevels.picker.remove' | transloco: { nom: node.nom }"
+            (click)="toggleValue(node)"
+          >
+            <span class="education-level-picker__chip-nom">{{ node.nom }}</span>
+            <span class="education-level-picker__chip-x" aria-hidden="true">×</span>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>

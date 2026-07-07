@@ -123,7 +123,7 @@ Pour « agencer texte de cours + documents + images », le modèle gagnant est u
 
 ### 5.4 Recherche
 - MVP : **Full-Text Search Postgres** (`tsvector` + index GIN) sur titres de cours, texte des blocs, noms et tags de ressources. Configuration `french` pour le *stemming*.
-- Facettes : matière, niveau, type de ressource (filtres SQL classiques).
+- Facettes : matière (filtre par sous-arbre `subjects`), niveau (filtre par sous-arbre `education_levels`, pivot international `cite`), type de ressource (filtres SQL classiques).
 - Évolution : recherche **sémantique** via ChromaDB si la vectorisation est actée (cf. 5.7), combinable avec la FTS (recherche hybride).
 
 ### 5.5 Modules interactifs HTML/JS
@@ -157,6 +157,8 @@ Le point le plus sensible niveau sécurité : tu vas servir du **code arbitraire
 ```mermaid
 erDiagram
     SUBJECT ||--o{ COURSE : contient
+    EDUCATION_LEVEL ||--o{ EDUCATION_LEVEL : contient
+    COURSE  }o--o{ EDUCATION_LEVEL : vise
     COURSE  ||--o{ BLOCK : ordonne
     COURSE  ||--o{ RESOURCE : rassemble
     BLOCK   }o--o| RESOURCE : reference
@@ -167,10 +169,17 @@ erDiagram
       uuid id
       string nom
     }
+    EDUCATION_LEVEL {
+      uuid id
+      uuid parent_id
+      string nom
+      string code
+      string systeme
+      int cite
+    }
     COURSE {
       uuid id
       string titre
-      string niveau
       tsvector search_vector
       timestamptz updated_at
     }
@@ -200,6 +209,8 @@ erDiagram
       bool revoked
     }
 ```
+
+`EDUCATION_LEVEL` : classification hiérarchique des niveaux d'étude (cycle → classe, un arbre par système scolaire `systeme` ; pivots internationaux `cite` CITE/ISCED 2011 et âges). Servie par `GET /api/v1/education-levels/tree`, consommée côté front par `EducationLevelService` et le composant multi-sélection `EducationLevelPicker`. Le lien cours ↔ niveaux (M2M, remplace l'ancien champ texte `niveau` de COURSE) n'est pas encore implémenté.
 
 ---
 

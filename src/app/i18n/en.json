@@ -47,5 +47,14 @@
       "searchPlaceholder": "Search for a subject…",
       "noResults": "No subject found."
     }
+  },
+  "educationLevels": {
+    "picker": {
+      "placeholder": "Choose levels",
+      "selectedCount": "{{ count }} level(s) selected",
+      "listLabel": "Education levels",
+      "remove": "Remove {{ nom }}",
+      "empty": "No levels to display."
+    }
   }
 }
