@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
 import { APP_LANGS, LanguageService } from '../../core/i18n/language.service';
@@ -8,7 +8,7 @@ import { UserMenu } from './user-menu';
 
 @Component({
   selector: 'app-header',
-  imports: [RouterLink, TranslocoPipe, UserMenu],
+  imports: [RouterLink, RouterLinkActive, TranslocoPipe, UserMenu],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })

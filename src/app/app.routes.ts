@@ -46,6 +46,27 @@ export const routes: Routes = [
         loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
       },
       {
+        // Espace prof « Mes cours » : liste des cours, entrée vers création et blocs.
+        path: 'courses',
+        canActivate: [authGuard, onboardingGuard],
+        loadComponent: () =>
+          import('./features/courses/course-list/course-list').then((m) => m.CourseList),
+      },
+      {
+        // Déclaré avant `courses/:id` : « new » doit matcher le segment littéral.
+        path: 'courses/new',
+        canActivate: [authGuard, onboardingGuard],
+        loadComponent: () =>
+          import('./features/courses/course-create/course-create').then((m) => m.CourseCreate),
+      },
+      {
+        // Espace blocs d'un cours (structure seule ; les éditeurs de contenu viendront).
+        path: 'courses/:id',
+        canActivate: [authGuard, onboardingGuard],
+        loadComponent: () =>
+          import('./features/courses/course-blocks/course-blocks').then((m) => m.CourseBlocks),
+      },
+      {
         path: '',
         pathMatch: 'full',
         redirectTo: 'home',

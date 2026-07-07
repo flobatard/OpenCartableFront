@@ -2,6 +2,8 @@
   "header": {
     "skipToContent": "Skip to content",
     "home": "Home",
+    "nav": "Main navigation",
+    "myCourses": "My courses",
     "themeToggle": "Switch to dark theme",
     "themeToggleDark": "Switch to light theme",
     "language": "Language",
@@ -51,6 +53,53 @@
     },
     "multiPicker": {
       "remove": "Remove {{ nom }}"
+    }
+  },
+  "courses": {
+    "list": {
+      "title": "My courses",
+      "create": "Create a course",
+      "loading": "Loading your courses…",
+      "error": "Could not load your courses. Check your connection.",
+      "retry": "Retry",
+      "empty": "Compose your first course",
+      "emptyHint": "Create a course, then add text, exercises and links to it.",
+      "blockCount": "{{ count }} block(s)",
+      "updated": "Updated on {{ date }}"
+    },
+    "create": {
+      "title": "Create a course",
+      "titleLabel": "Title",
+      "titlePlaceholder": "E.g. Number sequences",
+      "descriptionLabel": "Description",
+      "descriptionHint": "Optional — a short introduction to the course.",
+      "subjectsLabel": "Subjects",
+      "levelsLabel": "Levels",
+      "submit": "Create the course",
+      "cancel": "Cancel",
+      "error": "Creation did not complete. Try again."
+    },
+    "blocks": {
+      "back": "My courses",
+      "loading": "Loading the course…",
+      "loadError": "Could not load the course. Check your connection.",
+      "retry": "Retry",
+      "empty": "Add your first block",
+      "emptyHint": "Pick a block type below to get started.",
+      "add": "Add a block",
+      "types": {
+        "texte": "Text",
+        "exercice": "Exercise",
+        "ressource": "Resource",
+        "lien": "Link"
+      },
+      "resourceSoon": "Coming soon — file uploads arrive with storage.",
+      "moveUp": "Move block {{ position }} up",
+      "moveDown": "Move block {{ position }} down",
+      "delete": "Delete",
+      "confirmDelete": "Confirm deletion",
+      "emptyExcerpt": "Empty block",
+      "mutationError": "The operation did not complete. Try again."
     }
   },
   "profile": {

@@ -1,0 +1,121 @@
+<section class="course-blocks">
+  <a class="course-blocks__back" [routerLink]="['/', language.lang(), 'courses']">
+    ← {{ 'courses.blocks.back' | transloco }}
+  </a>
+
+  @if (loading()) {
+    <ul class="course-blocks__skeleton" aria-hidden="true">
+      @for (row of [0, 1, 2, 3]; track row) {
+        <li class="course-blocks__skeleton-row"></li>
+      }
+    </ul>
+    <p class="course-blocks__status" role="status">{{ 'courses.blocks.loading' | transloco }}</p>
+  } @else if (loadError()) {
+    <div class="course-blocks__error" role="alert">
+      <p>{{ 'courses.blocks.loadError' | transloco }}</p>
+      <button type="button" class="btn btn--primary" (click)="reload()">
+        {{ 'courses.blocks.retry' | transloco }}
+      </button>
+    </div>
+  } @else {
+    @if (detail(); as course) {
+      <header class="course-blocks__head">
+        <h1 class="course-blocks__title">{{ course.titre }}</h1>
+        @if (subjectNames(course.subject_ids).length || levelNames(course.education_level_ids).length) {
+          <ul class="course-blocks__badges">
+            @for (nom of subjectNames(course.subject_ids); track nom) {
+              <li class="course-blocks__badge course-blocks__badge--subject">{{ nom }}</li>
+            }
+            @for (nom of levelNames(course.education_level_ids); track nom) {
+              <li class="course-blocks__badge course-blocks__badge--level">{{ nom }}</li>
+            }
+          </ul>
+        }
+      </header>
+
+      @if (!course.blocks.length) {
+        <div class="course-blocks__empty">
+          <p class="course-blocks__empty-title">{{ 'courses.blocks.empty' | transloco }}</p>
+          <p class="course-blocks__empty-hint">{{ 'courses.blocks.emptyHint' | transloco }}</p>
+        </div>
+      } @else {
+        <ul class="course-blocks__list">
+          @for (block of course.blocks; track block.id; let idx = $index, first = $first, last = $last) {
+            <li class="course-blocks__row">
+              <span class="course-blocks__type">
+                {{ 'courses.blocks.types.' + block.type | transloco }}
+              </span>
+              <span
+                class="course-blocks__excerpt"
+                [class.course-blocks__excerpt--empty]="!excerpt(block)"
+              >
+                {{ excerpt(block) || ('courses.blocks.emptyExcerpt' | transloco) }}
+              </span>
+              <div class="course-blocks__actions">
+                <button
+                  type="button"
+                  class="btn btn--ghost course-blocks__move"
+                  [disabled]="first || mutating()"
+                  [attr.aria-label]="'courses.blocks.moveUp' | transloco: { position: idx + 1 }"
+                  (click)="move(block, -1)"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  class="btn btn--ghost course-blocks__move"
+                  [disabled]="last || mutating()"
+                  [attr.aria-label]="'courses.blocks.moveDown' | transloco: { position: idx + 1 }"
+                  (click)="move(block, 1)"
+                >
+                  ↓
+                </button>
+                <button
+                  type="button"
+                  class="btn btn--ghost course-blocks__delete"
+                  [class.course-blocks__delete--armed]="pendingDelete() === block.id"
+                  [disabled]="mutating()"
+                  (click)="remove(block)"
+                  (blur)="disarmDelete()"
+                >
+                  {{
+                    (pendingDelete() === block.id
+                      ? 'courses.blocks.confirmDelete'
+                      : 'courses.blocks.delete'
+                    ) | transloco
+                  }}
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+
+      @if (mutationError()) {
+        <p class="course-blocks__mutation-error" role="alert">
+          {{ 'courses.blocks.mutationError' | transloco }}
+        </p>
+      }
+
+      <section class="course-blocks__add">
+        <h2 class="course-blocks__add-title">{{ 'courses.blocks.add' | transloco }}</h2>
+        <div class="course-blocks__add-buttons">
+          @for (type of creatableTypes; track type) {
+            <button
+              type="button"
+              class="btn btn--secondary"
+              [disabled]="mutating()"
+              (click)="add(type)"
+            >
+              {{ 'courses.blocks.types.' + type | transloco }}
+            </button>
+          }
+          <button type="button" class="btn btn--secondary" disabled>
+            {{ 'courses.blocks.types.ressource' | transloco }}
+          </button>
+        </div>
+        <p class="course-blocks__add-hint">{{ 'courses.blocks.resourceSoon' | transloco }}</p>
+      </section>
+    }
+  }
+</section>

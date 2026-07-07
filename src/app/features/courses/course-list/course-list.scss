@@ -1,0 +1,181 @@
+:host {
+  display: block;
+}
+
+.course-list {
+  max-width: 880px;
+  margin-inline: auto;
+  padding: 24px 16px 48px;
+}
+
+.course-list__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.course-list__title {
+  margin: 0;
+  font-family: var(--font-display);
+}
+
+/* Cartes — DESIGN_SYSTEM §8 : surface, bordure slate-200, radius 12, titre
+   Outfit 600/18, méta 13 slate-500. La carte entière est le lien. */
+
+.course-list__cards {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.course-list__card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: inherit;
+  text-decoration: none;
+}
+
+.course-list__card:hover {
+  border-color: var(--border-control);
+  box-shadow: var(--shadow-sm);
+}
+
+.course-list__card-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.course-list__card-description {
+  margin: 0;
+  overflow: hidden;
+  color: var(--text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Badges — DS §8 : matière indigo-50/700, niveau slate-100/700 (mêmes tokens
+   que les chips des pickers), radius 6, 500/12. */
+
+.course-list__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.course-list__badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.course-list__badge--subject {
+  background: var(--indigo-50);
+  color: var(--indigo-700);
+}
+
+:host-context([data-theme='dark']) .course-list__badge--subject {
+  background: var(--indigo-900);
+  color: var(--indigo-100);
+}
+
+.course-list__badge--level {
+  background: var(--bg-subtle);
+  color: var(--slate-700);
+}
+
+:host-context([data-theme='dark']) .course-list__badge--level {
+  color: var(--slate-100);
+}
+
+.course-list__meta {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* États --------------------------------------------------------------------- */
+
+.course-list__skeleton {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.course-list__skeleton-card {
+  height: 96px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-subtle);
+  animation: course-list-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes course-list-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.course-list__status {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+}
+
+.course-list__error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-danger);
+}
+
+.course-list__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 24px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.course-list__empty-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.course-list__empty-hint {
+  margin: 0 0 8px;
+  color: var(--text-secondary);
+}

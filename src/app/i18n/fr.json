@@ -2,6 +2,8 @@
   "header": {
     "skipToContent": "Aller au contenu",
     "home": "Accueil",
+    "nav": "Navigation principale",
+    "myCourses": "Mes cours",
     "themeToggle": "Activer le thème sombre",
     "themeToggleDark": "Activer le thème clair",
     "language": "Langue",
@@ -51,6 +53,53 @@
     },
     "multiPicker": {
       "remove": "Retirer {{ nom }}"
+    }
+  },
+  "courses": {
+    "list": {
+      "title": "Mes cours",
+      "create": "Créer un cours",
+      "loading": "Chargement de vos cours…",
+      "error": "Impossible de charger vos cours. Vérifiez votre connexion.",
+      "retry": "Réessayer",
+      "empty": "Compose ton premier cours",
+      "emptyHint": "Crée un cours puis ajoute-lui du texte, des exercices et des liens.",
+      "blockCount": "{{ count }} bloc(s)",
+      "updated": "Modifié le {{ date }}"
+    },
+    "create": {
+      "title": "Créer un cours",
+      "titleLabel": "Titre",
+      "titlePlaceholder": "Ex. Suites numériques",
+      "descriptionLabel": "Description",
+      "descriptionHint": "Optionnelle — courte présentation du cours.",
+      "subjectsLabel": "Matières",
+      "levelsLabel": "Niveaux",
+      "submit": "Créer le cours",
+      "cancel": "Annuler",
+      "error": "La création n'a pas abouti. Réessayez."
+    },
+    "blocks": {
+      "back": "Mes cours",
+      "loading": "Chargement du cours…",
+      "loadError": "Impossible de charger le cours. Vérifiez votre connexion.",
+      "retry": "Réessayer",
+      "empty": "Ajoute ton premier bloc",
+      "emptyHint": "Choisis un type de bloc ci-dessous pour commencer.",
+      "add": "Ajouter un bloc",
+      "types": {
+        "texte": "Texte",
+        "exercice": "Exercice",
+        "ressource": "Ressource",
+        "lien": "Lien"
+      },
+      "resourceSoon": "Bientôt disponible — l'ajout de fichiers arrive avec le stockage.",
+      "moveUp": "Monter le bloc {{ position }}",
+      "moveDown": "Descendre le bloc {{ position }}",
+      "delete": "Supprimer",
+      "confirmDelete": "Confirmer la suppression",
+      "emptyExcerpt": "Bloc vide",
+      "mutationError": "L'opération n'a pas abouti. Réessayez."
     }
   },
   "profile": {

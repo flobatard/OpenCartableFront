@@ -1,0 +1,59 @@
+<section class="course-create">
+  <h1 class="course-create__title">{{ 'courses.create.title' | transloco }}</h1>
+
+  <form class="course-create__form" [formGroup]="form" (ngSubmit)="save()">
+    <div class="course-create__field">
+      <label class="course-create__label" for="course-titre">
+        {{ 'courses.create.titleLabel' | transloco }}
+      </label>
+      <input
+        id="course-titre"
+        type="text"
+        class="course-create__input"
+        maxlength="300"
+        [formControl]="form.controls.titre"
+        [placeholder]="'courses.create.titlePlaceholder' | transloco"
+      />
+    </div>
+
+    <div class="course-create__field">
+      <label class="course-create__label" for="course-description">
+        {{ 'courses.create.descriptionLabel' | transloco }}
+      </label>
+      <textarea
+        id="course-description"
+        class="course-create__textarea"
+        rows="4"
+        maxlength="2000"
+        [formControl]="form.controls.description"
+      ></textarea>
+      <p class="course-create__hint">{{ 'courses.create.descriptionHint' | transloco }}</p>
+    </div>
+
+    <div class="course-create__field">
+      <h2 class="course-create__section">{{ 'courses.create.subjectsLabel' | transloco }}</h2>
+      <app-subject-multi-picker [formControl]="form.controls.subjectIds" />
+    </div>
+
+    <div class="course-create__field">
+      <h2 class="course-create__section">{{ 'courses.create.levelsLabel' | transloco }}</h2>
+      <app-education-level-picker
+        [systeme]="systeme()"
+        [formControl]="form.controls.educationLevelIds"
+      />
+    </div>
+
+    @if (saveError()) {
+      <p class="course-create__error" role="alert">{{ 'courses.create.error' | transloco }}</p>
+    }
+
+    <div class="course-create__actions">
+      <a class="btn btn--ghost" [routerLink]="['/', language.lang(), 'courses']">
+        {{ 'courses.create.cancel' | transloco }}
+      </a>
+      <button type="submit" class="btn btn--primary" [disabled]="!canSubmit()">
+        {{ 'courses.create.submit' | transloco }}
+      </button>
+    </div>
+  </form>
+</section>

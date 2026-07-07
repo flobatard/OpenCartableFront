@@ -1,0 +1,63 @@
+<section class="course-list">
+  <header class="course-list__head">
+    <h1 class="course-list__title">{{ 'courses.list.title' | transloco }}</h1>
+    <a class="btn btn--primary" [routerLink]="['/', language.lang(), 'courses', 'new']">
+      {{ 'courses.list.create' | transloco }}
+    </a>
+  </header>
+
+  @if (courses.listLoading()) {
+    <ul class="course-list__skeleton" aria-hidden="true">
+      @for (row of [0, 1, 2]; track row) {
+        <li class="course-list__skeleton-card"></li>
+      }
+    </ul>
+    <p class="course-list__status" role="status">{{ 'courses.list.loading' | transloco }}</p>
+  } @else if (courses.listError()) {
+    <div class="course-list__error" role="alert">
+      <p>{{ 'courses.list.error' | transloco }}</p>
+      <button type="button" class="btn btn--primary" (click)="retry()">
+        {{ 'courses.list.retry' | transloco }}
+      </button>
+    </div>
+  } @else if (!courses.list().length) {
+    <div class="course-list__empty">
+      <p class="course-list__empty-title">{{ 'courses.list.empty' | transloco }}</p>
+      <p class="course-list__empty-hint">{{ 'courses.list.emptyHint' | transloco }}</p>
+      <a class="btn btn--primary" [routerLink]="['/', language.lang(), 'courses', 'new']">
+        {{ 'courses.list.create' | transloco }}
+      </a>
+    </div>
+  } @else {
+    <ul class="course-list__cards">
+      @for (course of courses.list(); track course.id) {
+        <li>
+          <a
+            class="course-list__card"
+            [routerLink]="['/', language.lang(), 'courses', course.id]"
+          >
+            <h2 class="course-list__card-title">{{ course.titre }}</h2>
+            @if (course.description) {
+              <p class="course-list__card-description">{{ course.description }}</p>
+            }
+            @if (subjectNames(course.subject_ids).length || levelNames(course.education_level_ids).length) {
+              <ul class="course-list__badges">
+                @for (nom of subjectNames(course.subject_ids); track nom) {
+                  <li class="course-list__badge course-list__badge--subject">{{ nom }}</li>
+                }
+                @for (nom of levelNames(course.education_level_ids); track nom) {
+                  <li class="course-list__badge course-list__badge--level">{{ nom }}</li>
+                }
+              </ul>
+            }
+            <p class="course-list__meta">
+              <span>{{ 'courses.list.blockCount' | transloco: { count: course.block_count } }}</span>
+              <span aria-hidden="true">·</span>
+              <span>{{ 'courses.list.updated' | transloco: { date: updatedOn(course.updated_at) } }}</span>
+            </p>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</section>

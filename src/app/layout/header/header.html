@@ -14,6 +14,18 @@
     />
   </a>
 
+  @if (auth.isAuthenticated()) {
+    <nav class="header__nav" [attr.aria-label]="'header.nav' | transloco">
+      <a
+        class="header__nav-link"
+        [routerLink]="['/', language.lang(), 'courses']"
+        routerLinkActive="header__nav-link--active"
+      >
+        {{ 'header.myCourses' | transloco }}
+      </a>
+    </nav>
+  }
+
   <div class="header__actions">
     <div class="header__langs" role="group" [attr.aria-label]="'header.language' | transloco">
       @for (lang of langs; track lang) {

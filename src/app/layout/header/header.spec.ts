@@ -66,6 +66,27 @@ describe('Header', () => {
     expect(localStorage.getItem('oc-lang')).toBe('en');
   });
 
+  it('masque la nav prof pour les visiteurs', async () => {
+    const fixture = TestBed.createComponent(Header);
+    await fixture.whenStable();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('.header__nav')).toBeNull();
+  });
+
+  it('affiche le lien « Mes cours » une fois authentifié', async () => {
+    isAuthenticated.set(true);
+    displayName.set('Prof');
+
+    const fixture = TestBed.createComponent(Header);
+    await fixture.whenStable();
+    const link = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(
+      '.header__nav-link',
+    );
+
+    expect(link?.textContent).toContain('Mes cours');
+    expect(link?.getAttribute('href')).toBe('/fr/courses');
+  });
+
   it('affiche le menu utilisateur une fois authentifié', async () => {
     isAuthenticated.set(true);
     displayName.set('Prof');

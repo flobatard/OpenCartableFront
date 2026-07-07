@@ -1,0 +1,78 @@
+:host {
+  display: block;
+}
+
+.course-create {
+  max-width: 640px;
+  margin-inline: auto;
+  padding: 24px 16px 48px;
+}
+
+.course-create__title {
+  margin: 0 0 24px;
+  font-family: var(--font-display);
+}
+
+.course-create__form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.course-create__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.course-create__label,
+.course-create__section {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Champs — DESIGN_SYSTEM §8 : 40px, radius 8, bordure porteuse slate-500,
+   placeholder slate-500 (jamais slate-400). Focus : outline global. */
+
+.course-create__input {
+  height: 40px;
+  padding: 0 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.course-create__textarea {
+  padding: 10px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font: inherit;
+  resize: vertical;
+}
+
+.course-create__input::placeholder,
+.course-create__textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+.course-create__hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.course-create__error {
+  margin: 0;
+  color: var(--text-danger);
+}
+
+.course-create__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}

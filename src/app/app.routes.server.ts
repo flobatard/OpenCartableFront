@@ -29,6 +29,19 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client,
   },
   {
+    // Routes protégées (authGuard) + appels API cours : navigateur uniquement.
+    path: ':lang/courses',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: ':lang/courses/new',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: ':lang/courses/:id',
+    renderMode: RenderMode.Client,
+  },
+  {
     // La racine lit la préférence de langue (localStorage) : décision côté navigateur.
     path: '',
     renderMode: RenderMode.Client,
