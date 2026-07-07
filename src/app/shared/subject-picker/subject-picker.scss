@@ -1,0 +1,135 @@
+:host {
+  display: block;
+  position: relative;
+}
+
+.subject-picker {
+  position: relative;
+}
+
+/* Champ — cf. DESIGN_SYSTEM.md §8 : 40px, radius 8, bordure porteuse slate-500. */
+.subject-picker__field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.subject-picker__field:disabled {
+  cursor: not-allowed;
+  color: var(--text-muted);
+}
+
+.subject-picker__field--empty .subject-picker__text {
+  color: var(--text-secondary); /* placeholder = slate-500, jamais slate-400 */
+}
+
+.subject-picker__text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subject-picker__caret {
+  color: var(--text-secondary);
+}
+
+.subject-picker__dropdown {
+  position: absolute;
+  z-index: 20;
+  inset-inline: 0;
+  top: calc(100% + 4px);
+  display: flex;
+  flex-direction: column;
+  max-height: 320px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.subject-picker__search {
+  margin: 8px;
+  padding: 0 10px;
+  height: 36px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.subject-picker__search::placeholder {
+  color: var(--text-secondary);
+}
+
+.subject-picker__list {
+  margin: 0;
+  padding: 4px 0 8px;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.subject-picker__option {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.subject-picker__option--flat {
+  padding-left: 12px;
+}
+
+.subject-picker__option.is-active {
+  background: var(--bg-subtle);
+}
+
+.subject-picker__option[aria-selected='true'] {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.subject-picker__option.is-disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.subject-picker__twistie {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.subject-picker__twistie--leaf {
+  cursor: default;
+}
+
+.subject-picker__label {
+  flex: 1;
+}
+
+.subject-picker__empty {
+  margin: 0;
+  padding: 12px;
+  color: var(--text-secondary);
+}

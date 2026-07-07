@@ -1,0 +1,89 @@
+<section class="subjects">
+  <header class="subjects__head">
+    <h1 class="subjects__title">{{ 'subjects.title' | transloco }}</h1>
+    <div class="subjects__toolbar">
+      <input
+        type="search"
+        class="subjects__search"
+        [placeholder]="'subjects.searchPlaceholder' | transloco"
+        [attr.aria-label]="'subjects.searchPlaceholder' | transloco"
+        [value]="search()"
+        (input)="onSearch($event)"
+      />
+      <div class="subjects__actions">
+        <button type="button" class="btn btn--ghost" (click)="expandAll()">
+          {{ 'subjects.expandAll' | transloco }}
+        </button>
+        <button type="button" class="btn btn--ghost" (click)="collapseAll()">
+          {{ 'subjects.collapseAll' | transloco }}
+        </button>
+      </div>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <ul class="subjects__skeleton" aria-hidden="true">
+      @for (row of [0, 1, 2, 3, 4, 5]; track row) {
+        <li class="subjects__skeleton-row"></li>
+      }
+    </ul>
+    <p class="subjects__status" role="status">{{ 'subjects.loading' | transloco }}</p>
+  } @else if (error()) {
+    <div class="subjects__error" role="alert">
+      <p>{{ 'subjects.error' | transloco }}</p>
+      <button type="button" class="btn btn--primary" (click)="retry()">
+        {{ 'subjects.retry' | transloco }}
+      </button>
+    </div>
+  } @else if (isEmpty()) {
+    <p class="subjects__empty">{{ 'subjects.emptyState' | transloco }}</p>
+  } @else {
+    <ul
+      class="subjects__tree"
+      role="tree"
+      tabindex="0"
+      [attr.aria-label]="'subjects.title' | transloco"
+      [attr.aria-activedescendant]="activeDomId()"
+      (keydown)="onKeydown($event)"
+    >
+      @for (row of rows(); track row.node.id) {
+        <li
+          class="subjects__node"
+          [id]="'subject-node-' + row.node.id"
+          role="treeitem"
+          [attr.aria-level]="row.depth + 1"
+          [attr.aria-expanded]="row.hasChildren ? row.expanded : null"
+          [class.is-active]="row.node.id === activeId()"
+          [style.padding-left.px]="8 + row.depth * 20"
+        >
+          @if (row.hasChildren) {
+            <button
+              type="button"
+              class="subjects__twistie"
+              tabindex="-1"
+              [attr.aria-label]="(row.expanded ? 'subjects.collapse' : 'subjects.expand') | transloco"
+              (click)="toggleNode(row.node)"
+            >
+              {{ row.expanded ? '▾' : '▸' }}
+            </button>
+          } @else {
+            <span class="subjects__twistie subjects__twistie--leaf" aria-hidden="true"></span>
+          }
+
+          <span class="subjects__name">{{ row.node.nom }}</span>
+
+          <span class="subjects__level">{{ levelKey(row.node.profondeur) | transloco }}</span>
+
+          @if (row.node.children.length) {
+            <span
+              class="subjects__count"
+              [attr.aria-label]="'subjects.childCount' | transloco: { count: row.node.children.length }"
+            >
+              {{ row.node.children.length }}
+            </span>
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>

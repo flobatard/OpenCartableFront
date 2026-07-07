@@ -1,0 +1,166 @@
+:host {
+  display: block;
+}
+
+.subjects {
+  max-width: 880px;
+  margin-inline: auto;
+  padding: 24px 16px 48px;
+}
+
+.subjects__head {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.subjects__title {
+  margin: 0;
+  font-family: var(--font-display);
+}
+
+.subjects__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.subjects__search {
+  flex: 1 1 240px;
+  height: 40px;
+  padding: 0 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.subjects__search::placeholder {
+  color: var(--text-secondary);
+}
+
+.subjects__actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Arbre --------------------------------------------------------------------- */
+
+.subjects__tree {
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.subjects__node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  color: var(--text-primary);
+}
+
+.subjects__node.is-active {
+  background: var(--bg-subtle);
+}
+
+.subjects__twistie {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.subjects__twistie--leaf {
+  cursor: default;
+}
+
+.subjects__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subjects__level {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.subjects__count {
+  flex: 0 0 auto;
+  min-width: 22px;
+  padding: 2px 8px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+/* États --------------------------------------------------------------------- */
+
+.subjects__skeleton {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.subjects__skeleton-row {
+  height: 40px;
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  animation: subjects-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes subjects-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.subjects__status {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+}
+
+.subjects__error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-danger);
+}
+
+.subjects__empty {
+  padding: 24px;
+  color: var(--text-secondary);
+  text-align: center;
+}

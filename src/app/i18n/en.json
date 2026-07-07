@@ -23,5 +23,29 @@
   "auth": {
     "signingIn": "Signing you in…",
     "error": "Sign-in did not complete. Try again from the home page."
+  },
+  "subjects": {
+    "title": "Subjects",
+    "searchPlaceholder": "Search for a subject…",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "loading": "Loading subjects…",
+    "emptyState": "No subjects to display.",
+    "error": "Could not load subjects. Check your connection.",
+    "retry": "Retry",
+    "childCount": "{{ count }} subtopic(s)",
+    "level": {
+      "discipline": "Discipline",
+      "domaine": "Domain",
+      "sousDomaine": "Subdomain",
+      "sujet": "Topic"
+    },
+    "picker": {
+      "placeholder": "Choose a subject",
+      "searchPlaceholder": "Search for a subject…",
+      "noResults": "No subject found."
+    }
   }
 }

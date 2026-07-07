@@ -13,6 +13,12 @@ export const serverRoutes: ServerRoute[] = [
     getPrerenderParams: async () => [{ lang: 'fr' }, { lang: 'en' }],
   },
   {
+    // Route protégée (authGuard renvoie false au serveur) : rendu navigateur uniquement,
+    // jamais prerendered — aucun appel API à l'IdP/back au build.
+    path: ':lang/subjects',
+    renderMode: RenderMode.Client,
+  },
+  {
     // La racine lit la préférence de langue (localStorage) : décision côté navigateur.
     path: '',
     renderMode: RenderMode.Client,

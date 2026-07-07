@@ -1,0 +1,89 @@
+<div class="subject-picker" [class.subject-picker--open]="open()" (focusout)="onFocusOut($event)">
+  <button
+    type="button"
+    class="subject-picker__field"
+    [class.subject-picker__field--empty]="!selectedLabel()"
+    [attr.aria-haspopup]="'tree'"
+    [attr.aria-expanded]="open()"
+    [disabled]="disabled()"
+    (click)="toggle()"
+  >
+    <span class="subject-picker__text">
+      {{ selectedLabel() || ('subjects.picker.placeholder' | transloco) }}
+    </span>
+    <span class="subject-picker__caret" aria-hidden="true">▾</span>
+  </button>
+
+  @if (open()) {
+    <div class="subject-picker__dropdown" (mousedown)="$event.preventDefault()">
+      <input
+        #searchBox
+        type="search"
+        class="subject-picker__search"
+        role="combobox"
+        aria-autocomplete="list"
+        [attr.aria-expanded]="true"
+        [attr.aria-controls]="listId"
+        [attr.aria-activedescendant]="activeDomId()"
+        [attr.aria-label]="'subjects.picker.searchPlaceholder' | transloco"
+        [placeholder]="'subjects.picker.searchPlaceholder' | transloco"
+        [value]="search()"
+        (input)="onSearch($event)"
+        (keydown)="onNavKeydown($event)"
+      />
+
+      @if (mode() === 'search') {
+        @if (matches().length) {
+          <ul class="subject-picker__list" role="listbox" [id]="listId">
+            @for (m of matches(); track m.node.id) {
+              <li
+                class="subject-picker__option subject-picker__option--flat"
+                [id]="domId(m.node)"
+                role="option"
+                [attr.aria-selected]="m.node.id === value()"
+                [class.is-active]="m.node.id === activeId()"
+                [class.is-disabled]="!isSelectable(m.node)"
+                (click)="select(m.node)"
+              >
+                {{ formatPath(m.path) }}
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="subject-picker__empty">{{ 'subjects.picker.noResults' | transloco }}</p>
+        }
+      } @else {
+        <ul class="subject-picker__list" role="tree" [id]="listId">
+          @for (row of rows(); track row.node.id) {
+            <li
+              class="subject-picker__option"
+              [id]="domId(row.node)"
+              role="treeitem"
+              [attr.aria-level]="row.depth + 1"
+              [attr.aria-expanded]="row.hasChildren ? row.expanded : null"
+              [attr.aria-selected]="row.node.id === value()"
+              [class.is-active]="row.node.id === activeId()"
+              [class.is-disabled]="!isSelectable(row.node)"
+              [style.padding-left.px]="8 + row.depth * 18"
+            >
+              @if (row.hasChildren) {
+                <button
+                  type="button"
+                  class="subject-picker__twistie"
+                  tabindex="-1"
+                  [attr.aria-label]="(row.expanded ? 'subjects.collapse' : 'subjects.expand') | transloco"
+                  (click)="toggleNode($event, row.node)"
+                >
+                  {{ row.expanded ? '▾' : '▸' }}
+                </button>
+              } @else {
+                <span class="subject-picker__twistie subject-picker__twistie--leaf" aria-hidden="true"></span>
+              }
+              <span class="subject-picker__label" (click)="select(row.node)">{{ row.node.nom }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</div>

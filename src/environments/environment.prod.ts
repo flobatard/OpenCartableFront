@@ -12,7 +12,7 @@ export const environment: AppEnvironment = {
     clientId: 'opencartable',
     redirectPath: '/auth/callback',
     postLogoutRedirectPath: '/',
-    scope: 'openid profile email offline_access',
+    scope: 'openid profile email offline_access zitadel:iam:org:id:380648680241233922',
     requireHttps: true,
     showDebugInformation: false,
   },

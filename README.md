@@ -4,6 +4,10 @@ Front Angular d'**OpenCartable**, plateforme pédagogique libre et auto-héberg�
 
 Stack : Angular 22 (zoneless, SSR + prerender), [Transloco](https://jsverse.gitbook.io/transloco) (fr/en), [angular-oauth2-oidc](https://github.com/manfredsteyer/angular-oauth2-oidc) (OIDC Code + PKCE vers Zitadel), polices auto-hébergées via @fontsource.
 
+## Fonctionnalités
+
+- **Matières** (`/<lang>/subjects`, réservé au prof authentifié) : navigation dans la taxonomie hiérarchique des disciplines en treeview (déplier/replier, recherche filtrante, compteur d'enfants et niveau). Alimentée par `SubjectService` (`src/app/core/subjects/`) — un fetch unique de `GET /api/v1/subjects/tree` mis en cache. Composant réutilisable `SubjectPicker` (`src/app/shared/subject-picker/`) pour sélectionner une matière dans un formulaire (`ControlValueAccessor`, accessible clavier + ARIA).
+
 ## Développement
 
 ```bash
@@ -26,7 +30,7 @@ npm run build                          # build production, home prerendered
 npm run serve:ssr:OpenCartableFront    # sert dist/ via le serveur SSR Express (port 4000)
 ```
 
-Rendu par route (`src/app/app.routes.server.ts`) : `/` prerendered au build, `/auth/callback` client uniquement, le reste en SSR.
+Rendu par route (`src/app/app.routes.server.ts`) : `/` prerendered au build, `/auth/callback` client uniquement, les routes protégées par authentification (ex. `/<lang>/subjects`) en rendu client, le reste en SSR.
 
 ## Docker
 

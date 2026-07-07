@@ -23,5 +23,29 @@
   "auth": {
     "signingIn": "Connexion en cours…",
     "error": "La connexion n'a pas abouti. Réessayez depuis la page d'accueil."
+  },
+  "subjects": {
+    "title": "Matières",
+    "searchPlaceholder": "Rechercher une matière…",
+    "expandAll": "Tout déplier",
+    "collapseAll": "Tout replier",
+    "expand": "Déplier",
+    "collapse": "Replier",
+    "loading": "Chargement des matières…",
+    "emptyState": "Aucune matière à afficher.",
+    "error": "Impossible de charger les matières. Vérifiez votre connexion.",
+    "retry": "Réessayer",
+    "childCount": "{{ count }} sous-matière(s)",
+    "level": {
+      "discipline": "Discipline",
+      "domaine": "Domaine",
+      "sousDomaine": "Sous-domaine",
+      "sujet": "Sujet"
+    },
+    "picker": {
+      "placeholder": "Choisir une matière",
+      "searchPlaceholder": "Rechercher une matière…",
+      "noResults": "Aucune matière trouvée."
+    }
   }
 }
