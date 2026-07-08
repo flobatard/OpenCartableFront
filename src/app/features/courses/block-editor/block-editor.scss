@@ -139,7 +139,7 @@
 .block-editor__workspace {
   display: flex;
   gap: 16px;
-  height: clamp(480px, 72vh, 820px);
+  height: clamp(520px, 78vh, 900px);
   min-height: 0;
 }
 
@@ -253,7 +253,7 @@
 @media (max-width: 900px) {
   .block-editor__workspace {
     flex-direction: column;
-    height: clamp(560px, 88vh, 900px);
+    height: clamp(600px, 90vh, 980px);
   }
 
   .block-editor__divider {

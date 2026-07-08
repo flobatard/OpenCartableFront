@@ -10,6 +10,7 @@ import {
   moveQuestion,
   patchExerciseFormFromContent,
   payloadFromExerciseForm,
+  questionEnoncePreview,
   QUESTIONS_MAX,
   removeQuestion,
 } from '../../../core/courses/exercise-form';
@@ -63,6 +64,11 @@ export class ExerciseEditor {
       un signal, ce miroir est resynchronisé à chaque mutation structurelle. */
   protected readonly questionGroups = signal<ExerciseQuestionGroup[]>([]);
 
+  /** Question dépliée dans l'accordéon (une seule à la fois), suivie par
+      référence de groupe — robuste aux déplacements/suppressions puisque
+      `moveQuestion` réutilise l'instance de contrôle. `null` = tout replié. */
+  protected readonly openGroup = signal<ExerciseQuestionGroup | null>(null);
+
   /** Index de la question « armée » pour suppression (le 2e clic confirme). */
   protected readonly pendingDelete = signal<number | null>(null);
 
@@ -79,6 +85,8 @@ export class ExerciseEditor {
       this.#initialized = true;
       patchExerciseFormFromContent(this.form, content);
       this.#syncGroups();
+      // Première question dépliée au chargement (confort d'édition immédiat).
+      this.openGroup.set(this.form.controls.questions.controls[0] ?? null);
     });
 
     this.form.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
@@ -102,12 +110,26 @@ export class ExerciseEditor {
     ref?.nativeElement.focus();
   }
 
+  /** Accordéon : déplie la question ; recliquer sur celle ouverte la replie. */
+  protected toggleQuestion(group: ExerciseQuestionGroup): void {
+    this.openGroup.update((current) => (current === group ? null : group));
+  }
+
+  /** Aperçu de l'énoncé affiché dans l'en-tête d'une question repliée. Lu au
+      rendu (déclenché par `openGroup`/`questionGroups`) : à jour au repli. */
+  protected preview(group: ExerciseQuestionGroup): string {
+    return questionEnoncePreview(group.controls.enonce.value);
+  }
+
   protected add(): void {
     if (this.form.controls.questions.length >= QUESTIONS_MAX) {
       return;
     }
     addQuestion(this.form);
     this.#syncGroups();
+    // Déplie la question fraîchement ajoutée pour l'éditer aussitôt.
+    const controls = this.form.controls.questions.controls;
+    this.openGroup.set(controls[controls.length - 1] ?? null);
   }
 
   /** Supprime en deux temps : le premier clic arme, le second confirme. */
@@ -118,6 +140,11 @@ export class ExerciseEditor {
     }
     removeQuestion(this.form, index);
     this.#syncGroups();
+    // Si la question dépliée a disparu, déplie le voisin restant à sa place.
+    if (this.openGroup() === null) {
+      const controls = this.form.controls.questions.controls;
+      this.openGroup.set(controls[Math.min(index, controls.length - 1)] ?? null);
+    }
   }
 
   /** Quitter le bouton armé (focus ailleurs) annule la suppression. */
@@ -132,7 +159,13 @@ export class ExerciseEditor {
 
   #syncGroups(): void {
     this.pendingDelete.set(null);
-    this.questionGroups.set([...this.form.controls.questions.controls]);
+    const groups = [...this.form.controls.questions.controls];
+    this.questionGroups.set(groups);
     this.maxReached.set(this.form.controls.questions.length >= QUESTIONS_MAX);
+    // Une référence dépliée devenue obsolète (question supprimée) est neutralisée.
+    const open = this.openGroup();
+    if (open && !groups.includes(open)) {
+      this.openGroup.set(null);
+    }
   }
 }

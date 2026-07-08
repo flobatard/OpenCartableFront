@@ -6,6 +6,7 @@ import {
   patchExerciseFormFromContent,
   payloadFromBlockContent,
   payloadFromExerciseForm,
+  questionEnoncePreview,
   removeQuestion,
 } from './exercise-form';
 
@@ -159,5 +160,17 @@ describe('exercise-form', () => {
     });
 
     expect(survivant.controls.id.value).toBe('id-survivant');
+  });
+
+  it('questionEnoncePreview normalise les espaces et tronque', () => {
+    expect(questionEnoncePreview('')).toBe('');
+    expect(questionEnoncePreview('   ')).toBe('');
+    // Markdown multi-lignes → une seule ligne, espaces normalisés.
+    expect(questionEnoncePreview('## Titre\n\nSoit  $x$   pair.')).toBe('## Titre Soit $x$ pair.');
+    // Troncature avec ellipsis au-delà de la longueur max.
+    const long = 'a'.repeat(100);
+    const preview = questionEnoncePreview(long, 80);
+    expect(preview.endsWith('…')).toBe(true);
+    expect(preview.length).toBe(81);
   });
 });

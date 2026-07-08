@@ -4,16 +4,17 @@
    height:100% (contrat de son :host), la chaîne hôte → panneau doit donc
    propager une hauteur résolue — sinon Monaco s'aplatit à 0. Le panneau Sujet
    remplit la colonne (grand éditeur, comme le bloc texte) ; le panneau
-   Questions défile en interne avec des éditeurs compacts à hauteur fixe. */
+   Questions est un accordéon : une seule question dépliée à la fois, son énoncé
+   a une hauteur fixe — un seul éditeur visible, pas de scroll imbriqué. */
 :host {
   display: flex;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
 
-  /* Hauteur des éditeurs markdown des questions (énoncés) — le bouton à
-     tourner si on les veut plus grands/petits. */
-  --exercise-question-editor-height: 220px;
+  /* Hauteur de l'éditeur d'énoncé d'une question dépliée — le bouton à tourner
+     si on le veut plus grand/petit. */
+  --exercise-question-editor-height: 280px;
 }
 
 .exercise-editor {
@@ -60,10 +61,11 @@
   min-height: 0;
 }
 
-/* Questions : la liste défile en interne, les éditeurs restent compacts. */
+/* Questions : accordéon (liste + bouton Ajouter). Le défilement éventuel est
+   porté par la liste, pas le panneau, pour que la question dépliée puisse
+   grandir en flex:1. */
 .exercise-editor__panel--questions {
-  overflow-y: auto;
-  padding-inline-end: 4px; /* espace pour l'ascenseur */
+  min-height: 0;
 }
 
 .exercise-editor__hint {
@@ -80,46 +82,120 @@
   color: var(--text-secondary);
 }
 
+/* Liste accordéon : remplit la hauteur restante ; ne défile que si beaucoup
+   d'en-têtes s'accumulent (la question dépliée, en flex:1, garde sa place). */
 .exercise-editor__questions {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  flex: 1;
+  gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
   margin: 0;
   padding: 0;
+  padding-inline-end: 4px; /* espace pour l'ascenseur éventuel */
   list-style: none;
 }
 
 .exercise-editor__question {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px;
+  flex: 0 0 auto; /* replié : juste l'en-tête */
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  overflow: hidden;
+}
+
+/* Question dépliée : se dimensionne à son contenu (en-tête + éditeur à hauteur
+   fixe + réponse) ; quand les en-têtes s'accumulent, c'est la liste qui défile. */
+.exercise-editor__question--open {
+  flex: 0 0 auto;
 }
 
 .exercise-editor__question-head {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
 }
 
 .exercise-editor__question-title {
   margin: 0;
+  flex: 1;
+  min-width: 0;
   font-family: var(--font-display);
   font-size: 15px;
+}
+
+/* Rangée cliquable pleine largeur qui déplie/replie la question. */
+.exercise-editor__question-toggle {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  min-width: 0; /* laisse l'aperçu se tronquer plutôt que déborder */
+  padding: 10px 12px;
+  background: transparent;
+  border: 0;
+  color: var(--text-primary);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.exercise-editor__question-toggle:hover {
+  background: var(--bg-subtle);
+}
+
+.exercise-editor__chevron {
+  flex: 0 0 auto;
+  align-self: center;
+  color: var(--text-secondary);
+  transition: transform 0.15s ease;
+}
+
+.exercise-editor__question-num {
+  flex: 0 0 auto;
+  font-weight: 600;
+}
+
+/* Aperçu du début de l'énoncé, visible seulement quand la question est repliée :
+   une ligne tronquée, texte secondaire (jamais slate-400). */
+.exercise-editor__question-preview {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 400;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.exercise-editor__question--open .exercise-editor__chevron {
+  transform: rotate(90deg);
 }
 
 .exercise-editor__question-actions {
   display: flex;
   gap: 4px;
-  margin-inline-start: auto;
+  flex: 0 0 auto;
+  padding-inline-end: 8px;
 }
 
 .exercise-editor__delete--armed {
   color: var(--text-danger);
+}
+
+/* Corps déplié : l'énoncé remplit la place, la réponse reste compacte.
+   :not([hidden]) impératif — sans lui, ce display:flex battrait le [hidden] de
+   l'UA et le corps replié (énoncé + réponse) resterait visible. */
+.exercise-editor__question-body:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 12px 12px;
 }
 
 .exercise-editor__field {
@@ -129,11 +205,17 @@
   min-width: 0;
 }
 
-/* Éditeur markdown d'une question : hauteur fixe compacte (le markdown-field
-   se dimensionne en height:100%, il a besoin d'une hauteur résolue). */
-.exercise-editor__field app-markdown-field {
+/* Énoncé : hauteur fixe (le markdown-field se dimensionne en height:100%, il a
+   besoin d'une hauteur résolue) — indépendante du nombre de questions. */
+.exercise-editor__field--enonce app-markdown-field {
   height: var(--exercise-question-editor-height);
   flex: 0 0 auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .exercise-editor__chevron {
+    transition: none;
+  }
 }
 
 .exercise-editor__label {

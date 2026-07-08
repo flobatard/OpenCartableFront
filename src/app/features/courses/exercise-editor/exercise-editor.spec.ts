@@ -170,4 +170,58 @@ describe('ExerciseEditor', () => {
     const titles = el(fixture).querySelectorAll('.exercise-editor__question-title');
     expect(titles.length).toBe(2);
   });
+
+  it('accordéon : une seule question dépliée, corps montés (Monaco préservé)', async () => {
+    const fixture = await createComponent();
+    const toggles = el(fixture).querySelectorAll<HTMLButtonElement>(
+      '.exercise-editor__question-toggle',
+    );
+    const bodies = el(fixture).querySelectorAll<HTMLElement>('.exercise-editor__question-body');
+
+    // Première question dépliée par défaut ; la seconde repliée.
+    expect(toggles.length).toBe(2);
+    expect(toggles[0].getAttribute('aria-expanded')).toBe('true');
+    expect(toggles[1].getAttribute('aria-expanded')).toBe('false');
+    expect(bodies[0].hidden).toBe(false);
+    expect(bodies[1].hidden).toBe(true);
+    // Les deux énoncés restent montés ([hidden], jamais @if) : Monaco non détruit.
+    expect(
+      el(fixture).querySelectorAll('.exercise-editor__question-body app-markdown-field').length,
+    ).toBe(2);
+
+    // La question repliée montre un aperçu de son énoncé ; l'ouverte non.
+    const previews = () =>
+      el(fixture).querySelectorAll<HTMLElement>('.exercise-editor__question-preview');
+    expect(previews().length).toBe(1);
+    expect(previews()[0].textContent?.trim()).toBe('Résoudre $x^3 = 8$.');
+
+    // Déplier la seconde replie la première (une seule ouverte à la fois).
+    toggles[1].click();
+    fixture.detectChanges();
+    expect(bodies[0].hidden).toBe(true);
+    expect(bodies[1].hidden).toBe(false);
+    // L'aperçu suit : désormais sur la première (repliée).
+    expect(previews()[0].textContent?.trim()).toBe('Résoudre $x^2 = 4$.');
+
+    // Recliquer la question ouverte la replie (tout peut être fermé).
+    toggles[1].click();
+    fixture.detectChanges();
+    expect(bodies[1].hidden).toBe(true);
+  });
+
+  it('ajouter déplie la nouvelle question', async () => {
+    const fixture = await createComponent();
+
+    el(fixture).querySelector<HTMLButtonElement>('.exercise-editor__add')!.click();
+    fixture.detectChanges();
+
+    const toggles = el(fixture).querySelectorAll<HTMLButtonElement>(
+      '.exercise-editor__question-toggle',
+    );
+    expect(toggles.length).toBe(3);
+    // Seule la dernière (nouvelle) est dépliée.
+    expect(toggles[0].getAttribute('aria-expanded')).toBe('false');
+    expect(toggles[1].getAttribute('aria-expanded')).toBe('false');
+    expect(toggles[2].getAttribute('aria-expanded')).toBe('true');
+  });
 });

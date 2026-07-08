@@ -156,6 +156,8 @@
         "reponseHint": "Corrigé visible uniquement par vous — jamais montré aux élèves.",
         "moveUp": "Monter la question {{index}}",
         "moveDown": "Descendre la question {{index}}",
+        "expand": "Déplier la question {{index}}",
+        "collapse": "Replier la question {{index}}",
         "remove": "Supprimer la question {{index}}",
         "removeLabel": "Supprimer",
         "removeConfirm": "Confirmer la suppression"

@@ -102,6 +102,14 @@ export function payloadFromBlockContent(content: Record<string, unknown>): Exerc
   };
 }
 
+/** Aperçu compact de l'énoncé pour l'en-tête replié d'une question (accordéon) :
+    espaces normalisés (le markdown multi-lignes tient sur une ligne), tronqué.
+    Chaîne vide si l'énoncé est vide. */
+export function questionEnoncePreview(enonce: string, maxLength = 80): string {
+  const text = enonce.replace(/\s+/g, ' ').trim();
+  return text.length > maxLength ? `${text.slice(0, maxLength).trimEnd()}…` : text;
+}
+
 export function addQuestion(form: ExerciseForm): void {
   form.controls.questions.push(buildQuestionGroup());
 }

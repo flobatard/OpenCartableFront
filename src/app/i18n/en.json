@@ -156,6 +156,8 @@
         "reponseHint": "Answer key visible only to you — never shown to students.",
         "moveUp": "Move question {{index}} up",
         "moveDown": "Move question {{index}} down",
+        "expand": "Expand question {{index}}",
+        "collapse": "Collapse question {{index}}",
         "remove": "Delete question {{index}}",
         "removeLabel": "Delete",
         "removeConfirm": "Confirm deletion"

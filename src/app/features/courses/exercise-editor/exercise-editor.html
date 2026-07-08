@@ -59,12 +59,39 @@
     @if (questionGroups().length === 0) {
       <p class="exercise-editor__empty">{{ 'courses.editor.exercise.empty' | transloco }}</p>
     } @else {
+      <!-- Accordéon (motif APG) : une seule question dépliée à la fois montre un
+           grand éditeur. Le corps replié reste monté, masqué par [hidden] jamais
+           @if — Monaco ne doit pas être détruit/rechargé. -->
       <ol class="exercise-editor__questions">
         @for (group of questionGroups(); track group; let i = $index) {
-          <li class="exercise-editor__question">
+          <li
+            class="exercise-editor__question"
+            [class.exercise-editor__question--open]="openGroup() === group"
+          >
             <div class="exercise-editor__question-head">
               <h3 class="exercise-editor__question-title">
-                {{ 'courses.editor.exercise.question' | transloco: { index: i + 1 } }}
+                <button
+                  type="button"
+                  class="exercise-editor__question-toggle"
+                  [id]="uid + '-q' + i + '-head'"
+                  [attr.aria-expanded]="openGroup() === group"
+                  [attr.aria-controls]="uid + '-q' + i + '-body'"
+                  [attr.aria-label]="
+                    (openGroup() === group
+                      ? 'courses.editor.exercise.collapse'
+                      : 'courses.editor.exercise.expand'
+                    ) | transloco: { index: i + 1 }
+                  "
+                  (click)="toggleQuestion(group)"
+                >
+                  <span class="exercise-editor__chevron" aria-hidden="true">▸</span>
+                  <span class="exercise-editor__question-num">
+                    {{ 'courses.editor.exercise.question' | transloco: { index: i + 1 } }}
+                  </span>
+                  @if (openGroup() !== group && preview(group)) {
+                    <span class="exercise-editor__question-preview">{{ preview(group) }}</span>
+                  }
+                </button>
               </h3>
               <div class="exercise-editor__question-actions">
                 <button
@@ -105,28 +132,36 @@
               </div>
             </div>
 
-            <div class="exercise-editor__field">
-              <span class="exercise-editor__label">
-                {{ 'courses.editor.exercise.enonceLabel' | transloco }}
-              </span>
-              <app-markdown-field [formControl]="group.controls.enonce" />
-            </div>
+            <div
+              class="exercise-editor__question-body"
+              role="region"
+              [id]="uid + '-q' + i + '-body'"
+              [attr.aria-labelledby]="uid + '-q' + i + '-head'"
+              [hidden]="openGroup() !== group"
+            >
+              <div class="exercise-editor__field exercise-editor__field--enonce">
+                <span class="exercise-editor__label">
+                  {{ 'courses.editor.exercise.enonceLabel' | transloco }}
+                </span>
+                <app-markdown-field [formControl]="group.controls.enonce" />
+              </div>
 
-            <label class="exercise-editor__field">
-              <span class="exercise-editor__label">
-                {{ 'courses.editor.exercise.reponseLabel' | transloco }}
-              </span>
-              <textarea
-                class="exercise-editor__reponse"
-                rows="3"
-                maxlength="20000"
-                [formControl]="group.controls.reponseAttendue"
-                [placeholder]="'courses.editor.exercise.reponsePlaceholder' | transloco"
-              ></textarea>
-              <span class="exercise-editor__hint">
-                {{ 'courses.editor.exercise.reponseHint' | transloco }}
-              </span>
-            </label>
+              <label class="exercise-editor__field">
+                <span class="exercise-editor__label">
+                  {{ 'courses.editor.exercise.reponseLabel' | transloco }}
+                </span>
+                <textarea
+                  class="exercise-editor__reponse"
+                  rows="3"
+                  maxlength="20000"
+                  [formControl]="group.controls.reponseAttendue"
+                  [placeholder]="'courses.editor.exercise.reponsePlaceholder' | transloco"
+                ></textarea>
+                <span class="exercise-editor__hint">
+                  {{ 'courses.editor.exercise.reponseHint' | transloco }}
+                </span>
+              </label>
+            </div>
           </li>
         }
       </ol>
