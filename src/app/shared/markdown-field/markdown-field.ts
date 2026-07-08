@@ -18,7 +18,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
   hasCourseDiagrams,
   renderCourseDiagrams,
@@ -56,6 +56,7 @@ type FieldTab = 'editor' | 'preview';
 export class MarkdownField implements ControlValueAccessor {
   readonly #sanitizer = inject(DomSanitizer);
   readonly #theme = inject(ThemeService);
+  readonly #transloco = inject(TranslocoService);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   /** Préfixe d'ids ARIA propre à l'instance. */
@@ -115,7 +116,8 @@ export class MarkdownField implements ControlValueAccessor {
       // Frappe/thème pendant le rendu async : la passe périmée est ignorée.
       let stale = false;
       onCleanup(() => (stale = true));
-      void renderCourseDiagrams(base, theme).then((enhanced) => {
+      const mathNote = this.#transloco.translate('markdownField.mermaidMathNote');
+      void renderCourseDiagrams(base, theme, mathNote).then((enhanced) => {
         if (!stale) {
           this.#previewHtml.set(this.#sanitizer.bypassSecurityTrustHtml(enhanced));
         }

@@ -112,6 +112,15 @@
   text-align: left;
 }
 
+/* Indice sous un diagramme dont la source contient du LaTeX (non rendu dans
+   les nœuds Mermaid). Discret mais lisible AA — jamais slate-400 pour du texte. */
+.course-content .course-mermaid__note {
+  margin: 0.5em 0 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
 /* Thème sombre */
 [data-theme='dark'] {
   --color-primary: var(--indigo-500);

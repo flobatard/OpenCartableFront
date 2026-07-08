@@ -150,6 +150,21 @@ export function hasCourseDiagrams(html: string): boolean {
   return html.includes('language-mermaid');
 }
 
+/*
+ * Le LaTeX dans les libellés Mermaid n'est PAS rendu ici : ça exigerait
+ * `htmlLabels: true` (KaTeX injecté en <foreignObject>), or on force
+ * `htmlLabels: false` pour la sanitisation (cf. doc ci-dessous). On se
+ * contente de DÉTECTER un délimiteur math dans la source pour afficher un
+ * indice pédagogique sous le diagramme (« mets la formule autour, pas dedans »).
+ * Motif tolérant : un faux positif n'affiche qu'un indice non bloquant.
+ */
+const MERMAID_MATH_HINT = /\$[^$\n]+\$/;
+
+/** Vrai si la source Mermaid contient un délimiteur math plausible (`$…$`/`$$…$$`). */
+export function mermaidSourceHasMath(source: string): boolean {
+  return MERMAID_MATH_HINT.test(source);
+}
+
 /**
  * Rend en SVG les blocs ```mermaid d'un HTML DÉJÀ sanitisé par
  * renderCourseMarkdown. `theme` aligne le thème mermaid sur celui de l'app.
@@ -158,6 +173,7 @@ export function hasCourseDiagrams(html: string): boolean {
 export async function renderCourseDiagrams(
   html: string,
   theme: 'light' | 'dark',
+  mathNote?: string,
 ): Promise<string> {
   if (typeof window === 'undefined' || typeof DOMParser === 'undefined') {
     return html;
@@ -193,6 +209,15 @@ export async function renderCourseDiagrams(
       figure.innerHTML = DOMPurify.sanitize(svg, {
         USE_PROFILES: { html: true, svg: true, mathMl: true },
       });
+      // Indice : le LaTeX dans un nœud Mermaid n'est pas rendu (htmlLabels:false).
+      // textContent, jamais innerHTML : la note est un libellé traduit de confiance,
+      // on ne rouvre pas de vecteur d'injection.
+      if (mathNote !== undefined && mermaidSourceHasMath(source)) {
+        const note = doc.createElement('figcaption');
+        note.className = 'course-mermaid__note';
+        note.textContent = mathNote;
+        figure.appendChild(note);
+      }
     } catch {
       // Diagramme invalide : on garde la source visible (comme .katex-error).
       figure.className = 'course-mermaid course-mermaid--error';

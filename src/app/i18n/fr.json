@@ -148,7 +148,8 @@
       "editor": "Éditeur",
       "preview": "Aperçu"
     },
-    "previewEmpty": "Rien à afficher pour l'instant — écris du markdown dans l'éditeur."
+    "previewEmpty": "Rien à afficher pour l'instant — écris du markdown dans l'éditeur.",
+    "mermaidMathNote": "Les formules LaTeX ne sont pas rendues dans les nœuds Mermaid ; placez-les dans le texte, autour du diagramme."
   },
   "markdownHelp": {
     "trigger": "Aide à la mise en forme",
@@ -186,6 +187,7 @@
       "title": "Diagrammes (Mermaid)",
       "intro": "Décris un diagramme dans un bloc de code marqué « mermaid » ; il est rendu automatiquement dans l'aperçu.",
       "types": "Mermaid gère aussi les diagrammes de séquence, les diagrammes de Gantt, les camemberts et bien d'autres.",
+      "mathNote": "Le LaTeX (`$…$`) n'est pas rendu à l'intérieur des nœuds Mermaid : placez vos formules dans le texte, autour du diagramme.",
       "docs": "Voir la documentation de Mermaid"
     }
   },

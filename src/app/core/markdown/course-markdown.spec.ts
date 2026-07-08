@@ -1,6 +1,11 @@
 import type { Mock } from 'vitest';
 import mermaid from 'mermaid';
-import { hasCourseDiagrams, renderCourseDiagrams, renderCourseMarkdown } from './course-markdown';
+import {
+  hasCourseDiagrams,
+  mermaidSourceHasMath,
+  renderCourseDiagrams,
+  renderCourseMarkdown,
+} from './course-markdown';
 
 // mermaid est importé dynamiquement par renderCourseDiagrams ; on le stubbe
 // (le vrai rendu exige un DOM avec layout, indisponible en jsdom).
@@ -152,5 +157,54 @@ describe('renderCourseDiagrams (Mermaid)', () => {
 
     expect(out).toBe(html);
     expect(mermaidRender).not.toHaveBeenCalled();
+  });
+
+  it('note : ajoutée quand la source a du LaTeX ET qu’une note est fournie', async () => {
+    const src = renderCourseMarkdown('```mermaid\nflowchart LR\n  A["Courbe $y=x$"]\n```');
+    mermaidRender.mockResolvedValue({ svg: '<svg xmlns="http://www.w3.org/2000/svg"></svg>' });
+
+    const out = await renderCourseDiagrams(src, 'light', 'Formules hors des nœuds.');
+
+    expect(out).toContain('course-mermaid__note');
+    expect(out).toContain('Formules hors des nœuds.');
+  });
+
+  it('note : absente sans LaTeX dans la source', async () => {
+    mermaidRender.mockResolvedValue({ svg: '<svg xmlns="http://www.w3.org/2000/svg"></svg>' });
+
+    const out = await renderCourseDiagrams(mermaidHtml, 'light', 'Formules hors des nœuds.');
+
+    expect(out).not.toContain('course-mermaid__note');
+  });
+
+  it('note : absente si aucune note n’est fournie, même avec du LaTeX', async () => {
+    const src = renderCourseMarkdown('```mermaid\nflowchart LR\n  A["$y=x$"]\n```');
+    mermaidRender.mockResolvedValue({ svg: '<svg xmlns="http://www.w3.org/2000/svg"></svg>' });
+
+    const out = await renderCourseDiagrams(src, 'light');
+
+    expect(out).not.toContain('course-mermaid__note');
+  });
+
+  it('note : jamais posée sur un diagramme en erreur', async () => {
+    const src = renderCourseMarkdown('```mermaid\nflowchart LR\n  A["$y=x$"]\n```');
+    mermaidRender.mockRejectedValue(new Error('parse error'));
+
+    const out = await renderCourseDiagrams(src, 'light', 'Formules hors des nœuds.');
+
+    expect(out).toContain('course-mermaid--error');
+    expect(out).not.toContain('course-mermaid__note');
+  });
+});
+
+describe('mermaidSourceHasMath', () => {
+  it('détecte $…$ et $$…$$', () => {
+    expect(mermaidSourceHasMath('flowchart LR\n  A["Courbe $y=x$"]')).toBe(true);
+    expect(mermaidSourceHasMath('P((" $$(\\ell,\\ell)$$ "))')).toBe(true);
+  });
+
+  it('faux sur une source sans délimiteur math', () => {
+    expect(mermaidSourceHasMath('graph TD; A-->B')).toBe(false);
+    expect(mermaidSourceHasMath('flowchart LR\n  A["Un prix de 20"]')).toBe(false);
   });
 });

@@ -27,6 +27,8 @@ describe('MarkdownHelpDialog', () => {
     expect(text).toContain('Markdown');
     expect(text).toContain('LaTeX');
     expect(text).toContain('Mermaid');
+    // La limitation LaTeX-dans-Mermaid est documentée.
+    expect(text).toContain('nœuds Mermaid');
     // L'exemple mermaid est rendu tel quel dans un <pre>.
     expect(fixture.nativeElement.querySelector('.md-help__code')?.textContent).toContain('graph TD');
   });

@@ -148,7 +148,8 @@
       "editor": "Editor",
       "preview": "Preview"
     },
-    "previewEmpty": "Nothing to show yet — write some markdown in the editor."
+    "previewEmpty": "Nothing to show yet — write some markdown in the editor.",
+    "mermaidMathNote": "LaTeX formulas are not rendered inside Mermaid nodes; place them in the text, around the diagram."
   },
   "markdownHelp": {
     "trigger": "Formatting help",
@@ -186,6 +187,7 @@
       "title": "Diagrams (Mermaid)",
       "intro": "Describe a diagram in a code block tagged “mermaid”; it is rendered automatically in the preview.",
       "types": "Mermaid also supports sequence diagrams, Gantt charts, pie charts and many more.",
+      "mathNote": "LaTeX (`$…$`) is not rendered inside Mermaid nodes: put your formulas in the text, around the diagram.",
       "docs": "See the Mermaid documentation"
     }
   },
