@@ -1,6 +1,8 @@
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ExerciseEditor } from './exercise-editor';
 import { ExerciseContentPayload } from '../../../core/courses/course.model';
+import { ExerciseQuestionGroup } from '../../../core/courses/exercise-form';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
 
 /**
@@ -169,6 +171,38 @@ describe('ExerciseEditor', () => {
     expect(seen.at(-1)!.questions.map((q) => q.id)).toEqual(['q-2', 'q-1']);
     const titles = el(fixture).querySelectorAll('.exercise-editor__question-title');
     expect(titles.length).toBe(2);
+  });
+
+  it('le glisser-déposer réordonne les questions et émet une seule fois (Monaco préservé)', async () => {
+    const fixture = await createComponent();
+    const seen = emissions(fixture);
+
+    // jsdom ne peut pas simuler un vrai drag pointeur CDK : on appelle le handler
+    // du drop avec un événement factice (previousIndex/currentIndex seulement).
+    (
+      fixture.componentInstance as unknown as {
+        drop(e: CdkDragDrop<ExerciseQuestionGroup[]>): void;
+      }
+    ).drop({ previousIndex: 0, currentIndex: 1 } as CdkDragDrop<ExerciseQuestionGroup[]>);
+    fixture.detectChanges();
+
+    expect(seen.at(-1)!.questions.map((q) => q.id)).toEqual(['q-2', 'q-1']);
+    expect(seen.length).toBe(1); // une seule émission pour le déplacement
+    // Les deux énoncés restent montés (instances réutilisées, Monaco non détruit).
+    expect(
+      el(fixture).querySelectorAll('.exercise-editor__question-body app-markdown-field').length,
+    ).toBe(2);
+  });
+
+  it('la poignée réordonne les questions au clavier', async () => {
+    const fixture = await createComponent();
+    const seen = emissions(fixture);
+    const grip = el(fixture).querySelector<HTMLElement>('.drag-handle')!;
+
+    grip.dispatchEvent(new KeyboardEvent('keydown', { key: 'End' }));
+    fixture.detectChanges();
+
+    expect(seen.at(-1)!.questions.map((q) => q.id)).toEqual(['q-2', 'q-1']);
   });
 
   it('accordéon : une seule question dépliée, corps montés (Monaco préservé)', async () => {

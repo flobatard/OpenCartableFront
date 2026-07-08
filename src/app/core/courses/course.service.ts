@@ -178,14 +178,20 @@ export class CourseService {
   }
 
   /**
-   * Réécrit l'ordre complet des blocs. Approche pessimiste : le signal n'est
-   * réordonné (positions 0..n-1, comme le back) qu'à la réponse 204 ; sur
-   * erreur, l'appelant resynchronise via `loadDetail`.
+   * Réécrit l'ordre complet des blocs. Approche optimiste : le signal est
+   * réordonné (positions 0..n-1, comme le back) **avant** le PUT — feedback
+   * immédiat pour le glisser-déposer. Sur erreur, le PUT rejette et l'appelant
+   * resynchronise via `loadDetail` (ce qui écrase l'ordre optimiste).
    */
   async reorderBlocks(courseId: string, blockIds: string[]): Promise<void> {
+    this.#applyBlockOrder(courseId, blockIds);
     await firstValueFrom(
       this.#http.put<void>(`${this.#url}/${courseId}/blocks/order`, { block_ids: blockIds }),
     );
+  }
+
+  /** Réordonne le signal `detail` selon `blockIds` (positions 0..n-1), sans HTTP. */
+  #applyBlockOrder(courseId: string, blockIds: string[]): void {
     const rank = new Map(blockIds.map((id, i) => [id, i]));
     this.#patchDetail(courseId, (detail) => ({
       ...detail,

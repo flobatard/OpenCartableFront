@@ -1,8 +1,9 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { CourseBlocks } from './course-blocks';
-import { CourseDetail } from '../../../core/courses/course.model';
+import { CourseBlock, CourseDetail } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
 import { EducationLevelService } from '../../../core/education-levels/education-level.service';
 import { SubjectService } from '../../../core/subjects/subject.service';
@@ -155,6 +156,51 @@ describe('CourseBlocks', () => {
       'block-1',
       'block-3',
     ]);
+  });
+
+  it('le glisser-déposer réordonne via previousIndex/currentIndex', async () => {
+    const fixture = await createComponent();
+    // jsdom ne peut pas simuler un vrai drag pointeur CDK : on appelle le handler
+    // du drop avec un événement factice (previousIndex/currentIndex seulement).
+    (
+      fixture.componentInstance as unknown as { drop(e: CdkDragDrop<CourseBlock[]>): void }
+    ).drop({ previousIndex: 0, currentIndex: 2 } as CdkDragDrop<CourseBlock[]>);
+    await fixture.whenStable();
+
+    expect(coursesMock.reorderBlocks).toHaveBeenCalledWith('course-1', [
+      'block-2',
+      'block-3',
+      'block-1',
+    ]);
+  });
+
+  it('la poignée réordonne au clavier (Fin envoie le bloc en dernier)', async () => {
+    const fixture = await createComponent();
+    const grip = rows(fixture)[0].querySelector<HTMLElement>('.drag-handle')!;
+    grip.dispatchEvent(new KeyboardEvent('keydown', { key: 'End' }));
+    await fixture.whenStable();
+
+    expect(coursesMock.reorderBlocks).toHaveBeenCalledWith('course-1', [
+      'block-2',
+      'block-3',
+      'block-1',
+    ]);
+  });
+
+  it('la poignée ne réordonne pas hors bornes (première rangée vers le haut)', async () => {
+    const fixture = await createComponent();
+    const grip = rows(fixture)[0].querySelector<HTMLElement>('.drag-handle')!;
+    grip.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp' }));
+    await fixture.whenStable();
+
+    expect(coursesMock.reorderBlocks).not.toHaveBeenCalled();
+  });
+
+  it('rend une poignée de glisser-déposer étiquetée par rangée', async () => {
+    const fixture = await createComponent();
+    const grips = Array.from(el(fixture).querySelectorAll('.drag-handle'));
+    expect(grips.length).toBe(3);
+    expect(grips[0].getAttribute('aria-label')).toBe('Réordonner le bloc 1');
   });
 
   it('la suppression demande une confirmation au premier clic', async () => {

@@ -188,6 +188,49 @@
   color: var(--text-danger);
 }
 
+/* Flèches discrètes : atténuées au repos, révélées au survol/focus de l'en-tête
+   (repli d'accessibilité du glisser-déposer). La poignée est l'utilitaire global
+   `.drag-handle` (_components.scss). */
+.exercise-editor__move {
+  opacity: 0.55;
+  transition:
+    opacity 0.12s ease,
+    color 0.12s ease;
+}
+
+.exercise-editor__question-head:hover .exercise-editor__move,
+.exercise-editor__question-head:focus-within .exercise-editor__move,
+.exercise-editor__move:focus-visible {
+  opacity: 1;
+}
+
+.exercise-editor__move:disabled {
+  opacity: 0.3;
+}
+
+/* Aperçu flottant compact pendant le glissé (jamais le Monaco de la question). */
+.exercise-editor__drag-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Emplacement laissé dans la liste : fin, indépendant de la hauteur de la
+   question ouverte. */
+.exercise-editor__drag-placeholder {
+  height: 44px;
+  border: 1px dashed var(--border-control);
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+}
+
 /* Corps déplié : l'énoncé remplit la place, la réponse reste compacte.
    :not([hidden]) impératif — sans lui, ce display:flex battrait le [hidden] de
    l'UA et le corps replié (énoncé + réponse) resterait visible. */

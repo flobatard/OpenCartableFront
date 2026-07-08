@@ -3,6 +3,7 @@ import {
   applyGeneratedIds,
   buildExerciseForm,
   moveQuestion,
+  moveQuestionTo,
   patchExerciseFormFromContent,
   payloadFromBlockContent,
   payloadFromExerciseForm,
@@ -115,6 +116,37 @@ describe('exercise-form', () => {
     moveQuestion(form, 0, -1); // borne haute
     expect(emissions.length).toBe(1);
     expect(payloadFromExerciseForm(form).questions.map((q) => q.id)).toEqual(['q-2', 'q-1']);
+  });
+
+  it('moveQuestionTo déplace vers un index arbitraire en réutilisant l’instance, une seule émission', () => {
+    const form = buildExerciseForm();
+    patchExerciseFormFromContent(form, CONTENT);
+    addQuestion(form); // 3 questions : q-1, q-2, (id null)
+    const premier = form.controls.questions.at(0);
+    const emissions: unknown[] = [];
+    form.valueChanges.subscribe((v) => emissions.push(v));
+
+    moveQuestionTo(form, 0, 2);
+
+    expect(emissions.length).toBe(1);
+    expect(payloadFromExerciseForm(form).questions.map((q) => q.id)).toEqual(['q-2', null, 'q-1']);
+    // Instance réutilisée : le même FormGroup est désormais en dernière position
+    // (contrat pour @for track group, openGroup et applyGeneratedIds).
+    expect(form.controls.questions.at(2)).toBe(premier);
+  });
+
+  it('moveQuestionTo est un no-op aux bornes et pour from === to', () => {
+    const form = buildExerciseForm();
+    patchExerciseFormFromContent(form, CONTENT); // 2 questions
+    const emissions: unknown[] = [];
+    form.valueChanges.subscribe((v) => emissions.push(v));
+
+    moveQuestionTo(form, 0, 0); // égal
+    moveQuestionTo(form, -1, 1); // from hors bornes
+    moveQuestionTo(form, 0, 2); // to hors bornes
+
+    expect(emissions.length).toBe(0);
+    expect(payloadFromExerciseForm(form).questions.map((q) => q.id)).toEqual(['q-1', 'q-2']);
   });
 
   it('applyGeneratedIds pose les ids null sans émettre et sans écraser', () => {

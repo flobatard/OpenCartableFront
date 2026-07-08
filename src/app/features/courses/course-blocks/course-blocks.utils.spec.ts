@@ -1,5 +1,5 @@
 import { CourseBlock } from '../../../core/courses/course.model';
-import { blockExcerpt, moveId } from './course-blocks.utils';
+import { blockExcerpt, moveId, moveIdTo } from './course-blocks.utils';
 
 function block(type: CourseBlock['type'], content: Record<string, unknown>): CourseBlock {
   return {
@@ -65,5 +65,26 @@ describe('moveId', () => {
   it('retourne toujours un nouveau tableau', () => {
     expect(moveId(ids, 'b', -1)).not.toBe(ids);
     expect(moveId(ids, 'a', -1)).not.toBe(ids);
+  });
+});
+
+describe('moveIdTo', () => {
+  const ids = ['a', 'b', 'c'];
+
+  it('déplace un élément de from vers to', () => {
+    expect(moveIdTo(ids, 0, 1)).toEqual(['b', 'a', 'c']);
+    expect(moveIdTo(ids, 0, 2)).toEqual(['b', 'c', 'a']);
+    expect(moveIdTo(ids, 2, 0)).toEqual(['c', 'a', 'b']);
+  });
+
+  it('reste sans effet hors bornes (copie inchangée)', () => {
+    expect(moveIdTo(ids, -1, 0)).toEqual(ids);
+    expect(moveIdTo(ids, 0, 3)).toEqual(ids);
+    expect(moveIdTo(ids, 3, 0)).toEqual(ids);
+  });
+
+  it('retourne toujours un nouveau tableau', () => {
+    expect(moveIdTo(ids, 0, 1)).not.toBe(ids);
+    expect(moveIdTo(ids, -1, 0)).not.toBe(ids);
   });
 });

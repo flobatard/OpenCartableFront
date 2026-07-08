@@ -58,13 +58,42 @@
           <p class="course-blocks__empty-hint">{{ 'courses.blocks.emptyHint' | transloco }}</p>
         </div>
       } @else {
-        <ul class="course-blocks__list">
+        <ul class="course-blocks__list" cdkDropList (cdkDropListDropped)="drop($event)">
           @for (
             block of course.blocks;
             track block.id;
             let idx = $index, first = $first, last = $last
           ) {
-            <li class="course-blocks__row">
+            <li class="course-blocks__row" cdkDrag [cdkDragDisabled]="mutating()">
+              <span
+                class="drag-handle"
+                cdkDragHandle
+                role="button"
+                tabindex="0"
+                [attr.aria-label]="'courses.blocks.dragHandle' | transloco: { position: idx + 1 }"
+                aria-keyshortcuts="ArrowUp ArrowDown Home End"
+                (keydown)="onHandleKeydown($event, idx, course.blocks.length)"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="20"
+                  height="20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <circle cx="9" cy="5" r="1" />
+                  <circle cx="9" cy="12" r="1" />
+                  <circle cx="9" cy="19" r="1" />
+                  <circle cx="15" cy="5" r="1" />
+                  <circle cx="15" cy="12" r="1" />
+                  <circle cx="15" cy="19" r="1" />
+                </svg>
+              </span>
               <span class="course-blocks__type">
                 {{ 'courses.blocks.types.' + block.type | transloco }}
               </span>

@@ -118,18 +118,28 @@ export function removeQuestion(form: ExerciseForm, index: number): void {
   form.controls.questions.removeAt(index);
 }
 
-/** Déplace une question d'un cran ; no-op aux bornes. */
-export function moveQuestion(form: ExerciseForm, index: number, delta: 1 | -1): void {
+/**
+ * Déplace une question de `from` vers `to` (index absolu) en **réutilisant
+ * l'instance de FormGroup** : le suivi `@for track group`, le signal `openGroup`
+ * et le write-back `applyGeneratedIds` (matching par instance) en dépendent —
+ * reconstruire un groupe régénérerait des ids censés être stables à vie (J2).
+ * Une seule émission (deux mutations silencieuses). No-op aux bornes ou si égal.
+ */
+export function moveQuestionTo(form: ExerciseForm, from: number, to: number): void {
   const questions = form.controls.questions;
-  const target = index + delta;
-  if (index < 0 || index >= questions.length || target < 0 || target >= questions.length) {
+  if (from === to || from < 0 || from >= questions.length || to < 0 || to >= questions.length) {
     return;
   }
-  const group = questions.at(index);
-  questions.removeAt(index, { emitEvent: false });
-  questions.insert(target, group, { emitEvent: false });
+  const group = questions.at(from);
+  questions.removeAt(from, { emitEvent: false });
+  questions.insert(to, group, { emitEvent: false });
   // Une seule émission pour le déplacement (deux mutations silencieuses).
   questions.updateValueAndValidity();
+}
+
+/** Déplace une question d'un cran ; no-op aux bornes. */
+export function moveQuestion(form: ExerciseForm, index: number, delta: 1 | -1): void {
+  moveQuestionTo(form, index, index + delta);
 }
 
 /**

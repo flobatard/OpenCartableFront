@@ -46,3 +46,19 @@ export function moveId(ids: readonly string[], id: string, delta: number): strin
   next.splice(to, 0, id);
   return next;
 }
+
+/**
+ * Déplace l'élément d'index `from` vers `to` et retourne un nouveau tableau.
+ * No-op (copie inchangée) si l'un des index sort des bornes. Variante
+ * index→index de `moveId`, pour le glisser-déposer (le drop CDK fournit
+ * `previousIndex`/`currentIndex`).
+ */
+export function moveIdTo(ids: readonly string[], from: number, to: number): string[] {
+  const next = [...ids];
+  if (from < 0 || from >= ids.length || to < 0 || to >= ids.length) {
+    return next;
+  }
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved);
+  return next;
+}

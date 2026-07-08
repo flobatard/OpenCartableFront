@@ -1,5 +1,13 @@
 import { Component, effect, ElementRef, input, output, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  CdkDrag,
+  CdkDragDrop,
+  CdkDragHandle,
+  CdkDragPlaceholder,
+  CdkDragPreview,
+  CdkDropList,
+} from '@angular/cdk/drag-drop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ExerciseContentPayload } from '../../../core/courses/course.model';
@@ -8,6 +16,7 @@ import {
   buildExerciseForm,
   ExerciseQuestionGroup,
   moveQuestion,
+  moveQuestionTo,
   patchExerciseFormFromContent,
   payloadFromExerciseForm,
   questionEnoncePreview,
@@ -35,7 +44,16 @@ type ExerciseTab = 'sujet' | 'questions';
  */
 @Component({
   selector: 'app-exercise-editor',
-  imports: [ReactiveFormsModule, TranslocoPipe, MarkdownField],
+  imports: [
+    ReactiveFormsModule,
+    TranslocoPipe,
+    MarkdownField,
+    CdkDropList,
+    CdkDrag,
+    CdkDragHandle,
+    CdkDragPreview,
+    CdkDragPlaceholder,
+  ],
   templateUrl: './exercise-editor.html',
   styleUrl: './exercise-editor.scss',
 })
@@ -154,6 +172,33 @@ export class ExerciseEditor {
 
   protected move(index: number, delta: 1 | -1): void {
     moveQuestion(this.form, index, delta);
+    this.#syncGroups();
+  }
+
+  /** Fin d'un glisser-déposer : réordonne de `previousIndex` vers `currentIndex`. */
+  protected drop(event: CdkDragDrop<ExerciseQuestionGroup[]>): void {
+    moveQuestionTo(this.form, event.previousIndex, event.currentIndex);
+    this.#syncGroups();
+  }
+
+  /** Clavier sur la poignée : ↑/↓ un cran, Début/Fin aux extrémités. */
+  protected onHandleKeydown(event: KeyboardEvent, index: number): void {
+    const count = this.form.controls.questions.length;
+    const to =
+      event.key === 'ArrowUp'
+        ? index - 1
+        : event.key === 'ArrowDown'
+          ? index + 1
+          : event.key === 'Home'
+            ? 0
+            : event.key === 'End'
+              ? count - 1
+              : null;
+    if (to === null) {
+      return;
+    }
+    event.preventDefault();
+    moveQuestionTo(this.form, index, to);
     this.#syncGroups();
   }
 

@@ -115,3 +115,49 @@
   color: var(--text-primary);
   border-color: var(--border-control);
 }
+
+/* Glisser-déposer (Angular CDK) — poignée + états visuels partagés (liste des
+   blocs, liste des questions). La poignée `.drag-handle` est un utilitaire
+   global (motif `.tabs`/`.pill`) ; l'aperçu flottant est détaché dans <body>,
+   hors de toute vue de composant : ces styles doivent être globaux. Le
+   mouvement dégrade tout seul via le @media prefers-reduced-motion global. */
+
+/* Poignée de préhension (deux colonnes de 3 points) : affordance porteuse de
+   sens → slate-500 (3:1), jamais slate-400 ; primary au survol. Attrapable au
+   pointeur (cdkDragHandle), opérable au clavier côté composant hôte. */
+.drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: grab;
+  touch-action: none; /* le drag tactile ne fait pas défiler la page */
+}
+
+.drag-handle:hover {
+  color: var(--text-primary);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.cdk-drag-preview {
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-lg);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.4;
+}
+
+.cdk-drag-animating {
+  transition: transform 0.18s cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drop-list-dragging .cdk-drag {
+  transition: transform 0.18s cubic-bezier(0, 0, 0.2, 1);
+}

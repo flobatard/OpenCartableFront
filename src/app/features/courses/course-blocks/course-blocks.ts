@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, PLATFORM_ID, signal, viewChild } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
@@ -17,7 +18,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { SubjectService } from '../../../core/subjects/subject.service';
 import { findById as findSubjectById } from '../../../core/subjects/subject.utils';
 import { BlockCreateDialog } from '../block-create-dialog/block-create-dialog';
-import { moveId } from './course-blocks.utils';
+import { moveIdTo } from './course-blocks.utils';
 
 /** Types proposés à l'ajout — « ressource » attend l'upload S3 (bouton désactivé). */
 const CREATABLE_TYPES: readonly CreatableBlockType[] = ['texte', 'exercice', 'lien'];
@@ -25,13 +26,14 @@ const CREATABLE_TYPES: readonly CreatableBlockType[] = ['texte', 'exercice', 'li
 /**
  * Espace blocs d'un cours : liste ordonnée des blocs, ajout par type (via une
  * modale titre/description puis redirection vers l'éditeur du bloc créé),
- * réordonnancement par boutons monter/descendre (approche pessimiste : les
- * actions sont figées le temps d'une mutation) et suppression en deux temps
- * (le bouton s'arme puis confirme — pas de modale).
+ * réordonnancement par glisser-déposer (poignée CDK) ou flèches discrètes — la
+ * poignée est aussi opérable au clavier ; l'affichage est optimiste, mais une
+ * mutation en vol fige les actions le temps de l'aller-retour — et suppression
+ * en deux temps (le bouton s'arme puis confirme — pas de modale).
  */
 @Component({
   selector: 'app-course-blocks',
-  imports: [RouterLink, TranslocoPipe, BlockCreateDialog],
+  imports: [RouterLink, TranslocoPipe, BlockCreateDialog, CdkDropList, CdkDrag, CdkDragHandle],
   templateUrl: './course-blocks.html',
   styleUrl: './course-blocks.scss',
 })
@@ -122,17 +124,57 @@ export class CourseBlocks implements OnInit {
     }
   }
 
-  protected async move(block: CourseBlock, delta: -1 | 1): Promise<void> {
+  /** Flèche monter/descendre : délègue au réordonnancement index→index. */
+  protected move(block: CourseBlock, delta: -1 | 1): void {
+    const from = this.detail()?.blocks.findIndex((b) => b.id === block.id) ?? -1;
+    void this.#reorderTo(from, from + delta);
+  }
+
+  /** Fin d'un glisser-déposer : réordonne de `previousIndex` vers `currentIndex`. */
+  protected drop(event: CdkDragDrop<CourseBlock[]>): void {
+    void this.#reorderTo(event.previousIndex, event.currentIndex);
+  }
+
+  /** Clavier sur la poignée : ↑/↓ un cran, Début/Fin aux extrémités. */
+  protected onHandleKeydown(event: KeyboardEvent, index: number, count: number): void {
+    const to =
+      event.key === 'ArrowUp'
+        ? index - 1
+        : event.key === 'ArrowDown'
+          ? index + 1
+          : event.key === 'Home'
+            ? 0
+            : event.key === 'End'
+              ? count - 1
+              : null;
+    if (to === null) {
+      return;
+    }
+    event.preventDefault();
+    void this.#reorderTo(index, to);
+  }
+
+  /**
+   * Réordonne les blocs de `from` vers `to`. L'affichage est optimiste (le
+   * service patche le signal `detail` avant le PUT), mais `mutating` fige les
+   * actions le temps de l'aller-retour ; sur erreur, on resynchronise. No-op
+   * hors bornes ou si aucune mutation n'est nécessaire.
+   */
+  async #reorderTo(from: number, to: number): Promise<void> {
     const detail = this.detail();
-    if (!detail || this.mutating()) {
+    if (!detail || this.mutating() || from === to) {
+      return;
+    }
+    const count = detail.blocks.length;
+    if (from < 0 || from >= count || to < 0 || to >= count) {
       return;
     }
     this.#startMutation();
     try {
-      const ids = moveId(
+      const ids = moveIdTo(
         detail.blocks.map((b) => b.id),
-        block.id,
-        delta,
+        from,
+        to,
       );
       await this.#courses.reorderBlocks(this.#courseId, ids);
     } catch {

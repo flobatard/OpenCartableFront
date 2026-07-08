@@ -159,8 +159,25 @@
   margin-left: auto;
 }
 
+/* Flèches discrètes : atténuées au repos, révélées au survol/focus de la rangée
+   (repli d'accessibilité du glisser-déposer). La poignée est l'utilitaire global
+   `.drag-handle` (_components.scss). */
 .course-blocks__move {
   padding: 6px 10px;
+  opacity: 0.55;
+  transition:
+    opacity 0.12s ease,
+    color 0.12s ease;
+}
+
+.course-blocks__row:hover .course-blocks__move,
+.course-blocks__row:focus-within .course-blocks__move,
+.course-blocks__move:focus-visible {
+  opacity: 1;
+}
+
+.course-blocks__move:disabled {
+  opacity: 0.3;
 }
 
 .course-blocks__delete--armed {
