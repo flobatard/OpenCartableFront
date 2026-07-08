@@ -59,59 +59,143 @@
             </button>
           </div>
 
-          @if (saveState() === 'error') {
-            <p class="block-editor__save block-editor__save--error" role="alert">
-              {{ 'courses.editor.save.error' | transloco }}
-            </p>
-          } @else if (saveState() !== 'idle') {
-            <p class="block-editor__save" role="status">
-              @switch (saveState()) {
-                @case ('dirty') {
-                  {{ 'courses.editor.save.dirty' | transloco }}
+          <div class="block-editor__toolbar-end">
+            @if (saveState() === 'error') {
+              <p class="block-editor__save block-editor__save--error" role="alert">
+                {{ 'courses.editor.save.error' | transloco }}
+              </p>
+            } @else if (saveState() !== 'idle') {
+              <p class="block-editor__save" role="status">
+                @switch (saveState()) {
+                  @case ('dirty') {
+                    {{ 'courses.editor.save.dirty' | transloco }}
+                  }
+                  @case ('saving') {
+                    {{ 'courses.editor.save.saving' | transloco }}
+                  }
+                  @case ('saved') {
+                    {{ 'courses.editor.save.saved' | transloco }}
+                  }
                 }
-                @case ('saving') {
-                  {{ 'courses.editor.save.saving' | transloco }}
-                }
-                @case ('saved') {
-                  {{ 'courses.editor.save.saved' | transloco }}
-                }
-              }
-            </p>
-          }
-        </div>
-
-        <!-- Panneau éditeur masqué par [hidden], jamais @if : un @if
-             détruirait et rechargerait monaco à chaque bascule d'onglet. -->
-        <div
-          id="block-editor-panel-editor"
-          role="tabpanel"
-          aria-labelledby="block-editor-tab-editor"
-          class="block-editor__panel"
-          [hidden]="activeTab() !== 'editor'"
-        >
-          <app-markdown-editor [formControl]="content" />
-          <button type="button" class="block-editor__help-btn" (click)="openHelp()">
-            <span class="block-editor__help-icon" aria-hidden="true">?</span>
-            {{ 'courses.editor.help.trigger' | transloco }}
-          </button>
-        </div>
-
-        @if (activeTab() === 'preview') {
-          <div
-            id="block-editor-panel-preview"
-            role="tabpanel"
-            aria-labelledby="block-editor-tab-preview"
-            class="block-editor__panel"
-          >
-            @if (hasDraft()) {
-              <div class="course-content block-editor__preview" [innerHTML]="previewHtml()"></div>
-            } @else {
-              <p class="block-editor__preview-empty">
-                {{ 'courses.editor.previewEmpty' | transloco }}
               </p>
             }
+
+            <button
+              type="button"
+              class="block-editor__chat-toggle"
+              [class.block-editor__chat-toggle--active]="!chatCollapsed()"
+              [attr.aria-pressed]="!chatCollapsed()"
+              (click)="toggleChat()"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              {{ 'courses.editor.toggleChat' | transloco }}
+            </button>
           </div>
-        }
+        </div>
+
+        <div
+          class="block-editor__workspace"
+          [class.block-editor__workspace--dragging]="dragging()"
+          [class.block-editor__workspace--solo]="chatCollapsed()"
+        >
+          <div
+            class="block-editor__editor-col"
+            [style.--editor-basis]="editorPct() + '%'"
+          >
+            <!-- Panneau éditeur masqué par [hidden], jamais @if : un @if
+                 détruirait et rechargerait monaco à chaque bascule d'onglet. -->
+            <div
+              id="block-editor-panel-editor"
+              role="tabpanel"
+              aria-labelledby="block-editor-tab-editor"
+              class="block-editor__panel"
+              [hidden]="activeTab() !== 'editor'"
+            >
+              <app-markdown-editor [formControl]="content" />
+              <button type="button" class="block-editor__help-btn" (click)="openHelp()">
+                <span class="block-editor__help-icon" aria-hidden="true">?</span>
+                {{ 'courses.editor.help.trigger' | transloco }}
+              </button>
+            </div>
+
+            @if (activeTab() === 'preview') {
+              <div
+                id="block-editor-panel-preview"
+                role="tabpanel"
+                aria-labelledby="block-editor-tab-preview"
+                class="block-editor__panel"
+              >
+                @if (hasDraft()) {
+                  <div class="course-content block-editor__preview" [innerHTML]="previewHtml()"></div>
+                } @else {
+                  <p class="block-editor__preview-empty">
+                    {{ 'courses.editor.previewEmpty' | transloco }}
+                  </p>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Poignée de redimensionnement éditeur/chat (separator WAI-ARIA). -->
+          <div
+            class="block-editor__divider"
+            role="separator"
+            tabindex="0"
+            aria-orientation="vertical"
+            [attr.aria-label]="'courses.editor.resize' | transloco"
+            [attr.aria-valuenow]="editorPct()"
+            aria-valuemin="15"
+            aria-valuemax="85"
+            [hidden]="chatCollapsed()"
+            (pointerdown)="startDrag($event)"
+            (keydown)="onDividerKeydown($event)"
+          ></div>
+
+          <app-course-chat
+            class="block-editor__chat"
+            [courseId]="courseId"
+            [blockId]="blockId"
+            [hidden]="chatCollapsed()"
+            (collapse)="toggleChat()"
+          />
+
+          <!-- Réouverture au repli : bouton adjacent (droite/bas), pour rouvrir
+               le chat sans remonter jusqu'à la barre d'outils. -->
+          @if (chatCollapsed()) {
+            <button
+              type="button"
+              class="block-editor__chat-reopen"
+              (click)="toggleChat()"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              {{ 'courses.editor.showChat' | transloco }}
+            </button>
+          }
+        </div>
 
         <dialog
           #helpDialog

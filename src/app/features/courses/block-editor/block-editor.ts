@@ -26,8 +26,13 @@ import {
 } from '../../../core/markdown/course-markdown';
 import { ThemeService } from '../../../core/theme/theme.service';
 import { MarkdownEditor } from '../../../shared/markdown-editor/markdown-editor';
+import { CourseChat } from '../course-chat/course-chat';
 
 const AUTOSAVE_DELAY_MS = 1500;
+
+/** Bornes du partage éditeur/chat (en % de largeur de la colonne éditeur). */
+const MIN_EDITOR_PCT = 15;
+const MAX_EDITOR_PCT = 85;
 
 type SaveState = 'idle' | 'dirty' | 'saving' | 'saved' | 'error';
 type EditorTab = 'editor' | 'preview';
@@ -40,7 +45,7 @@ type EditorTab = 'editor' | 'preview';
  */
 @Component({
   selector: 'app-block-editor',
-  imports: [ReactiveFormsModule, RouterLink, TranslocoPipe, MarkdownEditor],
+  imports: [ReactiveFormsModule, RouterLink, TranslocoPipe, MarkdownEditor, CourseChat],
   templateUrl: './block-editor.html',
   styleUrl: './block-editor.scss',
 })
@@ -52,7 +57,8 @@ export class BlockEditor implements OnInit, OnDestroy {
   readonly #route = inject(ActivatedRoute);
   /** Params lus en snapshot (pas de withComponentInputBinding dans ce projet). */
   protected readonly courseId = this.#route.snapshot.paramMap.get('id') ?? '';
-  readonly #blockId = this.#route.snapshot.paramMap.get('blockId') ?? '';
+  /** Public au template pour alimenter le contexte du panneau chat (`[blockId]`). */
+  protected readonly blockId = this.#route.snapshot.paramMap.get('blockId') ?? '';
 
   protected readonly language = inject(LanguageService);
 
@@ -62,7 +68,7 @@ export class BlockEditor implements OnInit, OnDestroy {
 
   /** Bloc édité, résolu dans le détail chargé (`null` = introuvable). */
   protected readonly block = computed(
-    () => this.detail()?.blocks.find((b) => b.id === this.#blockId) ?? null,
+    () => this.detail()?.blocks.find((b) => b.id === this.blockId) ?? null,
   );
 
   /**
@@ -73,6 +79,13 @@ export class BlockEditor implements OnInit, OnDestroy {
 
   protected readonly saveState = signal<SaveState>('idle');
   protected readonly activeTab = signal<EditorTab>('editor');
+
+  /** Partage de largeur éditeur/chat piloté par la poignée (drag), en % de la
+      colonne éditeur ; `dragging` désactive la sélection de texte pendant le glissé. */
+  protected readonly editorPct = signal(64);
+  protected readonly dragging = signal(false);
+  /** Repli du panneau chat : l'éditeur reprend toute la largeur. */
+  protected readonly chatCollapsed = signal(false);
 
   /** Exemple Mermaid de la modale d'aide (chaîne liée : `<pre>` garde les sauts). */
   protected readonly mermaidExample =
@@ -165,7 +178,7 @@ export class BlockEditor implements OnInit, OnDestroy {
     // root survit au composant).
     if (this.#initialized && this.content.value !== this.#lastSaved) {
       void this.#courses
-        .updateBlockContent(this.courseId, this.#blockId, { markdown: this.content.value })
+        .updateBlockContent(this.courseId, this.blockId, { markdown: this.content.value })
         .catch(() => undefined);
     }
   }
@@ -176,6 +189,75 @@ export class BlockEditor implements OnInit, OnDestroy {
 
   protected selectTab(tab: EditorTab): void {
     this.activeTab.set(tab);
+  }
+
+  protected toggleChat(): void {
+    this.chatCollapsed.update((collapsed) => !collapsed);
+  }
+
+  #clampPct(value: number): number {
+    return Math.min(MAX_EDITOR_PCT, Math.max(MIN_EDITOR_PCT, value));
+  }
+
+  /**
+   * Redimensionne la colonne éditeur via la poignée. On capture le pointeur sur
+   * le divider (monaco ne vole pas les events pendant le glissé) et on dérive
+   * l'axe du flex-direction réel : row (desktop) → X, column (mobile empilé) → Y.
+   */
+  protected startDrag(event: PointerEvent): void {
+    event.preventDefault();
+    const divider = event.currentTarget as HTMLElement;
+    const container = divider.closest('.block-editor__workspace') as HTMLElement | null;
+    if (!container) {
+      return;
+    }
+    const isVertical = getComputedStyle(container).flexDirection === 'column';
+    this.dragging.set(true);
+    divider.setPointerCapture(event.pointerId);
+
+    const onMove = (e: PointerEvent): void => {
+      const rect = container.getBoundingClientRect();
+      const pct = isVertical
+        ? ((e.clientY - rect.top) / rect.height) * 100
+        : ((e.clientX - rect.left) / rect.width) * 100;
+      this.editorPct.set(this.#clampPct(pct));
+    };
+    const onUp = (): void => {
+      this.dragging.set(false);
+      if (divider.hasPointerCapture(event.pointerId)) {
+        divider.releasePointerCapture(event.pointerId);
+      }
+      divider.removeEventListener('pointermove', onMove);
+      divider.removeEventListener('pointerup', onUp);
+      divider.removeEventListener('pointercancel', onUp);
+    };
+    divider.addEventListener('pointermove', onMove);
+    divider.addEventListener('pointerup', onUp);
+    divider.addEventListener('pointercancel', onUp);
+  }
+
+  /** Clavier sur la poignée (separator WAI-ARIA) : ± un pas, ou extrêmes. */
+  protected onDividerKeydown(event: KeyboardEvent): void {
+    const step = 2;
+    switch (event.key) {
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        this.editorPct.set(this.#clampPct(this.editorPct() - step));
+        break;
+      case 'ArrowRight':
+      case 'ArrowDown':
+        this.editorPct.set(this.#clampPct(this.editorPct() + step));
+        break;
+      case 'Home':
+        this.editorPct.set(MIN_EDITOR_PCT);
+        break;
+      case 'End':
+        this.editorPct.set(MAX_EDITOR_PCT);
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
   }
 
   /** Modale d'aide à la mise en forme : <dialog> natif (focus trap + Escape). */
@@ -212,7 +294,7 @@ export class BlockEditor implements OnInit, OnDestroy {
     }
     this.saveState.set('saving');
     try {
-      await this.#courses.updateBlockContent(this.courseId, this.#blockId, { markdown: value });
+      await this.#courses.updateBlockContent(this.courseId, this.blockId, { markdown: value });
       this.#lastSaved = value;
       // Frappe pendant le save en vol : on reste « dirty », le suivant est en file.
       this.saveState.set(this.content.value === value ? 'saved' : 'dirty');

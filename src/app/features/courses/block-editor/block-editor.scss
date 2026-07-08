@@ -3,10 +3,8 @@
 }
 
 .block-editor {
-  /* Plus large que la colonne de lecture 880px des autres pages : l'éditeur
-     Monaco profite de la largeur max du shell (cf. .app-main à 1080px). */
-  max-width: 1080px;
-  margin-inline: auto;
+  /* Espace de travail large : la page remplit le shell (.app-main, 1600px) —
+     pas de cap propre. L'éditeur et le chat se partagent cette largeur. */
   padding: 24px 16px 48px;
 }
 
@@ -83,14 +81,99 @@
   color: var(--text-danger);
 }
 
+.block-editor__toolbar-end {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Espace de travail à deux colonnes : éditeur (largeur pilotée par la poignée)
+   + chat. Hauteur définie (le drag en % en a besoin) ; les colonnes défilent
+   en interne. -------------------------------------------------------------- */
+
+.block-editor__workspace {
+  display: flex;
+  gap: 16px;
+  height: clamp(480px, 72vh, 820px);
+  min-height: 0;
+}
+
+.block-editor__editor-col {
+  display: flex;
+  flex-direction: column;
+  /* --editor-basis piloté en template (editorPct()) ; en custom property pour
+     qu'au repli la règle --solo puisse faire grandir l'éditeur à la place du chat. */
+  flex: 0 0 var(--editor-basis, 64%);
+  min-width: 0; /* laisse monaco rétrécir (équivalent du minmax(0,1fr) en grid) */
+  min-height: 0;
+}
+
+/* Repli : l'éditeur grandit pour occuper la place libérée (à côté du bouton de
+   réouverture), au lieu du flex-basis figé de la poignée. */
+.block-editor__workspace--solo .block-editor__editor-col {
+  flex: 1 1 0;
+}
+
+.block-editor__chat {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.block-editor__divider {
+  flex: 0 0 6px;
+  align-self: stretch;
+  background: var(--border);
+  border-radius: var(--radius-full);
+  cursor: col-resize;
+  touch-action: none; /* le drag tactile ne déclenche pas le scroll de page */
+}
+
+.block-editor__divider:hover,
+.block-editor__divider:focus-visible {
+  background: var(--border-control);
+}
+
+.block-editor__workspace--dragging {
+  cursor: col-resize;
+  user-select: none;
+}
+
+/* Panneaux dans la colonne éditeur : remplissent sa hauteur définie.
+   :not([hidden]) impératif — une règle display d'auteur battrait le
+   [hidden] de l'UA, et le panneau éditeur masqué doit rester display:none. */
+.block-editor__panel:not([hidden]) {
+  flex: 1;
+  min-height: 0;
+}
+
+#block-editor-panel-editor:not([hidden]) {
+  display: flex;
+  flex-direction: column; /* monaco remplit, bouton d'aide en dessous */
+}
+
+#block-editor-panel-editor app-markdown-editor {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Aperçu : conteneur de défilement portant le cadre (le contenu défile dedans). */
+#block-editor-panel-preview {
+  overflow-y: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
 /* Bouton d'aide à la mise en forme (sous l'éditeur) --------------------------- */
 
-.block-editor__help-btn {
+/* Boutons pilule : aide à la mise en forme, bascule et réouverture du chat. */
+.block-editor__help-btn,
+.block-editor__chat-toggle,
+.block-editor__chat-reopen {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin: 8px 0 0;
-  padding: 4px 12px 4px 6px;
   background: none;
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
@@ -100,9 +183,39 @@
   cursor: pointer;
 }
 
-.block-editor__help-btn:hover {
+.block-editor__help-btn:hover,
+.block-editor__chat-toggle:hover,
+.block-editor__chat-toggle--active,
+.block-editor__chat-reopen:hover {
   color: var(--text-primary);
   border-color: var(--border-control);
+}
+
+.block-editor__help-btn {
+  margin: 8px 0 0;
+  padding: 4px 12px 4px 6px;
+}
+
+/* Bascule du chat : état porté par aria-pressed + --active (aplat subtil). */
+.block-editor__chat-toggle {
+  padding: 6px 12px;
+  font-weight: 500;
+}
+
+.block-editor__chat-toggle--active {
+  background: var(--bg-subtle);
+}
+
+/* Réouverture du chat, réservée au petit écran (empilé) : au repli, une barre en
+   bas pour rouvrir sans remonter jusqu'à la barre d'outils. Sur desktop la bascule
+   de la barre d'outils suffit → display:none ici, rétabli dans la media-query. */
+.block-editor__chat-reopen {
+  display: none;
+  flex: 0 0 auto;
+  align-self: center;
+  padding: 8px 14px;
+  background: var(--bg-surface);
+  font-weight: 500;
 }
 
 .block-editor__help-icon {
@@ -257,11 +370,11 @@
 
 /* Panneaux -------------------------------------------------------------------- */
 
+/* Colonne de lecture (68ch, héritée de .course-content) centrée dans le panneau
+   large : sans marges auto elle se collerait à gauche avec un grand vide à droite. */
 .block-editor__preview {
+  margin-inline: auto;
   padding: 16px 20px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
 }
 
 .block-editor__preview-empty {
@@ -312,4 +425,27 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text-danger);
+}
+
+/* Écran étroit (premier breakpoint du projet — cf. DESIGN_SYSTEM) : chat empilé
+   sous l'éditeur/aperçu, la poignée passe en axe vertical (le drag reste utile —
+   l'IA peut être verbeuse). Hauteur définie conservée : le drag vertical s'en
+   sert de référence. */
+@media (max-width: 900px) {
+  .block-editor__workspace {
+    flex-direction: column;
+    height: clamp(560px, 88vh, 900px);
+  }
+
+  .block-editor__divider {
+    cursor: row-resize;
+  }
+
+  .block-editor__workspace--dragging {
+    cursor: row-resize;
+  }
+
+  .block-editor__chat-reopen {
+    display: inline-flex; /* flex → l'icône et le libellé gardent gap + centrage */
+  }
 }

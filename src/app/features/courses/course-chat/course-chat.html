@@ -1,0 +1,57 @@
+<header class="course-chat__header">
+  <h2 class="course-chat__title">{{ 'courseChat.title' | transloco }}</h2>
+  <span class="course-chat__badge">{{ 'courseChat.soon' | transloco }}</span>
+  <button
+    type="button"
+    class="course-chat__collapse"
+    [attr.aria-label]="'courseChat.collapse' | transloco"
+    (click)="collapse.emit()"
+  >
+    <svg
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.75"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m9 18 6-6-6-6" />
+    </svg>
+  </button>
+</header>
+
+<div class="course-chat__messages" role="log" aria-live="polite">
+  <div class="course-chat__empty">
+    <svg
+      class="course-chat__empty-icon"
+      viewBox="0 0 24 24"
+      width="32"
+      height="32"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.75"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+    <p class="course-chat__empty-title">{{ 'courseChat.emptyTitle' | transloco }}</p>
+    <p class="course-chat__empty-hint">{{ 'courseChat.emptyHint' | transloco }}</p>
+  </div>
+</div>
+
+<div class="course-chat__composer">
+  <textarea
+    class="course-chat__input"
+    rows="2"
+    disabled
+    [attr.placeholder]="'courseChat.inputPlaceholder' | transloco"
+  ></textarea>
+  <button type="button" class="btn btn--primary course-chat__send" disabled>
+    {{ 'courseChat.send' | transloco }}
+  </button>
+</div>

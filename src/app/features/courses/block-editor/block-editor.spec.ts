@@ -251,4 +251,45 @@ describe('BlockEditor', () => {
     retry?.click();
     expect(coursesMock.loadDetail).toHaveBeenCalledWith('course-1');
   });
+
+  it('replie et déploie le panneau chat via le bouton de la barre d’outils', async () => {
+    const fixture = await createComponent();
+    const toggle = el(fixture).querySelector<HTMLButtonElement>('.block-editor__chat-toggle')!;
+    const chat = el(fixture).querySelector<HTMLElement>('app-course-chat')!;
+
+    expect(chat.hidden).toBe(false);
+    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+    expect(el(fixture).querySelector('.block-editor__chat-reopen')).toBeNull();
+
+    toggle.click();
+    fixture.detectChanges();
+
+    expect(chat.hidden).toBe(true);
+    expect(toggle.getAttribute('aria-pressed')).toBe('false');
+    expect(el(fixture).querySelector('.block-editor__workspace--solo')).toBeTruthy();
+
+    // Un bouton de réouverture apparaît près du chat (évite de remonter à la barre d'outils).
+    const reopen = el(fixture).querySelector<HTMLButtonElement>('.block-editor__chat-reopen');
+    expect(reopen).toBeTruthy();
+
+    reopen!.click();
+    fixture.detectChanges();
+    expect(chat.hidden).toBe(false);
+    expect(el(fixture).querySelector('.block-editor__chat-reopen')).toBeNull();
+  });
+
+  it('redimensionne au clavier via la poignée (aria-valuenow borné)', async () => {
+    const fixture = await createComponent();
+    const divider = el(fixture).querySelector<HTMLElement>('.block-editor__divider')!;
+
+    expect(divider.getAttribute('aria-valuenow')).toBe('64');
+
+    divider.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    fixture.detectChanges();
+    expect(divider.getAttribute('aria-valuenow')).toBe('66');
+
+    divider.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    fixture.detectChanges();
+    expect(divider.getAttribute('aria-valuenow')).toBe('85'); // borné au max
+  });
 });

@@ -119,6 +119,9 @@
       "retry": "Retry",
       "notFound": "This block does not exist or has been deleted.",
       "unsupported": "This block type has no editor yet.",
+      "resize": "Resize the editor and assistant",
+      "toggleChat": "Assistant",
+      "showChat": "Show assistant",
       "tabs": {
         "label": "Editing modes",
         "editor": "Editor",
@@ -171,6 +174,15 @@
         "error": "Saving failed — will retry on your next change"
       }
     }
+  },
+  "courseChat": {
+    "title": "Assistant",
+    "soon": "Soon",
+    "emptyTitle": "The assistant is coming soon",
+    "emptyHint": "It will soon help you write and enrich this course.",
+    "inputPlaceholder": "Ask a question about this course…",
+    "send": "Send",
+    "collapse": "Collapse the assistant"
   },
   "profile": {
     "title": "My profile",

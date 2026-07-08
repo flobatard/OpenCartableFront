@@ -119,6 +119,9 @@
       "retry": "Réessayer",
       "notFound": "Ce bloc n'existe pas ou a été supprimé.",
       "unsupported": "Ce type de bloc n'a pas encore d'éditeur.",
+      "resize": "Redimensionner l'éditeur et l'assistant",
+      "toggleChat": "Assistant",
+      "showChat": "Afficher l'assistant",
       "tabs": {
         "label": "Modes d'édition",
         "editor": "Éditeur",
@@ -171,6 +174,15 @@
         "error": "Échec de l'enregistrement — nouvelle tentative à la prochaine modification"
       }
     }
+  },
+  "courseChat": {
+    "title": "Assistant",
+    "soon": "Bientôt",
+    "emptyTitle": "L'assistant arrive bientôt",
+    "emptyHint": "Il pourra bientôt t'aider à rédiger et enrichir ce cours.",
+    "inputPlaceholder": "Pose une question sur ce cours…",
+    "send": "Envoyer",
+    "collapse": "Replier l'assistant"
   },
   "profile": {
     "title": "Mon profil",

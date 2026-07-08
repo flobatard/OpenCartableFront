@@ -1,0 +1,122 @@
+/* Carte assistant : colonne flex (en-tête fixe / messages scrollables / composer épinglé).
+   Le display est ré-annulé sous [hidden] car une règle d'auteur bat le [hidden] de l'UA
+   (le parent block-editor masque le chat via [hidden] au repli). */
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+:host([hidden]) {
+  display: none;
+}
+
+.course-chat__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.course-chat__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 16px;
+}
+
+.course-chat__badge {
+  padding: 2px 8px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.course-chat__collapse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-inline-start: auto;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.course-chat__collapse:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+/* Zone de messages : scroll interne. L'état vide est centré tant qu'il n'y a
+   pas de conversation ; le futur fil de messages remplacera place-items par un flux. */
+.course-chat__messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.course-chat__empty {
+  max-width: 32ch;
+  text-align: center;
+}
+
+.course-chat__empty-icon {
+  color: var(--text-muted); /* décoratif, aria-hidden : seul usage autorisé de slate-400 */
+}
+
+.course-chat__empty-title {
+  margin: 8px 0 4px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.course-chat__empty-hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.course-chat__composer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* Champ — DESIGN_SYSTEM §8 : bordure porteuse slate-500, placeholder slate-500
+   (jamais slate-400). Désactivé tant que l'IA n'est pas branchée. */
+.course-chat__input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font: inherit;
+  resize: none;
+}
+
+.course-chat__input::placeholder {
+  color: var(--text-secondary);
+}
+
+.course-chat__send {
+  align-self: flex-end;
+}
