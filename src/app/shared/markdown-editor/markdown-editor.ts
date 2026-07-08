@@ -15,9 +15,24 @@ import {
 } from 'ngx-monaco-editor-v2';
 import { ThemeService } from '../../core/theme/theme.service';
 import { Spinner } from '../spinner/spinner';
+import { CourseMonacoApi, registerCourseMonacoLanguages } from './course-monaco-lang';
 
-/** Monaco est servi en AMD depuis les assets copiés (angular.json) — jamais bundlé. */
-const MONACO_CONFIG: NgxMonacoEditorConfig = { baseUrl: '/monaco/vs' };
+/**
+ * Monaco est servi en AMD depuis les assets copiés (angular.json) — jamais bundlé.
+ * `onMonacoLoad` tire UNE fois, après le chargement de monaco et AVANT le premier
+ * `editor.create` : c'est le point d'ancrage pour enregistrer nos langages
+ * (`oc-markdown`/`latex`/`mermaid`) et thèmes (`oc-vs`/`oc-vs-dark`) une seule
+ * fois, globalement. Il ne reçoit aucun argument → on lit `window.monaco`.
+ */
+const MONACO_CONFIG: NgxMonacoEditorConfig = {
+  baseUrl: '/monaco/vs',
+  onMonacoLoad: () => {
+    const m = (globalThis as { monaco?: CourseMonacoApi }).monaco;
+    if (m) {
+      registerCourseMonacoLanguages(m);
+    }
+  },
+};
 
 /**
  * Options figées en constante : le wrapper dispose et recrée l'éditeur à
@@ -25,7 +40,9 @@ const MONACO_CONFIG: NgxMonacoEditorConfig = { baseUrl: '/monaco/vs' };
  * monaco.editor.setTheme (global), jamais par cet objet.
  */
 const EDITOR_OPTIONS: editor.IStandaloneEditorConstructionOptions = {
-  language: 'markdown',
+  // Langage custom : markdown intégré + coloration LaTeX ($…$/$$…$$) et Mermaid
+  // (cf. course-monaco-lang.ts, enregistré via MONACO_CONFIG.onMonacoLoad).
+  language: 'oc-markdown',
   wordWrap: 'on',
   minimap: { enabled: false },
   lineNumbers: 'off',
@@ -70,10 +87,11 @@ export class MarkdownEditor implements ControlValueAccessor {
   /** Relais interne vers le CVA de ngx-monaco-editor. */
   protected readonly inner = new FormControl('', { nonNullable: true });
 
-  /** Référence stable (cf. EDITOR_OPTIONS) ; thème initial snapshotté. */
+  /** Référence stable (cf. EDITOR_OPTIONS) ; thème initial snapshotté.
+   *  Thèmes custom oc-vs/oc-vs-dark (accent indigo sur le math) — cf. course-monaco-lang.ts. */
   protected readonly editorOptions: editor.IStandaloneEditorConstructionOptions = {
     ...EDITOR_OPTIONS,
-    theme: this.#theme.theme() === 'dark' ? 'vs-dark' : 'vs',
+    theme: this.#theme.theme() === 'dark' ? 'oc-vs-dark' : 'oc-vs',
   };
 
   readonly #ready = signal(false);
@@ -102,7 +120,7 @@ export class MarkdownEditor implements ControlValueAccessor {
     effect(() => {
       const theme = this.#theme.theme();
       if (this.#ready()) {
-        monacoGlobal()?.editor.setTheme(theme === 'dark' ? 'vs-dark' : 'vs');
+        monacoGlobal()?.editor.setTheme(theme === 'dark' ? 'oc-vs-dark' : 'oc-vs');
       }
     });
   }
