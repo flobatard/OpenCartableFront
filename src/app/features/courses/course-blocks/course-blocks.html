@@ -52,6 +52,15 @@
                 {{ excerpt(block) || ('courses.blocks.emptyExcerpt' | transloco) }}
               </span>
               <div class="course-blocks__actions">
+                @if (block.type === 'texte') {
+                  <a
+                    class="btn btn--ghost course-blocks__edit"
+                    [routerLink]="['/', language.lang(), 'courses', course.id, 'blocks', block.id]"
+                    [attr.aria-label]="'courses.blocks.editAria' | transloco: { position: idx + 1 }"
+                  >
+                    {{ 'courses.blocks.edit' | transloco }}
+                  </a>
+                }
                 <button
                   type="button"
                   class="btn btn--ghost course-blocks__move"

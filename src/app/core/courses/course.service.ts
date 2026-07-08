@@ -121,6 +121,22 @@ export class CourseService {
     }));
   }
 
+  /** Remplace le contenu d'un bloc et répercute la réponse dans le détail chargé. */
+  async updateBlockContent(
+    courseId: string,
+    blockId: string,
+    content: Record<string, unknown>,
+  ): Promise<CourseBlock> {
+    const block = await firstValueFrom(
+      this.#http.patch<CourseBlock>(`${this.#url}/${courseId}/blocks/${blockId}`, { content }),
+    );
+    this.#patchDetail(courseId, (detail) => ({
+      ...detail,
+      blocks: detail.blocks.map((b) => (b.id === blockId ? block : b)),
+    }));
+    return block;
+  }
+
   /**
    * Réécrit l'ordre complet des blocs. Approche pessimiste : le signal n'est
    * réordonné (positions 0..n-1, comme le back) qu'à la réponse 204 ; sur

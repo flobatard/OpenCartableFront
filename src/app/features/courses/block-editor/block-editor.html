@@ -1,0 +1,123 @@
+<section class="block-editor">
+  <a class="block-editor__back" [routerLink]="['/', language.lang(), 'courses', courseId]">
+    ← {{ 'courses.editor.back' | transloco }}
+  </a>
+
+  @if (loading()) {
+    <div class="block-editor__skeleton" aria-hidden="true"></div>
+    <p class="block-editor__status" role="status">{{ 'courses.editor.loading' | transloco }}</p>
+  } @else if (loadError()) {
+    <div class="block-editor__error" role="alert">
+      <p>{{ 'courses.editor.loadError' | transloco }}</p>
+      <button type="button" class="btn btn--primary" (click)="reload()">
+        {{ 'courses.editor.retry' | transloco }}
+      </button>
+    </div>
+  } @else {
+    @if (detail(); as course) {
+      @if (block(); as block) {
+      @if (block.type === 'texte') {
+        <header class="block-editor__head">
+          <h1 class="block-editor__title">{{ course.titre }}</h1>
+          <p class="block-editor__subtitle">{{ 'courses.editor.title' | transloco }}</p>
+        </header>
+
+        <div class="block-editor__toolbar">
+          <div
+            class="block-editor__tabs"
+            role="tablist"
+            [attr.aria-label]="'courses.editor.tabs.label' | transloco"
+            (keydown)="onTablistKeydown($event)"
+          >
+            <button
+              #editorTab
+              type="button"
+              role="tab"
+              id="block-editor-tab-editor"
+              class="block-editor__tab"
+              [class.block-editor__tab--active]="activeTab() === 'editor'"
+              [attr.aria-selected]="activeTab() === 'editor'"
+              aria-controls="block-editor-panel-editor"
+              [tabindex]="activeTab() === 'editor' ? 0 : -1"
+              (click)="selectTab('editor')"
+            >
+              {{ 'courses.editor.tabs.editor' | transloco }}
+            </button>
+            <button
+              #previewTab
+              type="button"
+              role="tab"
+              id="block-editor-tab-preview"
+              class="block-editor__tab"
+              [class.block-editor__tab--active]="activeTab() === 'preview'"
+              [attr.aria-selected]="activeTab() === 'preview'"
+              aria-controls="block-editor-panel-preview"
+              [tabindex]="activeTab() === 'preview' ? 0 : -1"
+              (click)="selectTab('preview')"
+            >
+              {{ 'courses.editor.tabs.preview' | transloco }}
+            </button>
+          </div>
+
+          @if (saveState() === 'error') {
+            <p class="block-editor__save block-editor__save--error" role="alert">
+              {{ 'courses.editor.save.error' | transloco }}
+            </p>
+          } @else if (saveState() !== 'idle') {
+            <p class="block-editor__save" role="status">
+              @switch (saveState()) {
+                @case ('dirty') {
+                  {{ 'courses.editor.save.dirty' | transloco }}
+                }
+                @case ('saving') {
+                  {{ 'courses.editor.save.saving' | transloco }}
+                }
+                @case ('saved') {
+                  {{ 'courses.editor.save.saved' | transloco }}
+                }
+              }
+            </p>
+          }
+        </div>
+
+        <!-- Panneau éditeur masqué par [hidden], jamais @if : un @if
+             détruirait et rechargerait monaco à chaque bascule d'onglet. -->
+        <div
+          id="block-editor-panel-editor"
+          role="tabpanel"
+          aria-labelledby="block-editor-tab-editor"
+          class="block-editor__panel"
+          [hidden]="activeTab() !== 'editor'"
+        >
+          <app-markdown-editor [formControl]="content" />
+        </div>
+
+        @if (activeTab() === 'preview') {
+          <div
+            id="block-editor-panel-preview"
+            role="tabpanel"
+            aria-labelledby="block-editor-tab-preview"
+            class="block-editor__panel"
+          >
+            @if (hasDraft()) {
+              <div class="course-content block-editor__preview" [innerHTML]="previewHtml()"></div>
+            } @else {
+              <p class="block-editor__preview-empty">
+                {{ 'courses.editor.previewEmpty' | transloco }}
+              </p>
+            }
+          </div>
+        }
+      } @else {
+        <div class="block-editor__notice">
+          <p>{{ 'courses.editor.unsupported' | transloco }}</p>
+        </div>
+      }
+      } @else {
+        <div class="block-editor__notice">
+          <p>{{ 'courses.editor.notFound' | transloco }}</p>
+        </div>
+      }
+    }
+  }
+</section>

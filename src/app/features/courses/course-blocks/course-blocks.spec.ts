@@ -107,6 +107,16 @@ describe('CourseBlocks', () => {
     expect(excerpts).toEqual(['Introduction aux suites', 'https://exemple.org/video']);
   });
 
+  it('propose « Modifier » sur les blocs texte uniquement', async () => {
+    const fixture = await createComponent();
+    const [texteRow, lienRow] = rows(fixture);
+
+    const edit = texteRow.querySelector<HTMLAnchorElement>('.course-blocks__edit');
+    expect(edit).toBeTruthy();
+    expect(edit?.getAttribute('href')).toBe('/fr/courses/course-1/blocks/block-1');
+    expect(lienRow.querySelector('.course-blocks__edit')).toBeNull();
+  });
+
   it('désactive monter en tête de liste et descendre en queue', async () => {
     const fixture = await createComponent();
     const [firstRow, lastRow] = rows(fixture);

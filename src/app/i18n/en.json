@@ -94,12 +94,35 @@
         "lien": "Link"
       },
       "resourceSoon": "Coming soon — file uploads arrive with storage.",
+      "edit": "Edit",
+      "editAria": "Edit block {{ position }}",
       "moveUp": "Move block {{ position }} up",
       "moveDown": "Move block {{ position }} down",
       "delete": "Delete",
       "confirmDelete": "Confirm deletion",
       "emptyExcerpt": "Empty block",
       "mutationError": "The operation did not complete. Try again."
+    },
+    "editor": {
+      "back": "Back to course",
+      "title": "Text block",
+      "loading": "Loading the course…",
+      "loadError": "Could not load the course. Check your connection.",
+      "retry": "Retry",
+      "notFound": "This block does not exist or has been deleted.",
+      "unsupported": "This block type has no editor yet.",
+      "tabs": {
+        "label": "Editing modes",
+        "editor": "Editor",
+        "preview": "Preview"
+      },
+      "previewEmpty": "Nothing to show yet — write some markdown in the editor.",
+      "save": {
+        "dirty": "Unsaved changes",
+        "saving": "Saving…",
+        "saved": "Saved",
+        "error": "Saving failed — will retry on your next change"
+      }
     }
   },
   "profile": {

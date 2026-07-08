@@ -1,0 +1,5 @@
+@if (isBrowser) {
+  <ngx-monaco-editor [options]="editorOptions" [formControl]="inner" (onInit)="onEditorInit()" />
+} @else {
+  <div class="markdown-editor__placeholder" aria-hidden="true"></div>
+}

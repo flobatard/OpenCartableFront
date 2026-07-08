@@ -1,0 +1,141 @@
+:host {
+  display: block;
+}
+
+.block-editor {
+  max-width: 880px;
+  margin-inline: auto;
+  padding: 24px 16px 48px;
+}
+
+.block-editor__back {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.block-editor__back:hover {
+  color: var(--text-primary);
+}
+
+.block-editor__head {
+  margin-bottom: 16px;
+}
+
+.block-editor__title {
+  margin: 0;
+  font-family: var(--font-display);
+}
+
+.block-editor__subtitle {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Barre onglets + indicateur d'enregistrement ------------------------------- */
+
+.block-editor__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.block-editor__tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius);
+}
+
+.block-editor__tab {
+  padding: 6px 14px;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.block-editor__tab--active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.block-editor__save {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.block-editor__save--error {
+  color: var(--text-danger);
+}
+
+/* Panneaux -------------------------------------------------------------------- */
+
+.block-editor__preview {
+  padding: 16px 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.block-editor__preview-empty {
+  margin: 0;
+  padding: 24px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.block-editor__notice {
+  padding: 24px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* États ------------------------------------------------------------------------ */
+
+.block-editor__skeleton {
+  height: clamp(320px, 55vh, 640px);
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  animation: block-editor-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes block-editor-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.block-editor__status {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+}
+
+.block-editor__error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-danger);
+}

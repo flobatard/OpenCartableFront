@@ -142,6 +142,26 @@ describe('CourseService', () => {
     expect(service.detail()?.blocks.map((b) => b.position)).toEqual([0, 1]);
   });
 
+  it('updateBlockContent fait un PATCH et remplace le bloc dans le détail', async () => {
+    loadDetail();
+    const updated: CourseBlock = {
+      ...COURSE_BLOCKS_FIXTURE[0],
+      content: { markdown: '## Nouveau contenu' },
+    };
+
+    const update = service.updateBlockContent(COURSE_DETAIL_FIXTURE.id, 'block-1', {
+      markdown: '## Nouveau contenu',
+    });
+    const req = httpMock.expectOne(`${url}/${COURSE_DETAIL_FIXTURE.id}/blocks/block-1`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ content: { markdown: '## Nouveau contenu' } });
+    req.flush(updated);
+
+    expect(await update).toEqual(updated);
+    expect(service.detail()?.blocks[0]).toEqual(updated);
+    expect(service.detail()?.blocks[1]).toEqual(COURSE_BLOCKS_FIXTURE[1]); // intact
+  });
+
   it('une mutation d’un autre cours ne touche pas le détail chargé', async () => {
     loadDetail();
     const add = service.addBlock('course-2', 'texte');

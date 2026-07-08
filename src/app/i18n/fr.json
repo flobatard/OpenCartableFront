@@ -94,12 +94,35 @@
         "lien": "Lien"
       },
       "resourceSoon": "Bientôt disponible — l'ajout de fichiers arrive avec le stockage.",
+      "edit": "Modifier",
+      "editAria": "Modifier le bloc {{ position }}",
       "moveUp": "Monter le bloc {{ position }}",
       "moveDown": "Descendre le bloc {{ position }}",
       "delete": "Supprimer",
       "confirmDelete": "Confirmer la suppression",
       "emptyExcerpt": "Bloc vide",
       "mutationError": "L'opération n'a pas abouti. Réessayez."
+    },
+    "editor": {
+      "back": "Retour au cours",
+      "title": "Bloc texte",
+      "loading": "Chargement du cours…",
+      "loadError": "Impossible de charger le cours. Vérifiez votre connexion.",
+      "retry": "Réessayer",
+      "notFound": "Ce bloc n'existe pas ou a été supprimé.",
+      "unsupported": "Ce type de bloc n'a pas encore d'éditeur.",
+      "tabs": {
+        "label": "Modes d'édition",
+        "editor": "Éditeur",
+        "preview": "Aperçu"
+      },
+      "previewEmpty": "Rien à afficher pour l'instant — écris du markdown dans l'éditeur.",
+      "save": {
+        "dirty": "Modifications non enregistrées",
+        "saving": "Enregistrement…",
+        "saved": "Enregistré",
+        "error": "Échec de l'enregistrement — nouvelle tentative à la prochaine modification"
+      }
     }
   },
   "profile": {

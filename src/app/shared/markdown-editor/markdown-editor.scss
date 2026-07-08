@@ -1,0 +1,19 @@
+:host {
+  display: block;
+}
+
+/* Écrase le :host { height: 200px } du wrapper ; overflow pour que les coins
+   de monaco soient rognés par le radius. */
+ngx-monaco-editor {
+  display: block;
+  height: clamp(320px, 55vh, 640px);
+  overflow: hidden;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+}
+
+.markdown-editor__placeholder {
+  height: clamp(320px, 55vh, 640px);
+  background: var(--bg-subtle);
+  border-radius: var(--radius);
+}

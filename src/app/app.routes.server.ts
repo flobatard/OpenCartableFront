@@ -42,6 +42,12 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client,
   },
   {
+    // Impératif : le wrapper monaco (ngx-monaco-editor) touche window/document
+    // sans guard SSR — cette route ne doit jamais être rendue au serveur.
+    path: ':lang/courses/:id/blocks/:blockId',
+    renderMode: RenderMode.Client,
+  },
+  {
     // La racine lit la préférence de langue (localStorage) : décision côté navigateur.
     path: '',
     renderMode: RenderMode.Client,

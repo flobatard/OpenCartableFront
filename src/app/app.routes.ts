@@ -67,6 +67,13 @@ export const routes: Routes = [
           import('./features/courses/course-blocks/course-blocks').then((m) => m.CourseBlocks),
       },
       {
+        // Éditeur du contenu d'un bloc (texte pour l'instant — monaco charge au navigateur).
+        path: 'courses/:id/blocks/:blockId',
+        canActivate: [authGuard, onboardingGuard],
+        loadComponent: () =>
+          import('./features/courses/block-editor/block-editor').then((m) => m.BlockEditor),
+      },
+      {
         path: '',
         pathMatch: 'full',
         redirectTo: 'home',
