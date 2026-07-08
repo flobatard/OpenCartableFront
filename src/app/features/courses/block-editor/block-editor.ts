@@ -19,7 +19,12 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { concatMap, debounceTime, tap } from 'rxjs';
 import { CourseService } from '../../../core/courses/course.service';
 import { LanguageService } from '../../../core/i18n/language.service';
-import { renderCourseMarkdown } from '../../../core/markdown/course-markdown';
+import {
+  hasCourseDiagrams,
+  renderCourseDiagrams,
+  renderCourseMarkdown,
+} from '../../../core/markdown/course-markdown';
+import { ThemeService } from '../../../core/theme/theme.service';
 import { MarkdownEditor } from '../../../shared/markdown-editor/markdown-editor';
 
 const AUTOSAVE_DELAY_MS = 1500;
@@ -42,6 +47,7 @@ type EditorTab = 'editor' | 'preview';
 export class BlockEditor implements OnInit, OnDestroy {
   readonly #courses = inject(CourseService);
   readonly #sanitizer = inject(DomSanitizer);
+  readonly #theme = inject(ThemeService);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   readonly #route = inject(ActivatedRoute);
   /** Params lus en snapshot (pas de withComponentInputBinding dans ce projet). */
@@ -68,21 +74,26 @@ export class BlockEditor implements OnInit, OnDestroy {
   protected readonly saveState = signal<SaveState>('idle');
   protected readonly activeTab = signal<EditorTab>('editor');
 
+  /** Exemple Mermaid de la modale d'aide (chaîne liée : `<pre>` garde les sauts). */
+  protected readonly mermaidExample =
+    '```mermaid\ngraph TD\n  A[Début] --> B{Condition ?}\n  B -->|oui| C[Action]\n  B -->|non| D[Fin]\n```';
+
   protected readonly editorTabRef = viewChild<ElementRef<HTMLButtonElement>>('editorTab');
   protected readonly previewTabRef = viewChild<ElementRef<HTMLButtonElement>>('previewTab');
+  protected readonly helpDialog = viewChild<ElementRef<HTMLDialogElement>>('helpDialog');
 
   /** Valeur locale en cours de frappe — alimente l'aperçu (pas la version sauvegardée). */
   readonly #draft = signal('');
   protected readonly hasDraft = computed(() => this.#draft().trim().length > 0);
   /**
-   * HTML de l'aperçu (markdown + formules KaTeX). La sanitisation vit dans
-   * renderCourseMarkdown (DOMPurify, profils html+mathMl+svg) ; le bypass
-   * évite uniquement le second nettoyage d'Angular, qui dépouillerait les
-   * attributs style et le MathML/SVG dont dépend la sortie KaTeX.
+   * HTML de l'aperçu (markdown + KaTeX, puis diagrammes Mermaid). La
+   * sanitisation vit dans course-markdown (DOMPurify) ; le bypass évite
+   * uniquement le second nettoyage d'Angular, qui dépouillerait les attributs
+   * style et le MathML/SVG dont dépendent KaTeX et Mermaid. Signal (et non
+   * computed) car la passe Mermaid est asynchrone — cf. l'effect ci-dessous.
    */
-  protected readonly previewHtml = computed<SafeHtml>(() =>
-    this.#sanitizer.bypassSecurityTrustHtml(renderCourseMarkdown(this.#draft())),
-  );
+  readonly #previewHtml = signal<SafeHtml>(this.#sanitizer.bypassSecurityTrustHtml(''));
+  protected readonly previewHtml = this.#previewHtml.asReadonly();
 
   #initialized = false;
   #lastSaved = '';
@@ -101,6 +112,30 @@ export class BlockEditor implements OnInit, OnDestroy {
       this.#lastSaved = initial;
       this.#draft.set(initial);
       this.content.setValue(initial, { emitEvent: false });
+    });
+
+    // Aperçu : rendu markdown+KaTeX synchrone (chemin rapide), puis passe
+    // Mermaid asynchrone. Gardé sur l'onglet aperçu pour préserver la paresse
+    // de l'ancien computed — aucun rendu, ni chargement de mermaid, en mode
+    // édition. Re-rendu quand le thème change (thème des diagrammes).
+    effect((onCleanup) => {
+      if (this.activeTab() !== 'preview') {
+        return;
+      }
+      const theme = this.#theme.theme();
+      const base = renderCourseMarkdown(this.#draft());
+      this.#previewHtml.set(this.#sanitizer.bypassSecurityTrustHtml(base));
+      if (!hasCourseDiagrams(base)) {
+        return;
+      }
+      // Frappe/thème pendant le rendu async : la passe périmée est ignorée.
+      let stale = false;
+      onCleanup(() => (stale = true));
+      void renderCourseDiagrams(base, theme).then((enhanced) => {
+        if (!stale) {
+          this.#previewHtml.set(this.#sanitizer.bypassSecurityTrustHtml(enhanced));
+        }
+      });
     });
 
     this.content.valueChanges
@@ -141,6 +176,22 @@ export class BlockEditor implements OnInit, OnDestroy {
 
   protected selectTab(tab: EditorTab): void {
     this.activeTab.set(tab);
+  }
+
+  /** Modale d'aide à la mise en forme : <dialog> natif (focus trap + Escape). */
+  protected openHelp(): void {
+    this.helpDialog()?.nativeElement.showModal();
+  }
+
+  protected closeHelp(): void {
+    this.helpDialog()?.nativeElement.close();
+  }
+
+  /** Clic sur le fond : le backdrop d'un <dialog> cible l'élément lui-même. */
+  protected onHelpClick(event: MouseEvent): void {
+    if (event.target === this.helpDialog()?.nativeElement) {
+      this.closeHelp();
+    }
   }
 
   /** Flèches gauche/droite : bascule d'onglet + déplacement du focus (APG tabs). */

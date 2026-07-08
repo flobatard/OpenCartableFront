@@ -1,4 +1,15 @@
-import { renderCourseMarkdown } from './course-markdown';
+import type { Mock } from 'vitest';
+import mermaid from 'mermaid';
+import { hasCourseDiagrams, renderCourseDiagrams, renderCourseMarkdown } from './course-markdown';
+
+// mermaid est importé dynamiquement par renderCourseDiagrams ; on le stubbe
+// (le vrai rendu exige un DOM avec layout, indisponible en jsdom).
+vi.mock('mermaid', () => ({
+  default: { initialize: vi.fn(), render: vi.fn() },
+}));
+
+const mermaidRender = mermaid.render as unknown as Mock;
+const mermaidInit = mermaid.initialize as unknown as Mock;
 
 /** Rend dans un div jsdom pour interroger le DOM produit. */
 function render(markdown: string): HTMLDivElement {
@@ -77,5 +88,69 @@ describe('renderCourseMarkdown', () => {
     const div = render('Soit $x$ :\n\n$$\ny = x\n$$');
     expect(div.querySelectorAll('.katex')).toHaveLength(2);
     expect(div.querySelectorAll('.katex-display')).toHaveLength(1);
+  });
+
+  it('un bloc ```mermaid reste un bloc de code source (repli synchrone)', () => {
+    const div = render('```mermaid\ngraph TD; A-->B\n```');
+    expect(div.querySelector('code.language-mermaid')?.textContent).toContain('graph TD');
+    expect(div.querySelector('svg')).toBeNull();
+  });
+});
+
+describe('renderCourseDiagrams (Mermaid)', () => {
+  const mermaidHtml = renderCourseMarkdown('```mermaid\ngraph TD; A-->B\n```');
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('détecte la présence de blocs mermaid', () => {
+    expect(hasCourseDiagrams(mermaidHtml)).toBe(true);
+    expect(hasCourseDiagrams(renderCourseMarkdown('## Titre'))).toBe(false);
+  });
+
+  it('remplace le bloc source par le SVG rendu et sanitisé', async () => {
+    mermaidRender.mockResolvedValue({
+      svg: '<svg xmlns="http://www.w3.org/2000/svg"><text>A</text><script>alert(1)</script></svg>',
+    });
+
+    const out = await renderCourseDiagrams(mermaidHtml, 'light');
+
+    expect(out).toContain('class="course-mermaid"');
+    expect(out).toContain('<text>A</text>');
+    expect(out).not.toContain('language-mermaid'); // source remplacée
+    expect(out).not.toContain('<script'); // SVG repassé par DOMPurify
+  });
+
+  it('aligne le thème mermaid et force les libellés SVG (jamais foreignObject)', async () => {
+    mermaidRender.mockResolvedValue({ svg: '<svg xmlns="http://www.w3.org/2000/svg"></svg>' });
+
+    await renderCourseDiagrams(mermaidHtml, 'dark');
+
+    expect(mermaidInit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        theme: 'dark',
+        securityLevel: 'strict',
+        htmlLabels: false,
+      }),
+    );
+  });
+
+  it('diagramme invalide : la source est conservée dans un bloc d’erreur', async () => {
+    mermaidRender.mockRejectedValue(new Error('parse error'));
+
+    const out = await renderCourseDiagrams(mermaidHtml, 'light');
+
+    expect(out).toContain('course-mermaid--error');
+    expect(out).toContain('graph TD');
+  });
+
+  it('sans bloc mermaid : HTML inchangé, mermaid jamais chargé', async () => {
+    const html = renderCourseMarkdown('Juste du **texte**.');
+
+    const out = await renderCourseDiagrams(html, 'light');
+
+    expect(out).toBe(html);
+    expect(mermaidRender).not.toHaveBeenCalled();
   });
 });

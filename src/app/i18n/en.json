@@ -117,7 +117,45 @@
         "preview": "Preview"
       },
       "previewEmpty": "Nothing to show yet — write some markdown in the editor.",
-      "mathHint": "$…$ for an inline formula, $$…$$ for a centered formula",
+      "help": {
+        "trigger": "Formatting help",
+        "title": "Formatting help",
+        "close": "Close",
+        "intro": "The editor combines three languages: Markdown for text, LaTeX for formulas and Mermaid for diagrams.",
+        "colSyntax": "Syntax",
+        "colResult": "Result",
+        "markdown": {
+          "title": "Markdown",
+          "heading": "Headings, from largest to smallest",
+          "bold": "Bold",
+          "italic": "Italic",
+          "list": "Bulleted list",
+          "orderedList": "Numbered list",
+          "link": "Link",
+          "image": "Image",
+          "quote": "Quote",
+          "code": "Inline code",
+          "rule": "Horizontal separator"
+        },
+        "latex": {
+          "title": "Formulas (LaTeX)",
+          "intro": "Rendered by KaTeX. An invalid formula shows in red without breaking the rest of the block.",
+          "inline": "Inline formula, within the text",
+          "block": "Centered formula, on its own line",
+          "fraction": "Fraction",
+          "power": "Superscript and subscript",
+          "sqrt": "Root",
+          "sum": "Sum and integral",
+          "greek": "Greek letters",
+          "docs": "See all supported functions"
+        },
+        "mermaid": {
+          "title": "Diagrams (Mermaid)",
+          "intro": "Describe a diagram in a code block tagged “mermaid”; it is rendered automatically in the preview.",
+          "types": "Mermaid also supports sequence diagrams, Gantt charts, pie charts and many more.",
+          "docs": "See the Mermaid documentation"
+        }
+      },
       "save": {
         "dirty": "Unsaved changes",
         "saving": "Saving…",

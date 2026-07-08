@@ -95,6 +95,23 @@
   overflow-x: auto;
 }
 
+/* Diagrammes Mermaid (rendus par renderCourseDiagrams) : figure centrée,
+   défilement horizontal des diagrammes larges. Repli si diagramme invalide. */
+.course-content .course-mermaid {
+  margin: 0 0 1.5em;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.course-content .course-mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.course-content .course-mermaid--error {
+  text-align: left;
+}
+
 /* Thème sombre */
 [data-theme='dark'] {
   --color-primary: var(--indigo-500);

@@ -83,10 +83,176 @@
   color: var(--text-danger);
 }
 
-.block-editor__hint {
+/* Bouton d'aide à la mise en forme (sous l'éditeur) --------------------------- */
+
+.block-editor__help-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin: 8px 0 0;
+  padding: 4px 12px 4px 6px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.block-editor__help-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-control);
+}
+
+.block-editor__help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background: var(--bg-subtle);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Modale d'aide (élément <dialog> natif : focus trap, Escape, backdrop) ------- */
+
+.block-editor__help {
+  width: min(640px, calc(100vw - 32px));
+  max-height: calc(100dvh - 64px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.block-editor__help::backdrop {
+  background: rgb(15 23 42 / 55%);
+}
+
+.block-editor__help-inner {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 64px);
+}
+
+.block-editor__help-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.block-editor__help-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+.block-editor__help-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.block-editor__help-close:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.block-editor__help-body {
+  padding: 4px 20px 20px;
+  overflow-y: auto;
+}
+
+.block-editor__help-intro {
+  margin: 12px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.block-editor__help-section {
+  margin-top: 24px;
+}
+
+.block-editor__help-section h3 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 15px;
+}
+
+.block-editor__help-section > p {
+  margin: 0 0 10px;
   color: var(--text-secondary);
   font-size: 13px;
+}
+
+.block-editor__help-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.block-editor__help-table th {
+  padding: 4px 8px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.block-editor__help-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.block-editor__help-table code {
+  padding: 1px 5px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.block-editor__help-code {
+  margin: 0 0 10px;
+  padding: 12px 14px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.5;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.block-editor__help-note {
+  margin: 10px 0 0;
+  font-size: 13px;
+}
+
+.block-editor__help-note a {
+  color: var(--link);
 }
 
 /* Panneaux -------------------------------------------------------------------- */
