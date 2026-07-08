@@ -3,7 +3,9 @@
 }
 
 .block-editor {
-  max-width: 880px;
+  /* Plus large que la colonne de lecture 880px des autres pages : l'éditeur
+     Monaco profite de la largeur max du shell (cf. .app-main à 1080px). */
+  max-width: 1080px;
   margin-inline: auto;
   padding: 24px 16px 48px;
 }
