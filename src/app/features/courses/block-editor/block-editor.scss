@@ -153,14 +153,11 @@
   min-height: 0;
 }
 
-/* L'éditeur d'exercice (formulaire long, plusieurs champs) défile en interne :
-   la colonne a une hauteur définie (contrainte du drag), contrairement au champ
-   markdown seul qui la remplit exactement. */
+/* L'éditeur d'exercice remplit la colonne (hauteur définie, contrainte du
+   drag) ; ses panneaux d'onglet gèrent leur propre défilement en interne. */
 .block-editor__editor-col app-exercise-editor {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
-  padding-inline-end: 4px;
 }
 
 /* Repli : l'éditeur grandit pour occuper la place libérée (à côté du bouton de

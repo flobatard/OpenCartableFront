@@ -1,19 +1,32 @@
-/* Éditeur d'exercice : sections sujet/questions empilées, chaque question en
-   carte sur les tokens du design system. Monté dans la colonne éditeur du
-   workspace du block-editor (qui scrolle verticalement). */
+/* Éditeur d'exercice : onglets Sujet | Questions, chaque question en carte sur
+   les tokens du design system. Monté dans la colonne éditeur du workspace du
+   block-editor, à hauteur définie : le markdown-field se dimensionne en
+   height:100% (contrat de son :host), la chaîne hôte → panneau doit donc
+   propager une hauteur résolue — sinon Monaco s'aplatit à 0. Le panneau Sujet
+   remplit la colonne (grand éditeur, comme le bloc texte) ; le panneau
+   Questions défile en interne avec des éditeurs compacts à hauteur fixe. */
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  min-height: 0;
+
+  /* Hauteur des éditeurs markdown des questions (énoncés) — le bouton à
+     tourner si on les veut plus grands/petits. */
+  --exercise-question-editor-height: 220px;
 }
 
 .exercise-editor {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
   gap: 12px;
 }
 
 .exercise-editor__tabbar {
   flex: 0 0 auto;
+  align-self: flex-start; /* .tabs est inline-flex : en colonne il s'étirerait */
 }
 
 /* Compteur de questions dans l'onglet — informatif, pas une pastille d'état. */
@@ -27,18 +40,30 @@
   font-weight: 600;
 }
 
-/* Panneaux d'onglet : le display est ré-annulé sous [hidden] car une règle
-   d'auteur bat le [hidden] de l'UA (les panneaux sont masqués, jamais @if —
-   Monaco vit dans les deux). */
-.exercise-editor__panel {
+/* Panneaux d'onglet : remplissent la hauteur restante sous la barre d'onglets.
+   :not([hidden]) impératif — une règle display d'auteur battrait le [hidden]
+   de l'UA, et le panneau masqué doit rester display:none (Monaco masqué,
+   jamais détruit). */
+.exercise-editor__panel:not([hidden]) {
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: 12px;
   min-width: 0;
+  min-height: 0;
 }
 
-.exercise-editor__panel[hidden] {
-  display: none;
+/* Sujet : le champ markdown remplit le panneau (grand éditeur, hauteur héritée
+   de la colonne du workspace — même confort que le bloc texte). */
+.exercise-editor__panel--sujet > app-markdown-field {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Questions : la liste défile en interne, les éditeurs restent compacts. */
+.exercise-editor__panel--questions {
+  overflow-y: auto;
+  padding-inline-end: 4px; /* espace pour l'ascenseur */
 }
 
 .exercise-editor__hint {
@@ -102,6 +127,13 @@
   flex-direction: column;
   gap: 6px;
   min-width: 0;
+}
+
+/* Éditeur markdown d'une question : hauteur fixe compacte (le markdown-field
+   se dimensionne en height:100%, il a besoin d'une hauteur résolue). */
+.exercise-editor__field app-markdown-field {
+  height: var(--exercise-question-editor-height);
+  flex: 0 0 auto;
 }
 
 .exercise-editor__label {

@@ -40,7 +40,7 @@
        un @if le détruirait et rechargerait à chaque bascule d'onglet. -->
   <section
     role="tabpanel"
-    class="exercise-editor__panel"
+    class="exercise-editor__panel exercise-editor__panel--sujet"
     [id]="uid + '-panel-sujet'"
     [attr.aria-labelledby]="uid + '-tab-sujet'"
     [hidden]="activeTab() !== 'sujet'"
@@ -51,7 +51,7 @@
 
   <section
     role="tabpanel"
-    class="exercise-editor__panel"
+    class="exercise-editor__panel exercise-editor__panel--questions"
     [id]="uid + '-panel-questions'"
     [attr.aria-labelledby]="uid + '-tab-questions'"
     [hidden]="activeTab() !== 'questions'"
