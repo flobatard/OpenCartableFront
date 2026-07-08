@@ -64,3 +64,54 @@
     color: var(--slate-300);
   }
 }
+
+/* Onglets segmentés (tablist) — segmented control réutilisable. Le markup ARIA
+   (role=tablist/tab, navigation clavier) reste porté par le composant hôte. */
+
+.tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius);
+}
+
+.tab {
+  padding: 6px 14px;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.tab--active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Boutons pilule — contour arrondi, teinte secondaire (aide, bascules). L'état
+   actif se pose via --active (aplat porté par aria-pressed côté composant). */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.pill:hover,
+.pill--active {
+  color: var(--text-primary);
+  border-color: var(--border-control);
+}

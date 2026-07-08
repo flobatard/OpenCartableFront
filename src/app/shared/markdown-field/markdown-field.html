@@ -1,0 +1,72 @@
+<div class="markdown-field">
+  <div
+    class="markdown-field__tabbar tabs"
+    role="tablist"
+    [attr.aria-label]="'markdownField.tabs.label' | transloco"
+    (keydown)="onTablistKeydown($event)"
+  >
+    <button
+      #editorTab
+      type="button"
+      role="tab"
+      class="tab"
+      [id]="uid + '-tab-editor'"
+      [class.tab--active]="activeTab() === 'editor'"
+      [attr.aria-selected]="activeTab() === 'editor'"
+      [attr.aria-controls]="uid + '-panel-editor'"
+      [tabindex]="activeTab() === 'editor' ? 0 : -1"
+      (click)="selectTab('editor')"
+    >
+      {{ 'markdownField.tabs.editor' | transloco }}
+    </button>
+    <button
+      #previewTab
+      type="button"
+      role="tab"
+      class="tab"
+      [id]="uid + '-tab-preview'"
+      [class.tab--active]="activeTab() === 'preview'"
+      [attr.aria-selected]="activeTab() === 'preview'"
+      [attr.aria-controls]="uid + '-panel-preview'"
+      [tabindex]="activeTab() === 'preview' ? 0 : -1"
+      (click)="selectTab('preview')"
+    >
+      {{ 'markdownField.tabs.preview' | transloco }}
+    </button>
+  </div>
+
+  <!-- Panneau éditeur masqué par [hidden], jamais @if : un @if détruirait et
+       rechargerait monaco à chaque bascule d'onglet. -->
+  <div
+    role="tabpanel"
+    class="markdown-field__panel markdown-field__panel--editor"
+    [id]="uid + '-panel-editor'"
+    [attr.aria-labelledby]="uid + '-tab-editor'"
+    [hidden]="activeTab() !== 'editor'"
+  >
+    <app-markdown-editor [formControl]="control" />
+    <button type="button" class="pill markdown-field__help-btn" (click)="openHelp()">
+      <span class="markdown-field__help-icon" aria-hidden="true">?</span>
+      {{ 'markdownHelp.trigger' | transloco }}
+    </button>
+  </div>
+
+  @if (activeTab() === 'preview') {
+    <div
+      role="tabpanel"
+      class="markdown-field__panel markdown-field__panel--preview"
+      [id]="uid + '-panel-preview'"
+      [attr.aria-labelledby]="uid + '-tab-preview'"
+    >
+      @if (hasDraft()) {
+        <div class="course-content markdown-field__preview" [innerHTML]="previewHtml()"></div>
+      } @else {
+        <p class="markdown-field__preview-empty">
+          {{ 'markdownField.previewEmpty' | transloco }}
+        </p>
+      }
+    </div>
+  }
+
+  <app-markdown-help-dialog />
+</div>

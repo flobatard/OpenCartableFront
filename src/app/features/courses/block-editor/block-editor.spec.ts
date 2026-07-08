@@ -200,43 +200,26 @@ describe('BlockEditor', () => {
     });
   });
 
-  it('l’onglet aperçu rend le markdown local ; l’éditeur reste monté', async () => {
+  it('bloc texte : monte le champ markdown et initialise son contrôle', async () => {
     const fixture = await createComponent();
-    fixture.componentInstance.content.setValue('## Section');
-    await fixture.whenStable();
 
-    (el(fixture).querySelector('#block-editor-tab-preview') as HTMLButtonElement).click();
-    await fixture.whenStable();
-
-    expect(el(fixture).querySelector('.block-editor__preview')?.innerHTML).toContain('<h2>');
-    const editorPanel = el(fixture).querySelector<HTMLElement>('#block-editor-panel-editor');
-    expect(editorPanel).toBeTruthy(); // masqué, pas détruit (monaco survivrait à la bascule)
-    expect(editorPanel?.hidden).toBe(true);
+    // Le contenu (éditeur/onglets/aperçu/aide) est délégué à app-markdown-field.
+    expect(el(fixture).querySelector('app-markdown-field')).toBeTruthy();
+    expect(fixture.componentInstance.content.value).toBe(INITIAL);
   });
 
-  it('l’aperçu rend les formules LaTeX via KaTeX', async () => {
-    const fixture = await createComponent();
-    fixture.componentInstance.content.setValue('Soit $x^2$ un carré.');
-    await fixture.whenStable();
-
-    (el(fixture).querySelector('#block-editor-tab-preview') as HTMLButtonElement).click();
-    await fixture.whenStable();
-
-    expect(el(fixture).querySelector('.block-editor__preview .katex')).toBeTruthy();
-  });
-
-  it('bloc introuvable : message + pas d’éditeur', async () => {
+  it('bloc introuvable : message + pas de champ', async () => {
     const fixture = await createComponent('inconnu');
 
     expect(el(fixture).textContent).toContain('existe pas ou a été supprimé');
-    expect(el(fixture).querySelector('app-markdown-editor')).toBeNull();
+    expect(el(fixture).querySelector('app-markdown-field')).toBeNull();
   });
 
   it('type sans éditeur (lien) : message dédié', async () => {
     const fixture = await createComponent('block-2');
 
     expect(el(fixture).textContent).toContain('pas encore');
-    expect(el(fixture).querySelector('app-markdown-editor')).toBeNull();
+    expect(el(fixture).querySelector('app-markdown-field')).toBeNull();
   });
 
   it('affiche l’erreur de chargement et relance via Réessayer', async () => {

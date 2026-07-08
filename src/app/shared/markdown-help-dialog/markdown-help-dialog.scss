@@ -1,0 +1,137 @@
+/* Modale d'aide (élément <dialog> natif : focus trap, Escape, backdrop) ------- */
+
+.md-help {
+  width: min(640px, calc(100vw - 32px));
+  max-height: calc(100dvh - 64px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.md-help::backdrop {
+  background: rgb(15 23 42 / 55%);
+}
+
+.md-help__inner {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 64px);
+}
+
+.md-help__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.md-help__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+.md-help__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.md-help__close:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.md-help__body {
+  padding: 4px 20px 20px;
+  overflow-y: auto;
+}
+
+.md-help__intro {
+  margin: 12px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.md-help__section {
+  margin-top: 24px;
+}
+
+.md-help__section h3 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 15px;
+}
+
+.md-help__section > p {
+  margin: 0 0 10px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.md-help__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.md-help__table th {
+  padding: 4px 8px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.md-help__table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.md-help__table code {
+  padding: 1px 5px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.md-help__code {
+  margin: 0 0 10px;
+  padding: 12px 14px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.5;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.md-help__note {
+  margin: 10px 0 0;
+  font-size: 13px;
+}
+
+.md-help__note a {
+  color: var(--link);
+}

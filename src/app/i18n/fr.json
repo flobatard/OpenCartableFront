@@ -122,57 +122,59 @@
       "resize": "Redimensionner l'éditeur et l'assistant",
       "toggleChat": "Assistant",
       "showChat": "Afficher l'assistant",
-      "tabs": {
-        "label": "Modes d'édition",
-        "editor": "Éditeur",
-        "preview": "Aperçu"
-      },
-      "previewEmpty": "Rien à afficher pour l'instant — écris du markdown dans l'éditeur.",
-      "help": {
-        "trigger": "Aide à la mise en forme",
-        "title": "Aide à la mise en forme",
-        "close": "Fermer",
-        "intro": "L'éditeur combine trois langages : le markdown pour le texte, LaTeX pour les formules et Mermaid pour les diagrammes.",
-        "colSyntax": "Syntaxe",
-        "colResult": "Résultat",
-        "markdown": {
-          "title": "Markdown",
-          "heading": "Titres, du plus grand au plus petit",
-          "bold": "Gras",
-          "italic": "Italique",
-          "list": "Liste à puces",
-          "orderedList": "Liste numérotée",
-          "link": "Lien",
-          "image": "Image",
-          "quote": "Citation",
-          "code": "Code en ligne",
-          "rule": "Séparateur horizontal"
-        },
-        "latex": {
-          "title": "Formules (LaTeX)",
-          "intro": "Rendues par KaTeX. Une formule invalide s'affiche en rouge sans bloquer le reste du bloc.",
-          "inline": "Formule en ligne, dans le fil du texte",
-          "block": "Formule centrée, sur sa propre ligne",
-          "fraction": "Fraction",
-          "power": "Exposant et indice",
-          "sqrt": "Racine",
-          "sum": "Somme et intégrale",
-          "greek": "Lettres grecques",
-          "docs": "Voir toutes les fonctions prises en charge"
-        },
-        "mermaid": {
-          "title": "Diagrammes (Mermaid)",
-          "intro": "Décris un diagramme dans un bloc de code marqué « mermaid » ; il est rendu automatiquement dans l'aperçu.",
-          "types": "Mermaid gère aussi les diagrammes de séquence, les diagrammes de Gantt, les camemberts et bien d'autres.",
-          "docs": "Voir la documentation de Mermaid"
-        }
-      },
       "save": {
         "dirty": "Modifications non enregistrées",
         "saving": "Enregistrement…",
         "saved": "Enregistré",
         "error": "Échec de l'enregistrement — nouvelle tentative à la prochaine modification"
       }
+    }
+  },
+  "markdownField": {
+    "tabs": {
+      "label": "Modes d'édition",
+      "editor": "Éditeur",
+      "preview": "Aperçu"
+    },
+    "previewEmpty": "Rien à afficher pour l'instant — écris du markdown dans l'éditeur."
+  },
+  "markdownHelp": {
+    "trigger": "Aide à la mise en forme",
+    "title": "Aide à la mise en forme",
+    "close": "Fermer",
+    "intro": "L'éditeur combine trois langages : le markdown pour le texte, LaTeX pour les formules et Mermaid pour les diagrammes.",
+    "colSyntax": "Syntaxe",
+    "colResult": "Résultat",
+    "markdown": {
+      "title": "Markdown",
+      "heading": "Titres, du plus grand au plus petit",
+      "bold": "Gras",
+      "italic": "Italique",
+      "list": "Liste à puces",
+      "orderedList": "Liste numérotée",
+      "link": "Lien",
+      "image": "Image",
+      "quote": "Citation",
+      "code": "Code en ligne",
+      "rule": "Séparateur horizontal"
+    },
+    "latex": {
+      "title": "Formules (LaTeX)",
+      "intro": "Rendues par KaTeX. Une formule invalide s'affiche en rouge sans bloquer le reste du bloc.",
+      "inline": "Formule en ligne, dans le fil du texte",
+      "block": "Formule centrée, sur sa propre ligne",
+      "fraction": "Fraction",
+      "power": "Exposant et indice",
+      "sqrt": "Racine",
+      "sum": "Somme et intégrale",
+      "greek": "Lettres grecques",
+      "docs": "Voir toutes les fonctions prises en charge"
+    },
+    "mermaid": {
+      "title": "Diagrammes (Mermaid)",
+      "intro": "Décris un diagramme dans un bloc de code marqué « mermaid » ; il est rendu automatiquement dans l'aperçu.",
+      "types": "Mermaid gère aussi les diagrammes de séquence, les diagrammes de Gantt, les camemberts et bien d'autres.",
+      "docs": "Voir la documentation de Mermaid"
     }
   },
   "courseChat": {

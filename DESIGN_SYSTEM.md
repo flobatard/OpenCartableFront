@@ -163,6 +163,16 @@ Espacement base 4 (`4·8·12·16·24·32·48`). Style plat : pas de dégradé, g
 
 Commun : `radius 8px`, `padding 9px 18px`, Inter 500 / 14 px. **Focus** : `outline 2px indigo-600, offset 2px` (≥ 2 px et ≥ 3:1, conforme 2.4.7 et 2.4.13).
 
+`.btn`, `.tabs`/`.tab` et `.pill` sont les **classes utilitaires globales** (`_components.scss`) ; tout le reste est scopé au composant.
+
+### Onglets (segmented control)
+
+Bascule entre vues d'un même contenu (ex. Éditeur / Aperçu d'un champ markdown). Conteneur `.tabs` : fond `bg-subtle`, `radius 8px`, padding 4 px, largeur naturelle (`inline-flex`). Onglet `.tab` : `radius-sm`, Inter 500 / 14 px, texte secondaire ; l'onglet actif `.tab--active` prend le fond `surface` + `shadow-sm` + texte principal. Le markup ARIA (`role="tablist"`/`tab`, `aria-selected`, roving tabindex, navigation flèches) est porté par le composant hôte. Utilitaire global (`_components.scss`).
+
+### Pilule
+
+Bouton d'action discret à contour arrondi (`radius-full`), Inter 13 px, bordure `1px border` + texte secondaire ; hover et `.pill--active` → texte principal + `border-control`. Sert aux bascules et déclencheurs secondaires (aide à la mise en forme, afficher/masquer l'assistant). Utilitaire global (`_components.scss`).
+
 ### Badges
 
 Fond tinté + texte foncé de la même famille, `radius 6px`, Inter 500 / 12 px : matière `indigo-50`/`indigo-700` · niveau `slate-100`/`slate-700` · partagé `#D1FAE5`/`#047857` · brouillon `amber-100`/`#92400E`.
@@ -191,6 +201,10 @@ Indicateur d'attente pour un chargement local (ex. l'éditeur Monaco qui s'initi
 ### Snackbar / toasts
 
 Notifications globales transverses (erreur de connexion, échec d'auth…), empilées en **bas-gauche** (`fixed`, 16 px de marge), la plus récente près du coin, largeur max ~380 px. Chaque toast : fond `surface`, bordure `1px` + **liseré gauche 4 px** de la teinte **500** sémantique (erreur `red-500` · attention `amber-500` · info `sky-500` · succès `emerald-500`) — la couleur n'est **jamais** portée par le texte, doublée d'un glyphe (`!`, `i`, `✓`) pour ne pas encoder l'information par la seule couleur. Bouton de fermeture (`slate` secondaire). ARIA : `role="alert"` pour une erreur (annonce immédiate), `role="status"` sinon. Auto-fermeture temporisée (erreurs plus longtemps), fermeture manuelle possible, dédoublonnage des messages identiques. Animation d'entrée neutralisée par `prefers-reduced-motion`. Composant : `shared/snackbar/` alimenté par `NotificationService` (`core/notifications/`).
+
+### Modale d'aide à la mise en forme
+
+Aide contextuelle à la saisie (markdown, formules LaTeX, diagrammes Mermaid) invoquée depuis un champ markdown. Élément `<dialog>` natif (focus-trap, Escape, clic sur le backdrop → fermeture) : en-tête (titre + bouton fermer) puis corps défilant à sections, chacune une table `syntaxe → résultat` (`code` mono sur fond `bg-subtle`) ou un exemple de code. Fond `surface`, `radius-lg`, `shadow-md`, backdrop `slate-900 / 55 %`, largeur `min(640px, 100vw − 32px)`. Composant présentational `shared/markdown-help-dialog/`, ouvert par `shared/markdown-field/`.
 
 ---
 

@@ -23,42 +23,6 @@
         </header>
 
         <div class="block-editor__toolbar">
-          <div
-            class="block-editor__tabs"
-            role="tablist"
-            [attr.aria-label]="'courses.editor.tabs.label' | transloco"
-            (keydown)="onTablistKeydown($event)"
-          >
-            <button
-              #editorTab
-              type="button"
-              role="tab"
-              id="block-editor-tab-editor"
-              class="block-editor__tab"
-              [class.block-editor__tab--active]="activeTab() === 'editor'"
-              [attr.aria-selected]="activeTab() === 'editor'"
-              aria-controls="block-editor-panel-editor"
-              [tabindex]="activeTab() === 'editor' ? 0 : -1"
-              (click)="selectTab('editor')"
-            >
-              {{ 'courses.editor.tabs.editor' | transloco }}
-            </button>
-            <button
-              #previewTab
-              type="button"
-              role="tab"
-              id="block-editor-tab-preview"
-              class="block-editor__tab"
-              [class.block-editor__tab--active]="activeTab() === 'preview'"
-              [attr.aria-selected]="activeTab() === 'preview'"
-              aria-controls="block-editor-panel-preview"
-              [tabindex]="activeTab() === 'preview' ? 0 : -1"
-              (click)="selectTab('preview')"
-            >
-              {{ 'courses.editor.tabs.preview' | transloco }}
-            </button>
-          </div>
-
           <div class="block-editor__toolbar-end">
             @if (saveState() === 'error') {
               <p class="block-editor__save block-editor__save--error" role="alert">
@@ -82,8 +46,8 @@
 
             <button
               type="button"
-              class="block-editor__chat-toggle"
-              [class.block-editor__chat-toggle--active]="!chatCollapsed()"
+              class="pill block-editor__chat-toggle"
+              [class.pill--active]="!chatCollapsed()"
               [attr.aria-pressed]="!chatCollapsed()"
               (click)="toggleChat()"
             >
@@ -114,38 +78,7 @@
             class="block-editor__editor-col"
             [style.--editor-basis]="editorPct() + '%'"
           >
-            <!-- Panneau éditeur masqué par [hidden], jamais @if : un @if
-                 détruirait et rechargerait monaco à chaque bascule d'onglet. -->
-            <div
-              id="block-editor-panel-editor"
-              role="tabpanel"
-              aria-labelledby="block-editor-tab-editor"
-              class="block-editor__panel"
-              [hidden]="activeTab() !== 'editor'"
-            >
-              <app-markdown-editor [formControl]="content" />
-              <button type="button" class="block-editor__help-btn" (click)="openHelp()">
-                <span class="block-editor__help-icon" aria-hidden="true">?</span>
-                {{ 'courses.editor.help.trigger' | transloco }}
-              </button>
-            </div>
-
-            @if (activeTab() === 'preview') {
-              <div
-                id="block-editor-panel-preview"
-                role="tabpanel"
-                aria-labelledby="block-editor-tab-preview"
-                class="block-editor__panel"
-              >
-                @if (hasDraft()) {
-                  <div class="course-content block-editor__preview" [innerHTML]="previewHtml()"></div>
-                } @else {
-                  <p class="block-editor__preview-empty">
-                    {{ 'courses.editor.previewEmpty' | transloco }}
-                  </p>
-                }
-              </div>
-            }
+            <app-markdown-field [formControl]="content" />
           </div>
 
           <!-- Poignée de redimensionnement éditeur/chat (separator WAI-ARIA). -->
@@ -176,7 +109,7 @@
           @if (chatCollapsed()) {
             <button
               type="button"
-              class="block-editor__chat-reopen"
+              class="pill block-editor__chat-reopen"
               (click)="toggleChat()"
             >
               <svg
@@ -196,141 +129,6 @@
             </button>
           }
         </div>
-
-        <dialog
-          #helpDialog
-          class="block-editor__help"
-          aria-labelledby="block-editor-help-title"
-          (click)="onHelpClick($event)"
-        >
-          <div class="block-editor__help-inner">
-            <header class="block-editor__help-head">
-              <h2 id="block-editor-help-title" class="block-editor__help-title">
-                {{ 'courses.editor.help.title' | transloco }}
-              </h2>
-              <button
-                type="button"
-                class="block-editor__help-close"
-                [attr.aria-label]="'courses.editor.help.close' | transloco"
-                (click)="closeHelp()"
-              >
-                ×
-              </button>
-            </header>
-
-            <div class="block-editor__help-body">
-              <p class="block-editor__help-intro">{{ 'courses.editor.help.intro' | transloco }}</p>
-
-              <section class="block-editor__help-section">
-                <h3>{{ 'courses.editor.help.markdown.title' | transloco }}</h3>
-                <table class="block-editor__help-table">
-                  <thead>
-                    <tr>
-                      <th>{{ 'courses.editor.help.colSyntax' | transloco }}</th>
-                      <th>{{ 'courses.editor.help.colResult' | transloco }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td><code># Titre</code> <code>## Sous-titre</code></td>
-                      <td>{{ 'courses.editor.help.markdown.heading' | transloco }}</td>
-                    </tr>
-                    <tr>
-                      <td><code>**gras**</code></td>
-                      <td>{{ 'courses.editor.help.markdown.bold' | transloco }}</td>
-                    </tr>
-                    <tr>
-                      <td><code>*italique*</code></td>
-                      <td>{{ 'courses.editor.help.markdown.italic' | transloco }}</td>
-                    </tr>
-                    <tr>
-                      <td><code>- élément</code></td>
-                      <td>{{ 'courses.editor.help.markdown.list' | transloco }}</td>
-                    </tr>
-                    <tr>
-                      <td><code>1. élément</code></td>
-                      <td>{{ 'courses.editor.help.markdown.orderedList' | transloco }}</td>
-                    </tr>
-                    <tr>
-                      <td><code>[texte](https://…)</code></td>
-                      <td>{{ 'courses.editor.help.markdown.link' | transloco }}</td>
-                    </tr>
-                    <tr>
-                      <td><code>![texte](https://…)</code></td>
-                      <td>{{ 'courses.editor.help.markdown.image' | transloco }}</td>
-                    </tr>
-                    <tr>
-                      <td><code>&gt; citation</code></td>
-                      <td>{{ 'courses.editor.help.markdown.quote' | transloco }}</td>
-                    </tr>
-                    <tr>
-                      <td><code>`code`</code></td>
-                      <td>{{ 'courses.editor.help.markdown.code' | transloco }}</td>
-                    </tr>
-                    <tr>
-                      <td><code>---</code></td>
-                      <td>{{ 'courses.editor.help.markdown.rule' | transloco }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-
-              <section class="block-editor__help-section">
-                <h3>{{ 'courses.editor.help.latex.title' | transloco }}</h3>
-                <p>{{ 'courses.editor.help.latex.intro' | transloco }}</p>
-                <table class="block-editor__help-table">
-                  <tbody>
-                    <tr>
-                      <td><code>$x^2$</code></td>
-                      <td>{{ 'courses.editor.help.latex.inline' | transloco }}</td>
-                    </tr>
-                    <tr>
-                      <td><code>$$\int_0^1 x\,dx$$</code></td>
-                      <td>{{ 'courses.editor.help.latex.block' | transloco }}</td>
-                    </tr>
-                    <tr>
-                      <td><code>\frac&#123;a&#125;&#123;b&#125;</code></td>
-                      <td>{{ 'courses.editor.help.latex.fraction' | transloco }}</td>
-                    </tr>
-                    <tr>
-                      <td><code>x^2</code> <code>x_i</code></td>
-                      <td>{{ 'courses.editor.help.latex.power' | transloco }}</td>
-                    </tr>
-                    <tr>
-                      <td><code>\sqrt&#123;x&#125;</code></td>
-                      <td>{{ 'courses.editor.help.latex.sqrt' | transloco }}</td>
-                    </tr>
-                    <tr>
-                      <td><code>\sum</code> <code>\int</code></td>
-                      <td>{{ 'courses.editor.help.latex.sum' | transloco }}</td>
-                    </tr>
-                    <tr>
-                      <td><code>\alpha \beta \pi</code></td>
-                      <td>{{ 'courses.editor.help.latex.greek' | transloco }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <p class="block-editor__help-note">
-                  <a href="https://katex.org/docs/supported.html" target="_blank" rel="noopener noreferrer">
-                    {{ 'courses.editor.help.latex.docs' | transloco }}
-                  </a>
-                </p>
-              </section>
-
-              <section class="block-editor__help-section">
-                <h3>{{ 'courses.editor.help.mermaid.title' | transloco }}</h3>
-                <p>{{ 'courses.editor.help.mermaid.intro' | transloco }}</p>
-                <pre class="block-editor__help-code">{{ mermaidExample }}</pre>
-                <p>{{ 'courses.editor.help.mermaid.types' | transloco }}</p>
-                <p class="block-editor__help-note">
-                  <a href="https://mermaid.js.org/intro/" target="_blank" rel="noopener noreferrer">
-                    {{ 'courses.editor.help.mermaid.docs' | transloco }}
-                  </a>
-                </p>
-              </section>
-            </div>
-          </div>
-        </dialog>
       } @else {
         <div class="block-editor__notice">
           <p>{{ 'courses.editor.unsupported' | transloco }}</p>
