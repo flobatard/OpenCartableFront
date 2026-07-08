@@ -112,6 +112,17 @@
   text-align: left;
 }
 
+/* Message d'erreur affiché quand mermaid ne compile pas la source (au-dessus du
+   bloc source conservé). Rouge sémantique thème-aware, lisible AA. */
+.course-content .course-mermaid__error {
+  margin: 0 0 0.5em;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-danger);
+  text-align: left;
+  white-space: pre-wrap;
+}
+
 /* Indice sous un diagramme dont la source contient du LaTeX (non rendu dans
    les nœuds Mermaid). Discret mais lisible AA — jamais slate-400 pour du texte. */
 .course-content .course-mermaid__note {

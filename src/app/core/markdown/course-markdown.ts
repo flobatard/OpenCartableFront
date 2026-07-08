@@ -174,6 +174,7 @@ export async function renderCourseDiagrams(
   html: string,
   theme: 'light' | 'dark',
   mathNote?: string,
+  errorLabel?: string,
 ): Promise<string> {
   if (typeof window === 'undefined' || typeof DOMParser === 'undefined') {
     return html;
@@ -192,6 +193,11 @@ export async function renderCourseDiagrams(
     // Libellés en <text> SVG (jamais <foreignObject>) : cf. doc du module.
     // TOP-LEVEL impératif — `flowchart.htmlLabels` est ignoré par le renderer.
     htmlLabels: false,
+    // Diagramme invalide : ne PAS injecter le SVG « bombe » d'erreur de mermaid
+    // dans le document. On gère notre propre repli (source visible) ci-dessous ;
+    // sans ceci, mermaid pose son graphique d'erreur dans le document.body réel
+    // (l'élément de travail temporaire orphelin), visible en bas de page.
+    suppressErrorRendering: true,
   });
 
   // Séquentiel : mermaid.render mute un conteneur global partagé, deux appels
@@ -203,8 +209,9 @@ export async function renderCourseDiagrams(
     }
     const source = code.textContent ?? '';
     const figure = doc.createElement('figure');
+    const renderId = `oc-mermaid-${mermaidUid++}`;
     try {
-      const { svg } = await mermaid.render(`oc-mermaid-${mermaidUid++}`, source);
+      const { svg } = await mermaid.render(renderId, source);
       figure.className = 'course-mermaid';
       figure.innerHTML = DOMPurify.sanitize(svg, {
         USE_PROFILES: { html: true, svg: true, mathMl: true },
@@ -218,12 +225,26 @@ export async function renderCourseDiagrams(
         note.textContent = mathNote;
         figure.appendChild(note);
       }
-    } catch {
-      // Diagramme invalide : on garde la source visible (comme .katex-error).
+    } catch (err) {
+      // Diagramme invalide : on garde la source visible (comme .katex-error) et
+      // on affiche le message d'erreur de mermaid en légende pour guider l'auteur.
       figure.className = 'course-mermaid course-mermaid--error';
+      if (errorLabel !== undefined) {
+        const caption = doc.createElement('figcaption');
+        caption.className = 'course-mermaid__error';
+        // textContent, jamais innerHTML : le message d'erreur mermaid est du
+        // texte non fiable (dérivé de la source), on ne rouvre pas d'injection.
+        const detail = err instanceof Error ? err.message.trim() : '';
+        caption.textContent = detail ? `${errorLabel} ${detail}` : errorLabel;
+        figure.appendChild(caption);
+      }
       const fallback = doc.createElement('pre');
       fallback.textContent = source;
       figure.appendChild(fallback);
+      // Défense en profondeur : mermaid crée son élément de travail dans le
+      // document.body RÉEL (pas notre `doc` détaché) et ne le nettoie pas en
+      // cas d'échec. On retire cet orphelin (`d<id>`) pour éviter tout résidu.
+      document.querySelector(`#d${renderId}`)?.remove();
     }
     pre.replaceWith(figure);
   }

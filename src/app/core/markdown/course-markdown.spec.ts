@@ -150,6 +150,24 @@ describe('renderCourseDiagrams (Mermaid)', () => {
     expect(out).toContain('graph TD');
   });
 
+  it('diagramme invalide : le libellé et le message d’erreur mermaid sont affichés', async () => {
+    mermaidRender.mockRejectedValue(new Error('Parse error on line 2'));
+
+    const out = await renderCourseDiagrams(mermaidHtml, 'light', undefined, 'Diagramme invalide :');
+
+    expect(out).toContain('course-mermaid__error');
+    expect(out).toContain('Diagramme invalide :');
+    expect(out).toContain('Parse error on line 2');
+  });
+
+  it('diagramme invalide sans libellé fourni : pas de légende d’erreur', async () => {
+    mermaidRender.mockRejectedValue(new Error('parse error'));
+
+    const out = await renderCourseDiagrams(mermaidHtml, 'light');
+
+    expect(out).not.toContain('course-mermaid__error');
+  });
+
   it('sans bloc mermaid : HTML inchangé, mermaid jamais chargé', async () => {
     const html = renderCourseMarkdown('Juste du **texte**.');
 

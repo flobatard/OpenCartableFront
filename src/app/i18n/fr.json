@@ -149,7 +149,8 @@
       "preview": "Aperçu"
     },
     "previewEmpty": "Rien à afficher pour l'instant — écris du markdown dans l'éditeur.",
-    "mermaidMathNote": "Les formules LaTeX ne sont pas rendues dans les nœuds Mermaid ; placez-les dans le texte, autour du diagramme."
+    "mermaidMathNote": "Les formules LaTeX ne sont pas rendues dans les nœuds Mermaid ; placez-les dans le texte, autour du diagramme.",
+    "mermaidError": "Diagramme Mermaid invalide :"
   },
   "markdownHelp": {
     "trigger": "Aide à la mise en forme",

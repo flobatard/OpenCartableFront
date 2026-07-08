@@ -117,7 +117,8 @@ export class MarkdownField implements ControlValueAccessor {
       let stale = false;
       onCleanup(() => (stale = true));
       const mathNote = this.#transloco.translate('markdownField.mermaidMathNote');
-      void renderCourseDiagrams(base, theme, mathNote).then((enhanced) => {
+      const errorLabel = this.#transloco.translate('markdownField.mermaidError');
+      void renderCourseDiagrams(base, theme, mathNote, errorLabel).then((enhanced) => {
         if (!stale) {
           this.#previewHtml.set(this.#sanitizer.bypassSecurityTrustHtml(enhanced));
         }
