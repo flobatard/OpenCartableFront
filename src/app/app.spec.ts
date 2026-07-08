@@ -19,6 +19,7 @@ describe('App', () => {
           useValue: {
             isAuthenticated: signal(false),
             displayName: signal<string | null>(null),
+            loggingIn: signal(false),
             login: vi.fn().mockResolvedValue(undefined),
             logout: vi.fn().mockResolvedValue(undefined),
           },

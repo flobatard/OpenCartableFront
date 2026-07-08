@@ -8,9 +8,11 @@ import { provideTranslocoTesting } from '../../testing/transloco-testing';
 describe('Header', () => {
   const isAuthenticated = signal(false);
   const displayName = signal<string | null>(null);
+  const loggingIn = signal(false);
   const authMock = {
     isAuthenticated,
     displayName,
+    loggingIn,
     login: vi.fn().mockResolvedValue(undefined),
     logout: vi.fn().mockResolvedValue(undefined),
   };
@@ -18,6 +20,7 @@ describe('Header', () => {
   beforeEach(async () => {
     isAuthenticated.set(false);
     displayName.set(null);
+    loggingIn.set(false);
     localStorage.clear();
     document.documentElement.removeAttribute('data-theme');
 
@@ -34,6 +37,21 @@ describe('Header', () => {
 
     expect(el.querySelector('img[alt="OpenCartable"]')).toBeTruthy();
     expect(el.textContent).toContain('Se connecter');
+  });
+
+  it('affiche un spinner et désactive le bouton pendant la connexion', async () => {
+    const fixture = TestBed.createComponent(Header);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    const button = el.querySelector<HTMLButtonElement>('.header__actions .btn--secondary');
+
+    expect(button?.querySelector('app-spinner')).toBeNull();
+
+    loggingIn.set(true);
+    fixture.detectChanges();
+
+    expect(button?.disabled).toBe(true);
+    expect(button?.querySelector('app-spinner')).toBeTruthy();
   });
 
   it('bascule le thème au clic', async () => {

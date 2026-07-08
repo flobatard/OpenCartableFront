@@ -4,11 +4,12 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
 import { APP_LANGS, LanguageService } from '../../core/i18n/language.service';
 import { ThemeService } from '../../core/theme/theme.service';
+import { Spinner } from '../../shared/spinner/spinner';
 import { UserMenu } from './user-menu';
 
 @Component({
   selector: 'app-header',
-  imports: [RouterLink, RouterLinkActive, TranslocoPipe, UserMenu],
+  imports: [RouterLink, RouterLinkActive, TranslocoPipe, UserMenu, Spinner],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })

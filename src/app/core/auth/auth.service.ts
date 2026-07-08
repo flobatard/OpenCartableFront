@@ -25,6 +25,10 @@ export class AuthService {
   readonly #isAuthenticated = signal(false);
   readonly isAuthenticated = this.#isAuthenticated.asReadonly();
 
+  readonly #loggingIn = signal(false);
+  /** Vrai entre le clic sur « Se connecter » et la redirection effective vers l'IdP. */
+  readonly loggingIn = this.#loggingIn.asReadonly();
+
   readonly #identityClaims = signal<Record<string, unknown> | null>(null);
   readonly identityClaims = this.#identityClaims.asReadonly();
 
@@ -62,13 +66,17 @@ export class AuthService {
 
   /** Démarre le code flow ; `targetUrl` est restauré au retour du callback. */
   async login(targetUrl?: string): Promise<void> {
+    this.#loggingIn.set(true);
     try {
       await this.#ensureDiscovery();
     } catch (error) {
       // Discovery injoignable : pas de redirection possible, on le signale.
+      this.#loggingIn.set(false);
       this.#notifications.error(this.#transloco.translate('notifications.loginError'));
       throw error;
     }
+    // Pas de reset à `false` ici : `initCodeFlow` recharge la page, le spinner
+    // doit rester visible jusqu'à la redirection effective.
     this.#oauth.initCodeFlow(targetUrl ?? '/');
   }
 

@@ -70,7 +70,26 @@ describe('AuthService', () => {
     expect(oauth.initCodeFlow).toHaveBeenCalledWith('/cours/42');
   });
 
-  it('login notifie une erreur quand la discovery échoue', async () => {
+  it('login expose loggingIn pendant la discovery puis le laisse actif jusqu’à la redirection', async () => {
+    const service = TestBed.inject(AuthService);
+    let resolveDiscovery!: () => void;
+    oauth.loadDiscoveryDocument.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveDiscovery = resolve;
+      }),
+    );
+
+    const pending = service.login('/cours/42');
+    expect(service.loggingIn()).toBe(true);
+
+    resolveDiscovery();
+    await pending;
+
+    // Pas de reset à `false` : `initCodeFlow` recharge la page.
+    expect(service.loggingIn()).toBe(true);
+  });
+
+  it('login notifie une erreur quand la discovery échoue et réinitialise loggingIn', async () => {
     const service = TestBed.inject(AuthService);
     oauth.loadDiscoveryDocument.mockRejectedValue(new Error('IdP injoignable'));
 
@@ -78,6 +97,7 @@ describe('AuthService', () => {
 
     expect(oauth.initCodeFlow).not.toHaveBeenCalled();
     expect(notifications.error).toHaveBeenCalledWith('notifications.loginError');
+    expect(service.loggingIn()).toBe(false);
   });
 
   it('completeLogin échange le code et restaure l’URL interne', async () => {

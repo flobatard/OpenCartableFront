@@ -66,7 +66,15 @@
     @if (auth.isAuthenticated()) {
       <app-user-menu />
     } @else {
-      <button type="button" class="btn btn--secondary" (click)="login()">
+      <button
+        type="button"
+        class="btn btn--secondary"
+        (click)="login()"
+        [disabled]="auth.loggingIn()"
+      >
+        @if (auth.loggingIn()) {
+          <app-spinner size="sm" />
+        }
         {{ 'header.login' | transloco }}
       </button>
     }
