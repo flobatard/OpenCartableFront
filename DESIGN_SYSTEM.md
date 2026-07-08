@@ -184,6 +184,14 @@ Toute la zone d'édition/lecture d'un cours vit sous `.course-content` : largeur
 - **Fichier / image** : carte icône + nom + taille, téléchargement en bouton fantôme, **légende `slate-600`**.
 - **Module interactif** : cadre `1px slate-500 dashed`, badge « interactif », iframe sandbox.
 
+### Spinner / loader
+
+Indicateur d'attente pour un chargement local (ex. l'éditeur Monaco qui s'initialise). Anneau rotatif : trace `1px border` (`slate-200`/dark `slate-700`), arc actif `color-primary`. Trois tailles — **sm 18 px**, **md 28 px** (défaut), **lg 44 px**, épaisseur 2–4 px. `role="status"` + libellé masqué (`.sr-only`, « Chargement… » par défaut) pour l'annonce lecteur d'écran. **Mouvement réduit** (`prefers-reduced-motion`) : la rotation se fige, l'anneau reste lisible en repli statique. Couleur exclusivement par token, jamais de hex en dur. Composant : `shared/spinner/`.
+
+### Snackbar / toasts
+
+Notifications globales transverses (erreur de connexion, échec d'auth…), empilées en **bas-gauche** (`fixed`, 16 px de marge), la plus récente près du coin, largeur max ~380 px. Chaque toast : fond `surface`, bordure `1px` + **liseré gauche 4 px** de la teinte **500** sémantique (erreur `red-500` · attention `amber-500` · info `sky-500` · succès `emerald-500`) — la couleur n'est **jamais** portée par le texte, doublée d'un glyphe (`!`, `i`, `✓`) pour ne pas encoder l'information par la seule couleur. Bouton de fermeture (`slate` secondaire). ARIA : `role="alert"` pour une erreur (annonce immédiate), `role="status"` sinon. Auto-fermeture temporisée (erreurs plus longtemps), fermeture manuelle possible, dédoublonnage des messages identiques. Animation d'entrée neutralisée par `prefers-reduced-motion`. Composant : `shared/snackbar/` alimenté par `NotificationService` (`core/notifications/`).
+
 ---
 
 ## 9. Ton & voix

@@ -1,0 +1,23 @@
+<div class="snackbar" aria-live="polite">
+  @for (toast of toasts(); track toast.id) {
+    <div
+      class="snackbar__toast"
+      [class.snackbar__toast--error]="toast.severity === 'error'"
+      [class.snackbar__toast--warning]="toast.severity === 'warning'"
+      [class.snackbar__toast--info]="toast.severity === 'info'"
+      [class.snackbar__toast--success]="toast.severity === 'success'"
+      [attr.role]="toast.severity === 'error' ? 'alert' : 'status'"
+    >
+      <span class="snackbar__icon" aria-hidden="true"></span>
+      <p class="snackbar__message">{{ toast.message }}</p>
+      <button
+        type="button"
+        class="snackbar__close"
+        [attr.aria-label]="'notifications.dismiss' | transloco"
+        (click)="dismiss(toast.id)"
+      >
+        ×
+      </button>
+    </div>
+  }
+</div>

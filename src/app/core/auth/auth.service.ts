@@ -1,7 +1,9 @@
 import { computed, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { AuthConfig, OAuthService } from 'angular-oauth2-oidc';
+import { TranslocoService } from '@jsverse/transloco';
 import { environment } from '../../../environments/environment';
+import { NotificationService } from '../notifications/notification.service';
 
 /**
  * Abstraction du flow OIDC (Authorization Code + PKCE) : le reste de l'app ne
@@ -16,6 +18,8 @@ import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   readonly #oauth = inject(OAuthService);
+  readonly #notifications = inject(NotificationService);
+  readonly #transloco = inject(TranslocoService);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly #isAuthenticated = signal(false);
@@ -45,7 +49,9 @@ export class AuthService {
       this.#ensureDiscovery()
         .then(() => this.#oauth.setupAutomaticSilentRefresh())
         .catch(() => {
-          // IdP injoignable : la session vivra jusqu'à expiration du token
+          // IdP injoignable : la session vivra jusqu'à expiration du token, mais
+          // on prévient l'utilisateur que le service d'auth est inaccessible.
+          this.#notifications.error(this.#transloco.translate('notifications.connectionError'));
         });
     }
   }
@@ -56,7 +62,13 @@ export class AuthService {
 
   /** Démarre le code flow ; `targetUrl` est restauré au retour du callback. */
   async login(targetUrl?: string): Promise<void> {
-    await this.#ensureDiscovery();
+    try {
+      await this.#ensureDiscovery();
+    } catch (error) {
+      // Discovery injoignable : pas de redirection possible, on le signale.
+      this.#notifications.error(this.#transloco.translate('notifications.loginError'));
+      throw error;
+    }
     this.#oauth.initCodeFlow(targetUrl ?? '/');
   }
 

@@ -1,0 +1,121 @@
+/* Pile de notifications globales, ancrée en bas-gauche, au-dessus du contenu.
+   Couleurs via tokens uniquement ; la teinte 500 sert de liseré/icône (aplat
+   3:1), jamais de couleur de texte. */
+.snackbar {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column-reverse; /* le plus récent en bas, proche du coin */
+  gap: 10px;
+  max-width: min(380px, calc(100vw - 32px));
+  pointer-events: none; /* le conteneur laisse passer les clics ; les toasts non */
+}
+
+.snackbar__toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 12px 12px 14px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--slate-500);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  animation: snackbar-in 160ms ease-out;
+}
+
+.snackbar__toast--error {
+  border-left-color: var(--red-500);
+}
+.snackbar__toast--warning {
+  border-left-color: var(--amber-500);
+}
+.snackbar__toast--info {
+  border-left-color: var(--sky-500);
+}
+.snackbar__toast--success {
+  border-left-color: var(--emerald-500);
+}
+
+/* Glyphe distinctif par sévérité (n'encode pas l'info par la seule couleur). */
+.snackbar__icon {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  font: 700 13px/1 var(--font-sans);
+  color: #ffffff;
+  background: var(--slate-500);
+}
+
+.snackbar__toast--error .snackbar__icon {
+  background: var(--red-500);
+}
+.snackbar__toast--warning .snackbar__icon {
+  background: var(--amber-500);
+}
+.snackbar__toast--info .snackbar__icon {
+  background: var(--sky-500);
+}
+.snackbar__toast--success .snackbar__icon {
+  background: var(--emerald-500);
+}
+
+.snackbar__toast--error .snackbar__icon::before {
+  content: '!';
+}
+.snackbar__toast--warning .snackbar__icon::before {
+  content: '!';
+}
+.snackbar__toast--info .snackbar__icon::before {
+  content: 'i';
+}
+.snackbar__toast--success .snackbar__icon::before {
+  content: '✓';
+}
+
+.snackbar__message {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.snackbar__close {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text-primary);
+    background: var(--bg-subtle);
+  }
+}
+
+@keyframes snackbar-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

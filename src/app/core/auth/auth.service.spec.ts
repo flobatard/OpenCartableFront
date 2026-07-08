@@ -1,6 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { OAuthService } from 'angular-oauth2-oidc';
+import { TranslocoService } from '@jsverse/transloco';
 import { Subject } from 'rxjs';
+import { NotificationService } from '../notifications/notification.service';
 import { AuthService } from './auth.service';
 
 interface OAuthServiceMock {
@@ -19,8 +21,10 @@ interface OAuthServiceMock {
 
 describe('AuthService', () => {
   let oauth: OAuthServiceMock;
+  let notifications: { error: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
+    notifications = { error: vi.fn() };
     oauth = {
       configure: vi.fn(),
       events: new Subject<unknown>(),
@@ -35,7 +39,11 @@ describe('AuthService', () => {
       state: '',
     };
     TestBed.configureTestingModule({
-      providers: [{ provide: OAuthService, useValue: oauth }],
+      providers: [
+        { provide: OAuthService, useValue: oauth },
+        { provide: NotificationService, useValue: notifications },
+        { provide: TranslocoService, useValue: { translate: (key: string) => key } },
+      ],
     });
   });
 
@@ -60,6 +68,16 @@ describe('AuthService', () => {
     await service.login('/cours/42');
     expect(oauth.loadDiscoveryDocument).toHaveBeenCalledTimes(1);
     expect(oauth.initCodeFlow).toHaveBeenCalledWith('/cours/42');
+  });
+
+  it('login notifie une erreur quand la discovery échoue', async () => {
+    const service = TestBed.inject(AuthService);
+    oauth.loadDiscoveryDocument.mockRejectedValue(new Error('IdP injoignable'));
+
+    await expect(service.login('/cours/42')).rejects.toThrow();
+
+    expect(oauth.initCodeFlow).not.toHaveBeenCalled();
+    expect(notifications.error).toHaveBeenCalledWith('notifications.loginError');
   });
 
   it('completeLogin échange le code et restaure l’URL interne', async () => {

@@ -1,5 +1,12 @@
 @if (isBrowser) {
-  <ngx-monaco-editor [options]="editorOptions" [formControl]="inner" (onInit)="onEditorInit()" />
+  <div class="markdown-editor__frame">
+    <ngx-monaco-editor [options]="editorOptions" [formControl]="inner" (onInit)="onEditorInit()" />
+    @if (!ready()) {
+      <div class="markdown-editor__loading">
+        <app-spinner size="lg" />
+      </div>
+    }
+  </div>
 } @else {
   <div class="markdown-editor__placeholder" aria-hidden="true"></div>
 }

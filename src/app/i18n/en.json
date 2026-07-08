@@ -28,6 +28,14 @@
     "signingIn": "Signing you in…",
     "error": "Sign-in did not complete. Try again from the home page."
   },
+  "common": {
+    "loading": "Loading…"
+  },
+  "notifications": {
+    "dismiss": "Dismiss notification",
+    "loginError": "Sign-in failed. Please try again.",
+    "connectionError": "Authentication service unreachable. Check your connection."
+  },
   "subjects": {
     "title": "Subjects",
     "searchPlaceholder": "Search for a subject…",

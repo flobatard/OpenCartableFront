@@ -14,6 +14,7 @@ import {
   NgxMonacoEditorConfig,
 } from 'ngx-monaco-editor-v2';
 import { ThemeService } from '../../core/theme/theme.service';
+import { Spinner } from '../spinner/spinner';
 
 /** Monaco est servi en AMD depuis les assets copiés (angular.json) — jamais bundlé. */
 const MONACO_CONFIG: NgxMonacoEditorConfig = { baseUrl: '/monaco/vs' };
@@ -53,7 +54,7 @@ function monacoGlobal(): MonacoGlobal | undefined {
  */
 @Component({
   selector: 'app-markdown-editor',
-  imports: [EditorComponent, ReactiveFormsModule],
+  imports: [EditorComponent, ReactiveFormsModule, Spinner],
   templateUrl: './markdown-editor.html',
   styleUrl: './markdown-editor.scss',
   providers: [
@@ -76,6 +77,8 @@ export class MarkdownEditor implements ControlValueAccessor {
   };
 
   readonly #ready = signal(false);
+  /** Vrai une fois monaco initialisé ; pilote l'overlay de chargement. */
+  protected readonly ready = this.#ready.asReadonly();
   #value = '';
   #touched = false;
   #onChange: (value: string) => void = () => {};

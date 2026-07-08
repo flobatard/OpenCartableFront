@@ -1,0 +1,34 @@
+/* Spinner du design system : anneau rotatif, couleur via token. Le mouvement
+   est neutralisé par le `prefers-reduced-motion` global (repli statique). */
+:host {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  --spinner-size: 28px;
+  --spinner-width: 3px;
+}
+
+:host(.spinner--sm) {
+  --spinner-size: 18px;
+  --spinner-width: 2px;
+}
+
+:host(.spinner--lg) {
+  --spinner-size: 44px;
+  --spinner-width: 4px;
+}
+
+.spinner__ring {
+  width: var(--spinner-size);
+  height: var(--spinner-size);
+  border-radius: var(--radius-full);
+  border: var(--spinner-width) solid var(--border);
+  border-top-color: var(--color-primary);
+  animation: spinner-rotate 0.7s linear infinite;
+}
+
+@keyframes spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}

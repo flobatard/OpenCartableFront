@@ -28,6 +28,14 @@
     "signingIn": "Connexion en cours…",
     "error": "La connexion n'a pas abouti. Réessayez depuis la page d'accueil."
   },
+  "common": {
+    "loading": "Chargement…"
+  },
+  "notifications": {
+    "dismiss": "Fermer la notification",
+    "loginError": "La connexion a échoué. Réessayez.",
+    "connectionError": "Service d'authentification injoignable. Vérifiez votre connexion."
+  },
   "subjects": {
     "title": "Matières",
     "searchPlaceholder": "Rechercher une matière…",

@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { provideTranslocoTesting } from '../../testing/transloco-testing';
 import { MarkdownEditor } from './markdown-editor';
 
 /**
@@ -21,7 +22,9 @@ type MarkdownEditorInternals = { inner: FormControl<string> };
 
 describe('MarkdownEditor', () => {
   async function createHost(): Promise<ComponentFixture<Host>> {
-    await TestBed.configureTestingModule({ imports: [Host] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [Host, provideTranslocoTesting()],
+    }).compileComponents();
     const fixture = TestBed.createComponent(Host);
     await fixture.whenStable();
     return fixture;

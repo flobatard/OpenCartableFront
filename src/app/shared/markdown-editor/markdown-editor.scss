@@ -2,12 +2,28 @@
   display: block;
 }
 
+/* Cadre relatif : ancre l'overlay de chargement au-dessus de monaco. */
+.markdown-editor__frame {
+  position: relative;
+}
+
 /* Écrase le :host { height: 200px } du wrapper ; overflow pour que les coins
    de monaco soient rognés par le radius. */
 ngx-monaco-editor {
   display: block;
   height: clamp(320px, 55vh, 640px);
   overflow: hidden;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+}
+
+/* Recouvre monaco tant qu'il n'est pas initialisé (chargement AMD ~16 Mo). */
+.markdown-editor__loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--bg-subtle);
   border: 1px solid var(--border-control);
   border-radius: var(--radius);
 }

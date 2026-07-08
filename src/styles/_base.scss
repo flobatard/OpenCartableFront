@@ -37,6 +37,19 @@ button {
   font: 500 14px/1.5 var(--font-sans);
 }
 
+/* Contenu réservé aux lecteurs d'écran (visuellement masqué, restant accessible) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Lien d'évitement — visible uniquement au focus clavier */
 .skip-link {
   position: absolute;
