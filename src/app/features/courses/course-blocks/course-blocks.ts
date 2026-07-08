@@ -1,8 +1,12 @@
-import { Component, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import { Component, inject, OnInit, PLATFORM_ID, signal, viewChild } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { CourseBlock, CreatableBlockType } from '../../../core/courses/course.model';
+import {
+  BlockMetaPayload,
+  CourseBlock,
+  CreatableBlockType,
+} from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
 import { EducationLevelService } from '../../../core/education-levels/education-level.service';
 import {
@@ -12,21 +16,22 @@ import {
 import { LanguageService } from '../../../core/i18n/language.service';
 import { SubjectService } from '../../../core/subjects/subject.service';
 import { findById as findSubjectById } from '../../../core/subjects/subject.utils';
-import { blockExcerpt, moveId } from './course-blocks.utils';
+import { BlockCreateDialog } from '../block-create-dialog/block-create-dialog';
+import { moveId } from './course-blocks.utils';
 
 /** Types proposés à l'ajout — « ressource » attend l'upload S3 (bouton désactivé). */
 const CREATABLE_TYPES: readonly CreatableBlockType[] = ['texte', 'exercice', 'lien'];
 
 /**
- * Espace blocs d'un cours : liste ordonnée des blocs, ajout par type,
+ * Espace blocs d'un cours : liste ordonnée des blocs, ajout par type (via une
+ * modale titre/description puis redirection vers l'éditeur du bloc créé),
  * réordonnancement par boutons monter/descendre (approche pessimiste : les
  * actions sont figées le temps d'une mutation) et suppression en deux temps
- * (le bouton s'arme puis confirme — pas de modale). L'édition du contenu des
- * blocs viendra avec les éditeurs dédiés par type.
+ * (le bouton s'arme puis confirme — pas de modale).
  */
 @Component({
   selector: 'app-course-blocks',
-  imports: [RouterLink, TranslocoPipe],
+  imports: [RouterLink, TranslocoPipe, BlockCreateDialog],
   templateUrl: './course-blocks.html',
   styleUrl: './course-blocks.scss',
 })
@@ -34,11 +39,15 @@ export class CourseBlocks implements OnInit {
   readonly #courses = inject(CourseService);
   readonly #subjects = inject(SubjectService);
   readonly #levels = inject(EducationLevelService);
+  readonly #router = inject(Router);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   /** Param `:id` lu en snapshot (pas de withComponentInputBinding dans ce projet). */
   readonly #courseId = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
 
   protected readonly language = inject(LanguageService);
+
+  /** Modale de création (saisie titre/description avant l'ajout du bloc). */
+  protected readonly createDialog = viewChild(BlockCreateDialog);
 
   protected readonly detail = this.#courses.detail;
   protected readonly loading = this.#courses.detailLoading;
@@ -80,20 +89,33 @@ export class CourseBlocks implements OnInit {
       .filter((nom): nom is string => nom !== undefined);
   }
 
-  protected excerpt(block: CourseBlock): string {
-    return blockExcerpt(block);
+  /** Ouvre la modale de création pour le type demandé (saisie titre/description). */
+  protected openCreate(type: CreatableBlockType): void {
+    this.createDialog()?.open(type);
   }
 
-  protected async add(type: CreatableBlockType): Promise<void> {
+  /** Crée le bloc avec son méta puis redirige vers son éditeur. */
+  protected async confirmCreate(event: {
+    type: CreatableBlockType;
+    meta: BlockMetaPayload;
+  }): Promise<void> {
     if (this.mutating()) {
       return;
     }
     this.#startMutation();
     try {
-      await this.#courses.addBlock(this.#courseId, type);
+      const block = await this.#courses.addBlock(this.#courseId, event.type, event.meta);
+      // Droit vers l'éditeur du bloc créé (mutating reste posé le temps de la nav).
+      await this.#router.navigate([
+        '/',
+        this.language.lang(),
+        'courses',
+        this.#courseId,
+        'blocks',
+        block.id,
+      ]);
     } catch {
       this.mutationError.set(true);
-    } finally {
       this.mutating.set(false);
     }
   }

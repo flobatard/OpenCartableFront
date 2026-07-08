@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { CourseBlocks } from './course-blocks';
 import { CourseDetail } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
@@ -87,34 +87,40 @@ describe('CourseBlocks', () => {
     expect(el(fixture).querySelector('.course-blocks__title')?.textContent).toContain(
       'Suites numériques',
     );
-    const badges = Array.from(el(fixture).querySelectorAll('.course-blocks__badge')).map(
-      (b) => b.textContent?.trim(),
+    const badges = Array.from(el(fixture).querySelectorAll('.course-blocks__badge')).map((b) =>
+      b.textContent?.trim(),
     );
     expect(badges).toEqual(['Mathématiques', '6e']);
   });
 
-  it('rend les blocs dans l’ordre avec leur type et leur extrait', async () => {
+  it('rend les blocs dans l’ordre avec leur type, titre et description', async () => {
     const fixture = await createComponent();
     const types = rows(fixture).map((r) =>
       r.querySelector('.course-blocks__type')?.textContent?.trim(),
     );
-    const excerpts = rows(fixture).map((r) =>
-      r.querySelector('.course-blocks__excerpt')?.textContent?.trim(),
+    const titles = rows(fixture).map((r) =>
+      r.querySelector('.course-blocks__title-line')?.textContent?.trim(),
+    );
+    const descs = rows(fixture).map(
+      (r) => r.querySelector('.course-blocks__desc')?.textContent?.trim() ?? null,
     );
 
     expect(types).toEqual(['Texte', 'Lien']);
-    // Le lien sans titre replie sur son URL.
-    expect(excerpts).toEqual(['Introduction aux suites', 'https://exemple.org/video']);
+    // block-1 a un titre + description ; block-2 (sans titre) replie sur « Bloc sans titre ».
+    expect(titles).toEqual(['Le concept de suite', 'Bloc sans titre']);
+    expect(descs).toEqual(['Définitions et premiers exemples.', null]);
   });
 
-  it('propose « Modifier » sur les blocs texte uniquement', async () => {
+  it('propose « Modifier » sur tous les blocs (tous types éditables)', async () => {
     const fixture = await createComponent();
     const [texteRow, lienRow] = rows(fixture);
 
-    const edit = texteRow.querySelector<HTMLAnchorElement>('.course-blocks__edit');
-    expect(edit).toBeTruthy();
-    expect(edit?.getAttribute('href')).toBe('/fr/courses/course-1/blocks/block-1');
-    expect(lienRow.querySelector('.course-blocks__edit')).toBeNull();
+    expect(
+      texteRow.querySelector<HTMLAnchorElement>('.course-blocks__edit')?.getAttribute('href'),
+    ).toBe('/fr/courses/course-1/blocks/block-1');
+    expect(
+      lienRow.querySelector<HTMLAnchorElement>('.course-blocks__edit')?.getAttribute('href'),
+    ).toBe('/fr/courses/course-1/blocks/block-2');
   });
 
   it('désactive monter en tête de liste et descendre en queue', async () => {
@@ -173,7 +179,7 @@ describe('CourseBlocks', () => {
     expect(coursesMock.deleteBlock).not.toHaveBeenCalled();
   });
 
-  it('ajoute un bloc du type choisi ; « ressource » est désactivé avec sa mention', async () => {
+  it('les boutons de type ouvrent la modale ; « ressource » est désactivé avec sa mention', async () => {
     const fixture = await createComponent();
     const addButtons = Array.from(
       el(fixture).querySelectorAll<HTMLButtonElement>('.course-blocks__add-buttons .btn'),
@@ -190,9 +196,38 @@ describe('CourseBlocks', () => {
       'Bientôt disponible',
     );
 
-    addButtons[0].click();
+    const showModal = vi.spyOn(el(fixture).querySelector('dialog')!, 'showModal');
+    addButtons[0].click(); // Texte → ouvre la modale, ne crée pas directement
+    expect(showModal).toHaveBeenCalledOnce();
+    expect(coursesMock.addBlock).not.toHaveBeenCalled();
+  });
+
+  it('valider la modale crée le bloc avec son méta puis redirige vers l’éditeur', async () => {
+    const fixture = await createComponent();
+    coursesMock.addBlock.mockResolvedValue({ ...COURSE_DETAIL_FIXTURE.blocks[0], id: 'block-9' });
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    // Ouvre la modale pour « Lien ».
+    const addButtons = Array.from(
+      el(fixture).querySelectorAll<HTMLButtonElement>('.course-blocks__add-buttons .btn'),
+    );
+    addButtons[2].click();
+    fixture.detectChanges();
+
+    // Saisit un titre puis valide.
+    const titre = el(fixture).querySelector<HTMLInputElement>(
+      '.block-dialog [formControlName="titre"]',
+    )!;
+    titre.value = 'Vidéo';
+    titre.dispatchEvent(new Event('input'));
+    el(fixture).querySelector<HTMLButtonElement>('.block-dialog button[type="submit"]')!.click();
     await fixture.whenStable();
-    expect(coursesMock.addBlock).toHaveBeenCalledWith('course-1', 'texte');
+
+    expect(coursesMock.addBlock).toHaveBeenCalledWith('course-1', 'lien', {
+      titre: 'Vidéo',
+      description: null,
+    });
+    expect(navigate).toHaveBeenCalledWith(['/', 'fr', 'courses', 'course-1', 'blocks', 'block-9']);
   });
 
   it('sans bloc, invite à ajouter le premier', async () => {

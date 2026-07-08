@@ -21,7 +21,9 @@
     @if (detail(); as course) {
       <header class="course-blocks__head">
         <h1 class="course-blocks__title">{{ course.titre }}</h1>
-        @if (subjectNames(course.subject_ids).length || levelNames(course.education_level_ids).length) {
+        @if (
+          subjectNames(course.subject_ids).length || levelNames(course.education_level_ids).length
+        ) {
           <ul class="course-blocks__badges">
             @for (nom of subjectNames(course.subject_ids); track nom) {
               <li class="course-blocks__badge course-blocks__badge--subject">{{ nom }}</li>
@@ -40,27 +42,35 @@
         </div>
       } @else {
         <ul class="course-blocks__list">
-          @for (block of course.blocks; track block.id; let idx = $index, first = $first, last = $last) {
+          @for (
+            block of course.blocks;
+            track block.id;
+            let idx = $index, first = $first, last = $last
+          ) {
             <li class="course-blocks__row">
               <span class="course-blocks__type">
                 {{ 'courses.blocks.types.' + block.type | transloco }}
               </span>
-              <span
-                class="course-blocks__excerpt"
-                [class.course-blocks__excerpt--empty]="!excerpt(block)"
-              >
-                {{ excerpt(block) || ('courses.blocks.emptyExcerpt' | transloco) }}
+              <span class="course-blocks__body">
+                @if (block.titre) {
+                  <span class="course-blocks__title-line">{{ block.titre }}</span>
+                } @else {
+                  <span class="course-blocks__title-line course-blocks__title-line--empty">
+                    {{ 'courses.blocks.untitled' | transloco }}
+                  </span>
+                }
+                @if (block.description) {
+                  <span class="course-blocks__desc">{{ block.description }}</span>
+                }
               </span>
               <div class="course-blocks__actions">
-                @if (block.type === 'texte') {
-                  <a
-                    class="btn btn--ghost course-blocks__edit"
-                    [routerLink]="['/', language.lang(), 'courses', course.id, 'blocks', block.id]"
-                    [attr.aria-label]="'courses.blocks.editAria' | transloco: { position: idx + 1 }"
-                  >
-                    {{ 'courses.blocks.edit' | transloco }}
-                  </a>
-                }
+                <a
+                  class="btn btn--ghost course-blocks__edit"
+                  [routerLink]="['/', language.lang(), 'courses', course.id, 'blocks', block.id]"
+                  [attr.aria-label]="'courses.blocks.editAria' | transloco: { position: idx + 1 }"
+                >
+                  {{ 'courses.blocks.edit' | transloco }}
+                </a>
                 <button
                   type="button"
                   class="btn btn--ghost course-blocks__move"
@@ -114,7 +124,7 @@
               type="button"
               class="btn btn--secondary"
               [disabled]="mutating()"
-              (click)="add(type)"
+              (click)="openCreate(type)"
             >
               {{ 'courses.blocks.types.' + type | transloco }}
             </button>
@@ -127,4 +137,6 @@
       </section>
     }
   }
+
+  <app-block-create-dialog (create)="confirmCreate($event)" />
 </section>

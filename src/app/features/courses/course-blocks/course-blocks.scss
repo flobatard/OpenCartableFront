@@ -3,7 +3,7 @@
 }
 
 .course-blocks {
-  max-width: 880px;
+  max-width: 1060px;
   margin-inline: auto;
   padding: 24px 16px 48px;
 }
@@ -107,17 +107,33 @@
   color: var(--indigo-100);
 }
 
-.course-blocks__excerpt {
+.course-blocks__body {
+  display: flex;
   flex: 1 1 200px;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
+}
+
+.course-blocks__title-line {
   overflow: hidden;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.course-blocks__excerpt--empty {
+.course-blocks__title-line--empty {
   color: var(--text-secondary);
   font-style: italic;
+  font-weight: 400;
+}
+
+.course-blocks__desc {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .course-blocks__actions {

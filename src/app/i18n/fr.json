@@ -108,17 +108,29 @@
       "moveDown": "Descendre le bloc {{ position }}",
       "delete": "Supprimer",
       "confirmDelete": "Confirmer la suppression",
-      "emptyExcerpt": "Bloc vide",
-      "mutationError": "L'opération n'a pas abouti. Réessayez."
+      "untitled": "Bloc sans titre",
+      "mutationError": "L'opération n'a pas abouti. Réessayez.",
+      "createDialog": {
+        "title": "Nouveau bloc {{ type }}",
+        "submit": "Créer",
+        "cancel": "Annuler",
+        "close": "Fermer"
+      }
     },
     "editor": {
       "back": "Retour au cours",
-      "title": "Bloc texte",
       "loading": "Chargement du cours…",
       "loadError": "Impossible de charger le cours. Vérifiez votre connexion.",
       "retry": "Réessayer",
       "notFound": "Ce bloc n'existe pas ou a été supprimé.",
-      "unsupported": "Ce type de bloc n'a pas encore d'éditeur.",
+      "unsupported": "L'éditeur de contenu de ce type de bloc arrive bientôt — son titre et sa description sont déjà modifiables ci-dessus.",
+      "titreLabel": "Titre",
+      "titrePlaceholder": "Titre du bloc (facultatif)",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Courte description (facultatif)",
+      "saveMeta": "Enregistrer",
+      "metaSaved": "Enregistré",
+      "metaError": "Échec de l'enregistrement",
       "resize": "Redimensionner l'éditeur et l'assistant",
       "toggleChat": "Assistant",
       "showChat": "Afficher l'assistant",

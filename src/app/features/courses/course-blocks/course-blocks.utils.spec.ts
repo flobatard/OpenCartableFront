@@ -2,7 +2,15 @@ import { CourseBlock } from '../../../core/courses/course.model';
 import { blockExcerpt, moveId } from './course-blocks.utils';
 
 function block(type: CourseBlock['type'], content: Record<string, unknown>): CourseBlock {
-  return { id: 'b1', position: 0, type, content, resource_id: null };
+  return {
+    id: 'b1',
+    position: 0,
+    type,
+    titre: null,
+    description: null,
+    content,
+    resource_id: null,
+  };
 }
 
 describe('blockExcerpt', () => {

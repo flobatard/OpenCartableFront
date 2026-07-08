@@ -16,124 +16,158 @@
   } @else {
     @if (detail(); as course) {
       @if (block(); as block) {
-      @if (block.type === 'texte') {
         <header class="block-editor__head">
           <h1 class="block-editor__title">{{ course.titre }}</h1>
-          <p class="block-editor__subtitle">{{ 'courses.editor.title' | transloco }}</p>
+          <p class="block-editor__subtitle">
+            {{ 'courses.blocks.types.' + block.type | transloco }}
+          </p>
         </header>
 
-        <div class="block-editor__toolbar">
-          <div class="block-editor__toolbar-end">
-            @if (saveState() === 'error') {
-              <p class="block-editor__save block-editor__save--error" role="alert">
-                {{ 'courses.editor.save.error' | transloco }}
+        <form class="block-editor__meta" [formGroup]="metaForm" (ngSubmit)="saveMeta()">
+          <label class="block-editor__field">
+            <span class="block-editor__label">{{ 'courses.editor.titreLabel' | transloco }}</span>
+            <input
+              type="text"
+              class="block-editor__input"
+              formControlName="titre"
+              maxlength="300"
+              [placeholder]="'courses.editor.titrePlaceholder' | transloco"
+            />
+          </label>
+          <label class="block-editor__field">
+            <span class="block-editor__label">
+              {{ 'courses.editor.descriptionLabel' | transloco }}
+            </span>
+            <textarea
+              class="block-editor__input block-editor__textarea"
+              formControlName="description"
+              maxlength="500"
+              rows="2"
+              [placeholder]="'courses.editor.descriptionPlaceholder' | transloco"
+            ></textarea>
+          </label>
+          <div class="block-editor__meta-actions">
+            @if (metaSaveState() === 'error') {
+              <p class="block-editor__meta-status block-editor__meta-status--error" role="alert">
+                {{ 'courses.editor.metaError' | transloco }}
               </p>
-            } @else if (saveState() !== 'idle') {
-              <p class="block-editor__save" role="status">
-                @switch (saveState()) {
-                  @case ('dirty') {
-                    {{ 'courses.editor.save.dirty' | transloco }}
-                  }
-                  @case ('saving') {
-                    {{ 'courses.editor.save.saving' | transloco }}
-                  }
-                  @case ('saved') {
-                    {{ 'courses.editor.save.saved' | transloco }}
-                  }
-                }
+            } @else if (metaSaveState() === 'saved') {
+              <p class="block-editor__meta-status" role="status">
+                {{ 'courses.editor.metaSaved' | transloco }}
               </p>
             }
-
-            <button
-              type="button"
-              class="pill block-editor__chat-toggle"
-              [class.pill--active]="!chatCollapsed()"
-              [attr.aria-pressed]="!chatCollapsed()"
-              (click)="toggleChat()"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                width="18"
-                height="18"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.75"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-              {{ 'courses.editor.toggleChat' | transloco }}
+            <button type="submit" class="btn btn--primary" [disabled]="!canSaveMeta()">
+              {{ 'courses.editor.saveMeta' | transloco }}
             </button>
           </div>
-        </div>
+        </form>
 
-        <div
-          class="block-editor__workspace"
-          [class.block-editor__workspace--dragging]="dragging()"
-          [class.block-editor__workspace--solo]="chatCollapsed()"
-        >
+        @if (block.type === 'texte') {
+          <div class="block-editor__toolbar">
+            <div class="block-editor__toolbar-end">
+              @if (saveState() === 'error') {
+                <p class="block-editor__save block-editor__save--error" role="alert">
+                  {{ 'courses.editor.save.error' | transloco }}
+                </p>
+              } @else if (saveState() !== 'idle') {
+                <p class="block-editor__save" role="status">
+                  @switch (saveState()) {
+                    @case ('dirty') {
+                      {{ 'courses.editor.save.dirty' | transloco }}
+                    }
+                    @case ('saving') {
+                      {{ 'courses.editor.save.saving' | transloco }}
+                    }
+                    @case ('saved') {
+                      {{ 'courses.editor.save.saved' | transloco }}
+                    }
+                  }
+                </p>
+              }
+
+              <button
+                type="button"
+                class="pill block-editor__chat-toggle"
+                [class.pill--active]="!chatCollapsed()"
+                [attr.aria-pressed]="!chatCollapsed()"
+                (click)="toggleChat()"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                {{ 'courses.editor.toggleChat' | transloco }}
+              </button>
+            </div>
+          </div>
+
           <div
-            class="block-editor__editor-col"
-            [style.--editor-basis]="editorPct() + '%'"
+            class="block-editor__workspace"
+            [class.block-editor__workspace--dragging]="dragging()"
+            [class.block-editor__workspace--solo]="chatCollapsed()"
           >
-            <app-markdown-field [formControl]="content" />
-          </div>
+            <div class="block-editor__editor-col" [style.--editor-basis]="editorPct() + '%'">
+              <app-markdown-field [formControl]="content" />
+            </div>
 
-          <!-- Poignée de redimensionnement éditeur/chat (separator WAI-ARIA). -->
-          <div
-            class="block-editor__divider"
-            role="separator"
-            tabindex="0"
-            aria-orientation="vertical"
-            [attr.aria-label]="'courses.editor.resize' | transloco"
-            [attr.aria-valuenow]="editorPct()"
-            aria-valuemin="15"
-            aria-valuemax="85"
-            [hidden]="chatCollapsed()"
-            (pointerdown)="startDrag($event)"
-            (keydown)="onDividerKeydown($event)"
-          ></div>
+            <!-- Poignée de redimensionnement éditeur/chat (separator WAI-ARIA). -->
+            <div
+              class="block-editor__divider"
+              role="separator"
+              tabindex="0"
+              aria-orientation="vertical"
+              [attr.aria-label]="'courses.editor.resize' | transloco"
+              [attr.aria-valuenow]="editorPct()"
+              aria-valuemin="15"
+              aria-valuemax="85"
+              [hidden]="chatCollapsed()"
+              (pointerdown)="startDrag($event)"
+              (keydown)="onDividerKeydown($event)"
+            ></div>
 
-          <app-course-chat
-            class="block-editor__chat"
-            [courseId]="courseId"
-            [blockId]="blockId"
-            [hidden]="chatCollapsed()"
-            (collapse)="toggleChat()"
-          />
+            <app-course-chat
+              class="block-editor__chat"
+              [courseId]="courseId"
+              [blockId]="blockId"
+              [hidden]="chatCollapsed()"
+              (collapse)="toggleChat()"
+            />
 
-          <!-- Réouverture au repli : bouton adjacent (droite/bas), pour rouvrir
+            <!-- Réouverture au repli : bouton adjacent (droite/bas), pour rouvrir
                le chat sans remonter jusqu'à la barre d'outils. -->
-          @if (chatCollapsed()) {
-            <button
-              type="button"
-              class="pill block-editor__chat-reopen"
-              (click)="toggleChat()"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                width="18"
-                height="18"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.75"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-              {{ 'courses.editor.showChat' | transloco }}
-            </button>
-          }
-        </div>
-      } @else {
-        <div class="block-editor__notice">
-          <p>{{ 'courses.editor.unsupported' | transloco }}</p>
-        </div>
-      }
+            @if (chatCollapsed()) {
+              <button type="button" class="pill block-editor__chat-reopen" (click)="toggleChat()">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                {{ 'courses.editor.showChat' | transloco }}
+              </button>
+            }
+          </div>
+        } @else {
+          <div class="block-editor__notice">
+            <p>{{ 'courses.editor.unsupported' | transloco }}</p>
+          </div>
+        }
       } @else {
         <div class="block-editor__notice">
           <p>{{ 'courses.editor.notFound' | transloco }}</p>

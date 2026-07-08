@@ -22,6 +22,7 @@ describe('BlockEditor', () => {
     detailError,
     loadDetail: vi.fn(),
     updateBlockContent: vi.fn(),
+    updateBlockMeta: vi.fn(),
   };
 
   const INITIAL = 'Introduction aux suites'; // content.markdown du block-1 de la fixture
@@ -63,12 +64,29 @@ describe('BlockEditor', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
+  function metaField(
+    fixture: ComponentFixture<BlockEditor>,
+    name: string,
+  ): HTMLInputElement & HTMLTextAreaElement {
+    return el(fixture).querySelector(`.block-editor__meta [formControlName="${name}"]`)!;
+  }
+
+  function metaSaveButton(fixture: ComponentFixture<BlockEditor>): HTMLButtonElement {
+    return el(fixture).querySelector('.block-editor__meta button[type="submit"]')!;
+  }
+
+  function type(field: HTMLInputElement | HTMLTextAreaElement, value: string): void {
+    field.value = value;
+    field.dispatchEvent(new Event('input'));
+  }
+
   beforeEach(() => {
     detail.set(COURSE_DETAIL_FIXTURE);
     detailLoading.set(false);
     detailError.set(false);
     vi.clearAllMocks();
     coursesMock.updateBlockContent.mockResolvedValue(updatedBlock('x'));
+    coursesMock.updateBlockMeta.mockResolvedValue(COURSE_DETAIL_FIXTURE.blocks[0]);
   });
 
   afterEach(() => {
@@ -133,9 +151,7 @@ describe('BlockEditor', () => {
     await configure();
     let resolveFirst!: (block: CourseBlock) => void;
     coursesMock.updateBlockContent
-      .mockImplementationOnce(
-        () => new Promise<CourseBlock>((resolve) => (resolveFirst = resolve)),
-      )
+      .mockImplementationOnce(() => new Promise<CourseBlock>((resolve) => (resolveFirst = resolve)))
       .mockResolvedValue(updatedBlock('ab'));
     vi.useFakeTimers();
     const fixture = createComponentSync();
@@ -215,11 +231,60 @@ describe('BlockEditor', () => {
     expect(el(fixture).querySelector('app-markdown-field')).toBeNull();
   });
 
-  it('type sans éditeur (lien) : message dédié', async () => {
+  it('type sans éditeur (lien) : méta éditable, contenu absent + message dédié', async () => {
     const fixture = await createComponent('block-2');
 
-    expect(el(fixture).textContent).toContain('pas encore');
+    // Le formulaire titre/description est présent (méta éditable sur tous types)…
+    expect(metaField(fixture, 'titre')).toBeTruthy();
+    // …mais l'éditeur de contenu markdown, non, et un message l'annonce.
     expect(el(fixture).querySelector('app-markdown-field')).toBeNull();
+    expect(el(fixture).textContent).toContain('arrive bientôt');
+  });
+
+  it('formulaire méta : initialise titre/description depuis le bloc et désactive le bouton', async () => {
+    const fixture = await createComponent();
+    fixture.detectChanges();
+
+    expect(metaField(fixture, 'titre').value).toBe('Le concept de suite');
+    expect(metaField(fixture, 'description').value).toBe('Définitions et premiers exemples.');
+    expect(metaSaveButton(fixture).disabled).toBe(true); // rien modifié
+  });
+
+  it('formulaire méta : enregistre titre/description modifiés via le bouton', async () => {
+    const fixture = await createComponent();
+    fixture.detectChanges();
+
+    type(metaField(fixture, 'titre'), 'Titre modifié');
+    fixture.detectChanges();
+    expect(metaSaveButton(fixture).disabled).toBe(false); // modifié → actif
+
+    metaSaveButton(fixture).click();
+    await fixture.whenStable();
+
+    // Envoie le méta complet (jamais le contenu) ; la description inchangée suit.
+    expect(coursesMock.updateBlockMeta).toHaveBeenCalledWith('course-1', 'block-1', {
+      titre: 'Titre modifié',
+      description: 'Définitions et premiers exemples.',
+    });
+    expect(coursesMock.updateBlockContent).not.toHaveBeenCalled();
+    fixture.detectChanges();
+    expect(el(fixture).textContent).toContain('Enregistré');
+  });
+
+  it('formulaire méta : effacer le titre envoie titre null', async () => {
+    const fixture = await createComponent();
+    fixture.detectChanges();
+
+    type(metaField(fixture, 'titre'), '');
+    fixture.detectChanges();
+
+    metaSaveButton(fixture).click();
+    await fixture.whenStable();
+
+    expect(coursesMock.updateBlockMeta).toHaveBeenCalledWith('course-1', 'block-1', {
+      titre: null,
+      description: 'Définitions et premiers exemples.',
+    });
   });
 
   it('affiche l’erreur de chargement et relance via Réessayer', async () => {

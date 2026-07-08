@@ -9,11 +9,17 @@ import {
   signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { concatMap, debounceTime, tap } from 'rxjs';
+import {
+  buildBlockMetaForm,
+  patchBlockMetaForm,
+  payloadFromBlockMetaForm,
+} from '../../../core/courses/block-meta-form';
+import { BlockMetaPayload } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { MarkdownField } from '../../../shared/markdown-field/markdown-field';
@@ -26,13 +32,15 @@ const MIN_EDITOR_PCT = 15;
 const MAX_EDITOR_PCT = 85;
 
 type SaveState = 'idle' | 'dirty' | 'saving' | 'saved' | 'error';
+type MetaSaveState = 'idle' | 'saving' | 'saved' | 'error';
 
 /**
- * Coquille-page d'édition d'un bloc texte : en-tête, indicateur d'autosave,
- * espace de travail redimensionnable (champ markdown + assistant) et états de
- * chargement. Le contenu (éditeur Monaco, onglets, aperçu, aide) est délégué au
- * composant réutilisable `app-markdown-field` ; l'autosave débouncé reste ici.
- * Les autres types de blocs auront leurs éditeurs dédiés plus tard.
+ * Coquille-page d'édition d'un bloc : en-tête, formulaire titre/description
+ * (tous types, enregistrement explicite), et — pour les blocs texte — indicateur
+ * d'autosave et espace de travail redimensionnable (champ markdown + assistant).
+ * Le contenu markdown (éditeur Monaco, onglets, aperçu, aide) est délégué au
+ * composant réutilisable `app-markdown-field` ; son autosave débouncé reste ici.
+ * L'éditeur de contenu des autres types de blocs viendra plus tard.
  */
 @Component({
   selector: 'app-block-editor',
@@ -68,6 +76,32 @@ export class BlockEditor implements OnInit, OnDestroy {
   readonly content = new FormControl('', { nonNullable: true });
 
   protected readonly saveState = signal<SaveState>('idle');
+
+  /**
+   * Titre/description du bloc (tous types) — enregistrement explicite (bouton),
+   * indépendant de l'autosave du contenu. `#savedPayload` est la référence de
+   * complétude « modifié » (snapshot JSON, motif page profil).
+   */
+  protected readonly metaForm = buildBlockMetaForm();
+  readonly #metaValue = toSignal(this.metaForm.valueChanges, {
+    initialValue: this.metaForm.getRawValue(),
+  });
+  readonly #savedPayload = signal<BlockMetaPayload>({ titre: null, description: null });
+  protected readonly metaSaveState = signal<MetaSaveState>('idle');
+
+  /** Actif quand le formulaire méta diffère du dernier enregistré (et pas en vol). */
+  protected readonly canSaveMeta = computed(() => {
+    this.#metaValue();
+    if (this.metaSaveState() === 'saving') {
+      return false;
+    }
+    return (
+      JSON.stringify(payloadFromBlockMetaForm(this.metaForm)) !==
+      JSON.stringify(this.#savedPayload())
+    );
+  });
+
+  #metaInitialized = false;
 
   /** Partage de largeur éditeur/chat piloté par la poignée (drag), en % de la
       colonne éditeur ; `dragging` désactive la sélection de texte pendant le glissé. */
@@ -106,6 +140,25 @@ export class BlockEditor implements OnInit, OnDestroy {
         takeUntilDestroyed(),
       )
       .subscribe();
+
+    // Init UNIQUE du formulaire méta (tous types) depuis le bloc chargé ; la
+    // référence de complétude est figée au même instant.
+    effect(() => {
+      const block = this.block();
+      if (this.#metaInitialized || block === null) {
+        return;
+      }
+      this.#metaInitialized = true;
+      patchBlockMetaForm(this.metaForm, block);
+      this.#savedPayload.set(payloadFromBlockMetaForm(this.metaForm));
+    });
+
+    // Ré-éditer efface le badge « Enregistré/Échec » (mais pas pendant un save).
+    this.metaForm.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
+      if (this.metaSaveState() !== 'saving') {
+        this.metaSaveState.set('idle');
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -127,6 +180,22 @@ export class BlockEditor implements OnInit, OnDestroy {
 
   protected reload(): void {
     this.#courses.loadDetail(this.courseId);
+  }
+
+  /** Enregistre titre/description (tous types). N'envoie que le méta, jamais le contenu. */
+  protected async saveMeta(): Promise<void> {
+    if (!this.canSaveMeta()) {
+      return;
+    }
+    const payload = payloadFromBlockMetaForm(this.metaForm);
+    this.metaSaveState.set('saving');
+    try {
+      await this.#courses.updateBlockMeta(this.courseId, this.blockId, payload);
+      this.#savedPayload.set(payload);
+      this.metaSaveState.set('saved');
+    } catch {
+      this.metaSaveState.set('error');
+    }
   }
 
   protected toggleChat(): void {

@@ -48,3 +48,15 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: () => false,
   }),
 });
+
+/* jsdom n'implémente pas l'API `<dialog>` (showModal/close) : stubs no-op qui
+   maintiennent `open` pour les composants de modale. Une spec peut remplacer ces
+   méthodes par un `vi.fn()` sur l'instance pour asserter les appels. */
+if (typeof HTMLDialogElement !== 'undefined') {
+  HTMLDialogElement.prototype.showModal = function (): void {
+    this.open = true;
+  };
+  HTMLDialogElement.prototype.close = function (): void {
+    this.open = false;
+  };
+}

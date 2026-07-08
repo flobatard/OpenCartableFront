@@ -102,6 +102,8 @@ describe('CourseService', () => {
       id: 'block-3',
       position: 2,
       type: 'exercice',
+      titre: null,
+      description: null,
       content: { enonce: '', questions: [] },
       resource_id: null,
     };
@@ -115,6 +117,29 @@ describe('CourseService', () => {
 
     expect(service.detail()?.blocks.at(-1)).toEqual(created);
     expect(service.detail()?.block_count).toBe(COURSE_DETAIL_FIXTURE.block_count + 1);
+  });
+
+  it('addBlock inclut le méta titre/description dans le corps du POST', async () => {
+    loadDetail();
+    const meta = { titre: 'Vidéo d’intro', description: 'Une présentation.' };
+    const created: CourseBlock = {
+      id: 'block-3',
+      position: 2,
+      type: 'lien',
+      titre: meta.titre,
+      description: meta.description,
+      content: {},
+      resource_id: null,
+    };
+
+    const add = service.addBlock(COURSE_DETAIL_FIXTURE.id, 'lien', meta);
+    const req = httpMock.expectOne(`${url}/${COURSE_DETAIL_FIXTURE.id}/blocks`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ type: 'lien', ...meta });
+    req.flush(created);
+    await add;
+
+    expect(service.detail()?.blocks.at(-1)).toEqual(created);
   });
 
   it('deleteBlock retire le bloc du détail', async () => {
@@ -155,6 +180,29 @@ describe('CourseService', () => {
     const req = httpMock.expectOne(`${url}/${COURSE_DETAIL_FIXTURE.id}/blocks/block-1`);
     expect(req.request.method).toBe('PATCH');
     expect(req.request.body).toEqual({ content: { markdown: '## Nouveau contenu' } });
+    req.flush(updated);
+
+    expect(await update).toEqual(updated);
+    expect(service.detail()?.blocks[0]).toEqual(updated);
+    expect(service.detail()?.blocks[1]).toEqual(COURSE_BLOCKS_FIXTURE[1]); // intact
+  });
+
+  it('updateBlockMeta PATCH le titre/description et remplace le bloc dans le détail', async () => {
+    loadDetail();
+    const updated: CourseBlock = {
+      ...COURSE_BLOCKS_FIXTURE[0],
+      titre: 'Titre modifié',
+      description: null,
+    };
+
+    const update = service.updateBlockMeta(COURSE_DETAIL_FIXTURE.id, 'block-1', {
+      titre: 'Titre modifié',
+      description: null,
+    });
+    const req = httpMock.expectOne(`${url}/${COURSE_DETAIL_FIXTURE.id}/blocks/block-1`);
+    expect(req.request.method).toBe('PATCH');
+    // Corps du méta uniquement (jamais `content`) ; `null` efface un champ.
+    expect(req.request.body).toEqual({ titre: 'Titre modifié', description: null });
     req.flush(updated);
 
     expect(await update).toEqual(updated);

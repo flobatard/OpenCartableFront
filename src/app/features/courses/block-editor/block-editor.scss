@@ -34,6 +34,67 @@
   font-size: 14px;
 }
 
+/* Titre/description du bloc (tous types) — enregistrement explicite ----------- */
+
+.block-editor__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.block-editor__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.block-editor__label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.block-editor__input {
+  height: 40px;
+  padding: 0 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.block-editor__textarea {
+  height: auto;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.block-editor__input::placeholder {
+  color: var(--text-secondary);
+}
+
+.block-editor__meta-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.block-editor__meta-status {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.block-editor__meta-status--error {
+  color: var(--text-danger);
+}
+
 /* Barre d'outils : indicateur d'enregistrement + bascule de l'assistant ------- */
 
 .block-editor__toolbar {

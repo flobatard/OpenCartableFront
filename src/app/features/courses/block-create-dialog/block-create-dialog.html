@@ -1,0 +1,60 @@
+<dialog
+  #dialogEl
+  class="block-dialog"
+  aria-labelledby="block-dialog-title"
+  (click)="onBackdropClick($event)"
+>
+  <form class="block-dialog__inner" [formGroup]="form" (ngSubmit)="submit()">
+    <header class="block-dialog__head">
+      <h2 id="block-dialog-title" class="block-dialog__title">
+        @if (type(); as t) {
+          {{
+            'courses.blocks.createDialog.title'
+              | transloco: { type: 'courses.blocks.types.' + t | transloco }
+          }}
+        }
+      </h2>
+      <button
+        type="button"
+        class="block-dialog__close"
+        [attr.aria-label]="'courses.blocks.createDialog.close' | transloco"
+        (click)="close()"
+      >
+        ×
+      </button>
+    </header>
+
+    <div class="block-dialog__body">
+      <label class="block-dialog__field">
+        <span class="block-dialog__label">{{ 'courses.editor.titreLabel' | transloco }}</span>
+        <input
+          type="text"
+          class="block-dialog__input"
+          formControlName="titre"
+          maxlength="300"
+          [placeholder]="'courses.editor.titrePlaceholder' | transloco"
+        />
+      </label>
+
+      <label class="block-dialog__field">
+        <span class="block-dialog__label">{{ 'courses.editor.descriptionLabel' | transloco }}</span>
+        <textarea
+          class="block-dialog__input block-dialog__textarea"
+          formControlName="description"
+          maxlength="500"
+          rows="3"
+          [placeholder]="'courses.editor.descriptionPlaceholder' | transloco"
+        ></textarea>
+      </label>
+    </div>
+
+    <footer class="block-dialog__foot">
+      <button type="button" class="btn btn--ghost" (click)="close()">
+        {{ 'courses.blocks.createDialog.cancel' | transloco }}
+      </button>
+      <button type="submit" class="btn btn--primary">
+        {{ 'courses.blocks.createDialog.submit' | transloco }}
+      </button>
+    </footer>
+  </form>
+</dialog>

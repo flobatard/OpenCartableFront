@@ -108,17 +108,29 @@
       "moveDown": "Move block {{ position }} down",
       "delete": "Delete",
       "confirmDelete": "Confirm deletion",
-      "emptyExcerpt": "Empty block",
-      "mutationError": "The operation did not complete. Try again."
+      "untitled": "Untitled block",
+      "mutationError": "The operation did not complete. Try again.",
+      "createDialog": {
+        "title": "New {{ type }} block",
+        "submit": "Create",
+        "cancel": "Cancel",
+        "close": "Close"
+      }
     },
     "editor": {
       "back": "Back to course",
-      "title": "Text block",
       "loading": "Loading the course…",
       "loadError": "Could not load the course. Check your connection.",
       "retry": "Retry",
       "notFound": "This block does not exist or has been deleted.",
-      "unsupported": "This block type has no editor yet.",
+      "unsupported": "The content editor for this block type is coming soon — its title and description are already editable above.",
+      "titreLabel": "Title",
+      "titrePlaceholder": "Block title (optional)",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Short description (optional)",
+      "saveMeta": "Save",
+      "metaSaved": "Saved",
+      "metaError": "Save failed",
       "resize": "Resize the editor and assistant",
       "toggleChat": "Assistant",
       "showChat": "Show assistant",

@@ -1,0 +1,107 @@
+/* Modale de création de bloc (élément <dialog> natif : focus trap, Escape,
+   backdrop). Chrome calqué sur `markdown-help-dialog`, champs sur `course-create`. */
+
+.block-dialog {
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100dvh - 64px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.block-dialog::backdrop {
+  background: rgb(15 23 42 / 55%);
+}
+
+.block-dialog__inner {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 64px);
+}
+
+.block-dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.block-dialog__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+.block-dialog__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.block-dialog__close:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.block-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.block-dialog__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.block-dialog__label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.block-dialog__input {
+  height: 40px;
+  padding: 0 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.block-dialog__textarea {
+  height: auto;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.block-dialog__input::placeholder {
+  color: var(--text-secondary);
+}
+
+.block-dialog__foot {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}

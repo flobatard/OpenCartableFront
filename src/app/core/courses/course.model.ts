@@ -18,10 +18,24 @@ export interface CourseBlock {
   /** Rang dans le cours (tri stable `position, id` côté back). */
   position: number;
   type: BlockType;
+  /** Titre commun facultatif (tous types), distinct du `content`. */
+  titre: string | null;
+  /** Description commune facultative (tous types), distincte du `content`. */
+  description: string | null;
   /** Contenu JSONB, contrat applicatif par type — rempli par les futurs éditeurs. */
   content: Record<string, unknown>;
   /** Renseigné uniquement pour les blocs `ressource`. */
   resource_id: string | null;
+}
+
+/**
+ * Champs communs éditables d'un bloc (titre/description). Sert de méta à la
+ * création (`POST …/blocks`) et au PATCH partiel (`PATCH …/blocks/{id}`),
+ * indépendamment du `content` propre à chaque type.
+ */
+export interface BlockMetaPayload {
+  titre: string | null;
+  description: string | null;
 }
 
 export interface CourseSummary {

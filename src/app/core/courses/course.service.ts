@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import {
+  BlockMetaPayload,
   CourseBlock,
   CourseCreatePayload,
   CourseDetail,
@@ -98,10 +99,17 @@ export class CourseService {
     return firstValueFrom(this.#http.post<CourseSummary>(this.#url, payload));
   }
 
-  /** Ajoute un bloc en fin de cours et l'insère dans le détail chargé. */
-  async addBlock(courseId: string, type: CreatableBlockType): Promise<CourseBlock> {
+  /**
+   * Ajoute un bloc en fin de cours et l'insère dans le détail chargé. Le méta
+   * (titre/description) est optionnel : les clés absentes valent `null` côté back.
+   */
+  async addBlock(
+    courseId: string,
+    type: CreatableBlockType,
+    meta?: Partial<BlockMetaPayload>,
+  ): Promise<CourseBlock> {
     const block = await firstValueFrom(
-      this.#http.post<CourseBlock>(`${this.#url}/${courseId}/blocks`, { type }),
+      this.#http.post<CourseBlock>(`${this.#url}/${courseId}/blocks`, { type, ...meta }),
     );
     this.#patchDetail(courseId, (detail) => ({
       ...detail,
@@ -129,6 +137,26 @@ export class CourseService {
   ): Promise<CourseBlock> {
     const block = await firstValueFrom(
       this.#http.patch<CourseBlock>(`${this.#url}/${courseId}/blocks/${blockId}`, { content }),
+    );
+    this.#patchDetail(courseId, (detail) => ({
+      ...detail,
+      blocks: detail.blocks.map((b) => (b.id === blockId ? block : b)),
+    }));
+    return block;
+  }
+
+  /**
+   * Met à jour titre/description d'un bloc (tous types) et répercute la réponse
+   * dans le détail chargé. Envoie exactement les clés du méta (jamais `content`) :
+   * le PATCH partiel du back applique les clés présentes, `null` efface un champ.
+   */
+  async updateBlockMeta(
+    courseId: string,
+    blockId: string,
+    meta: BlockMetaPayload,
+  ): Promise<CourseBlock> {
+    const block = await firstValueFrom(
+      this.#http.patch<CourseBlock>(`${this.#url}/${courseId}/blocks/${blockId}`, meta),
     );
     this.#patchDetail(courseId, (detail) => ({
       ...detail,
