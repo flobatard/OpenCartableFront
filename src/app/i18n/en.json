@@ -108,6 +108,8 @@
       "moveDown": "Move block {{ position }} down",
       "delete": "Delete",
       "confirmDelete": "Confirm deletion",
+      "deleteCourse": "Delete this course",
+      "confirmDeleteCourse": "Confirm course deletion",
       "untitled": "Untitled block",
       "mutationError": "The operation did not complete. Try again.",
       "createDialog": {

@@ -108,6 +108,8 @@
       "moveDown": "Descendre le bloc {{ position }}",
       "delete": "Supprimer",
       "confirmDelete": "Confirmer la suppression",
+      "deleteCourse": "Supprimer ce cours",
+      "confirmDeleteCourse": "Confirmer la suppression du cours",
       "untitled": "Bloc sans titre",
       "mutationError": "L'opération n'a pas abouti. Réessayez.",
       "createDialog": {

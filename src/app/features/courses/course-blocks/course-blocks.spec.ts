@@ -23,6 +23,7 @@ describe('CourseBlocks', () => {
     addBlock: vi.fn(),
     deleteBlock: vi.fn(),
     reorderBlocks: vi.fn(),
+    deleteCourse: vi.fn(),
   };
   const subjectsMock = {
     tree: signal(SUBJECTS_FIXTURE),
@@ -78,6 +79,7 @@ describe('CourseBlocks', () => {
     coursesMock.addBlock.mockResolvedValue(COURSE_DETAIL_FIXTURE.blocks[0]);
     coursesMock.deleteBlock.mockResolvedValue(undefined);
     coursesMock.reorderBlocks.mockResolvedValue(undefined);
+    coursesMock.deleteCourse.mockResolvedValue(undefined);
   });
 
   it('charge le cours du paramètre de route et l’affiche avec ses badges', async () => {
@@ -177,6 +179,41 @@ describe('CourseBlocks', () => {
 
     expect(deleteButton(rows(fixture)[0]).textContent).toContain('Supprimer');
     expect(coursesMock.deleteBlock).not.toHaveBeenCalled();
+  });
+
+  it('supprimer le cours demande confirmation puis supprime et revient à la liste', async () => {
+    const fixture = await createComponent();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const button = () =>
+      el(fixture).querySelector<HTMLButtonElement>('.course-blocks__delete-course')!;
+
+    expect(button().textContent).toContain('Supprimer ce cours');
+    button().click();
+    await fixture.whenStable();
+
+    // Premier clic : arme seulement, aucune suppression.
+    expect(coursesMock.deleteCourse).not.toHaveBeenCalled();
+    expect(button().textContent).toContain('Confirmer la suppression du cours');
+
+    button().click();
+    await fixture.whenStable();
+    expect(coursesMock.deleteCourse).toHaveBeenCalledWith('course-1');
+    expect(navigate).toHaveBeenCalledWith(['/', 'fr', 'courses']);
+  });
+
+  it('quitter le bouton armé annule la suppression du cours', async () => {
+    const fixture = await createComponent();
+    const button = el(fixture).querySelector<HTMLButtonElement>('.course-blocks__delete-course')!;
+    button.click();
+    await fixture.whenStable();
+    expect(button.textContent).toContain('Confirmer la suppression du cours');
+
+    button.dispatchEvent(new Event('blur'));
+    await fixture.whenStable();
+    expect(
+      el(fixture).querySelector('.course-blocks__delete-course')?.textContent,
+    ).toContain('Supprimer ce cours');
+    expect(coursesMock.deleteCourse).not.toHaveBeenCalled();
   });
 
   it('les boutons de type ouvrent la modale ; « ressource » est désactivé avec sa mention', async () => {

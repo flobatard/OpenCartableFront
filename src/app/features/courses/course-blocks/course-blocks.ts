@@ -60,6 +60,8 @@ export class CourseBlocks implements OnInit {
   protected readonly mutationError = signal(false);
   /** Id du bloc « armé » pour suppression (le 2e clic confirme). */
   protected readonly pendingDelete = signal<string | null>(null);
+  /** Cours « armé » pour suppression (le 2e clic confirme, puis retour à la liste). */
+  protected readonly pendingCourseDelete = signal(false);
 
   ngOnInit(): void {
     if (!this.#isBrowser) {
@@ -165,9 +167,35 @@ export class CourseBlocks implements OnInit {
     this.pendingDelete.set(null);
   }
 
+  /** Supprime le cours entier (deux temps) puis revient à « Mes cours ». */
+  protected async removeCourse(): Promise<void> {
+    if (this.mutating()) {
+      return;
+    }
+    if (!this.pendingCourseDelete()) {
+      this.pendingCourseDelete.set(true);
+      return;
+    }
+    this.#startMutation();
+    try {
+      await this.#courses.deleteCourse(this.#courseId);
+      // mutating reste posé le temps de la nav : la page va être détruite.
+      await this.#router.navigate(['/', this.language.lang(), 'courses']);
+    } catch {
+      this.mutationError.set(true);
+      this.mutating.set(false);
+    }
+  }
+
+  /** Quitter le bouton armé (focus ailleurs) annule la suppression du cours. */
+  protected disarmCourseDelete(): void {
+    this.pendingCourseDelete.set(false);
+  }
+
   #startMutation(): void {
     this.mutating.set(true);
     this.mutationError.set(false);
     this.pendingDelete.set(null);
+    this.pendingCourseDelete.set(false);
   }
 }

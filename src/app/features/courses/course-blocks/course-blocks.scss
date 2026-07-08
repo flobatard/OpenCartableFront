@@ -26,9 +26,25 @@
   margin-bottom: 24px;
 }
 
+.course-blocks__head-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .course-blocks__title {
   margin: 0;
   font-family: var(--font-display);
+}
+
+.course-blocks__delete-course {
+  flex: 0 0 auto;
+}
+
+.course-blocks__delete-course--armed {
+  color: var(--text-danger);
 }
 
 /* Badges — mêmes tokens que les chips des pickers (DS §8). */

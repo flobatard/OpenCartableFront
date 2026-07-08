@@ -20,7 +20,24 @@
   } @else {
     @if (detail(); as course) {
       <header class="course-blocks__head">
-        <h1 class="course-blocks__title">{{ course.titre }}</h1>
+        <div class="course-blocks__head-row">
+          <h1 class="course-blocks__title">{{ course.titre }}</h1>
+          <button
+            type="button"
+            class="btn btn--ghost course-blocks__delete-course"
+            [class.course-blocks__delete-course--armed]="pendingCourseDelete()"
+            [disabled]="mutating()"
+            (click)="removeCourse()"
+            (blur)="disarmCourseDelete()"
+          >
+            {{
+              (pendingCourseDelete()
+                ? 'courses.blocks.confirmDeleteCourse'
+                : 'courses.blocks.deleteCourse'
+              ) | transloco
+            }}
+          </button>
+        </div>
         @if (
           subjectNames(course.subject_ids).length || levelNames(course.education_level_ids).length
         ) {

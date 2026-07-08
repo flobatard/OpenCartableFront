@@ -100,6 +100,18 @@ export class CourseService {
   }
 
   /**
+   * Supprime un cours et tout son contenu. Le retire du signal `list` et
+   * nulle `detail` s'il affichait ce cours (l'appelant redirige vers la liste).
+   */
+  async deleteCourse(courseId: string): Promise<void> {
+    await firstValueFrom(this.#http.delete<void>(`${this.#url}/${courseId}`));
+    this.#list.update((courses) => courses.filter((course) => course.id !== courseId));
+    if (this.#detail()?.id === courseId) {
+      this.#detail.set(null);
+    }
+  }
+
+  /**
    * Ajoute un bloc en fin de cours et l'insère dans le détail chargé. Le méta
    * (titre/description) est optionnel : les clés absentes valent `null` côté back.
    */

@@ -154,6 +154,30 @@ describe('CourseService', () => {
     expect(service.detail()?.block_count).toBe(COURSE_DETAIL_FIXTURE.block_count - 1);
   });
 
+  it('deleteCourse fait un DELETE, retire de la liste et nulle le détail affiché', async () => {
+    service.loadList();
+    httpMock.expectOne(url).flush(COURSES_FIXTURE);
+    loadDetail(); // détail = course-1
+
+    const remove = service.deleteCourse(COURSE_DETAIL_FIXTURE.id);
+    const req = httpMock.expectOne(`${url}/${COURSE_DETAIL_FIXTURE.id}`);
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null, { status: 204, statusText: 'No Content' });
+    await remove;
+
+    expect(service.list().map((c) => c.id)).toEqual(['course-2']);
+    expect(service.detail()).toBeNull();
+  });
+
+  it('deleteCourse ne touche pas le détail affiché d’un autre cours', async () => {
+    loadDetail(); // détail = course-1
+    const remove = service.deleteCourse('course-2');
+    httpMock.expectOne(`${url}/course-2`).flush(null, { status: 204, statusText: 'No Content' });
+    await remove;
+
+    expect(service.detail()).toEqual(COURSE_DETAIL_FIXTURE); // intact
+  });
+
   it('reorderBlocks envoie l’ordre complet puis réécrit blocs et positions', async () => {
     loadDetail();
     const reorder = service.reorderBlocks(COURSE_DETAIL_FIXTURE.id, ['block-2', 'block-1']);
