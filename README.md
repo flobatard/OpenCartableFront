@@ -7,6 +7,8 @@ Stack : Angular 22 (zoneless, SSR + prerender), [Transloco](https://jsverse.gitb
 ## Fonctionnalités
 
 - **Matières** (`/<lang>/subjects`, réservé au prof authentifié) : navigation dans la taxonomie hiérarchique des disciplines en treeview (déplier/replier, recherche filtrante, compteur d'enfants et niveau). Alimentée par `SubjectService` (`src/app/core/subjects/`) — un fetch unique de `GET /api/v1/subjects/tree` mis en cache. Composant réutilisable `SubjectPicker` (`src/app/shared/subject-picker/`) pour sélectionner une matière dans un formulaire (`ControlValueAccessor`, accessible clavier + ARIA).
+- **Mes cours** (`/<lang>/courses`) : liste des cours du prof (cartes avec badges matières/niveaux, compteur de blocs, dernière modification), création (`/courses/new` — titre, description, matières, niveaux filtrés par le système scolaire du profil) et **espace blocs** (`/courses/:id`) : ajout par type (texte, exercice, lien — `ressource` arrivera avec le stockage S3), réordonnancement par boutons, suppression avec confirmation en deux temps.
+- **Éditeur de bloc texte** (`/courses/:id/blocks/:blockId`) : [Monaco Editor](https://microsoft.github.io/monaco-editor/) auto-hébergé (assets copiés au build sous `/monaco/vs`, thème clair/sombre suivi), onglets **Éditeur / Aperçu**, **enregistrement automatique** débouncé. Le markdown peut embarquer des **formules LaTeX** — `$…$` en ligne, `$$…$$` centrée — rendues par [KaTeX](https://katex.org/) dans l'aperçu (HTML sanitisé par DOMPurify via `renderCourseMarkdown`, `src/app/core/markdown/`).
 
 ## Développement
 

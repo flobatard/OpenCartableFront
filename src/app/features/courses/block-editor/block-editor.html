@@ -90,6 +90,7 @@
           [hidden]="activeTab() !== 'editor'"
         >
           <app-markdown-editor [formControl]="content" />
+          <p class="block-editor__hint">{{ 'courses.editor.mathHint' | transloco }}</p>
         </div>
 
         @if (activeTab() === 'preview') {

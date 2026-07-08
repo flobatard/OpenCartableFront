@@ -13,12 +13,13 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { marked } from 'marked';
 import { concatMap, debounceTime, tap } from 'rxjs';
 import { CourseService } from '../../../core/courses/course.service';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { renderCourseMarkdown } from '../../../core/markdown/course-markdown';
 import { MarkdownEditor } from '../../../shared/markdown-editor/markdown-editor';
 
 const AUTOSAVE_DELAY_MS = 1500;
@@ -40,6 +41,7 @@ type EditorTab = 'editor' | 'preview';
 })
 export class BlockEditor implements OnInit, OnDestroy {
   readonly #courses = inject(CourseService);
+  readonly #sanitizer = inject(DomSanitizer);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   readonly #route = inject(ActivatedRoute);
   /** Params lus en snapshot (pas de withComponentInputBinding dans ce projet). */
@@ -72,8 +74,15 @@ export class BlockEditor implements OnInit, OnDestroy {
   /** Valeur locale en cours de frappe — alimente l'aperçu (pas la version sauvegardée). */
   readonly #draft = signal('');
   protected readonly hasDraft = computed(() => this.#draft().trim().length > 0);
-  /** HTML de l'aperçu — sanitisé par le binding [innerHTML] d'Angular (jamais de bypass). */
-  protected readonly previewHtml = computed(() => marked.parse(this.#draft(), { async: false }));
+  /**
+   * HTML de l'aperçu (markdown + formules KaTeX). La sanitisation vit dans
+   * renderCourseMarkdown (DOMPurify, profils html+mathMl+svg) ; le bypass
+   * évite uniquement le second nettoyage d'Angular, qui dépouillerait les
+   * attributs style et le MathML/SVG dont dépend la sortie KaTeX.
+   */
+  protected readonly previewHtml = computed<SafeHtml>(() =>
+    this.#sanitizer.bypassSecurityTrustHtml(renderCourseMarkdown(this.#draft())),
+  );
 
   #initialized = false;
   #lastSaved = '';

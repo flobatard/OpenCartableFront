@@ -117,6 +117,7 @@
         "preview": "Aperçu"
       },
       "previewEmpty": "Rien à afficher pour l'instant — écris du markdown dans l'éditeur.",
+      "mathHint": "$…$ pour une formule en ligne, $$…$$ pour une formule centrée",
       "save": {
         "dirty": "Modifications non enregistrées",
         "saving": "Enregistrement…",

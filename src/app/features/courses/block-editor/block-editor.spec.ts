@@ -214,6 +214,17 @@ describe('BlockEditor', () => {
     expect(editorPanel?.hidden).toBe(true);
   });
 
+  it('l’aperçu rend les formules LaTeX via KaTeX', async () => {
+    const fixture = await createComponent();
+    fixture.componentInstance.content.setValue('Soit $x^2$ un carré.');
+    await fixture.whenStable();
+
+    (el(fixture).querySelector('#block-editor-tab-preview') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(el(fixture).querySelector('.block-editor__preview .katex')).toBeTruthy();
+  });
+
   it('bloc introuvable : message + pas d’éditeur', async () => {
     const fixture = await createComponent('inconnu');
 

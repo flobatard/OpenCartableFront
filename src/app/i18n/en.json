@@ -117,6 +117,7 @@
         "preview": "Preview"
       },
       "previewEmpty": "Nothing to show yet — write some markdown in the editor.",
+      "mathHint": "$…$ for an inline formula, $$…$$ for a centered formula",
       "save": {
         "dirty": "Unsaved changes",
         "saving": "Saving…",

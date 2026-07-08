@@ -81,6 +81,12 @@
   color: var(--text-danger);
 }
 
+.block-editor__hint {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
 /* Panneaux -------------------------------------------------------------------- */
 
 .block-editor__preview {
