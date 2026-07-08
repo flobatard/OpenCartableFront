@@ -78,7 +78,7 @@ describe('CourseList', () => {
     // L'id de matière inconnu de l'arbre n'a pas de chip (contrat des pickers).
     expect(badges(cards[1])).toEqual(['Grammaire']);
 
-    expect(cards[0].querySelector('.course-list__meta')?.textContent).toContain('2 bloc(s)');
+    expect(cards[0].querySelector('.course-list__meta')?.textContent).toContain('3 bloc(s)');
   });
 
   it('chaque carte mène à l’espace blocs et l’en-tête à la création', async () => {

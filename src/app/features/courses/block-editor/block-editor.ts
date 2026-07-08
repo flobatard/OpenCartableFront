@@ -7,23 +7,30 @@ import {
   OnInit,
   PLATFORM_ID,
   signal,
+  viewChild,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { concatMap, debounceTime, tap } from 'rxjs';
+import { concatMap, debounceTime, merge, Subject, tap } from 'rxjs';
 import {
   buildBlockMetaForm,
   patchBlockMetaForm,
   payloadFromBlockMetaForm,
 } from '../../../core/courses/block-meta-form';
-import { BlockMetaPayload } from '../../../core/courses/course.model';
+import { BlockMetaPayload, ExerciseContentPayload } from '../../../core/courses/course.model';
+import {
+  applyGeneratedIds,
+  payloadFromBlockContent,
+  payloadFromExerciseForm,
+} from '../../../core/courses/exercise-form';
 import { CourseService } from '../../../core/courses/course.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { MarkdownField } from '../../../shared/markdown-field/markdown-field';
 import { CourseChat } from '../course-chat/course-chat';
+import { ExerciseEditor } from '../exercise-editor/exercise-editor';
 
 const AUTOSAVE_DELAY_MS = 1500;
 
@@ -36,15 +43,27 @@ type MetaSaveState = 'idle' | 'saving' | 'saved' | 'error';
 
 /**
  * Coquille-page d'édition d'un bloc : en-tête, formulaire titre/description
- * (tous types, enregistrement explicite), et — pour les blocs texte — indicateur
- * d'autosave et espace de travail redimensionnable (champ markdown + assistant).
- * Le contenu markdown (éditeur Monaco, onglets, aperçu, aide) est délégué au
- * composant réutilisable `app-markdown-field` ; son autosave débouncé reste ici.
- * L'éditeur de contenu des autres types de blocs viendra plus tard.
+ * (tous types, enregistrement explicite), et — pour les blocs texte et
+ * exercice — indicateur d'autosave et espace de travail redimensionnable
+ * (éditeur de contenu + assistant). Le contenu est délégué par type :
+ * `app-markdown-field` (texte), `app-exercise-editor` (exercice) ; l'autosave
+ * débouncé reste ici, dans un pipeline unique. Le payload est construit **à
+ * l'envoi** (état courant du formulaire, ids de questions déjà réécrits) —
+ * jamais à l'émission — et les ids générés par le back sont réécrits après
+ * chaque save sur un snapshot des groupes capturé à l'envoi (sinon l'autosave
+ * suivant renverrait `id: null` et casserait la stabilité des ids).
+ * L'éditeur de contenu des blocs lien/ressource viendra plus tard.
  */
 @Component({
   selector: 'app-block-editor',
-  imports: [ReactiveFormsModule, RouterLink, TranslocoPipe, MarkdownField, CourseChat],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    TranslocoPipe,
+    MarkdownField,
+    CourseChat,
+    ExerciseEditor,
+  ],
   templateUrl: './block-editor.html',
   styleUrl: './block-editor.scss',
 })
@@ -69,11 +88,18 @@ export class BlockEditor implements OnInit, OnDestroy {
   );
 
   /**
-   * Contenu markdown édité, relayé au `app-markdown-field`. Public — exception à
-   * la convention `protected` : jsdom ne peut pas taper dans monaco, les specs
-   * pilotent ce contrôle.
+   * Contenu markdown édité (blocs texte), relayé au `app-markdown-field`.
+   * Public — exception à la convention `protected` : jsdom ne peut pas taper
+   * dans monaco, les specs pilotent ce contrôle.
    */
   readonly content = new FormControl('', { nonNullable: true });
+
+  /** Éditeur d'exercice monté (blocs exercice) — son `form` public est piloté
+      ici pour le write-back des ids et le flush à la destruction. */
+  protected readonly exerciseEditor = viewChild(ExerciseEditor);
+
+  /** Frappes de l'éditeur d'exercice, fusionnées dans le pipeline d'autosave. */
+  readonly #exerciseDrafts = new Subject<ExerciseContentPayload>();
 
   protected readonly saveState = signal<SaveState>('idle');
 
@@ -111,32 +137,46 @@ export class BlockEditor implements OnInit, OnDestroy {
   protected readonly chatCollapsed = signal(false);
 
   #initialized = false;
+  /** JSON du dernier payload persisté (référence dirty/idle, tous types). */
   #lastSaved = '';
+  /** Dernier payload frappé — repli du flush si l'éditeur enfant est déjà détruit. */
+  #lastDraft: Record<string, unknown> | null = null;
 
   constructor() {
-    // Init UNIQUE du contrôle quand le bloc texte arrive ; jamais réécrit
+    // Init UNIQUE quand le bloc à contenu éditable arrive ; jamais ré-initialisé
     // ensuite (le patch du détail après un save ne doit pas écraser la frappe).
+    // Texte : le contrôle est posé ici ; exercice : l'éditeur enfant s'initialise
+    // lui-même depuis `[initial]`, seule la référence de save est figée ici.
     effect(() => {
       const block = this.block();
-      if (this.#initialized || block === null || block.type !== 'texte') {
+      if (this.#initialized || block === null) {
         return;
       }
-      const markdown = block.content['markdown'];
-      const initial = typeof markdown === 'string' ? markdown : '';
-      this.#initialized = true;
-      this.#lastSaved = initial;
-      this.content.setValue(initial, { emitEvent: false });
+      if (block.type === 'texte') {
+        const markdown = block.content['markdown'];
+        const initial = typeof markdown === 'string' ? markdown : '';
+        this.#initialized = true;
+        this.#lastSaved = JSON.stringify({ markdown: initial });
+        this.content.setValue(initial, { emitEvent: false });
+      } else if (block.type === 'exercice') {
+        this.#initialized = true;
+        this.#lastSaved = JSON.stringify(payloadFromBlockContent(block.content));
+      }
     });
 
-    this.content.valueChanges
+    merge(this.content.valueChanges, this.#exerciseDrafts)
       .pipe(
-        tap((value) => {
-          this.saveState.set(value === this.#lastSaved ? 'idle' : 'dirty');
+        tap(() => {
+          const payload = this.#currentPayload();
+          this.#lastDraft = payload ?? this.#lastDraft;
+          this.saveState.set(JSON.stringify(payload) === this.#lastSaved ? 'idle' : 'dirty');
         }),
         debounceTime(AUTOSAVE_DELAY_MS),
         // concatMap sérialise les PATCH : la promesse n'est pas annulable,
         // switchMap laisserait une réponse périmée écraser la plus récente.
-        concatMap((value) => this.#save(value)),
+        // Le payload est relu à l'ENVOI (état courant, ids à jour) — les
+        // émissions ne servent que de déclencheur.
+        concatMap(() => this.#save()),
         takeUntilDestroyed(),
       )
       .subscribe();
@@ -171,11 +211,21 @@ export class BlockEditor implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     // Sortie avant la fin du debounce : flush fire-and-forget (le service
     // root survit au composant).
-    if (this.#initialized && this.content.value !== this.#lastSaved) {
+    if (!this.#initialized) {
+      return;
+    }
+    const payload = this.#currentPayload() ?? this.#lastDraft;
+    if (payload !== null && JSON.stringify(payload) !== this.#lastSaved) {
       void this.#courses
-        .updateBlockContent(this.courseId, this.blockId, { markdown: this.content.value })
+        .updateBlockContent(this.courseId, this.blockId, payload)
         .catch(() => undefined);
     }
+  }
+
+  /** Relayé par le template : chaque frappe de l'éditeur d'exercice alimente
+      le pipeline d'autosave (le payload transmis ne sert que de déclencheur). */
+  protected onExerciseDraft(payload: ExerciseContentPayload): void {
+    this.#exerciseDrafts.next(payload);
   }
 
   protected reload(): void {
@@ -267,16 +317,49 @@ export class BlockEditor implements OnInit, OnDestroy {
     event.preventDefault();
   }
 
-  async #save(value: string): Promise<void> {
-    if (value === this.#lastSaved) {
+  /** Payload de contenu courant selon le type du bloc (`null` = pas d'éditeur). */
+  #currentPayload(): Record<string, unknown> | null {
+    const block = this.block();
+    if (block?.type === 'texte') {
+      return { markdown: this.content.value };
+    }
+    if (block?.type === 'exercice') {
+      const editor = this.exerciseEditor();
+      return editor ? payloadFromExerciseForm(editor.form) : null;
+    }
+    return null;
+  }
+
+  async #save(): Promise<void> {
+    const isExercise = this.block()?.type === 'exercice';
+    const editor = this.exerciseEditor();
+    const payload = this.#currentPayload();
+    if (payload === null) {
       return;
     }
+    const serialized = JSON.stringify(payload);
+    if (serialized === this.#lastSaved) {
+      // Émission en file devenue redondante (frappe annulée ou déjà persistée).
+      return;
+    }
+    // Snapshot des groupes aligné 1:1 sur le payload envoyé : le write-back
+    // des ids reste correct même si des questions bougent pendant le vol.
+    const groups = isExercise && editor ? [...editor.form.controls.questions.controls] : [];
     this.saveState.set('saving');
     try {
-      await this.#courses.updateBlockContent(this.courseId, this.blockId, { markdown: value });
-      this.#lastSaved = value;
+      const saved = await this.#courses.updateBlockContent(this.courseId, this.blockId, payload);
+      if (isExercise) {
+        // Sans ce write-back, l'autosave suivant renverrait `id: null` et le
+        // back régénérerait des ids censés être stables à vie.
+        const savedPayload = payloadFromBlockContent(saved.content);
+        applyGeneratedIds(groups, savedPayload);
+        this.#lastSaved = JSON.stringify(savedPayload);
+        this.#lastDraft = this.#currentPayload() ?? this.#lastDraft;
+      } else {
+        this.#lastSaved = serialized;
+      }
       // Frappe pendant le save en vol : on reste « dirty », le suivant est en file.
-      this.saveState.set(this.content.value === value ? 'saved' : 'dirty');
+      this.saveState.set(JSON.stringify(this.#currentPayload()) === this.#lastSaved ? 'saved' : 'dirty');
     } catch {
       // Le flux survit ; retentative à la prochaine modification.
       this.saveState.set('error');

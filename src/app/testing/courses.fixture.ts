@@ -13,7 +13,7 @@ export const COURSES_FIXTURE: CourseSummary[] = [
     description: 'Premier chapitre d’analyse.',
     subject_ids: ['math'],
     education_level_ids: ['college-6e'],
-    block_count: 2,
+    block_count: 3,
     created_at: '2026-07-01T10:00:00Z',
     updated_at: '2026-07-06T09:30:00Z',
   },
@@ -46,6 +46,25 @@ export const COURSE_BLOCKS_FIXTURE: CourseBlock[] = [
     titre: null,
     description: null,
     content: { url: 'https://exemple.org/video', titre: '', fournisseur: null },
+    resource_id: null,
+  },
+  {
+    id: 'block-3',
+    position: 2,
+    type: 'exercice',
+    titre: 'Exercices d’application',
+    description: null,
+    content: {
+      enonce: 'Étudier la convergence des suites suivantes.',
+      questions: [
+        {
+          id: 'q-1',
+          enonce: 'Soit $u_n = 1/n$. Montrer que $(u_n)$ converge.',
+          type: 'texte_libre',
+          reponse_attendue: 'Décroissante et minorée par 0 ; limite 0.',
+        },
+      ],
+    },
     resource_id: null,
   },
 ];

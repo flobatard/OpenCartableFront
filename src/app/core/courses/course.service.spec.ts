@@ -150,7 +150,7 @@ describe('CourseService', () => {
     req.flush(null, { status: 204, statusText: 'No Content' });
     await remove;
 
-    expect(service.detail()?.blocks.map((b) => b.id)).toEqual(['block-2']);
+    expect(service.detail()?.blocks.map((b) => b.id)).toEqual(['block-2', 'block-3']);
     expect(service.detail()?.block_count).toBe(COURSE_DETAIL_FIXTURE.block_count - 1);
   });
 
@@ -180,15 +180,19 @@ describe('CourseService', () => {
 
   it('reorderBlocks envoie l’ordre complet puis réécrit blocs et positions', async () => {
     loadDetail();
-    const reorder = service.reorderBlocks(COURSE_DETAIL_FIXTURE.id, ['block-2', 'block-1']);
+    const reorder = service.reorderBlocks(COURSE_DETAIL_FIXTURE.id, [
+      'block-2',
+      'block-3',
+      'block-1',
+    ]);
     const req = httpMock.expectOne(`${url}/${COURSE_DETAIL_FIXTURE.id}/blocks/order`);
     expect(req.request.method).toBe('PUT');
-    expect(req.request.body).toEqual({ block_ids: ['block-2', 'block-1'] });
+    expect(req.request.body).toEqual({ block_ids: ['block-2', 'block-3', 'block-1'] });
     req.flush(null, { status: 204, statusText: 'No Content' });
     await reorder;
 
-    expect(service.detail()?.blocks.map((b) => b.id)).toEqual(['block-2', 'block-1']);
-    expect(service.detail()?.blocks.map((b) => b.position)).toEqual([0, 1]);
+    expect(service.detail()?.blocks.map((b) => b.id)).toEqual(['block-2', 'block-3', 'block-1']);
+    expect(service.detail()?.blocks.map((b) => b.position)).toEqual([0, 1, 2]);
   });
 
   it('updateBlockContent fait un PATCH et remplace le bloc dans le détail', async () => {

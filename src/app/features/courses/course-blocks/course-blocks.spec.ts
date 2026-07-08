@@ -107,10 +107,10 @@ describe('CourseBlocks', () => {
       (r) => r.querySelector('.course-blocks__desc')?.textContent?.trim() ?? null,
     );
 
-    expect(types).toEqual(['Texte', 'Lien']);
+    expect(types).toEqual(['Texte', 'Lien', 'Exercice']);
     // block-1 a un titre + description ; block-2 (sans titre) replie sur « Bloc sans titre ».
-    expect(titles).toEqual(['Le concept de suite', 'Bloc sans titre']);
-    expect(descs).toEqual(['Définitions et premiers exemples.', null]);
+    expect(titles).toEqual(['Le concept de suite', 'Bloc sans titre', 'Exercices d’application']);
+    expect(descs).toEqual(['Définitions et premiers exemples.', null, null]);
   });
 
   it('propose « Modifier » sur tous les blocs (tous types éditables)', async () => {
@@ -127,7 +127,8 @@ describe('CourseBlocks', () => {
 
   it('désactive monter en tête de liste et descendre en queue', async () => {
     const fixture = await createComponent();
-    const [firstRow, lastRow] = rows(fixture);
+    const firstRow = rows(fixture)[0];
+    const lastRow = rows(fixture).at(-1)!;
     const [upFirst, downFirst] = Array.from(
       firstRow.querySelectorAll<HTMLButtonElement>('.course-blocks__move'),
     );
@@ -149,7 +150,11 @@ describe('CourseBlocks', () => {
     down.click();
     await fixture.whenStable();
 
-    expect(coursesMock.reorderBlocks).toHaveBeenCalledWith('course-1', ['block-2', 'block-1']);
+    expect(coursesMock.reorderBlocks).toHaveBeenCalledWith('course-1', [
+      'block-2',
+      'block-1',
+      'block-3',
+    ]);
   });
 
   it('la suppression demande une confirmation au premier clic', async () => {

@@ -141,6 +141,24 @@
         "saving": "Saving…",
         "saved": "Saved",
         "error": "Saving failed — will retry on your next change"
+      },
+      "exercise": {
+        "tabsLabel": "Exercise sections",
+        "sujetLabel": "Subject",
+        "sujetHint": "General instructions for the exercise, visible to students.",
+        "questionsTitle": "Questions",
+        "question": "Question {{index}}",
+        "empty": "No questions yet.",
+        "add": "Add a question",
+        "enonceLabel": "Prompt",
+        "reponseLabel": "Expected answer",
+        "reponsePlaceholder": "Reference answer (optional)",
+        "reponseHint": "Answer key visible only to you — never shown to students.",
+        "moveUp": "Move question {{index}} up",
+        "moveDown": "Move question {{index}} down",
+        "remove": "Delete question {{index}}",
+        "removeLabel": "Delete",
+        "removeConfirm": "Confirm deletion"
       }
     }
   },

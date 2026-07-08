@@ -1,0 +1,132 @@
+/* Éditeur d'exercice : sections sujet/questions empilées, chaque question en
+   carte sur les tokens du design system. Monté dans la colonne éditeur du
+   workspace du block-editor (qui scrolle verticalement). */
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.exercise-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.exercise-editor__tabbar {
+  flex: 0 0 auto;
+}
+
+/* Compteur de questions dans l'onglet — informatif, pas une pastille d'état. */
+.exercise-editor__tab-count {
+  margin-inline-start: 6px;
+  padding: 1px 7px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Panneaux d'onglet : le display est ré-annulé sous [hidden] car une règle
+   d'auteur bat le [hidden] de l'UA (les panneaux sont masqués, jamais @if —
+   Monaco vit dans les deux). */
+.exercise-editor__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.exercise-editor__panel[hidden] {
+  display: none;
+}
+
+.exercise-editor__hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.exercise-editor__empty {
+  margin: 0;
+  padding: 16px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+}
+
+.exercise-editor__questions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.exercise-editor__question {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.exercise-editor__question-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.exercise-editor__question-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 15px;
+}
+
+.exercise-editor__question-actions {
+  display: flex;
+  gap: 4px;
+  margin-inline-start: auto;
+}
+
+.exercise-editor__delete--armed {
+  color: var(--text-danger);
+}
+
+.exercise-editor__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.exercise-editor__label {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Réponse attendue : texte simple (décision produit), champ natif — bordure
+   porteuse et placeholder slate-500, jamais slate-400 (DESIGN_SYSTEM §8). */
+.exercise-editor__reponse {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font: inherit;
+  resize: vertical;
+}
+
+.exercise-editor__reponse::placeholder {
+  color: var(--text-secondary);
+}
+
+.exercise-editor__add {
+  align-self: flex-start;
+}

@@ -1,0 +1,144 @@
+<div class="exercise-editor">
+  <div
+    class="exercise-editor__tabbar tabs"
+    role="tablist"
+    [attr.aria-label]="'courses.editor.exercise.tabsLabel' | transloco"
+    (keydown)="onTablistKeydown($event)"
+  >
+    <button
+      #sujetTab
+      type="button"
+      role="tab"
+      class="tab"
+      [id]="uid + '-tab-sujet'"
+      [class.tab--active]="activeTab() === 'sujet'"
+      [attr.aria-selected]="activeTab() === 'sujet'"
+      [attr.aria-controls]="uid + '-panel-sujet'"
+      [tabindex]="activeTab() === 'sujet' ? 0 : -1"
+      (click)="selectTab('sujet')"
+    >
+      {{ 'courses.editor.exercise.sujetLabel' | transloco }}
+    </button>
+    <button
+      #questionsTab
+      type="button"
+      role="tab"
+      class="tab"
+      [id]="uid + '-tab-questions'"
+      [class.tab--active]="activeTab() === 'questions'"
+      [attr.aria-selected]="activeTab() === 'questions'"
+      [attr.aria-controls]="uid + '-panel-questions'"
+      [tabindex]="activeTab() === 'questions' ? 0 : -1"
+      (click)="selectTab('questions')"
+    >
+      {{ 'courses.editor.exercise.questionsTitle' | transloco }}
+      <span class="exercise-editor__tab-count">{{ questionGroups().length }}</span>
+    </button>
+  </div>
+
+  <!-- Panneaux masqués par [hidden], jamais @if : Monaco vit dans les deux,
+       un @if le détruirait et rechargerait à chaque bascule d'onglet. -->
+  <section
+    role="tabpanel"
+    class="exercise-editor__panel"
+    [id]="uid + '-panel-sujet'"
+    [attr.aria-labelledby]="uid + '-tab-sujet'"
+    [hidden]="activeTab() !== 'sujet'"
+  >
+    <p class="exercise-editor__hint">{{ 'courses.editor.exercise.sujetHint' | transloco }}</p>
+    <app-markdown-field [formControl]="form.controls.enonce" />
+  </section>
+
+  <section
+    role="tabpanel"
+    class="exercise-editor__panel"
+    [id]="uid + '-panel-questions'"
+    [attr.aria-labelledby]="uid + '-tab-questions'"
+    [hidden]="activeTab() !== 'questions'"
+  >
+    @if (questionGroups().length === 0) {
+      <p class="exercise-editor__empty">{{ 'courses.editor.exercise.empty' | transloco }}</p>
+    } @else {
+      <ol class="exercise-editor__questions">
+        @for (group of questionGroups(); track group; let i = $index) {
+          <li class="exercise-editor__question">
+            <div class="exercise-editor__question-head">
+              <h3 class="exercise-editor__question-title">
+                {{ 'courses.editor.exercise.question' | transloco: { index: i + 1 } }}
+              </h3>
+              <div class="exercise-editor__question-actions">
+                <button
+                  type="button"
+                  class="btn btn--ghost exercise-editor__move"
+                  [disabled]="i === 0"
+                  [attr.aria-label]="'courses.editor.exercise.moveUp' | transloco: { index: i + 1 }"
+                  (click)="move(i, -1)"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  class="btn btn--ghost exercise-editor__move"
+                  [disabled]="i === questionGroups().length - 1"
+                  [attr.aria-label]="
+                    'courses.editor.exercise.moveDown' | transloco: { index: i + 1 }
+                  "
+                  (click)="move(i, 1)"
+                >
+                  ↓
+                </button>
+                <button
+                  type="button"
+                  class="btn btn--ghost exercise-editor__delete"
+                  [class.exercise-editor__delete--armed]="pendingDelete() === i"
+                  [attr.aria-label]="'courses.editor.exercise.remove' | transloco: { index: i + 1 }"
+                  (click)="remove(i)"
+                  (blur)="disarmDelete()"
+                >
+                  {{
+                    (pendingDelete() === i
+                      ? 'courses.editor.exercise.removeConfirm'
+                      : 'courses.editor.exercise.removeLabel'
+                    ) | transloco
+                  }}
+                </button>
+              </div>
+            </div>
+
+            <div class="exercise-editor__field">
+              <span class="exercise-editor__label">
+                {{ 'courses.editor.exercise.enonceLabel' | transloco }}
+              </span>
+              <app-markdown-field [formControl]="group.controls.enonce" />
+            </div>
+
+            <label class="exercise-editor__field">
+              <span class="exercise-editor__label">
+                {{ 'courses.editor.exercise.reponseLabel' | transloco }}
+              </span>
+              <textarea
+                class="exercise-editor__reponse"
+                rows="3"
+                maxlength="20000"
+                [formControl]="group.controls.reponseAttendue"
+                [placeholder]="'courses.editor.exercise.reponsePlaceholder' | transloco"
+              ></textarea>
+              <span class="exercise-editor__hint">
+                {{ 'courses.editor.exercise.reponseHint' | transloco }}
+              </span>
+            </label>
+          </li>
+        }
+      </ol>
+    }
+
+    <button
+      type="button"
+      class="btn btn--primary exercise-editor__add"
+      [disabled]="maxReached()"
+      (click)="add()"
+    >
+      {{ 'courses.editor.exercise.add' | transloco }}
+    </button>
+  </section>
+</div>

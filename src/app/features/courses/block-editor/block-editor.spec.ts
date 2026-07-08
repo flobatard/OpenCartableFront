@@ -1,9 +1,12 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { BlockEditor } from './block-editor';
 import { CourseBlock, CourseDetail } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
+import { addQuestion, ExerciseForm } from '../../../core/courses/exercise-form';
+import { ExerciseEditor } from '../exercise-editor/exercise-editor';
 import { COURSE_DETAIL_FIXTURE } from '../../../testing/courses.fixture';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
 
@@ -29,6 +32,27 @@ describe('BlockEditor', () => {
 
   function updatedBlock(markdown: string): CourseBlock {
     return { ...COURSE_DETAIL_FIXTURE.blocks[0], content: { markdown } };
+  }
+
+  // block-3 de la fixture : bloc exercice (sujet + une question q-1).
+  const EXERCISE_BLOCK = COURSE_DETAIL_FIXTURE.blocks[2];
+  const EXERCISE_SUJET = 'Étudier la convergence des suites suivantes.';
+  const Q1 = {
+    id: 'q-1',
+    enonce: 'Soit $u_n = 1/n$. Montrer que $(u_n)$ converge.',
+    type: 'texte_libre',
+    reponse_attendue: 'Décroissante et minorée par 0 ; limite 0.',
+  };
+
+  function updatedExerciseBlock(content: Record<string, unknown>): CourseBlock {
+    return { ...EXERCISE_BLOCK, content };
+  }
+
+  /** Formulaire public de l'éditeur d'exercice enfant (piloté par les specs). */
+  function exerciseForm(fixture: ComponentFixture<BlockEditor>): ExerciseForm {
+    return (
+      fixture.debugElement.query(By.directive(ExerciseEditor)).componentInstance as ExerciseEditor
+    ).form;
   }
 
   async function configure(blockId = 'block-1'): Promise<void> {
@@ -222,6 +246,130 @@ describe('BlockEditor', () => {
     // Le contenu (éditeur/onglets/aperçu/aide) est délégué à app-markdown-field.
     expect(el(fixture).querySelector('app-markdown-field')).toBeTruthy();
     expect(fixture.componentInstance.content.value).toBe(INITIAL);
+  });
+
+  it('bloc exercice : monte l’éditeur d’exercice, la barre d’autosave et l’assistant', async () => {
+    const fixture = await createComponent('block-3');
+    fixture.detectChanges();
+
+    expect(el(fixture).querySelector('app-exercise-editor')).toBeTruthy();
+    expect(el(fixture).querySelector('.block-editor__chat-toggle')).toBeTruthy();
+    expect(el(fixture).querySelector('app-course-chat')).toBeTruthy();
+
+    const form = exerciseForm(fixture);
+    expect(form.controls.enonce.value).toBe(EXERCISE_SUJET);
+    expect(form.controls.questions.length).toBe(1);
+    expect(form.controls.questions.at(0).controls.id.value).toBe('q-1');
+  });
+
+  it('autosave exercice : frappe dans le formulaire → un PATCH débouncé avec le payload complet', async () => {
+    await configure('block-3');
+    coursesMock.updateBlockContent.mockResolvedValue(
+      updatedExerciseBlock({
+        enonce: EXERCISE_SUJET,
+        questions: [{ ...Q1, reponse_attendue: 'Autre corrigé.' }],
+      }),
+    );
+    vi.useFakeTimers();
+    const fixture = createComponentSync();
+
+    exerciseForm(fixture).controls.questions.at(0).controls.reponseAttendue.setValue(
+      'Autre corrigé.',
+    );
+    await vi.advanceTimersByTimeAsync(1499);
+    expect(coursesMock.updateBlockContent).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(coursesMock.updateBlockContent).toHaveBeenCalledTimes(1);
+    expect(coursesMock.updateBlockContent).toHaveBeenCalledWith('course-1', 'block-3', {
+      enonce: EXERCISE_SUJET,
+      questions: [{ ...Q1, reponse_attendue: 'Autre corrigé.' }],
+    });
+
+    fixture.detectChanges();
+    expect(el(fixture).textContent).toContain('Enregistré');
+  });
+
+  it('écrit dans le formulaire les ids générés par le back après le save', async () => {
+    await configure('block-3');
+    coursesMock.updateBlockContent.mockResolvedValue(
+      updatedExerciseBlock({
+        enonce: EXERCISE_SUJET,
+        questions: [Q1, { id: 'q-généré', enonce: '', type: 'texte_libre', reponse_attendue: '' }],
+      }),
+    );
+    vi.useFakeTimers();
+    const fixture = createComponentSync();
+    const form = exerciseForm(fixture);
+
+    addQuestion(form);
+    await vi.advanceTimersByTimeAsync(1500);
+
+    // La nouvelle question est partie sans id…
+    const sent = coursesMock.updateBlockContent.mock.calls[0][2] as {
+      questions: { id: string | null }[];
+    };
+    expect(sent.questions[1].id).toBeNull();
+    // …et l'id généré par le back est réécrit dans le formulaire (stable à vie).
+    expect(form.controls.questions.at(1).controls.id.value).toBe('q-généré');
+    fixture.detectChanges();
+    expect(el(fixture).textContent).toContain('Enregistré');
+  });
+
+  it('frappe pendant un save exercice en vol : le second PATCH part avec les ids réécrits', async () => {
+    await configure('block-3');
+    let resolveFirst!: (block: CourseBlock) => void;
+    const withNewId = (enonce: string): CourseBlock =>
+      updatedExerciseBlock({
+        enonce: EXERCISE_SUJET,
+        questions: [Q1, { id: 'q-généré', enonce, type: 'texte_libre', reponse_attendue: '' }],
+      });
+    coursesMock.updateBlockContent
+      .mockImplementationOnce(() => new Promise<CourseBlock>((resolve) => (resolveFirst = resolve)))
+      .mockResolvedValue(withNewId('Question ajoutée'));
+    vi.useFakeTimers();
+    const fixture = createComponentSync();
+    const form = exerciseForm(fixture);
+
+    addQuestion(form);
+    await vi.advanceTimersByTimeAsync(1500); // premier PATCH en vol (id null)
+    expect(coursesMock.updateBlockContent).toHaveBeenCalledTimes(1);
+
+    form.controls.questions.at(1).controls.enonce.setValue('Question ajoutée');
+    await vi.advanceTimersByTimeAsync(1500); // débouncé, en file derrière concatMap
+    expect(coursesMock.updateBlockContent).toHaveBeenCalledTimes(1);
+
+    resolveFirst(withNewId(''));
+    await vi.advanceTimersByTimeAsync(0); // flush : write-back de q-généré puis 2e PATCH
+
+    expect(coursesMock.updateBlockContent).toHaveBeenCalledTimes(2);
+    // Payload construit à l'ENVOI : l'id réécrit part avec, le back ne
+    // régénérera pas un id censé être stable à vie.
+    const second = coursesMock.updateBlockContent.mock.calls[1][2] as {
+      questions: { id: string | null; enonce: string }[];
+    };
+    expect(second.questions[1]).toEqual({
+      id: 'q-généré',
+      enonce: 'Question ajoutée',
+      type: 'texte_libre',
+      reponse_attendue: '',
+    });
+  });
+
+  it('flush le payload exercice non débouncé à la destruction', async () => {
+    await configure('block-3');
+    vi.useFakeTimers();
+    const fixture = createComponentSync();
+
+    exerciseForm(fixture).controls.enonce.setValue('Sortie rapide');
+    fixture.destroy();
+
+    expect(coursesMock.updateBlockContent).toHaveBeenCalledTimes(1);
+    expect(coursesMock.updateBlockContent).toHaveBeenCalledWith(
+      'course-1',
+      'block-3',
+      expect.objectContaining({ enonce: 'Sortie rapide' }),
+    );
   });
 
   it('bloc introuvable : message + pas de champ', async () => {

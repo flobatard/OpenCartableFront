@@ -62,7 +62,7 @@
           </div>
         </form>
 
-        @if (block.type === 'texte') {
+        @if (block.type === 'texte' || block.type === 'exercice') {
           <div class="block-editor__toolbar">
             <div class="block-editor__toolbar-end">
               @if (saveState() === 'error') {
@@ -116,7 +116,14 @@
             [class.block-editor__workspace--solo]="chatCollapsed()"
           >
             <div class="block-editor__editor-col" [style.--editor-basis]="editorPct() + '%'">
-              <app-markdown-field [formControl]="content" />
+              @if (block.type === 'texte') {
+                <app-markdown-field [formControl]="content" />
+              } @else {
+                <app-exercise-editor
+                  [initial]="block.content"
+                  (contentChange)="onExerciseDraft($event)"
+                />
+              }
             </div>
 
             <!-- Poignée de redimensionnement éditeur/chat (separator WAI-ARIA). -->

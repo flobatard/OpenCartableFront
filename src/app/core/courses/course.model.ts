@@ -29,6 +29,33 @@ export interface CourseBlock {
 }
 
 /**
+ * Question d'un bloc exercice telle qu'échangée avec le back.
+ * `id: null` = nouvelle question : le back génère un uuid4 **stable à vie**
+ * (les soumissions élèves J2 référenceront `(block_id, question_id)`) — le
+ * front doit réécrire dans son formulaire les ids retournés par le PATCH.
+ */
+export type ExerciseQuestionPayload = {
+  id: string | null;
+  /** Énoncé markdown (mêmes règles que le bloc texte). */
+  enonce: string;
+  /** Seul type admis aujourd'hui (extensible : QCM…). */
+  type: 'texte_libre';
+  /** Corrigé du prof, texte simple — jamais montré aux élèves. */
+  reponse_attendue: string;
+};
+
+/**
+ * `content` d'un PATCH de bloc exercice : sujet markdown + questions
+ * ordonnées. Sémantique remplacement — une question absente est supprimée.
+ * Alias `type` (pas `interface`) : la signature d'index implicite le rend
+ * assignable au `Record<string, unknown>` d'`updateBlockContent`.
+ */
+export type ExerciseContentPayload = {
+  enonce: string;
+  questions: ExerciseQuestionPayload[];
+};
+
+/**
  * Champs communs éditables d'un bloc (titre/description). Sert de méta à la
  * création (`POST …/blocks`) et au PATCH partiel (`PATCH …/blocks/{id}`),
  * indépendamment du `content` propre à chaque type.

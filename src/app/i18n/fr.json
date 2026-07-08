@@ -141,6 +141,24 @@
         "saving": "Enregistrement…",
         "saved": "Enregistré",
         "error": "Échec de l'enregistrement — nouvelle tentative à la prochaine modification"
+      },
+      "exercise": {
+        "tabsLabel": "Sections de l'exercice",
+        "sujetLabel": "Sujet",
+        "sujetHint": "Énoncé général de l'exercice, visible par les élèves.",
+        "questionsTitle": "Questions",
+        "question": "Question {{index}}",
+        "empty": "Aucune question pour l'instant.",
+        "add": "Ajouter une question",
+        "enonceLabel": "Énoncé",
+        "reponseLabel": "Réponse attendue",
+        "reponsePlaceholder": "Réponse de référence (facultatif)",
+        "reponseHint": "Corrigé visible uniquement par vous — jamais montré aux élèves.",
+        "moveUp": "Monter la question {{index}}",
+        "moveDown": "Descendre la question {{index}}",
+        "remove": "Supprimer la question {{index}}",
+        "removeLabel": "Supprimer",
+        "removeConfirm": "Confirmer la suppression"
       }
     }
   },
