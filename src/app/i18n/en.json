@@ -71,7 +71,7 @@
       "error": "Could not load your courses. Check your connection.",
       "retry": "Retry",
       "empty": "Compose your first course",
-      "emptyHint": "Create a course, then add text, exercises and links to it.",
+      "emptyHint": "Create a course, then add text, exercises and documents to it.",
       "blockCount": "{{ count }} block(s)",
       "updated": "Updated on {{ date }}"
     },
@@ -98,10 +98,9 @@
       "types": {
         "texte": "Text",
         "exercice": "Exercise",
-        "ressource": "Resource",
-        "lien": "Link"
+        "document": "Document",
+        "module": "Interactive module"
       },
-      "resourceSoon": "Coming soon — file uploads arrive with storage.",
       "edit": "Edit",
       "editAria": "Edit block {{ position }}",
       "moveUp": "Move block {{ position }} up",
@@ -165,6 +164,50 @@
         "remove": "Delete question {{index}}",
         "removeLabel": "Delete",
         "removeConfirm": "Confirm deletion"
+      },
+      "document": {
+        "resourceLabel": "Course resource",
+        "noResource": "No resource",
+        "resourcesEmpty": "No resource available — upload a file in the course's Resources tab first.",
+        "resourceError": "The resource selection could not be saved. Try again.",
+        "legendeLabel": "Caption",
+        "legendePlaceholder": "Short caption shown with the document (optional)",
+        "affichageLabel": "Display",
+        "affichageInline": "Inline in the course",
+        "affichageTelechargement": "As a download"
+      }
+    },
+    "tabs": {
+      "label": "Course sections",
+      "blocks": "Blocks",
+      "resources": "Resources"
+    },
+    "resources": {
+      "loading": "Loading resources…",
+      "loadError": "Could not load the resources. Check your connection.",
+      "retry": "Retry",
+      "empty": "Add your first resource",
+      "emptyHint": "The course files (PDF, images, audio, video) live here, independently of the blocks.",
+      "upload": "Add a file",
+      "uploading": "Uploading the file…",
+      "uploadError": "The upload did not complete. Try again.",
+      "rename": "Rename",
+      "renameLabel": "New file name",
+      "renameSave": "Save",
+      "renameCancel": "Cancel",
+      "download": "Download",
+      "delete": "Delete",
+      "confirmDelete": "Confirm deletion",
+      "mutationError": "The operation did not complete. Try again.",
+      "statut": {
+        "en_attente": "Awaiting upload",
+        "disponible": "Available"
+      },
+      "types": {
+        "document": "Document",
+        "image": "Image",
+        "audio": "Audio",
+        "video": "Video"
       }
     }
   },

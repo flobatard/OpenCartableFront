@@ -1,0 +1,47 @@
+<div class="document-editor">
+  <label class="document-editor__field">
+    <span class="document-editor__label">
+      {{ 'courses.editor.document.resourceLabel' | transloco }}
+    </span>
+    <select class="document-editor__select" [formControl]="resourceControl">
+      <option value="">{{ 'courses.editor.document.noResource' | transloco }}</option>
+      @for (resource of resources(); track resource.id) {
+        <option [value]="resource.id">{{ resource.nom_original }}</option>
+      }
+    </select>
+  </label>
+  @if (!resources().length) {
+    <p class="document-editor__hint">
+      {{ 'courses.editor.document.resourcesEmpty' | transloco }}
+    </p>
+  }
+
+  <form [formGroup]="form" class="document-editor__form">
+    <label class="document-editor__field">
+      <span class="document-editor__label">
+        {{ 'courses.editor.document.legendeLabel' | transloco }}
+      </span>
+      <textarea
+        class="document-editor__input document-editor__textarea"
+        formControlName="legende"
+        maxlength="500"
+        rows="2"
+        [placeholder]="'courses.editor.document.legendePlaceholder' | transloco"
+      ></textarea>
+    </label>
+
+    <fieldset class="document-editor__fieldset">
+      <legend class="document-editor__label">
+        {{ 'courses.editor.document.affichageLabel' | transloco }}
+      </legend>
+      <label class="document-editor__radio">
+        <input type="radio" formControlName="affichage" value="inline" />
+        <span>{{ 'courses.editor.document.affichageInline' | transloco }}</span>
+      </label>
+      <label class="document-editor__radio">
+        <input type="radio" formControlName="affichage" value="telechargement" />
+        <span>{{ 'courses.editor.document.affichageTelechargement' | transloco }}</span>
+      </label>
+    </fieldset>
+  </form>
+</div>

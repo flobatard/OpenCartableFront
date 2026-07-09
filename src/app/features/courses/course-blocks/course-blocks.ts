@@ -1,13 +1,17 @@
-import { Component, inject, OnInit, PLATFORM_ID, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  inject,
+  OnInit,
+  PLATFORM_ID,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import {
-  BlockMetaPayload,
-  CourseBlock,
-  CreatableBlockType,
-} from '../../../core/courses/course.model';
+import { BlockMetaPayload, BlockType, CourseBlock } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
 import { EducationLevelService } from '../../../core/education-levels/education-level.service';
 import {
@@ -18,22 +22,41 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { SubjectService } from '../../../core/subjects/subject.service';
 import { findById as findSubjectById } from '../../../core/subjects/subject.utils';
 import { BlockCreateDialog } from '../block-create-dialog/block-create-dialog';
+import { CourseResources } from '../course-resources/course-resources';
 import { moveIdTo } from './course-blocks.utils';
 
-/** Types proposés à l'ajout — « ressource » attend l'upload S3 (bouton désactivé). */
-const CREATABLE_TYPES: readonly CreatableBlockType[] = ['texte', 'exercice', 'lien'];
+/** Types proposés à l'ajout — tous créables (module = placeholder J4). */
+const CREATABLE_TYPES: readonly BlockType[] = ['texte', 'exercice', 'document', 'module'];
+
+/** Suffixe d'ids ARIA uniques par instance (compteur de module, jamais Date/Random). */
+let sequence = 0;
+
+type CourseTab = 'blocks' | 'resources';
 
 /**
- * Espace blocs d'un cours : liste ordonnée des blocs, ajout par type (via une
- * modale titre/description puis redirection vers l'éditeur du bloc créé),
+ * Page d'un cours, à deux onglets (tablist APG, motif `markdown-field`) :
+ * « Blocs » — liste ordonnée des blocs, ajout par type (via une modale
+ * titre/description puis redirection vers l'éditeur du bloc créé),
  * réordonnancement par glisser-déposer (poignée CDK) ou flèches discrètes — la
  * poignée est aussi opérable au clavier ; l'affichage est optimiste, mais une
  * mutation en vol fige les actions le temps de l'aller-retour — et suppression
- * en deux temps (le bouton s'arme puis confirme — pas de modale).
+ * en deux temps (le bouton s'arme puis confirme — pas de modale) ; et
+ * « Ressources » — bibliothèque de fichiers du cours (`CourseResources`),
+ * indépendante des blocs. L'onglet actif est reflété dans `?tab=resources`
+ * (deep-link, `replaceUrl` pour ne pas polluer l'historique) ; panneaux en
+ * `@if` (pas de Monaco ici, rien à préserver dans le DOM).
  */
 @Component({
   selector: 'app-course-blocks',
-  imports: [RouterLink, TranslocoPipe, BlockCreateDialog, CdkDropList, CdkDrag, CdkDragHandle],
+  imports: [
+    RouterLink,
+    TranslocoPipe,
+    BlockCreateDialog,
+    CourseResources,
+    CdkDropList,
+    CdkDrag,
+    CdkDragHandle,
+  ],
   templateUrl: './course-blocks.html',
   styleUrl: './course-blocks.scss',
 })
@@ -47,9 +70,23 @@ export class CourseBlocks implements OnInit {
   readonly #courseId = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
 
   protected readonly language = inject(LanguageService);
+  protected readonly courseId = this.#courseId;
 
   /** Modale de création (saisie titre/description avant l'ajout du bloc). */
   protected readonly createDialog = viewChild(BlockCreateDialog);
+
+  /** Préfixe d'ids ARIA du tablist, propre à l'instance. */
+  protected readonly uid = `course-tabs-${sequence++}`;
+
+  /** Onglet actif, initialisé depuis `?tab=` (retour d'éditeur → Blocs). */
+  protected readonly activeTab = signal<CourseTab>(
+    inject(ActivatedRoute).snapshot.queryParamMap.get('tab') === 'resources'
+      ? 'resources'
+      : 'blocks',
+  );
+
+  protected readonly blocksTabRef = viewChild<ElementRef<HTMLButtonElement>>('blocksTab');
+  protected readonly resourcesTabRef = viewChild<ElementRef<HTMLButtonElement>>('resourcesTab');
 
   protected readonly detail = this.#courses.detail;
   protected readonly loading = this.#courses.detailLoading;
@@ -79,6 +116,35 @@ export class CourseBlocks implements OnInit {
     this.#courses.loadDetail(this.#courseId);
   }
 
+  /** Bascule d'onglet, reflétée dans `?tab=` (deep-link sans polluer l'historique). */
+  protected selectTab(tab: CourseTab): void {
+    this.activeTab.set(tab);
+    void this.#router.navigate([], {
+      queryParams: { tab: tab === 'resources' ? 'resources' : null },
+      replaceUrl: true,
+    });
+  }
+
+  /** Flèches gauche/droite : bascule d'onglet + déplacement du focus (APG tabs). */
+  protected onTablistKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
+      return;
+    }
+    event.preventDefault();
+    const next: CourseTab = this.activeTab() === 'blocks' ? 'resources' : 'blocks';
+    this.selectTab(next);
+    const ref = next === 'blocks' ? this.blocksTabRef() : this.resourcesTabRef();
+    ref?.nativeElement.focus();
+  }
+
+  /**
+   * Une ressource a été supprimée : les blocs `document` qui la pointaient
+   * ont été supprimés par le serveur (FK CASCADE) — on recharge le détail.
+   */
+  protected onResourceDeleted(): void {
+    this.reload();
+  }
+
   /** Noms des matières du cours (id inconnu de l'arbre → pas de chip). */
   protected subjectNames(ids: string[]): string[] {
     return ids
@@ -94,13 +160,13 @@ export class CourseBlocks implements OnInit {
   }
 
   /** Ouvre la modale de création pour le type demandé (saisie titre/description). */
-  protected openCreate(type: CreatableBlockType): void {
+  protected openCreate(type: BlockType): void {
     this.createDialog()?.open(type);
   }
 
   /** Crée le bloc avec son méta puis redirige vers son éditeur. */
   protected async confirmCreate(event: {
-    type: CreatableBlockType;
+    type: BlockType;
     meta: BlockMetaPayload;
   }): Promise<void> {
     if (this.mutating()) {

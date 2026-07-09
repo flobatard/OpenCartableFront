@@ -170,6 +170,40 @@
               </button>
             }
           </div>
+        } @else if (block.type === 'document') {
+          <section class="block-editor__document">
+            @if (saveState() === 'error') {
+              <p class="block-editor__save block-editor__save--error" role="alert">
+                {{ 'courses.editor.save.error' | transloco }}
+              </p>
+            } @else if (saveState() !== 'idle') {
+              <p class="block-editor__save" role="status">
+                @switch (saveState()) {
+                  @case ('dirty') {
+                    {{ 'courses.editor.save.dirty' | transloco }}
+                  }
+                  @case ('saving') {
+                    {{ 'courses.editor.save.saving' | transloco }}
+                  }
+                  @case ('saved') {
+                    {{ 'courses.editor.save.saved' | transloco }}
+                  }
+                }
+              </p>
+            }
+            @if (resourceSaveError()) {
+              <p class="block-editor__save block-editor__save--error" role="alert">
+                {{ 'courses.editor.document.resourceError' | transloco }}
+              </p>
+            }
+            <app-document-editor
+              [initial]="block.content"
+              [resourceId]="block.resource_id"
+              [resources]="availableResources()"
+              (contentChange)="onDocumentDraft($event)"
+              (resourcePick)="onResourcePick($event)"
+            />
+          </section>
         } @else {
           <div class="block-editor__notice">
             <p>{{ 'courses.editor.unsupported' | transloco }}</p>

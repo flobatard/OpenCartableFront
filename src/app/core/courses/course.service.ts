@@ -5,11 +5,11 @@ import { environment } from '../../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import {
   BlockMetaPayload,
+  BlockType,
   CourseBlock,
   CourseCreatePayload,
   CourseDetail,
   CourseSummary,
-  CreatableBlockType,
 } from './course.model';
 
 /**
@@ -117,7 +117,7 @@ export class CourseService {
    */
   async addBlock(
     courseId: string,
-    type: CreatableBlockType,
+    type: BlockType,
     meta?: Partial<BlockMetaPayload>,
   ): Promise<CourseBlock> {
     const block = await firstValueFrom(
@@ -169,6 +169,28 @@ export class CourseService {
   ): Promise<CourseBlock> {
     const block = await firstValueFrom(
       this.#http.patch<CourseBlock>(`${this.#url}/${courseId}/blocks/${blockId}`, meta),
+    );
+    this.#patchDetail(courseId, (detail) => ({
+      ...detail,
+      blocks: detail.blocks.map((b) => (b.id === blockId ? block : b)),
+    }));
+    return block;
+  }
+
+  /**
+   * Pointe (ou détache, avec `null`) la ressource d'un bloc `document` et
+   * répercute la réponse dans le détail chargé. PATCH dédié : le choix de
+   * ressource est une sélection discrète, jamais mêlée au `content` ni au méta.
+   */
+  async updateBlockResource(
+    courseId: string,
+    blockId: string,
+    resourceId: string | null,
+  ): Promise<CourseBlock> {
+    const block = await firstValueFrom(
+      this.#http.patch<CourseBlock>(`${this.#url}/${courseId}/blocks/${blockId}`, {
+        resource_id: resourceId,
+      }),
     );
     this.#patchDetail(courseId, (detail) => ({
       ...detail,

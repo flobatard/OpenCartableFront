@@ -117,12 +117,13 @@ Le point structurant : **deux populations, deux modèles d'accès** sur la même
 - **Organisation** : arborescence S3 *plate* (clé = `uuid/nom-original`) + toute la hiérarchie logique (matière → cours → ressource) portée par la **base**, pas par les préfixes S3. Plus souple pour réorganiser sans déplacer des octets.
 - **Types & previews** : PDF et images au MVP. Génération de miniatures/aperçus à différer (coûteux en CPU sur ARM — à faire en tâche asynchrone, voire à la demande).
 
-### 5.3 Modélisation du contenu : le cours comme suite de blocs
-Pour « agencer texte de cours + documents + images », le modèle gagnant est un **contenu par blocs ordonnés** (façon éditeur type Notion, en plus simple).
-- Un cours = une liste ordonnée de blocs : `paragraphe`, `titre`, `image`, `fichier`, `module interactif`, `encadré`.
-- Le **texte riche** est stocké en **JSONB** (structure de blocs), pas en HTML brut → plus sûr, plus facile à réindexer et à exploiter plus tard par l'IA.
-- Les blocs « média » ne contiennent qu'une **référence** vers une ligne `resource` (elle-même pointant vers S3). Le binaire et l'éditorial restent découplés.
-- Enjeu UX côté Angular : éditeur d'ordre des blocs (drag & drop) et insertion de ressources existantes ou nouvelles.
+### 5.3 Modélisation du contenu : blocs (progression) et ressources (bibliothèque), découplés
+Pour « agencer texte de cours + documents + images », le modèle gagnant est un **contenu par blocs ordonnés** (façon éditeur type Notion, en plus simple), avec une séparation stricte : les **blocs** portent la progression pédagogique, les **ressources** (fichiers S3) forment une **bibliothèque par cours**, indépendante des blocs.
+- Un cours = une liste ordonnée de blocs de quatre types : `texte`, `exercice`, `document`, `module`.
+- Le **texte de cours** (bloc `texte`) est du **markdown simple stocké en JSONB**, pas de HTML brut → plus sûr, réindexable, exploitable par l'IA ; titres, paragraphes, encadrés **et liens externes** sont couverts par le markdown (pas de types de blocs dédiés — l'ancien type `lien` a été supprimé).
+- Les blocs `document` sont un **pont nullable** vers une ressource de la bibliothèque (colonne `resource_id`, FK `CASCADE` : supprimer la ressource supprime les blocs qui la pointent — un document sans son fichier n'a pas de sens) ; leur JSONB ne porte que l'éditorial (`legende`, `affichage`). Une ressource peut exister sans bloc, ou être pointée par plusieurs.
+- Les blocs `module` (modules interactifs, cf. 5.5) existent comme type — leur logique métier arrive au J4.
+- UX côté Angular : page de cours à **deux onglets Blocs / Ressources**, éditeur d'ordre des blocs (drag & drop), picker de ressources dans l'éditeur du bloc document, upload direct navigateur→S3 avec progression.
 
 ### 5.4 Recherche
 - MVP : **Full-Text Search Postgres** (`tsvector` + index GIN) sur titres de cours, texte des blocs, noms et tags de ressources. Configuration `french` pour le *stemming*.
@@ -131,6 +132,7 @@ Pour « agencer texte de cours + documents + images », le modèle gagnant est u
 
 ### 5.5 Modules interactifs HTML/JS
 Le point le plus sensible niveau sécurité : tu vas servir du **code arbitraire** (le tien, mais quand même).
+- Un module est un **bloc** (`type='module'`, cf. 5.3), pas une ressource : le type existe déjà, la logique métier (upload du bundle, stockage, exécution) sera conçue au **J4**.
 - Un module = **bundle HTML/JS auto-porté** (un dossier ou un `.zip`), stocké sur S3, métadonnées en base.
 - Rendu **isolé** : intégration via `<iframe sandbox>` servie depuis un **chemin/origine séparé** de l'app principale, avec une **CSP** stricte → empêche un module de toucher au DOM de l'app, aux tokens, etc.
 - **Versionnage** par clé S3 (`module-id/v3/...`) pour pouvoir corriger un module sans casser les liens existants.
@@ -164,9 +166,8 @@ erDiagram
     COURSE  }o--o{ EDUCATION_LEVEL : vise
     COURSE  ||--o{ BLOCK : ordonne
     COURSE  ||--o{ RESOURCE : rassemble
-    BLOCK   }o--o| RESOURCE : reference
+    BLOCK   }o--o| RESOURCE : pointe
     COURSE  ||--o{ SHARE_LINK : expose
-    RESOURCE ||--o| MODULE : peut_etre
 
     SUBJECT {
       uuid id
@@ -188,6 +189,7 @@ erDiagram
     }
     BLOCK {
       uuid id
+      uuid resource_id
       int position
       string type
       jsonb content
@@ -199,11 +201,7 @@ erDiagram
       string nom_original
       bigint taille
       string mime
-    }
-    MODULE {
-      uuid id
-      string version
-      string entrypoint
+      string statut
     }
     SHARE_LINK {
       uuid id

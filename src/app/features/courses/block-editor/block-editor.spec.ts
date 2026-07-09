@@ -6,8 +6,11 @@ import { BlockEditor } from './block-editor';
 import { CourseBlock, CourseDetail } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
 import { addQuestion, ExerciseForm } from '../../../core/courses/exercise-form';
+import { ResourceService } from '../../../core/resources/resource.service';
+import { DocumentEditor } from '../document-editor/document-editor';
 import { ExerciseEditor } from '../exercise-editor/exercise-editor';
 import { COURSE_DETAIL_FIXTURE } from '../../../testing/courses.fixture';
+import { COURSE_RESOURCES_FIXTURE } from '../../../testing/resources.fixture';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
 
 /**
@@ -26,6 +29,18 @@ describe('BlockEditor', () => {
     loadDetail: vi.fn(),
     updateBlockContent: vi.fn(),
     updateBlockMeta: vi.fn(),
+    updateBlockResource: vi.fn(),
+  };
+  const resourcesMock = {
+    list: signal(COURSE_RESOURCES_FIXTURE),
+    listLoading: signal(false),
+    listError: signal(false),
+    uploadState: signal({ phase: 'idle' as const, progress: 0 }),
+    loadList: vi.fn(),
+    upload: vi.fn(),
+    rename: vi.fn(),
+    deleteResource: vi.fn(),
+    getDownloadUrl: vi.fn(),
   };
 
   const INITIAL = 'Introduction aux suites'; // content.markdown du block-1 de la fixture
@@ -61,6 +76,7 @@ describe('BlockEditor', () => {
       providers: [
         provideRouter([]),
         { provide: CourseService, useValue: coursesMock },
+        { provide: ResourceService, useValue: resourcesMock },
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { paramMap: convertToParamMap({ id: 'course-1', blockId }) } },
@@ -111,6 +127,7 @@ describe('BlockEditor', () => {
     vi.clearAllMocks();
     coursesMock.updateBlockContent.mockResolvedValue(updatedBlock('x'));
     coursesMock.updateBlockMeta.mockResolvedValue(COURSE_DETAIL_FIXTURE.blocks[0]);
+    coursesMock.updateBlockResource.mockResolvedValue(COURSE_DETAIL_FIXTURE.blocks[1]);
   });
 
   afterEach(() => {
@@ -379,14 +396,119 @@ describe('BlockEditor', () => {
     expect(el(fixture).querySelector('app-markdown-field')).toBeNull();
   });
 
-  it('type sans éditeur (lien) : méta éditable, contenu absent + message dédié', async () => {
-    const fixture = await createComponent('block-2');
+  it('type sans éditeur (module) : méta éditable, contenu absent + message dédié', async () => {
+    detail.set({
+      ...COURSE_DETAIL_FIXTURE,
+      blocks: [
+        ...COURSE_DETAIL_FIXTURE.blocks,
+        {
+          id: 'block-4',
+          position: 3,
+          type: 'module',
+          titre: null,
+          description: null,
+          content: {},
+          resource_id: null,
+        },
+      ],
+    });
+    const fixture = await createComponent('block-4');
 
     // Le formulaire titre/description est présent (méta éditable sur tous types)…
     expect(metaField(fixture, 'titre')).toBeTruthy();
-    // …mais l'éditeur de contenu markdown, non, et un message l'annonce.
+    // …mais aucun éditeur de contenu (module = placeholder J4), un message l'annonce.
     expect(el(fixture).querySelector('app-markdown-field')).toBeNull();
+    expect(el(fixture).querySelector('app-document-editor')).toBeNull();
     expect(el(fixture).textContent).toContain('arrive bientôt');
+  });
+
+  it('bloc document : monte l’éditeur, charge la bibliothèque et pré-remplit', async () => {
+    const fixture = await createComponent('block-2');
+    fixture.detectChanges();
+
+    expect(el(fixture).querySelector('app-document-editor')).toBeTruthy();
+    // Bibliothèque du cours chargée une fois pour alimenter le picker.
+    expect(resourcesMock.loadList).toHaveBeenCalledExactlyOnceWith('course-1');
+
+    const editor = fixture.debugElement.query(By.directive(DocumentEditor))
+      .componentInstance as DocumentEditor;
+    expect(editor.form.controls.legende.value).toBe('Schéma récapitulatif');
+    expect(editor.form.controls.affichage.value).toBe('inline');
+    expect(editor.resourceControl.value).toBe('resource-1');
+
+    // Le picker ne propose que les ressources « disponible » (+ option vide).
+    const options = Array.from(el(fixture).querySelectorAll('.document-editor__select option'));
+    expect(options.map((o) => o.textContent?.trim())).toEqual([
+      'Aucune ressource',
+      'schema-suites.pdf',
+      'illustration.png',
+    ]);
+  });
+
+  it('autosave document : frappe sur la légende → PATCH débouncé du content', async () => {
+    await configure('block-2');
+    coursesMock.updateBlockContent.mockResolvedValue({
+      ...COURSE_DETAIL_FIXTURE.blocks[1],
+      content: { legende: 'Nouvelle légende', affichage: 'inline' },
+    });
+    vi.useFakeTimers();
+    const fixture = createComponentSync();
+    fixture.detectChanges();
+
+    const editor = fixture.debugElement.query(By.directive(DocumentEditor))
+      .componentInstance as DocumentEditor;
+    editor.form.controls.legende.setValue('Nouvelle légende');
+    await vi.advanceTimersByTimeAsync(1499);
+    expect(coursesMock.updateBlockContent).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(coursesMock.updateBlockContent).toHaveBeenCalledExactlyOnceWith(
+      'course-1',
+      'block-2',
+      { legende: 'Nouvelle légende', affichage: 'inline' },
+    );
+  });
+
+  it('choix de ressource : PATCH immédiat, sans debounce ni content', async () => {
+    const fixture = await createComponent('block-2');
+    fixture.detectChanges();
+    const editor = fixture.debugElement.query(By.directive(DocumentEditor))
+      .componentInstance as DocumentEditor;
+
+    editor.resourceControl.setValue('resource-2');
+    await fixture.whenStable();
+
+    expect(coursesMock.updateBlockResource).toHaveBeenCalledExactlyOnceWith(
+      'course-1',
+      'block-2',
+      'resource-2',
+    );
+    expect(coursesMock.updateBlockContent).not.toHaveBeenCalled();
+
+    // L'option vide détache (`null` explicite).
+    editor.resourceControl.setValue('');
+    await fixture.whenStable();
+    expect(coursesMock.updateBlockResource).toHaveBeenLastCalledWith(
+      'course-1',
+      'block-2',
+      null,
+    );
+  });
+
+  it('échec du PATCH de ressource : message dédié et select rétabli', async () => {
+    coursesMock.updateBlockResource.mockRejectedValue(new Error('boom'));
+    const fixture = await createComponent('block-2');
+    fixture.detectChanges();
+    const editor = fixture.debugElement.query(By.directive(DocumentEditor))
+      .componentInstance as DocumentEditor;
+
+    editor.resourceControl.setValue('resource-2');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(el(fixture).textContent).toContain("ressource n'a pas pu être enregistré");
+    // Revert : le select retombe sur la ressource réellement pointée par le bloc.
+    expect(editor.resourceControl.value).toBe('resource-1');
   });
 
   it('formulaire méta : initialise titre/description depuis le bloc et désactive le bouton', async () => {

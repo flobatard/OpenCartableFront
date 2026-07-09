@@ -71,7 +71,7 @@
       "error": "Impossible de charger vos cours. Vérifiez votre connexion.",
       "retry": "Réessayer",
       "empty": "Compose ton premier cours",
-      "emptyHint": "Crée un cours puis ajoute-lui du texte, des exercices et des liens.",
+      "emptyHint": "Crée un cours puis ajoute-lui du texte, des exercices et des documents.",
       "blockCount": "{{ count }} bloc(s)",
       "updated": "Modifié le {{ date }}"
     },
@@ -98,10 +98,9 @@
       "types": {
         "texte": "Texte",
         "exercice": "Exercice",
-        "ressource": "Ressource",
-        "lien": "Lien"
+        "document": "Document",
+        "module": "Module interactif"
       },
-      "resourceSoon": "Bientôt disponible — l'ajout de fichiers arrive avec le stockage.",
       "edit": "Modifier",
       "editAria": "Modifier le bloc {{ position }}",
       "moveUp": "Monter le bloc {{ position }}",
@@ -165,6 +164,50 @@
         "remove": "Supprimer la question {{index}}",
         "removeLabel": "Supprimer",
         "removeConfirm": "Confirmer la suppression"
+      },
+      "document": {
+        "resourceLabel": "Ressource du cours",
+        "noResource": "Aucune ressource",
+        "resourcesEmpty": "Aucune ressource disponible — ajoute d'abord un fichier dans l'onglet Ressources du cours.",
+        "resourceError": "Le choix de la ressource n'a pas pu être enregistré. Réessaie.",
+        "legendeLabel": "Légende",
+        "legendePlaceholder": "Courte légende affichée avec le document (facultatif)",
+        "affichageLabel": "Affichage",
+        "affichageInline": "Intégré au cours",
+        "affichageTelechargement": "En téléchargement"
+      }
+    },
+    "tabs": {
+      "label": "Sections du cours",
+      "blocks": "Blocs",
+      "resources": "Ressources"
+    },
+    "resources": {
+      "loading": "Chargement des ressources…",
+      "loadError": "Impossible de charger les ressources. Vérifiez votre connexion.",
+      "retry": "Réessayer",
+      "empty": "Ajoute ta première ressource",
+      "emptyHint": "Les fichiers du cours (PDF, images, audio, vidéo) vivent ici, indépendamment des blocs.",
+      "upload": "Ajouter un fichier",
+      "uploading": "Envoi du fichier…",
+      "uploadError": "L'envoi n'a pas abouti. Réessayez.",
+      "rename": "Renommer",
+      "renameLabel": "Nouveau nom du fichier",
+      "renameSave": "Enregistrer",
+      "renameCancel": "Annuler",
+      "download": "Télécharger",
+      "delete": "Supprimer",
+      "confirmDelete": "Confirmer la suppression",
+      "mutationError": "L'opération n'a pas abouti. Réessayez.",
+      "statut": {
+        "en_attente": "En attente d'envoi",
+        "disponible": "Disponible"
+      },
+      "types": {
+        "document": "Document",
+        "image": "Image",
+        "audio": "Audio",
+        "video": "Vidéo"
       }
     }
   },

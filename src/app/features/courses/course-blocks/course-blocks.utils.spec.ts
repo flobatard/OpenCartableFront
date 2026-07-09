@@ -22,20 +22,15 @@ describe('blockExcerpt', () => {
       'Résoudre x²=4',
     );
     expect(
-      blockExcerpt(block('lien', { url: 'https://ex.org', titre: 'Une vidéo', fournisseur: null })),
-    ).toBe('Une vidéo');
+      blockExcerpt(block('document', { legende: 'Le schéma du chapitre', affichage: 'inline' })),
+    ).toBe('Le schéma du chapitre');
   });
 
-  it('replie un lien sans titre sur son URL', () => {
-    expect(blockExcerpt(block('lien', { url: 'https://ex.org', titre: '' }))).toBe(
-      'https://ex.org',
-    );
-  });
-
-  it('renvoie une chaîne vide pour un bloc sans contenu ou de type inconnu du helper', () => {
+  it('renvoie une chaîne vide pour un bloc sans contenu ou sans extrait (module)', () => {
     expect(blockExcerpt(block('texte', {}))).toBe('');
     expect(blockExcerpt(block('texte', { markdown: '   ' }))).toBe('');
-    expect(blockExcerpt(block('ressource', { legende: 'Une image' }))).toBe('');
+    expect(blockExcerpt(block('document', { legende: null, affichage: 'inline' }))).toBe('');
+    expect(blockExcerpt(block('module', {}))).toBe('');
   });
 
   it('aplatit les blancs et tronque à 80 caractères avec une ellipse', () => {

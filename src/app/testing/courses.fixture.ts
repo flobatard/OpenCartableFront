@@ -42,11 +42,11 @@ export const COURSE_BLOCKS_FIXTURE: CourseBlock[] = [
   {
     id: 'block-2',
     position: 1,
-    type: 'lien',
+    type: 'document',
     titre: null,
     description: null,
-    content: { url: 'https://exemple.org/video', titre: '', fournisseur: null },
-    resource_id: null,
+    content: { legende: 'Schéma récapitulatif', affichage: 'inline' },
+    resource_id: 'resource-1',
   },
   {
     id: 'block-3',

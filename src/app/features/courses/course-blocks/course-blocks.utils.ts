@@ -5,8 +5,9 @@ const EXCERPT_MAX = 80;
 
 /**
  * Extrait d'une ligne du contenu d'un bloc (aperçu de la liste, en attendant
- * les éditeurs dédiés) : texte → markdown, exercice → énoncé, lien → titre ou
- * URL. Chaîne vide si le bloc n'a pas encore de contenu (repli i18n côté vue).
+ * les éditeurs dédiés) : texte → markdown, exercice → énoncé, document →
+ * légende. Chaîne vide si le bloc n'a pas encore de contenu — dont `module`,
+ * sans contenu avant le J4 (repli i18n côté vue).
  */
 export function blockExcerpt(block: CourseBlock): string {
   const text = rawExcerpt(block).replace(/\s+/g, ' ').trim();
@@ -19,8 +20,8 @@ function rawExcerpt(block: CourseBlock): string {
       return asString(block.content['markdown']);
     case 'exercice':
       return asString(block.content['enonce']);
-    case 'lien':
-      return asString(block.content['titre']) || asString(block.content['url']);
+    case 'document':
+      return asString(block.content['legende']);
     default:
       return '';
   }

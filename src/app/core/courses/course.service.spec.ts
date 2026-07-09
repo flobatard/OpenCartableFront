@@ -125,17 +125,17 @@ describe('CourseService', () => {
     const created: CourseBlock = {
       id: 'block-3',
       position: 2,
-      type: 'lien',
+      type: 'document',
       titre: meta.titre,
       description: meta.description,
-      content: {},
+      content: { legende: null, affichage: 'inline' },
       resource_id: null,
     };
 
-    const add = service.addBlock(COURSE_DETAIL_FIXTURE.id, 'lien', meta);
+    const add = service.addBlock(COURSE_DETAIL_FIXTURE.id, 'document', meta);
     const req = httpMock.expectOne(`${url}/${COURSE_DETAIL_FIXTURE.id}/blocks`);
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ type: 'lien', ...meta });
+    expect(req.request.body).toEqual({ type: 'document', ...meta });
     req.flush(created);
     await add;
 
@@ -256,6 +256,30 @@ describe('CourseService', () => {
     expect(await update).toEqual(updated);
     expect(service.detail()?.blocks[0]).toEqual(updated);
     expect(service.detail()?.blocks[1]).toEqual(COURSE_BLOCKS_FIXTURE[1]); // intact
+  });
+
+  it('updateBlockResource PATCH resource_id (uuid ou null) et remplace le bloc', async () => {
+    loadDetail();
+    const updated: CourseBlock = { ...COURSE_BLOCKS_FIXTURE[1], resource_id: 'resource-9' };
+
+    const attach = service.updateBlockResource(COURSE_DETAIL_FIXTURE.id, 'block-2', 'resource-9');
+    const req = httpMock.expectOne(`${url}/${COURSE_DETAIL_FIXTURE.id}/blocks/block-2`);
+    expect(req.request.method).toBe('PATCH');
+    // Corps dédié : uniquement resource_id (jamais content ni méta).
+    expect(req.request.body).toEqual({ resource_id: 'resource-9' });
+    req.flush(updated);
+
+    expect(await attach).toEqual(updated);
+    expect(service.detail()?.blocks[1]).toEqual(updated);
+
+    const detach = service.updateBlockResource(COURSE_DETAIL_FIXTURE.id, 'block-2', null);
+    const reqDetach = httpMock.expectOne(`${url}/${COURSE_DETAIL_FIXTURE.id}/blocks/block-2`);
+    // `null` explicite = détacher la ressource (sémantique model_fields_set du back).
+    expect(reqDetach.request.body).toEqual({ resource_id: null });
+    reqDetach.flush({ ...updated, resource_id: null });
+    await detach;
+
+    expect(service.detail()?.blocks[1].resource_id).toBeNull();
   });
 
   it('une mutation d’un autre cours ne touche pas le détail chargé', async () => {

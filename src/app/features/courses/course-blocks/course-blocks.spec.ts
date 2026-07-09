@@ -6,9 +6,11 @@ import { CourseBlocks } from './course-blocks';
 import { CourseBlock, CourseDetail } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
 import { EducationLevelService } from '../../../core/education-levels/education-level.service';
+import { ResourceService } from '../../../core/resources/resource.service';
 import { SubjectService } from '../../../core/subjects/subject.service';
 import { COURSE_DETAIL_FIXTURE } from '../../../testing/courses.fixture';
 import { EDUCATION_LEVELS_FIXTURE } from '../../../testing/education-levels.fixture';
+import { COURSE_RESOURCES_FIXTURE } from '../../../testing/resources.fixture';
 import { SUBJECTS_FIXTURE } from '../../../testing/subjects.fixture';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
 
@@ -40,8 +42,19 @@ describe('CourseBlocks', () => {
     load: vi.fn(),
     reload: vi.fn(),
   };
+  const resourcesMock = {
+    list: signal(COURSE_RESOURCES_FIXTURE),
+    listLoading: signal(false),
+    listError: signal(false),
+    uploadState: signal({ phase: 'idle' as const, progress: 0 }),
+    loadList: vi.fn(),
+    upload: vi.fn(),
+    rename: vi.fn(),
+    deleteResource: vi.fn(),
+    getDownloadUrl: vi.fn(),
+  };
 
-  async function createComponent(): Promise<ComponentFixture<CourseBlocks>> {
+  async function createComponent(tab?: string): Promise<ComponentFixture<CourseBlocks>> {
     await TestBed.configureTestingModule({
       imports: [CourseBlocks, provideTranslocoTesting()],
       providers: [
@@ -49,9 +62,15 @@ describe('CourseBlocks', () => {
         { provide: CourseService, useValue: coursesMock },
         { provide: SubjectService, useValue: subjectsMock },
         { provide: EducationLevelService, useValue: levelsMock },
+        { provide: ResourceService, useValue: resourcesMock },
         {
           provide: ActivatedRoute,
-          useValue: { snapshot: { paramMap: convertToParamMap({ id: 'course-1' }) } },
+          useValue: {
+            snapshot: {
+              paramMap: convertToParamMap({ id: 'course-1' }),
+              queryParamMap: convertToParamMap(tab ? { tab } : {}),
+            },
+          },
         },
       ],
     }).compileComponents();
@@ -108,7 +127,7 @@ describe('CourseBlocks', () => {
       (r) => r.querySelector('.course-blocks__desc')?.textContent?.trim() ?? null,
     );
 
-    expect(types).toEqual(['Texte', 'Lien', 'Exercice']);
+    expect(types).toEqual(['Texte', 'Document', 'Exercice']);
     // block-1 a un titre + description ; block-2 (sans titre) replie sur « Bloc sans titre ».
     expect(titles).toEqual(['Le concept de suite', 'Bloc sans titre', 'Exercices d’application']);
     expect(descs).toEqual(['Définitions et premiers exemples.', null, null]);
@@ -116,13 +135,13 @@ describe('CourseBlocks', () => {
 
   it('propose « Modifier » sur tous les blocs (tous types éditables)', async () => {
     const fixture = await createComponent();
-    const [texteRow, lienRow] = rows(fixture);
+    const [texteRow, documentRow] = rows(fixture);
 
     expect(
       texteRow.querySelector<HTMLAnchorElement>('.course-blocks__edit')?.getAttribute('href'),
     ).toBe('/fr/courses/course-1/blocks/block-1');
     expect(
-      lienRow.querySelector<HTMLAnchorElement>('.course-blocks__edit')?.getAttribute('href'),
+      documentRow.querySelector<HTMLAnchorElement>('.course-blocks__edit')?.getAttribute('href'),
     ).toBe('/fr/courses/course-1/blocks/block-2');
   });
 
@@ -267,7 +286,7 @@ describe('CourseBlocks', () => {
     expect(coursesMock.deleteCourse).not.toHaveBeenCalled();
   });
 
-  it('les boutons de type ouvrent la modale ; « ressource » est désactivé avec sa mention', async () => {
+  it('propose les quatre types de bloc, tous actifs, et ouvre la modale', async () => {
     const fixture = await createComponent();
     const addButtons = Array.from(
       el(fixture).querySelectorAll<HTMLButtonElement>('.course-blocks__add-buttons .btn'),
@@ -276,13 +295,12 @@ describe('CourseBlocks', () => {
     expect(addButtons.map((b) => b.textContent?.trim())).toEqual([
       'Texte',
       'Exercice',
-      'Lien',
-      'Ressource',
+      'Document',
+      'Module interactif',
     ]);
-    expect(addButtons[3].disabled).toBe(true);
-    expect(el(fixture).querySelector('.course-blocks__add-hint')?.textContent).toContain(
-      'Bientôt disponible',
-    );
+    expect(addButtons.every((b) => !b.disabled)).toBe(true);
+    // Plus de bouton « Ressource » désactivé ni de mention « bientôt ».
+    expect(el(fixture).querySelector('.course-blocks__add-hint')).toBeNull();
 
     const showModal = vi.spyOn(el(fixture).querySelector('dialog')!, 'showModal');
     addButtons[0].click(); // Texte → ouvre la modale, ne crée pas directement
@@ -295,7 +313,7 @@ describe('CourseBlocks', () => {
     coursesMock.addBlock.mockResolvedValue({ ...COURSE_DETAIL_FIXTURE.blocks[0], id: 'block-9' });
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
-    // Ouvre la modale pour « Lien ».
+    // Ouvre la modale pour « Document ».
     const addButtons = Array.from(
       el(fixture).querySelectorAll<HTMLButtonElement>('.course-blocks__add-buttons .btn'),
     );
@@ -306,16 +324,60 @@ describe('CourseBlocks', () => {
     const titre = el(fixture).querySelector<HTMLInputElement>(
       '.block-dialog [formControlName="titre"]',
     )!;
-    titre.value = 'Vidéo';
+    titre.value = 'Le schéma';
     titre.dispatchEvent(new Event('input'));
     el(fixture).querySelector<HTMLButtonElement>('.block-dialog button[type="submit"]')!.click();
     await fixture.whenStable();
 
-    expect(coursesMock.addBlock).toHaveBeenCalledWith('course-1', 'lien', {
-      titre: 'Vidéo',
+    expect(coursesMock.addBlock).toHaveBeenCalledWith('course-1', 'document', {
+      titre: 'Le schéma',
       description: null,
     });
     expect(navigate).toHaveBeenCalledWith(['/', 'fr', 'courses', 'course-1', 'blocks', 'block-9']);
+  });
+
+  it('affiche l’onglet Blocs par défaut et bascule vers Ressources', async () => {
+    const fixture = await createComponent();
+    const tabs = Array.from(el(fixture).querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+    expect(tabs.map((t) => t.textContent?.trim())).toEqual(['Blocs', 'Ressources']);
+    expect(tabs[0].getAttribute('aria-selected')).toBe('true');
+    expect(el(fixture).querySelector('app-course-resources')).toBeNull();
+
+    tabs[1].click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(tabs[1].getAttribute('aria-selected')).toBe('true');
+    expect(el(fixture).querySelector('app-course-resources')).toBeTruthy();
+    expect(resourcesMock.loadList).toHaveBeenCalledWith('course-1');
+    // La liste des blocs a laissé place au panneau ressources.
+    expect(el(fixture).querySelector('.course-blocks__list')).toBeNull();
+  });
+
+  it('?tab=resources ouvre directement l’onglet Ressources (deep-link)', async () => {
+    const fixture = await createComponent('resources');
+    expect(el(fixture).querySelector('app-course-resources')).toBeTruthy();
+    expect(
+      el(fixture)
+        .querySelector<HTMLButtonElement>('[role="tab"]:nth-of-type(2)')
+        ?.getAttribute('aria-selected'),
+    ).toBe('true');
+  });
+
+  it('une suppression de ressource recharge le détail du cours (blocs document supprimés en cascade)', async () => {
+    const fixture = await createComponent('resources');
+    coursesMock.loadDetail.mockClear();
+
+    const resources = el(fixture).querySelector('app-course-resources')!;
+    // L'output (deleted) remonte du composant enfant après un DELETE réussi.
+    resourcesMock.deleteResource.mockResolvedValue(undefined);
+    const deleteBtn = resources.querySelectorAll<HTMLButtonElement>('.course-resources__delete');
+    deleteBtn[0].click(); // arme
+    fixture.detectChanges();
+    resources.querySelectorAll<HTMLButtonElement>('.course-resources__delete')[0].click();
+    await fixture.whenStable();
+
+    expect(coursesMock.loadDetail).toHaveBeenCalledWith('course-1');
   });
 
   it('sans bloc, invite à ajouter le premier', async () => {

@@ -85,6 +85,14 @@
   color: var(--slate-100);
 }
 
+/* Onglets Blocs | Ressources : styles portés par les utilitaires globaux
+   .tabs/.tab/.tab--active (_components.scss), le composant n'ajoute que
+   l'espacement. */
+
+.course-blocks__tabbar {
+  margin-bottom: 20px;
+}
+
 /* Liste des blocs ------------------------------------------------------------ */
 
 .course-blocks__list {
@@ -206,12 +214,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.course-blocks__add-hint {
-  margin: 8px 0 0;
-  color: var(--text-secondary);
-  font-size: 13px;
 }
 
 /* États ------------------------------------------------------------------------ */

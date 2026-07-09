@@ -52,6 +52,58 @@
         }
       </header>
 
+      <div
+        class="course-blocks__tabbar tabs"
+        role="tablist"
+        [attr.aria-label]="'courses.tabs.label' | transloco"
+        (keydown)="onTablistKeydown($event)"
+      >
+        <button
+          #blocksTab
+          type="button"
+          class="tab"
+          role="tab"
+          [id]="uid + '-tab-blocks'"
+          [class.tab--active]="activeTab() === 'blocks'"
+          [attr.aria-selected]="activeTab() === 'blocks'"
+          [attr.aria-controls]="uid + '-panel-blocks'"
+          [tabindex]="activeTab() === 'blocks' ? 0 : -1"
+          (click)="selectTab('blocks')"
+        >
+          {{ 'courses.tabs.blocks' | transloco }}
+        </button>
+        <button
+          #resourcesTab
+          type="button"
+          class="tab"
+          role="tab"
+          [id]="uid + '-tab-resources'"
+          [class.tab--active]="activeTab() === 'resources'"
+          [attr.aria-selected]="activeTab() === 'resources'"
+          [attr.aria-controls]="uid + '-panel-resources'"
+          [tabindex]="activeTab() === 'resources' ? 0 : -1"
+          (click)="selectTab('resources')"
+        >
+          {{ 'courses.tabs.resources' | transloco }}
+        </button>
+      </div>
+
+      @if (activeTab() === 'resources') {
+        <div
+          class="course-blocks__panel"
+          role="tabpanel"
+          [id]="uid + '-panel-resources'"
+          [attr.aria-labelledby]="uid + '-tab-resources'"
+        >
+          <app-course-resources [courseId]="courseId" (deleted)="onResourceDeleted()" />
+        </div>
+      } @else {
+        <div
+          class="course-blocks__panel"
+          role="tabpanel"
+          [id]="uid + '-panel-blocks'"
+          [attr.aria-labelledby]="uid + '-tab-blocks'"
+        >
       @if (!course.blocks.length) {
         <div class="course-blocks__empty">
           <p class="course-blocks__empty-title">{{ 'courses.blocks.empty' | transloco }}</p>
@@ -175,12 +227,10 @@
               {{ 'courses.blocks.types.' + type | transloco }}
             </button>
           }
-          <button type="button" class="btn btn--secondary" disabled>
-            {{ 'courses.blocks.types.ressource' | transloco }}
-          </button>
         </div>
-        <p class="course-blocks__add-hint">{{ 'courses.blocks.resourceSoon' | transloco }}</p>
       </section>
+        </div>
+      }
     }
   }
 

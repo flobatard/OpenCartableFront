@@ -20,7 +20,15 @@ import {
   patchBlockMetaForm,
   payloadFromBlockMetaForm,
 } from '../../../core/courses/block-meta-form';
-import { BlockMetaPayload, ExerciseContentPayload } from '../../../core/courses/course.model';
+import {
+  BlockMetaPayload,
+  DocumentContentPayload,
+  ExerciseContentPayload,
+} from '../../../core/courses/course.model';
+import {
+  payloadFromDocumentContent,
+  payloadFromDocumentForm,
+} from '../../../core/courses/document-form';
 import {
   applyGeneratedIds,
   payloadFromBlockContent,
@@ -28,8 +36,10 @@ import {
 } from '../../../core/courses/exercise-form';
 import { CourseService } from '../../../core/courses/course.service';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { ResourceService } from '../../../core/resources/resource.service';
 import { MarkdownField } from '../../../shared/markdown-field/markdown-field';
 import { CourseChat } from '../course-chat/course-chat';
+import { DocumentEditor } from '../document-editor/document-editor';
 import { ExerciseEditor } from '../exercise-editor/exercise-editor';
 
 const AUTOSAVE_DELAY_MS = 1500;
@@ -52,7 +62,11 @@ type MetaSaveState = 'idle' | 'saving' | 'saved' | 'error';
  * jamais à l'émission — et les ids générés par le back sont réécrits après
  * chaque save sur un snapshot des groupes capturé à l'envoi (sinon l'autosave
  * suivant renverrait `id: null` et casserait la stabilité des ids).
- * L'éditeur de contenu des blocs lien/ressource viendra plus tard.
+ * Les blocs document ont une section simple (pas d'espace redimensionnable ni
+ * de chat) : `app-document-editor` — légende/affichage passent par le même
+ * pipeline d'autosave, mais le choix de la ressource est un PATCH immédiat
+ * dédié (`updateBlockResource`), avec revert du select sur échec. Le bloc
+ * `module` n'a pas d'éditeur avant le J4 (notice `unsupported`).
  */
 @Component({
   selector: 'app-block-editor',
@@ -62,6 +76,7 @@ type MetaSaveState = 'idle' | 'saving' | 'saved' | 'error';
     TranslocoPipe,
     MarkdownField,
     CourseChat,
+    DocumentEditor,
     ExerciseEditor,
   ],
   templateUrl: './block-editor.html',
@@ -98,10 +113,26 @@ export class BlockEditor implements OnInit, OnDestroy {
       ici pour le write-back des ids et le flush à la destruction. */
   protected readonly exerciseEditor = viewChild(ExerciseEditor);
 
+  /** Éditeur de document monté (blocs document) — `form` lu à l'envoi du PATCH,
+      `resetResource` appelé sur échec du PATCH de ressource. */
+  protected readonly documentEditor = viewChild(DocumentEditor);
+
   /** Frappes de l'éditeur d'exercice, fusionnées dans le pipeline d'autosave. */
   readonly #exerciseDrafts = new Subject<ExerciseContentPayload>();
 
+  /** Frappes de l'éditeur de document (légende/affichage), même pipeline. */
+  readonly #documentDrafts = new Subject<DocumentContentPayload>();
+
   protected readonly saveState = signal<SaveState>('idle');
+
+  readonly #resources = inject(ResourceService);
+  /** Ressources `disponible` du cours, proposées au picker du bloc document. */
+  protected readonly availableResources = computed(() =>
+    this.#resources.list().filter((r) => r.statut === 'disponible'),
+  );
+  /** Échec du PATCH de ressource (canal distinct de l'autosave du contenu). */
+  protected readonly resourceSaveError = signal(false);
+  #resourcesRequested = false;
 
   /**
    * Titre/description du bloc (tous types) — enregistrement explicite (bouton),
@@ -161,10 +192,22 @@ export class BlockEditor implements OnInit, OnDestroy {
       } else if (block.type === 'exercice') {
         this.#initialized = true;
         this.#lastSaved = JSON.stringify(payloadFromBlockContent(block.content));
+      } else if (block.type === 'document') {
+        this.#initialized = true;
+        this.#lastSaved = JSON.stringify(payloadFromDocumentContent(block.content));
       }
     });
 
-    merge(this.content.valueChanges, this.#exerciseDrafts)
+    // Bibliothèque du cours chargée UNE FOIS quand le bloc édité est un
+    // document (le picker n'existe pas pour les autres types).
+    effect(() => {
+      if (this.block()?.type === 'document' && !this.#resourcesRequested) {
+        this.#resourcesRequested = true;
+        this.#resources.loadList(this.courseId);
+      }
+    });
+
+    merge(this.content.valueChanges, this.#exerciseDrafts, this.#documentDrafts)
       .pipe(
         tap(() => {
           const payload = this.#currentPayload();
@@ -226,6 +269,30 @@ export class BlockEditor implements OnInit, OnDestroy {
       le pipeline d'autosave (le payload transmis ne sert que de déclencheur). */
   protected onExerciseDraft(payload: ExerciseContentPayload): void {
     this.#exerciseDrafts.next(payload);
+  }
+
+  /** Frappes légende/affichage du bloc document — même pipeline d'autosave. */
+  protected onDocumentDraft(payload: DocumentContentPayload): void {
+    this.#documentDrafts.next(payload);
+  }
+
+  /**
+   * Choix (ou retrait) de la ressource d'un bloc document : PATCH immédiat —
+   * une sélection est discrète, pas une frappe, elle ne passe pas par le
+   * debounce. Sur échec, le select est rétabli à la valeur du bloc.
+   */
+  protected async onResourcePick(resourceId: string | null): Promise<void> {
+    const previous = this.block()?.resource_id ?? null;
+    if (resourceId === previous) {
+      return;
+    }
+    this.resourceSaveError.set(false);
+    try {
+      await this.#courses.updateBlockResource(this.courseId, this.blockId, resourceId);
+    } catch {
+      this.resourceSaveError.set(true);
+      this.documentEditor()?.resetResource(previous);
+    }
   }
 
   protected reload(): void {
@@ -326,6 +393,10 @@ export class BlockEditor implements OnInit, OnDestroy {
     if (block?.type === 'exercice') {
       const editor = this.exerciseEditor();
       return editor ? payloadFromExerciseForm(editor.form) : null;
+    }
+    if (block?.type === 'document') {
+      const editor = this.documentEditor();
+      return editor ? payloadFromDocumentForm(editor.form) : null;
     }
     return null;
   }

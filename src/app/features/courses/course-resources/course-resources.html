@@ -1,0 +1,123 @@
+<div class="course-resources">
+  <div class="course-resources__toolbar">
+    <button
+      type="button"
+      class="btn btn--secondary"
+      [disabled]="uploadState().phase !== 'idle' && uploadState().phase !== 'error'"
+      (click)="openFilePicker()"
+    >
+      {{ 'courses.resources.upload' | transloco }}
+    </button>
+    <input type="file" hidden #fileInput (change)="onFileSelected($event)" />
+
+    @if (uploadState().phase === 'presigning' || uploadState().phase === 'uploading'
+      || uploadState().phase === 'confirming') {
+      <div class="course-resources__progress" role="status">
+        <span>{{ 'courses.resources.uploading' | transloco }}</span>
+        <progress max="100" [value]="uploadState().progress"></progress>
+        <span>{{ uploadState().progress }}&nbsp;%</span>
+      </div>
+    } @else if (uploadState().phase === 'error') {
+      <p class="course-resources__upload-error" role="alert">
+        {{ 'courses.resources.uploadError' | transloco }}
+      </p>
+    }
+  </div>
+
+  @if (loading()) {
+    <p class="course-resources__status" role="status">
+      {{ 'courses.resources.loading' | transloco }}
+    </p>
+  } @else if (loadError()) {
+    <div class="course-resources__error" role="alert">
+      <p>{{ 'courses.resources.loadError' | transloco }}</p>
+      <button type="button" class="btn btn--primary" (click)="reload()">
+        {{ 'courses.resources.retry' | transloco }}
+      </button>
+    </div>
+  } @else if (!list().length) {
+    <div class="course-resources__empty">
+      <p class="course-resources__empty-title">{{ 'courses.resources.empty' | transloco }}</p>
+      <p class="course-resources__empty-hint">{{ 'courses.resources.emptyHint' | transloco }}</p>
+    </div>
+  } @else {
+    <ul class="course-resources__list">
+      @for (resource of list(); track resource.id) {
+        <li
+          class="course-resources__row"
+          [class.course-resources__row--pending]="resource.statut === 'en_attente'"
+        >
+          <span class="course-resources__type">
+            {{ 'courses.resources.types.' + resource.type | transloco }}
+          </span>
+          <span class="course-resources__body">
+            @if (renamingId() === resource.id) {
+              <form class="course-resources__rename" (submit)="$event.preventDefault(); saveRename(resource)">
+                <input
+                  type="text"
+                  class="course-resources__rename-input"
+                  [formControl]="renameControl"
+                  [attr.aria-label]="'courses.resources.renameLabel' | transloco"
+                  (keydown.escape)="cancelRename()"
+                />
+                <button type="submit" class="btn btn--primary" [disabled]="mutating()">
+                  {{ 'courses.resources.renameSave' | transloco }}
+                </button>
+                <button type="button" class="btn btn--ghost" (click)="cancelRename()">
+                  {{ 'courses.resources.renameCancel' | transloco }}
+                </button>
+              </form>
+            } @else {
+              <span class="course-resources__name">{{ resource.nom_original }}</span>
+              <span class="course-resources__meta">
+                {{ formatSize(resource.taille) }} · {{ addedOn(resource.created_at) }}
+                @if (resource.statut === 'en_attente') {
+                  · {{ 'courses.resources.statut.en_attente' | transloco }}
+                }
+              </span>
+            }
+          </span>
+          <div class="course-resources__actions">
+            <button
+              type="button"
+              class="btn btn--ghost"
+              [disabled]="mutating() || renamingId() === resource.id"
+              (click)="startRename(resource)"
+            >
+              {{ 'courses.resources.rename' | transloco }}
+            </button>
+            <button
+              type="button"
+              class="btn btn--ghost"
+              [disabled]="mutating() || resource.statut === 'en_attente'"
+              (click)="download(resource)"
+            >
+              {{ 'courses.resources.download' | transloco }}
+            </button>
+            <button
+              type="button"
+              class="btn btn--ghost course-resources__delete"
+              [class.course-resources__delete--armed]="pendingDelete() === resource.id"
+              [disabled]="mutating()"
+              (click)="remove(resource)"
+              (blur)="disarmDelete()"
+            >
+              {{
+                (pendingDelete() === resource.id
+                  ? 'courses.resources.confirmDelete'
+                  : 'courses.resources.delete'
+                ) | transloco
+              }}
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (mutationError()) {
+    <p class="course-resources__mutation-error" role="alert">
+      {{ 'courses.resources.mutationError' | transloco }}
+    </p>
+  }
+</div>

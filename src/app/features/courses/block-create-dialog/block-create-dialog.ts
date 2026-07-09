@@ -5,7 +5,7 @@ import {
   buildBlockMetaForm,
   payloadFromBlockMetaForm,
 } from '../../../core/courses/block-meta-form';
-import { BlockMetaPayload, CreatableBlockType } from '../../../core/courses/course.model';
+import { BlockMetaPayload, BlockType } from '../../../core/courses/course.model';
 
 /**
  * Modale de création d'un bloc : saisie facultative du titre et de la description
@@ -25,13 +25,13 @@ export class BlockCreateDialog {
   protected readonly dialog = viewChild<ElementRef<HTMLDialogElement>>('dialogEl');
 
   /** Type du bloc en cours de création (affiché dans le titre de la modale). */
-  protected readonly type = signal<CreatableBlockType | null>(null);
+  protected readonly type = signal<BlockType | null>(null);
 
   protected readonly form = buildBlockMetaForm();
 
-  readonly create = output<{ type: CreatableBlockType; meta: BlockMetaPayload }>();
+  readonly create = output<{ type: BlockType; meta: BlockMetaPayload }>();
 
-  open(type: CreatableBlockType): void {
+  open(type: BlockType): void {
     this.type.set(type);
     this.form.reset({ titre: '', description: '' });
     this.dialog()?.nativeElement.showModal();

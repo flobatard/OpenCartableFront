@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BlockCreateDialog } from './block-create-dialog';
-import { CreatableBlockType } from '../../../core/courses/course.model';
+import { BlockType } from '../../../core/courses/course.model';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
 
 /**
@@ -39,13 +39,13 @@ describe('BlockCreateDialog', () => {
     const showModal = (dialog(fixture).showModal = vi.fn());
 
     type(field(fixture, 'titre'), 'Ancienne saisie');
-    fixture.componentInstance.open('lien');
+    fixture.componentInstance.open('document');
     fixture.detectChanges();
     await fixture.whenStable();
 
     expect(showModal).toHaveBeenCalledOnce();
     expect(field(fixture, 'titre').value).toBe(''); // réinitialisé à l'ouverture
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Lien'); // titre = type
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Document'); // titre = type
   });
 
   it('submit émet create avec le type et le méta trimé puis ferme', async () => {
@@ -58,7 +58,7 @@ describe('BlockCreateDialog', () => {
     type(field(fixture, 'titre'), '  Mon titre  ');
     type(field(fixture, 'description'), 'Ma description');
 
-    let emitted: { type: CreatableBlockType; meta: unknown } | undefined;
+    let emitted: { type: BlockType; meta: unknown } | undefined;
     fixture.componentInstance.create.subscribe((e) => (emitted = e));
 
     (fixture.nativeElement as HTMLElement)
@@ -80,7 +80,7 @@ describe('BlockCreateDialog', () => {
     fixture.componentInstance.open('texte');
     fixture.detectChanges();
 
-    let emitted: { type: CreatableBlockType; meta: unknown } | undefined;
+    let emitted: { type: BlockType; meta: unknown } | undefined;
     fixture.componentInstance.create.subscribe((e) => (emitted = e));
 
     (fixture.nativeElement as HTMLElement)

@@ -4,14 +4,12 @@
  * (snake_case, français métier).
  */
 
-/** Types de blocs du modèle (contrainte CHECK en base). */
-export type BlockType = 'texte' | 'exercice' | 'ressource' | 'lien';
-
 /**
- * Types créables depuis l'UI : « ressource » attend l'upload S3 — le back le
- * refuse aussi (un bloc ressource exige un `resource_id`).
+ * Types de blocs du modèle (contrainte CHECK en base). Tous créables depuis
+ * l'UI : `document` naît vide (pont vers une ressource de la bibliothèque,
+ * choisie ensuite dans l'éditeur), `module` est un placeholder J4.
  */
-export type CreatableBlockType = Exclude<BlockType, 'ressource'>;
+export type BlockType = 'texte' | 'exercice' | 'document' | 'module';
 
 export interface CourseBlock {
   id: string;
@@ -24,9 +22,23 @@ export interface CourseBlock {
   description: string | null;
   /** Contenu JSONB, contrat applicatif par type — rempli par les futurs éditeurs. */
   content: Record<string, unknown>;
-  /** Renseigné uniquement pour les blocs `ressource`. */
+  /**
+   * Blocs `document` uniquement : ressource du cours pointée, `null` = bloc
+   * vide à la création. Supprimer la ressource supprime le bloc (FK CASCADE).
+   */
   resource_id: string | null;
 }
+
+/**
+ * `content` d'un PATCH de bloc document : éditorial d'affichage seulement —
+ * la ressource pointée passe par `updateBlockResource` (colonne, pas content).
+ * Alias `type` (pas `interface`) : assignable au `Record<string, unknown>`
+ * d'`updateBlockContent`.
+ */
+export type DocumentContentPayload = {
+  legende: string | null;
+  affichage: 'inline' | 'telechargement';
+};
 
 /**
  * Question d'un bloc exercice telle qu'échangée avec le back.
