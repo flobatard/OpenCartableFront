@@ -148,6 +148,8 @@
         "sujetLabel": "Sujet",
         "sujetHint": "Énoncé général de l'exercice, visible par les élèves.",
         "questionsTitle": "Questions",
+        "apercuLabel": "Aperçu complet",
+        "apercuEmpty": "Rien à prévisualiser pour le moment.",
         "question": "Question {{index}}",
         "empty": "Aucune question pour l'instant.",
         "add": "Ajouter une question",

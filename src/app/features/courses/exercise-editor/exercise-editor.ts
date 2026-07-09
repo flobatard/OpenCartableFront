@@ -1,4 +1,16 @@
-import { Component, effect, ElementRef, input, output, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  output,
+  PLATFORM_ID,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   CdkDrag,
@@ -9,12 +21,14 @@ import {
   CdkDropList,
 } from '@angular/cdk/drag-drop';
 import { ReactiveFormsModule } from '@angular/forms';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ExerciseContentPayload } from '../../../core/courses/course.model';
 import {
   addQuestion,
   buildExerciseForm,
   ExerciseQuestionGroup,
+  fullExerciseMarkdown,
   moveQuestion,
   moveQuestionTo,
   patchExerciseFormFromContent,
@@ -23,24 +37,37 @@ import {
   QUESTIONS_MAX,
   removeQuestion,
 } from '../../../core/courses/exercise-form';
+import {
+  hasCourseDiagrams,
+  renderCourseDiagrams,
+  renderCourseMarkdown,
+} from '../../../core/markdown/course-markdown';
+import { ThemeService } from '../../../core/theme/theme.service';
 import { MarkdownField } from '../../../shared/markdown-field/markdown-field';
 
 /** Suffixe d'ids uniques par instance (tablist ARIA — motif `markdown-field`).
     Compteur de module, jamais Date/Random. */
 let sequence = 0;
 
-type ExerciseTab = 'sujet' | 'questions';
+type ExerciseTab = 'sujet' | 'questions' | 'apercu';
+
+/** Ordre des onglets pour la navigation clavier ←/→ (APG tabs). */
+const TAB_ORDER: readonly ExerciseTab[] = ['sujet', 'questions', 'apercu'];
 
 /**
- * Éditeur du contenu d'un bloc exercice, en deux onglets (tablist APG, motif
- * `markdown-field`) : « Sujet » (markdown) et « Questions » (liste ordonnée —
- * énoncé markdown, réponse attendue en texte simple). Les panneaux sont
- * masqués par `[hidden]`, jamais `@if` : Monaco vit dans les deux, un `@if`
- * le rechargerait à chaque bascule. Composant présentationnel sans HTTP — le
- * parent (block-editor) écoute `contentChange` pour son autosave et réécrit
- * les ids générés par le back directement dans `form` (cf.
- * `applyGeneratedIds`). La suppression d'une question est en deux temps,
- * désarmée au blur (patron `course-blocks`).
+ * Éditeur du contenu d'un bloc exercice, en trois onglets (tablist APG, motif
+ * `markdown-field`) : « Sujet » (markdown), « Questions » (liste ordonnée —
+ * énoncé markdown, réponse attendue en texte simple) et « Aperçu complet »
+ * (rendu concaténé sujet + énoncés). Les panneaux Sujet/Questions sont masqués
+ * par `[hidden]`, jamais `@if` : Monaco vit dans les deux, un `@if` le
+ * rechargerait à chaque bascule ; le panneau Aperçu, sans Monaco, est en `@if`
+ * (patron `markdown-field`). Composant présentationnel sans HTTP — le parent
+ * (block-editor) écoute `contentChange` pour son autosave et réécrit les ids
+ * générés par le back directement dans `form` (cf. `applyGeneratedIds`). La
+ * suppression d'une question est en deux temps, désarmée au blur (patron
+ * `course-blocks`). L'aperçu réutilise le pipeline de `markdown-field` (rendu
+ * synchrone markdown+KaTeX puis passe Mermaid async, gardé sur l'onglet et le
+ * navigateur — DOMPurify/Mermaid touchent `window`).
  */
 @Component({
   selector: 'app-exercise-editor',
@@ -58,6 +85,11 @@ type ExerciseTab = 'sujet' | 'questions';
   styleUrl: './exercise-editor.scss',
 })
 export class ExerciseEditor {
+  readonly #sanitizer = inject(DomSanitizer);
+  readonly #theme = inject(ThemeService);
+  readonly #transloco = inject(TranslocoService);
+  readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
   /** `content` JSONB du bloc chargé — lu UNE fois (init-once, jamais re-patché :
       la référence change après chaque patch du détail post-save, la frappe
       en cours ne doit pas être écrasée). */
@@ -77,6 +109,21 @@ export class ExerciseEditor {
   protected readonly activeTab = signal<ExerciseTab>('sujet');
   protected readonly sujetTabRef = viewChild<ElementRef<HTMLButtonElement>>('sujetTab');
   protected readonly questionsTabRef = viewChild<ElementRef<HTMLButtonElement>>('questionsTab');
+  protected readonly apercuTabRef = viewChild<ElementRef<HTMLButtonElement>>('apercuTab');
+
+  /** Markdown concaténé (sujet + énoncés) alimentant l'aperçu complet ; dérivé
+      du formulaire (frappe en cours), pas du `content` initial du bloc. */
+  readonly #fullMarkdown = signal('');
+  protected readonly hasContent = computed(() => this.#fullMarkdown().length > 0);
+
+  /**
+   * HTML de l'aperçu complet (markdown + KaTeX, puis diagrammes Mermaid). La
+   * sanitisation vit dans course-markdown (DOMPurify) ; le bypass évite
+   * uniquement le second nettoyage d'Angular (cf. `markdown-field`). Signal (et
+   * non computed) car la passe Mermaid est asynchrone.
+   */
+  readonly #previewHtml = signal<SafeHtml>(this.#sanitizer.bypassSecurityTrustHtml(''));
+  protected readonly previewHtml = this.#previewHtml.asReadonly();
 
   /** Groupes rendus par le template : la structure de la FormArray n'est pas
       un signal, ce miroir est resynchronisé à chaque mutation structurelle. */
@@ -103,12 +150,39 @@ export class ExerciseEditor {
       this.#initialized = true;
       patchExerciseFormFromContent(this.form, content);
       this.#syncGroups();
+      this.#fullMarkdown.set(fullExerciseMarkdown(this.form));
       // Première question dépliée au chargement (confort d'édition immédiat).
       this.openGroup.set(this.form.controls.questions.controls[0] ?? null);
     });
 
     this.form.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
       this.contentChange.emit(payloadFromExerciseForm(this.form));
+      this.#fullMarkdown.set(fullExerciseMarkdown(this.form));
+    });
+
+    // Aperçu complet : rendu markdown+KaTeX synchrone, puis passe Mermaid
+    // asynchrone. Gardé sur l'onglet aperçu (paresse) et sur le navigateur
+    // (DOMPurify/Mermaid). Re-rendu quand le thème change. Motif `markdown-field`.
+    effect((onCleanup) => {
+      if (!this.#isBrowser || this.activeTab() !== 'apercu') {
+        return;
+      }
+      const theme = this.#theme.theme();
+      const base = renderCourseMarkdown(this.#fullMarkdown());
+      this.#previewHtml.set(this.#sanitizer.bypassSecurityTrustHtml(base));
+      if (!hasCourseDiagrams(base)) {
+        return;
+      }
+      // Frappe/thème pendant le rendu async : la passe périmée est ignorée.
+      let stale = false;
+      onCleanup(() => (stale = true));
+      const mathNote = this.#transloco.translate('markdownField.mermaidMathNote');
+      const errorLabel = this.#transloco.translate('markdownField.mermaidError');
+      void renderCourseDiagrams(base, theme, mathNote, errorLabel).then((enhanced) => {
+        if (!stale) {
+          this.#previewHtml.set(this.#sanitizer.bypassSecurityTrustHtml(enhanced));
+        }
+      });
     });
   }
 
@@ -116,15 +190,22 @@ export class ExerciseEditor {
     this.activeTab.set(tab);
   }
 
-  /** Flèches gauche/droite : bascule d'onglet + déplacement du focus (APG tabs). */
+  /** Flèches gauche/droite : cycle d'onglet + déplacement du focus (APG tabs). */
   protected onTablistKeydown(event: KeyboardEvent): void {
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
       return;
     }
     event.preventDefault();
-    const next: ExerciseTab = this.activeTab() === 'sujet' ? 'questions' : 'sujet';
+    const delta = event.key === 'ArrowRight' ? 1 : -1;
+    const current = TAB_ORDER.indexOf(this.activeTab());
+    const next = TAB_ORDER[(current + delta + TAB_ORDER.length) % TAB_ORDER.length];
     this.activeTab.set(next);
-    const ref = next === 'sujet' ? this.sujetTabRef() : this.questionsTabRef();
+    const ref =
+      next === 'sujet'
+        ? this.sujetTabRef()
+        : next === 'questions'
+          ? this.questionsTabRef()
+          : this.apercuTabRef();
     ref?.nativeElement.focus();
   }
 

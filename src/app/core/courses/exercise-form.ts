@@ -102,6 +102,19 @@ export function payloadFromBlockContent(content: Record<string, unknown>): Exerc
   };
 }
 
+/**
+ * Markdown de l'exercice entier pour l'aperçu complet : sujet puis chaque
+ * énoncé de question, blocs vides ignorés, séparés par 2 sauts de ligne. Les
+ * réponses attendues (texte simple, non montrées à l'élève) sont exclues.
+ */
+export function fullExerciseMarkdown(form: ExerciseForm): string {
+  const v = form.getRawValue();
+  return [v.enonce, ...v.questions.map((q) => q.enonce)]
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+    .join('\n\n');
+}
+
 /** Aperçu compact de l'énoncé pour l'en-tête replié d'une question (accordéon) :
     espaces normalisés (le markdown multi-lignes tient sur une ligne), tronqué.
     Chaîne vide si l'énoncé est vide. */

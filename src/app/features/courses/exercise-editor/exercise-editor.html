@@ -34,6 +34,20 @@
       {{ 'courses.editor.exercise.questionsTitle' | transloco }}
       <span class="exercise-editor__tab-count">{{ questionGroups().length }}</span>
     </button>
+    <button
+      #apercuTab
+      type="button"
+      role="tab"
+      class="tab"
+      [id]="uid + '-tab-apercu'"
+      [class.tab--active]="activeTab() === 'apercu'"
+      [attr.aria-selected]="activeTab() === 'apercu'"
+      [attr.aria-controls]="uid + '-panel-apercu'"
+      [tabindex]="activeTab() === 'apercu' ? 0 : -1"
+      (click)="selectTab('apercu')"
+    >
+      {{ 'courses.editor.exercise.apercuLabel' | transloco }}
+    </button>
   </div>
 
   <!-- Panneaux masqués par [hidden], jamais @if : Monaco vit dans les deux,
@@ -216,4 +230,23 @@
       {{ 'courses.editor.exercise.add' | transloco }}
     </button>
   </section>
+
+  <!-- Panneau aperçu : pas de Monaco dedans → @if (patron `markdown-field`),
+       le rendu ne coûte que sur l'onglet actif. -->
+  @if (activeTab() === 'apercu') {
+    <section
+      role="tabpanel"
+      class="exercise-editor__panel exercise-editor__panel--apercu"
+      [id]="uid + '-panel-apercu'"
+      [attr.aria-labelledby]="uid + '-tab-apercu'"
+    >
+      @if (hasContent()) {
+        <div class="course-content exercise-editor__preview" [innerHTML]="previewHtml()"></div>
+      } @else {
+        <p class="exercise-editor__empty">
+          {{ 'courses.editor.exercise.apercuEmpty' | transloco }}
+        </p>
+      }
+    </section>
+  }
 </div>

@@ -116,6 +116,40 @@ describe('ExerciseEditor', () => {
     expect(sujetTab.getAttribute('aria-selected')).toBe('true');
   });
 
+  it('aperçu complet : concatène sujet + énoncés, rendu sur onglet actif', async () => {
+    const fixture = await createComponent();
+    const tabs = el(fixture).querySelectorAll<HTMLButtonElement>('.exercise-editor__tabbar .tab');
+    const apercuTab = Array.from(tabs)[2];
+
+    // Panneau aperçu absent (@if) tant que l'onglet n'est pas actif.
+    expect(el(fixture).querySelector('.exercise-editor__preview')).toBeNull();
+
+    apercuTab.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(apercuTab.getAttribute('aria-selected')).toBe('true');
+    const preview = el(fixture).querySelector<HTMLElement>('.exercise-editor__preview');
+    expect(preview).toBeTruthy();
+    // Sujet + les deux énoncés rendus d'un seul tenant.
+    expect(preview!.textContent).toContain('Résoudre les équations suivantes.');
+    expect(preview!.textContent).toContain('=');
+    expect(preview!.querySelectorAll('p').length).toBe(3);
+  });
+
+  it('aperçu complet : état vide quand rien à prévisualiser', async () => {
+    const fixture = await createComponent({ enonce: '', questions: [] });
+    const tabs = el(fixture).querySelectorAll<HTMLButtonElement>('.exercise-editor__tabbar .tab');
+    Array.from(tabs)[2].click();
+    fixture.detectChanges();
+
+    const panel = el(fixture).querySelector<HTMLElement>('.exercise-editor__panel--apercu');
+    expect(panel).toBeTruthy();
+    expect(panel!.querySelector('.exercise-editor__preview')).toBeNull();
+    expect(panel!.querySelector('.exercise-editor__empty')).toBeTruthy();
+  });
+
   it('état vide : message affiché, ajouter crée une question et émet', async () => {
     const fixture = await createComponent({ enonce: '', questions: [] });
     const seen = emissions(fixture);

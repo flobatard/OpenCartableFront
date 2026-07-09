@@ -148,6 +148,8 @@
         "sujetLabel": "Subject",
         "sujetHint": "General instructions for the exercise, visible to students.",
         "questionsTitle": "Questions",
+        "apercuLabel": "Full preview",
+        "apercuEmpty": "Nothing to preview yet.",
         "question": "Question {{index}}",
         "empty": "No questions yet.",
         "add": "Add a question",

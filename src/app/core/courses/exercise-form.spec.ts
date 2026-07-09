@@ -2,6 +2,7 @@ import {
   addQuestion,
   applyGeneratedIds,
   buildExerciseForm,
+  fullExerciseMarkdown,
   moveQuestion,
   moveQuestionTo,
   patchExerciseFormFromContent,
@@ -192,6 +193,33 @@ describe('exercise-form', () => {
     });
 
     expect(survivant.controls.id.value).toBe('id-survivant');
+  });
+
+  it('fullExerciseMarkdown concatène sujet + énoncés, ignore le vide, sépare par \\n\\n', () => {
+    const form = buildExerciseForm();
+    // Formulaire entièrement vide → chaîne vide.
+    expect(fullExerciseMarkdown(form)).toBe('');
+
+    patchExerciseFormFromContent(form, CONTENT);
+    expect(fullExerciseMarkdown(form)).toBe(
+      '## Suites\nSoit $u_n$ une suite.\n\nMontrer que $u_n$ converge.\n\nDonner sa limite.',
+    );
+
+    // Sujet seul (aucune question).
+    const sujetSeul = buildExerciseForm();
+    sujetSeul.controls.enonce.setValue('Un énoncé.');
+    expect(fullExerciseMarkdown(sujetSeul)).toBe('Un énoncé.');
+
+    // Blocs vides ou en espaces ignorés, pas de séparateur superflu.
+    patchExerciseFormFromContent(form, {
+      enonce: '   ',
+      questions: [
+        { id: null, enonce: 'Q1', type: 'texte_libre', reponse_attendue: '' },
+        { id: null, enonce: '  ', type: 'texte_libre', reponse_attendue: '' },
+        { id: null, enonce: 'Q3', type: 'texte_libre', reponse_attendue: '' },
+      ],
+    });
+    expect(fullExerciseMarkdown(form)).toBe('Q1\n\nQ3');
   });
 
   it('questionEnoncePreview normalise les espaces et tronque', () => {
