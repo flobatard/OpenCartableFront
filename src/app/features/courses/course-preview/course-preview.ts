@@ -1,9 +1,19 @@
-import { Component, computed, effect, inject, input, PLATFORM_ID } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  PLATFORM_ID,
+  viewChild,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CourseBlock } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
 import { exerciseMarkdownFromContent } from '../../../core/courses/exercise-form';
+import { PrintService } from '../../../core/print/print.service';
 import { CourseResource } from '../../../core/resources/resource.model';
 import { ResourceService } from '../../../core/resources/resource.service';
 import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
@@ -34,9 +44,13 @@ import { CoursePreviewDocument } from './course-preview-document';
 export class CoursePreview {
   readonly #courses = inject(CourseService);
   readonly #resources = inject(ResourceService);
+  readonly #print = inject(PrintService);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly courseId = input.required<string>();
+
+  /** Conteneur des blocs rendus — source de l'export PDF (hors bouton). */
+  protected readonly previewContent = viewChild<ElementRef<HTMLElement>>('previewContent');
 
   /** Blocs du cours chargé par la page hôte, déjà ordonnés par le back. */
   protected readonly blocks = computed(() => this.#courses.detail()?.blocks ?? []);
@@ -71,5 +85,14 @@ export class CoursePreview {
   /** Ressource pointée par un bloc document (id inconnu/supprimé → `undefined`). */
   protected resourceFor(id: string | null): CourseResource | undefined {
     return id === null ? undefined : this.#resources.list().find((r) => r.id === id);
+  }
+
+  /** Exporte le cours entier en PDF (impression navigateur). No-op au SSR. */
+  protected async download(): Promise<void> {
+    const el = this.previewContent()?.nativeElement;
+    if (!this.#isBrowser || !el) {
+      return;
+    }
+    await this.#print.printCourseContent(el, this.courseId());
   }
 }

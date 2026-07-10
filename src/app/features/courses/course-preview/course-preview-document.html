@@ -5,22 +5,40 @@
         @case ('image') {
           <img
             class="course-preview-document__media"
+            [attr.data-oc-resource-id]="res.id"
             [src]="mediaUrl()"
             [alt]="legende() ?? res.nom_original"
           />
         }
         @case ('audio') {
-          <audio class="course-preview-document__media" controls [src]="mediaUrl()"></audio>
+          <audio
+            class="course-preview-document__media"
+            [attr.data-oc-resource-id]="res.id"
+            [attr.aria-label]="res.nom_original"
+            controls
+            [src]="mediaUrl()"
+          ></audio>
         }
         @case ('video') {
-          <video class="course-preview-document__media" controls [src]="mediaUrl()"></video>
+          <video
+            class="course-preview-document__media"
+            [attr.data-oc-resource-id]="res.id"
+            [attr.aria-label]="res.nom_original"
+            controls
+            [src]="mediaUrl()"
+          ></video>
         }
       }
     } @else {
       <div class="course-preview-document__card">
         <span class="course-preview-document__name">{{ res.nom_original }}</span>
         <span class="course-preview-document__meta">{{ formatBytes(res.taille) }}</span>
-        <button type="button" class="btn btn--secondary" (click)="download()">
+        <button
+          type="button"
+          class="btn btn--secondary"
+          [attr.data-oc-resource-id]="res.id"
+          (click)="download()"
+        >
           {{ 'courses.preview.download' | transloco }}
         </button>
       </div>

@@ -1,15 +1,17 @@
 import {
   Component,
   effect,
+  ElementRef,
   inject,
   input,
   PLATFORM_ID,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
   hasCourseDiagrams,
   hasCourseResources,
@@ -19,6 +21,7 @@ import {
   resolveCourseResources,
 } from '../../core/markdown/course-markdown';
 import { resourceKind } from '../../core/markdown/course-resource-ref';
+import { PrintService } from '../../core/print/print.service';
 import { CourseResource } from '../../core/resources/resource.model';
 import { ResourceService } from '../../core/resources/resource.service';
 import { ThemeService } from '../../core/theme/theme.service';
@@ -44,7 +47,7 @@ import { ThemeService } from '../../core/theme/theme.service';
  */
 @Component({
   selector: 'app-markdown-view',
-  imports: [],
+  imports: [TranslocoPipe],
   templateUrl: './markdown-view.html',
   styleUrl: './markdown-view.scss',
 })
@@ -53,7 +56,14 @@ export class MarkdownView {
   readonly #theme = inject(ThemeService);
   readonly #transloco = inject(TranslocoService);
   readonly #resources = inject(ResourceService);
+  readonly #print = inject(PrintService);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  /** Exposé au template : le bouton d'impression n'a de sens qu'au navigateur. */
+  protected readonly isBrowser = this.#isBrowser;
+
+  /** Conteneur du HTML rendu — source de l'export PDF. */
+  protected readonly contentEl = viewChild<ElementRef<HTMLElement>>('content');
 
   /** Markdown à rendre (frappe en cours ou contenu d'un bloc). */
   readonly markdown = input.required<string>();
@@ -163,6 +173,19 @@ export class MarkdownView {
     }
     const url = await this.#resources.getDownloadUrl(courseId, id);
     return { url, kind: resourceKind(resource.type), label: resource.nom_original };
+  }
+
+  /**
+   * Exporte le contenu rendu en PDF (impression navigateur). Hook réutilisable
+   * pour les hôtes qui veulent un bouton d'export ; no-op au SSR ou avant le
+   * montage du contenu.
+   */
+  async print(): Promise<void> {
+    const el = this.contentEl()?.nativeElement;
+    if (!this.#isBrowser || !el) {
+      return;
+    }
+    await this.#print.printCourseContent(el, this.courseId());
   }
 }
 

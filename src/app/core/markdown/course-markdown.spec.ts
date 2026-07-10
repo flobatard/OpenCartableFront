@@ -267,7 +267,7 @@ describe('resolveCourseResources', () => {
     expect(hasCourseResources(renderCourseMarkdown('## Titre'))).toBe(false);
   });
 
-  it('résout une image en <img> présigné (placeholder retiré)', async () => {
+  it('résout une image en <img> présigné (id conservé pour l’export PDF)', async () => {
     const resolve = vi
       .fn()
       .mockResolvedValue({ url: 'https://s3.test/img.png', kind: 'image', label: 'Photo' });
@@ -275,7 +275,10 @@ describe('resolveCourseResources', () => {
     const img = div.querySelector('img');
     expect(img?.getAttribute('src')).toBe('https://s3.test/img.png');
     expect(img?.getAttribute('alt')).toBe('Photo');
-    expect(img?.hasAttribute('data-oc-resource-id')).toBe(false);
+    // Le placeholder « pending » est remplacé, mais l'id reste posé (data-*)
+    // pour reconstruire une URL stable à l'export PDF.
+    expect(img?.classList.contains('course-resource--pending')).toBe(false);
+    expect(img?.getAttribute('data-oc-resource-id')).toBe('img-1');
     expect(resolve).toHaveBeenCalledWith('img-1');
   });
 

@@ -81,7 +81,10 @@ describe('MarkdownView', () => {
     expect(resourcesMock.getDownloadUrl).toHaveBeenCalledWith('course-1', 'resource-2');
     const img = content(fixture)?.querySelector('img');
     expect(img?.getAttribute('src')).toBe('https://s3.example/presigned');
-    expect(content(fixture)?.querySelector('[data-oc-resource-id]')).toBeNull();
+    // Le placeholder « pending » a bien été remplacé ; l'id reste posé sur
+    // l'élément résolu (data-*) pour l'export PDF (reconstruction d'URL stable).
+    expect(content(fixture)?.querySelector('.course-resource--pending')).toBeNull();
+    expect(img?.getAttribute('data-oc-resource-id')).toBe('resource-2');
   });
 
   it('une référence en_attente n’est pas présignée (note indisponible)', async () => {

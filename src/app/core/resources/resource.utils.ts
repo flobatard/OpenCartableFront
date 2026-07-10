@@ -1,9 +1,29 @@
+import { environment } from '../../../environments/environment';
 import { ResourceType } from './resource.model';
 
 /**
  * Helpers purs de la bibliothèque de ressources, testés isolément
  * (motif `subject.utils.ts`).
  */
+
+/**
+ * Base absolue de l'API : `apiUrl` s'il est déjà absolu (`http…`, cas dev où
+ * l'API est sur un autre port), sinon préfixé par `siteUrl` (cas prod où
+ * `apiUrl` est relatif `/api` — un PDF partagé exige une URL absolue).
+ */
+export function apiContentBase(apiUrl: string, siteUrl: string): string {
+  return apiUrl.startsWith('http') ? apiUrl : `${siteUrl}${apiUrl}`;
+}
+
+/**
+ * URL API **stable** de lecture d'une ressource (gateway `/content` : 307 vers
+ * l'URL présignée inline S3). Contrairement à l'URL présignée (TTL court), elle
+ * est pérenne — utilisable dans un PDF persistant. Toujours absolue.
+ */
+export function resourceContentUrl(courseId: string, resourceId: string): string {
+  const base = apiContentBase(environment.apiUrl, environment.siteUrl);
+  return `${base}/v1/courses/${courseId}/resources/${resourceId}/public`;
+}
 
 /**
  * Type de ressource déduit du MIME du fichier choisi : familles média

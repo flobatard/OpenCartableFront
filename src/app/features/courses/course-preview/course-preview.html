@@ -1,16 +1,25 @@
 @if (!blocks().length) {
   <p class="course-preview__empty">{{ 'courses.preview.empty' | transloco }}</p>
 } @else {
-  <div class="course-preview">
+  <div class="course-preview__toolbar">
+    <button type="button" class="btn btn--secondary" (click)="download()">
+      {{ 'courses.preview.downloadPdf' | transloco }}
+    </button>
+  </div>
+  <div #previewContent class="course-preview">
     @for (block of blocks(); track block.id) {
       @if (block.type !== 'module') {
         <article class="course-preview__block">
-          @if (block.titre) {
-            <h2 class="course-preview__title">{{ block.titre }}</h2>
+          @if (block.type === 'document')
+          {
+            @if (block.titre) {
+              <h2 class="course-preview__title">{{ block.titre }}</h2>
+            }
+            @if (block.description) {
+              <p class="course-preview__desc">{{ block.description }}</p>
+            }
           }
-          @if (block.description) {
-            <p class="course-preview__desc">{{ block.description }}</p>
-          }
+
           @switch (block.type) {
             @case ('texte') {
               <app-markdown-view [markdown]="textMarkdown(block)" [courseId]="courseId()" />

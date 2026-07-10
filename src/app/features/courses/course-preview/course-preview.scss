@@ -2,6 +2,13 @@
   display: block;
 }
 
+/* Barre d'actions de l'aperçu (export PDF), alignée à droite au-dessus des blocs. */
+.course-preview__toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+}
+
 /* Blocs empilés, séparés par un rythme vertical généreux (lecture continue). */
 .course-preview {
   display: flex;

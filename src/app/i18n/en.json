@@ -187,7 +187,9 @@
       "empty": "This course has no blocks yet.",
       "documentMissing": "Resource not found (deleted?).",
       "download": "Download",
-      "downloadError": "Download failed. Try again."
+      "downloadError": "Download failed. Try again.",
+      "downloadPdf": "Download as PDF",
+      "pdfMediaNote": "Media available online:"
     },
     "resources": {
       "loading": "Loading resources…",
@@ -229,6 +231,9 @@
     "mermaidError": "Invalid Mermaid diagram:",
     "insertResource": "Insert a resource",
     "resourceMissing": "Resource unavailable"
+  },
+  "markdownView": {
+    "print": "Print / export to PDF"
   },
   "resourcePicker": {
     "title": "Insert a resource",

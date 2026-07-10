@@ -187,7 +187,9 @@
       "empty": "Ce cours ne contient encore aucun bloc.",
       "documentMissing": "Ressource introuvable (supprimée ?).",
       "download": "Télécharger",
-      "downloadError": "Le téléchargement n'a pas abouti. Réessayez."
+      "downloadError": "Le téléchargement n'a pas abouti. Réessayez.",
+      "downloadPdf": "Télécharger en PDF",
+      "pdfMediaNote": "Média disponible en ligne :"
     },
     "resources": {
       "loading": "Chargement des ressources…",
@@ -229,6 +231,9 @@
     "mermaidError": "Diagramme Mermaid invalide :",
     "insertResource": "Insérer une ressource",
     "resourceMissing": "Ressource indisponible"
+  },
+  "markdownView": {
+    "print": "Imprimer / exporter en PDF"
   },
   "resourcePicker": {
     "title": "Insérer une ressource",

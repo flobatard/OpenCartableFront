@@ -1,0 +1,170 @@
+/* Impression / export PDF (cf. core/print/print.service.ts).
+
+   Le service pose le contenu de cours cloné dans #oc-print-root (enfant direct
+   de <body>). Hors impression, ce conteneur est rendu mais hors-écran — pas
+   `display:none`, sinon ses images ne se chargeraient pas avant l'appel à
+   window.print(). En `@media print`, on masque le reste de l'app et on révèle
+   le conteneur. */
+
+#oc-print-root {
+  position: absolute;
+  top: 0;
+  left: -100vw;
+  width: 210mm; /* A4 : layout réaliste pour le chargement des images */
+}
+
+.oc-print__media-note {
+  margin-block: 0 1.5em;
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  word-break: break-all; /* les URL longues restent dans la marge */
+}
+
+@media print {
+  /* Marge de page à zéro : les en-têtes/pieds ajoutés par le navigateur (date,
+     nom du site, URL) vivent dans cette marge — sans place, ils disparaissent.
+     Les marges de lecture sont rétablies par le padding du conteneur ci-dessous. */
+  @page {
+    margin: 0mm 0mm;
+  }
+
+  /* On n'imprime que le conteneur dédié : le reste de l'app disparaît. */
+  body > *:not(#oc-print-root) {
+    display: none !important;
+  }
+
+  /* Bouton d'impression flottant des markdown-view : jamais dans le PDF (il est
+     cloné avec le contenu lors de l'export du cours entier). */
+  #oc-print-root .markdown-view__print {
+    display: none !important;
+  }
+
+  #oc-print-root {
+    position: static;
+    left: auto;
+    width: auto;
+    /* Compense la marge de page à 0 (sinon le contenu toucherait le bord). */
+    padding: 14mm 16mm;
+    /* Toujours lisible (texte foncé sur blanc) même si l'utilisateur est en
+       thème sombre : on force les tokens de lecture sur palette claire. */
+    color: var(--slate-900);
+    background: #fff;
+    --text-primary: var(--slate-900);
+    --text-secondary: var(--slate-600);
+    --text-muted: var(--slate-500);
+    --link: var(--indigo-700);
+    --bg-page: #fff;
+    --bg-surface: #fff;
+  }
+
+  /* .course-content redéclare --text-secondary/--link (et le fait en version
+     sombre sous [data-theme=dark]) : on les rétablit clairs, spécificité > au
+     sélecteur de thème. */
+  #oc-print-root .course-content {
+    --text-secondary: var(--slate-600);
+    --link: var(--indigo-700);
+  }
+
+  /* Éviter de couper un bloc au milieu d'une page quand c'est possible. */
+  .course-preview__block {
+    break-inside: avoid;
+  }
+
+  /* Un bloc de cours par page : saut de page avant chaque bloc SAUF le premier
+     (le sélecteur d'adjacence ne cible que les blocs précédés d'un autre). */
+  .course-preview__block + .course-preview__block {
+    break-before: page;
+  }
+
+  /* ── Typographie d'impression ─────────────────────────────────────────────
+     Indépendante de l'écran, calibrée pour le papier (unités pt). C'est ici
+     qu'on ajuste tailles de police et marges du PDF. */
+
+  #oc-print-root {
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  /* Titre éditorial d'un bloc : respiration au-dessus, resserré sous le titre,
+     et jamais seul en bas de page (le contenu qui suit reste avec lui). */
+  #oc-print-root .course-preview__title {
+    margin: 0 0 0.4em;
+    font-size: 15pt;
+    line-height: 1.25;
+    break-after: avoid;
+  }
+
+  #oc-print-root .course-preview__desc {
+    margin: 0 0 0.8em;
+    font-size: 10.5pt;
+  }
+
+  /* Espace entre deux blocs de cours (remplace le gap flex de l'écran). */
+  #oc-print-root .course-preview {
+    gap: 10mm;
+  }
+
+  /* Titres du markdown de cours (##, ###…) : marges verticales et tailles
+     dégressives, sans coupure de page juste après un titre. */
+  #oc-print-root .course-content :is(h1, h2, h3, h4, h5, h6) {
+    margin: 1.2em 0 0.5em;
+    line-height: 1.25;
+    break-after: avoid;
+  }
+
+  /* Titre + ses premiers blocs regroupés par keepHeadingsWithContent : insécable,
+     donc l'ensemble bascule sur la page suivante plutôt que d'orpheliner le titre
+     en bas de page. Marge du titre neutralisée en tête de groupe (le groupe porte
+     déjà l'espacement du flux). */
+  #oc-print-root .oc-print__keep {
+    break-inside: avoid;
+  }
+  #oc-print-root .oc-print__keep > :is(h1, h2, h3, h4, h5, h6):first-child {
+    margin-top: 0;
+  }
+
+  /* Pas de ligne unique isolée en haut/bas de page. */
+  #oc-print-root .course-content p,
+  #oc-print-root .course-content li {
+    orphans: 2;
+    widows: 2;
+  }
+  #oc-print-root .course-content h1 {
+    font-size: 17pt;
+  }
+  #oc-print-root .course-content h2 {
+    font-size: 14pt;
+  }
+  #oc-print-root .course-content h3 {
+    font-size: 12pt;
+  }
+
+  /* Paragraphes : rythme vertical un peu plus resserré qu'à l'écran. */
+  #oc-print-root .course-content p {
+    margin-block: 0 0.9em;
+  }
+
+  /* Carte d'un document non visionnable : empilée (le layout horizontal de
+     l'écran fait déborder l'URL). Nom cliquable souligné + URL en clair copiable. */
+  #oc-print-root .course-preview-document__card {
+    display: block;
+    padding: 10px 12px;
+  }
+  #oc-print-root .course-preview-document__meta {
+    display: block;
+    margin-top: 2px;
+  }
+  #oc-print-root .oc-print__doc-name {
+    color: var(--link);
+    text-decoration: underline;
+  }
+  #oc-print-root .oc-print__doc-url {
+    display: none;
+    margin-top: 4px;
+    /* Police réduite + pas de retour à la ligne : l'URL tient sur une seule
+       ligne (texte intégral conservé, copier-coller intact). */
+    font-size: 7pt;
+    white-space: nowrap;
+    color: var(--text-secondary);
+  }
+}

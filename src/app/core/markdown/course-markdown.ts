@@ -347,7 +347,7 @@ export async function resolveCourseResources(
 
   for (const node of nodes) {
     const id = node.getAttribute(RESOURCE_REF_ATTR) ?? '';
-    node.replaceWith(buildResourceElement(doc, resolved.get(id) ?? null, missingLabel));
+    node.replaceWith(buildResourceElement(doc, resolved.get(id) ?? null, missingLabel, id));
   }
 
   return DOMPurify.sanitize(doc.body.innerHTML, {
@@ -358,11 +358,18 @@ export async function resolveCourseResources(
   });
 }
 
-/** Élément DOM d'une ressource résolue (jamais innerHTML : pas de réinjection). */
+/**
+ * Élément DOM d'une ressource résolue (jamais innerHTML : pas de réinjection).
+ * L'`id` de la ressource est reposé en `data-oc-resource-id` sur l'élément
+ * résolu (inerte à l'écran, survit à DOMPurify via `data-*`) : il permet à un
+ * consommateur (ex. l'export PDF) de retrouver la ressource et de reconstruire
+ * une URL stable à la place de l'URL présignée éphémère.
+ */
 function buildResourceElement(
   doc: Document,
   resolved: ResolvedResource | null,
   missingLabel: string,
+  id: string,
 ): HTMLElement {
   if (resolved === null) {
     const span = doc.createElement('span');
@@ -374,6 +381,7 @@ function buildResourceElement(
   if (kind === 'image') {
     const img = doc.createElement('img');
     img.className = 'course-resource';
+    img.setAttribute(RESOURCE_REF_ATTR, id);
     img.setAttribute('src', url);
     img.setAttribute('alt', label);
     img.setAttribute('loading', 'lazy');
@@ -382,6 +390,7 @@ function buildResourceElement(
   if (kind === 'audio' || kind === 'video') {
     const media = doc.createElement(kind);
     media.className = 'course-resource';
+    media.setAttribute(RESOURCE_REF_ATTR, id);
     media.setAttribute('controls', '');
     media.setAttribute('src', url);
     media.setAttribute('aria-label', label);
@@ -389,6 +398,7 @@ function buildResourceElement(
   }
   const link = doc.createElement('a');
   link.className = 'course-resource course-resource--link';
+  link.setAttribute(RESOURCE_REF_ATTR, id);
   link.setAttribute('href', url);
   link.setAttribute('target', '_blank');
   link.setAttribute('rel', 'noopener');
