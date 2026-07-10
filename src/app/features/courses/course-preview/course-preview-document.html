@@ -1,0 +1,41 @@
+@if (resource(); as res) {
+  <figure class="course-preview-document">
+    @if (showsMedia()) {
+      @switch (res.type) {
+        @case ('image') {
+          <img
+            class="course-preview-document__media"
+            [src]="mediaUrl()"
+            [alt]="legende() ?? res.nom_original"
+          />
+        }
+        @case ('audio') {
+          <audio class="course-preview-document__media" controls [src]="mediaUrl()"></audio>
+        }
+        @case ('video') {
+          <video class="course-preview-document__media" controls [src]="mediaUrl()"></video>
+        }
+      }
+    } @else {
+      <div class="course-preview-document__card">
+        <span class="course-preview-document__name">{{ res.nom_original }}</span>
+        <span class="course-preview-document__meta">{{ formatBytes(res.taille) }}</span>
+        <button type="button" class="btn btn--secondary" (click)="download()">
+          {{ 'courses.preview.download' | transloco }}
+        </button>
+      </div>
+      @if (error()) {
+        <p class="course-preview-document__error" role="alert">
+          {{ 'courses.preview.downloadError' | transloco }}
+        </p>
+      }
+    }
+    @if (legende()) {
+      <figcaption class="course-preview-document__caption">{{ legende() }}</figcaption>
+    }
+  </figure>
+} @else {
+  <p class="course-preview-document__missing">
+    {{ 'courses.preview.documentMissing' | transloco }}
+  </p>
+}

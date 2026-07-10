@@ -2,6 +2,7 @@ import {
   addQuestion,
   applyGeneratedIds,
   buildExerciseForm,
+  exerciseMarkdownFromContent,
   fullExerciseMarkdown,
   moveQuestion,
   moveQuestionTo,
@@ -220,6 +221,29 @@ describe('exercise-form', () => {
       ],
     });
     expect(fullExerciseMarkdown(form)).toBe('Q1\n\nQ3');
+  });
+
+  it('exerciseMarkdownFromContent concatène sujet + énoncés sans réponse attendue', () => {
+    // Même sortie que fullExerciseMarkdown, mais depuis un content brut.
+    expect(exerciseMarkdownFromContent(CONTENT)).toBe(
+      '## Suites\nSoit $u_n$ une suite.\n\nMontrer que $u_n$ converge.\n\nDonner sa limite.',
+    );
+    // Les réponses attendues n'apparaissent jamais.
+    expect(exerciseMarkdownFromContent(CONTENT)).not.toContain('Par encadrement.');
+    // Content vide / malformé toléré → chaîne vide.
+    expect(exerciseMarkdownFromContent({})).toBe('');
+    expect(exerciseMarkdownFromContent({ enonce: 5, questions: 'nope' })).toBe('');
+    // Vides ignorés, pas de séparateur superflu.
+    expect(
+      exerciseMarkdownFromContent({
+        enonce: '   ',
+        questions: [
+          { id: null, enonce: 'Q1', type: 'texte_libre', reponse_attendue: '' },
+          { id: null, enonce: '  ', type: 'texte_libre', reponse_attendue: '' },
+          { id: null, enonce: 'Q3', type: 'texte_libre', reponse_attendue: '' },
+        ],
+      }),
+    ).toBe('Q1\n\nQ3');
   });
 
   it('questionEnoncePreview normalise les espaces et tronque', () => {

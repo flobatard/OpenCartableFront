@@ -1,0 +1,33 @@
+:host {
+  display: block;
+}
+
+/* Blocs empilés, séparés par un rythme vertical généreux (lecture continue). */
+.course-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Chaque bloc : titre/description éditoriaux au-dessus de son rendu. */
+.course-preview__block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.course-preview__title {
+  margin: 0;
+}
+
+.course-preview__desc {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.course-preview__empty {
+  margin: 0;
+  padding: 24px;
+  color: var(--text-secondary);
+  text-align: center;
+}

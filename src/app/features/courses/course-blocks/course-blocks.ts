@@ -22,6 +22,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { SubjectService } from '../../../core/subjects/subject.service';
 import { findById as findSubjectById } from '../../../core/subjects/subject.utils';
 import { BlockCreateDialog } from '../block-create-dialog/block-create-dialog';
+import { CoursePreview } from '../course-preview/course-preview';
 import { CourseResources } from '../course-resources/course-resources';
 import { moveIdTo } from './course-blocks.utils';
 
@@ -31,7 +32,10 @@ const CREATABLE_TYPES: readonly BlockType[] = ['texte', 'exercice', 'document', 
 /** Suffixe d'ids ARIA uniques par instance (compteur de module, jamais Date/Random). */
 let sequence = 0;
 
-type CourseTab = 'blocks' | 'resources';
+type CourseTab = 'blocks' | 'resources' | 'preview';
+
+/** Ordre des onglets pour la navigation clavier ←/→ (APG tabs). */
+const TAB_ORDER: readonly CourseTab[] = ['blocks', 'resources', 'preview'];
 
 /**
  * Page d'un cours, à deux onglets (tablist APG, motif `markdown-field`) :
@@ -53,6 +57,7 @@ type CourseTab = 'blocks' | 'resources';
     TranslocoPipe,
     BlockCreateDialog,
     CourseResources,
+    CoursePreview,
     CdkDropList,
     CdkDrag,
     CdkDragHandle,
@@ -78,15 +83,15 @@ export class CourseBlocks implements OnInit {
   /** Préfixe d'ids ARIA du tablist, propre à l'instance. */
   protected readonly uid = `course-tabs-${sequence++}`;
 
-  /** Onglet actif, initialisé depuis `?tab=` (retour d'éditeur → Blocs). */
+  /** Onglet actif, initialisé depuis `?tab=` (retour d'éditeur → Blocs). Seuls
+      les onglets non-défaut sont sérialisés ; toute autre valeur → Blocs. */
   protected readonly activeTab = signal<CourseTab>(
-    inject(ActivatedRoute).snapshot.queryParamMap.get('tab') === 'resources'
-      ? 'resources'
-      : 'blocks',
+    this.#tabFromParam(inject(ActivatedRoute).snapshot.queryParamMap.get('tab')),
   );
 
   protected readonly blocksTabRef = viewChild<ElementRef<HTMLButtonElement>>('blocksTab');
   protected readonly resourcesTabRef = viewChild<ElementRef<HTMLButtonElement>>('resourcesTab');
+  protected readonly previewTabRef = viewChild<ElementRef<HTMLButtonElement>>('previewTab');
 
   protected readonly detail = this.#courses.detail;
   protected readonly loading = this.#courses.detailLoading;
@@ -116,25 +121,38 @@ export class CourseBlocks implements OnInit {
     this.#courses.loadDetail(this.#courseId);
   }
 
-  /** Bascule d'onglet, reflétée dans `?tab=` (deep-link sans polluer l'historique). */
+  /** Bascule d'onglet, reflétée dans `?tab=` (deep-link sans polluer
+      l'historique). Blocs = défaut → param retiré ; les autres sérialisés. */
   protected selectTab(tab: CourseTab): void {
     this.activeTab.set(tab);
     void this.#router.navigate([], {
-      queryParams: { tab: tab === 'resources' ? 'resources' : null },
+      queryParams: { tab: tab === 'blocks' ? null : tab },
       replaceUrl: true,
     });
   }
 
-  /** Flèches gauche/droite : bascule d'onglet + déplacement du focus (APG tabs). */
+  /** Flèches gauche/droite : cycle d'onglet + déplacement du focus (APG tabs). */
   protected onTablistKeydown(event: KeyboardEvent): void {
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
       return;
     }
     event.preventDefault();
-    const next: CourseTab = this.activeTab() === 'blocks' ? 'resources' : 'blocks';
+    const delta = event.key === 'ArrowRight' ? 1 : -1;
+    const current = TAB_ORDER.indexOf(this.activeTab());
+    const next = TAB_ORDER[(current + delta + TAB_ORDER.length) % TAB_ORDER.length];
     this.selectTab(next);
-    const ref = next === 'blocks' ? this.blocksTabRef() : this.resourcesTabRef();
+    const ref =
+      next === 'blocks'
+        ? this.blocksTabRef()
+        : next === 'resources'
+          ? this.resourcesTabRef()
+          : this.previewTabRef();
     ref?.nativeElement.focus();
+  }
+
+  /** Onglet dérivé du param `?tab=` : seuls les non-défaut connus sont acceptés. */
+  #tabFromParam(tab: string | null): CourseTab {
+    return tab === 'resources' || tab === 'preview' ? tab : 'blocks';
   }
 
   /**

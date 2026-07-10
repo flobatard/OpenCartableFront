@@ -109,7 +109,26 @@ export function payloadFromBlockContent(content: Record<string, unknown>): Exerc
  */
 export function fullExerciseMarkdown(form: ExerciseForm): string {
   const v = form.getRawValue();
-  return [v.enonce, ...v.questions.map((q) => q.enonce)]
+  return joinExerciseMarkdown(v.enonce, v.questions.map((q) => q.enonce));
+}
+
+/**
+ * Variante sans form de `fullExerciseMarkdown` : construit le markdown de
+ * l'exercice directement depuis le `content` JSONB d'un bloc, pour l'aperçu
+ * global du cours (aucun formulaire n'est monté). Mêmes règles de
+ * concaténation ; réponses attendues exclues (via `payloadFromBlockContent`).
+ */
+export function exerciseMarkdownFromContent(content: Record<string, unknown>): string {
+  const payload = payloadFromBlockContent(content);
+  return joinExerciseMarkdown(
+    payload.enonce,
+    payload.questions.map((q) => q.enonce),
+  );
+}
+
+/** Sujet + énoncés, vides ignorés, séparés par 2 sauts de ligne. */
+function joinExerciseMarkdown(enonce: string, questionEnonces: string[]): string {
+  return [enonce, ...questionEnonces]
     .map((s) => s.trim())
     .filter((s) => s.length > 0)
     .join('\n\n');

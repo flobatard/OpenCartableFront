@@ -180,7 +180,14 @@
     "tabs": {
       "label": "Course sections",
       "blocks": "Blocks",
-      "resources": "Resources"
+      "resources": "Resources",
+      "preview": "Preview"
+    },
+    "preview": {
+      "empty": "This course has no blocks yet.",
+      "documentMissing": "Resource not found (deleted?).",
+      "download": "Download",
+      "downloadError": "Download failed. Try again."
     },
     "resources": {
       "loading": "Loading resources…",

@@ -86,6 +86,20 @@
         >
           {{ 'courses.tabs.resources' | transloco }}
         </button>
+        <button
+          #previewTab
+          type="button"
+          class="tab"
+          role="tab"
+          [id]="uid + '-tab-preview'"
+          [class.tab--active]="activeTab() === 'preview'"
+          [attr.aria-selected]="activeTab() === 'preview'"
+          [attr.aria-controls]="uid + '-panel-preview'"
+          [tabindex]="activeTab() === 'preview' ? 0 : -1"
+          (click)="selectTab('preview')"
+        >
+          {{ 'courses.tabs.preview' | transloco }}
+        </button>
       </div>
 
       @if (activeTab() === 'resources') {
@@ -96,6 +110,15 @@
           [attr.aria-labelledby]="uid + '-tab-resources'"
         >
           <app-course-resources [courseId]="courseId" (deleted)="onResourceDeleted()" />
+        </div>
+      } @else if (activeTab() === 'preview') {
+        <div
+          class="course-blocks__panel"
+          role="tabpanel"
+          [id]="uid + '-panel-preview'"
+          [attr.aria-labelledby]="uid + '-tab-preview'"
+        >
+          <app-course-preview [courseId]="courseId" />
         </div>
       } @else {
         <div

@@ -339,7 +339,7 @@ describe('CourseBlocks', () => {
   it('affiche l’onglet Blocs par défaut et bascule vers Ressources', async () => {
     const fixture = await createComponent();
     const tabs = Array.from(el(fixture).querySelectorAll<HTMLButtonElement>('[role="tab"]'));
-    expect(tabs.map((t) => t.textContent?.trim())).toEqual(['Blocs', 'Ressources']);
+    expect(tabs.map((t) => t.textContent?.trim())).toEqual(['Blocs', 'Ressources', 'Aperçu']);
     expect(tabs[0].getAttribute('aria-selected')).toBe('true');
     expect(el(fixture).querySelector('app-course-resources')).toBeNull();
 
@@ -362,6 +362,50 @@ describe('CourseBlocks', () => {
         .querySelector<HTMLButtonElement>('[role="tab"]:nth-of-type(2)')
         ?.getAttribute('aria-selected'),
     ).toBe('true');
+  });
+
+  it('bascule vers Aperçu : monte app-course-preview et sérialise ?tab=preview', async () => {
+    const fixture = await createComponent();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const tabs = Array.from(el(fixture).querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+
+    tabs[2].click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(tabs[2].getAttribute('aria-selected')).toBe('true');
+    expect(el(fixture).querySelector('app-course-preview')).toBeTruthy();
+    expect(el(fixture).querySelector('app-course-resources')).toBeNull();
+    expect(navigate).toHaveBeenCalledWith([], {
+      queryParams: { tab: 'preview' },
+      replaceUrl: true,
+    });
+  });
+
+  it('?tab=preview ouvre directement l’onglet Aperçu (deep-link)', async () => {
+    const fixture = await createComponent('preview');
+    expect(el(fixture).querySelector('app-course-preview')).toBeTruthy();
+    const tabs = Array.from(el(fixture).querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+    expect(tabs[2].getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('les flèches cyclent entre les trois onglets (APG tabs)', async () => {
+    const fixture = await createComponent();
+    const tablist = el(fixture).querySelector('[role="tablist"]')!;
+    const tabs = () => Array.from(el(fixture).querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+
+    tablist.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    fixture.detectChanges();
+    expect(tabs()[1].getAttribute('aria-selected')).toBe('true');
+
+    tablist.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    fixture.detectChanges();
+    expect(tabs()[2].getAttribute('aria-selected')).toBe('true');
+
+    // Cycle : depuis Aperçu, flèche droite revient à Blocs.
+    tablist.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    fixture.detectChanges();
+    expect(tabs()[0].getAttribute('aria-selected')).toBe('true');
   });
 
   it('une suppression de ressource recharge le détail du cours (blocs document supprimés en cascade)', async () => {

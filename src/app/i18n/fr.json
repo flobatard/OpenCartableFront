@@ -180,7 +180,14 @@
     "tabs": {
       "label": "Sections du cours",
       "blocks": "Blocs",
-      "resources": "Ressources"
+      "resources": "Ressources",
+      "preview": "Aperçu"
+    },
+    "preview": {
+      "empty": "Ce cours ne contient encore aucun bloc.",
+      "documentMissing": "Ressource introuvable (supprimée ?).",
+      "download": "Télécharger",
+      "downloadError": "Le téléchargement n'a pas abouti. Réessayez."
     },
     "resources": {
       "loading": "Chargement des ressources…",

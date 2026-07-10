@@ -1,0 +1,62 @@
+:host {
+  display: block;
+}
+
+.course-preview-document {
+  margin: 0;
+}
+
+/* Média intégré : jamais plus large que la colonne, ratio préservé. */
+.course-preview-document__media {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+}
+
+audio.course-preview-document__media {
+  width: 100%;
+}
+
+/* Carte téléchargeable (PDF/autres, ou repli sur présignature échouée). */
+.course-preview-document__card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.course-preview-document__name {
+  font-weight: 600;
+}
+
+.course-preview-document__meta {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* Bouton poussé à droite. */
+.course-preview-document__card .btn {
+  margin-inline-start: auto;
+}
+
+.course-preview-document__caption {
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.course-preview-document__error {
+  margin: 8px 0 0;
+  color: var(--text-danger);
+  font-size: 13px;
+}
+
+.course-preview-document__missing {
+  margin: 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}

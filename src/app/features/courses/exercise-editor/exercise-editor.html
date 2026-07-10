@@ -241,7 +241,7 @@
       [attr.aria-labelledby]="uid + '-tab-apercu'"
     >
       @if (hasContent()) {
-        <div class="course-content exercise-editor__preview" [innerHTML]="previewHtml()"></div>
+        <app-markdown-view class="exercise-editor__preview" [markdown]="fullMarkdown()" />
       } @else {
         <p class="exercise-editor__empty">
           {{ 'courses.editor.exercise.apercuEmpty' | transloco }}

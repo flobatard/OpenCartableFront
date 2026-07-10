@@ -59,7 +59,7 @@
       [attr.aria-labelledby]="uid + '-tab-preview'"
     >
       @if (hasDraft()) {
-        <div class="course-content markdown-field__preview" [innerHTML]="previewHtml()"></div>
+        <app-markdown-view class="markdown-field__preview" [markdown]="draft()" />
       } @else {
         <p class="markdown-field__preview-empty">
           {{ 'markdownField.previewEmpty' | transloco }}

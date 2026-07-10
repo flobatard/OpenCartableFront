@@ -1,0 +1,9 @@
+:host {
+  display: block;
+}
+
+/* Colonne de lecture (68ch, héritée de .course-content) centrée dans un panneau
+   large : sans marges auto elle se collerait à gauche avec un grand vide à droite. */
+.markdown-view__content {
+  margin-inline: auto;
+}

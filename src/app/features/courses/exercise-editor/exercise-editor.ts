@@ -6,11 +6,9 @@ import {
   inject,
   input,
   output,
-  PLATFORM_ID,
   signal,
   viewChild,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   CdkDrag,
@@ -21,8 +19,7 @@ import {
   CdkDropList,
 } from '@angular/cdk/drag-drop';
 import { ReactiveFormsModule } from '@angular/forms';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ExerciseContentPayload } from '../../../core/courses/course.model';
 import {
   addQuestion,
@@ -37,13 +34,8 @@ import {
   QUESTIONS_MAX,
   removeQuestion,
 } from '../../../core/courses/exercise-form';
-import {
-  hasCourseDiagrams,
-  renderCourseDiagrams,
-  renderCourseMarkdown,
-} from '../../../core/markdown/course-markdown';
-import { ThemeService } from '../../../core/theme/theme.service';
 import { MarkdownField } from '../../../shared/markdown-field/markdown-field';
+import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
 
 /** Suffixe d'ids uniques par instance (tablist ARIA — motif `markdown-field`).
     Compteur de module, jamais Date/Random. */
@@ -75,6 +67,7 @@ const TAB_ORDER: readonly ExerciseTab[] = ['sujet', 'questions', 'apercu'];
     ReactiveFormsModule,
     TranslocoPipe,
     MarkdownField,
+    MarkdownView,
     CdkDropList,
     CdkDrag,
     CdkDragHandle,
@@ -85,11 +78,6 @@ const TAB_ORDER: readonly ExerciseTab[] = ['sujet', 'questions', 'apercu'];
   styleUrl: './exercise-editor.scss',
 })
 export class ExerciseEditor {
-  readonly #sanitizer = inject(DomSanitizer);
-  readonly #theme = inject(ThemeService);
-  readonly #transloco = inject(TranslocoService);
-  readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
-
   /** `content` JSONB du bloc chargé — lu UNE fois (init-once, jamais re-patché :
       la référence change après chaque patch du détail post-save, la frappe
       en cours ne doit pas être écrasée). */
@@ -112,18 +100,11 @@ export class ExerciseEditor {
   protected readonly apercuTabRef = viewChild<ElementRef<HTMLButtonElement>>('apercuTab');
 
   /** Markdown concaténé (sujet + énoncés) alimentant l'aperçu complet ; dérivé
-      du formulaire (frappe en cours), pas du `content` initial du bloc. */
+      du formulaire (frappe en cours), pas du `content` initial du bloc. Rendu
+      par `app-markdown-view` (pipeline markdown+KaTeX+Mermaid partagé). */
   readonly #fullMarkdown = signal('');
+  protected readonly fullMarkdown = this.#fullMarkdown.asReadonly();
   protected readonly hasContent = computed(() => this.#fullMarkdown().length > 0);
-
-  /**
-   * HTML de l'aperçu complet (markdown + KaTeX, puis diagrammes Mermaid). La
-   * sanitisation vit dans course-markdown (DOMPurify) ; le bypass évite
-   * uniquement le second nettoyage d'Angular (cf. `markdown-field`). Signal (et
-   * non computed) car la passe Mermaid est asynchrone.
-   */
-  readonly #previewHtml = signal<SafeHtml>(this.#sanitizer.bypassSecurityTrustHtml(''));
-  protected readonly previewHtml = this.#previewHtml.asReadonly();
 
   /** Groupes rendus par le template : la structure de la FormArray n'est pas
       un signal, ce miroir est resynchronisé à chaque mutation structurelle. */
@@ -158,31 +139,6 @@ export class ExerciseEditor {
     this.form.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
       this.contentChange.emit(payloadFromExerciseForm(this.form));
       this.#fullMarkdown.set(fullExerciseMarkdown(this.form));
-    });
-
-    // Aperçu complet : rendu markdown+KaTeX synchrone, puis passe Mermaid
-    // asynchrone. Gardé sur l'onglet aperçu (paresse) et sur le navigateur
-    // (DOMPurify/Mermaid). Re-rendu quand le thème change. Motif `markdown-field`.
-    effect((onCleanup) => {
-      if (!this.#isBrowser || this.activeTab() !== 'apercu') {
-        return;
-      }
-      const theme = this.#theme.theme();
-      const base = renderCourseMarkdown(this.#fullMarkdown());
-      this.#previewHtml.set(this.#sanitizer.bypassSecurityTrustHtml(base));
-      if (!hasCourseDiagrams(base)) {
-        return;
-      }
-      // Frappe/thème pendant le rendu async : la passe périmée est ignorée.
-      let stale = false;
-      onCleanup(() => (stale = true));
-      const mathNote = this.#transloco.translate('markdownField.mermaidMathNote');
-      const errorLabel = this.#transloco.translate('markdownField.mermaidError');
-      void renderCourseDiagrams(base, theme, mathNote, errorLabel).then((enhanced) => {
-        if (!stale) {
-          this.#previewHtml.set(this.#sanitizer.bypassSecurityTrustHtml(enhanced));
-        }
-      });
     });
   }
 
