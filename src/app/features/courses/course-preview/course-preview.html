@@ -13,10 +13,10 @@
           }
           @switch (block.type) {
             @case ('texte') {
-              <app-markdown-view [markdown]="textMarkdown(block)" />
+              <app-markdown-view [markdown]="textMarkdown(block)" [courseId]="courseId()" />
             }
             @case ('exercice') {
-              <app-markdown-view [markdown]="exerciseMarkdown(block)" />
+              <app-markdown-view [markdown]="exerciseMarkdown(block)" [courseId]="courseId()" />
             }
             @case ('document') {
               <app-course-preview-document

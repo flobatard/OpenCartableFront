@@ -132,6 +132,35 @@
   text-align: center;
 }
 
+/* Médias de ressources intégrés au markdown (résolus par resolveCourseResources
+   en URL présignée) : contraints à la largeur de lecture. Le rythme vertical
+   vient du <p> qui les enveloppe (marked entoure une image/un lien isolé). */
+.course-content img,
+.course-content video {
+  max-width: 100%;
+  height: auto;
+}
+
+.course-content img {
+  border-radius: var(--radius);
+}
+
+.course-content audio {
+  max-width: 100%;
+}
+
+/* Ressource supprimée / indisponible : note atténuée à la place du média (jamais
+   slate-400 pour du texte). Le pending (avant résolution) est furtif. */
+.course-content .course-resource--missing {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.875em;
+  font-style: italic;
+}
+
 /* Thème sombre */
 [data-theme='dark'] {
   --color-primary: var(--indigo-500);

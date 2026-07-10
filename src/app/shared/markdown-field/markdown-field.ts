@@ -4,6 +4,7 @@ import {
   ElementRef,
   forwardRef,
   inject,
+  input,
   signal,
   viewChild,
 } from '@angular/core';
@@ -15,9 +16,13 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { buildResourceMarkdown } from '../../core/markdown/course-resource-ref';
+import { CourseResource } from '../../core/resources/resource.model';
+import { ResourceService } from '../../core/resources/resource.service';
 import { MarkdownEditor } from '../markdown-editor/markdown-editor';
 import { MarkdownHelpDialog } from '../markdown-help-dialog/markdown-help-dialog';
 import { MarkdownView } from '../markdown-view/markdown-view';
+import { ResourcePickerDialog } from '../resource-picker-dialog/resource-picker-dialog';
 
 /** Suffixe d'ids uniques par instance (le tablist ARIA doit être unique — un
     écran peut monter plusieurs champs). Compteur de module, jamais Date/Random. */
@@ -38,7 +43,14 @@ type FieldTab = 'editor' | 'preview';
  */
 @Component({
   selector: 'app-markdown-field',
-  imports: [ReactiveFormsModule, TranslocoPipe, MarkdownEditor, MarkdownHelpDialog, MarkdownView],
+  imports: [
+    ReactiveFormsModule,
+    TranslocoPipe,
+    MarkdownEditor,
+    MarkdownHelpDialog,
+    MarkdownView,
+    ResourcePickerDialog,
+  ],
   templateUrl: './markdown-field.html',
   styleUrl: './markdown-field.scss',
   providers: [
@@ -62,6 +74,26 @@ export class MarkdownField implements ControlValueAccessor {
   protected readonly editorTabRef = viewChild<ElementRef<HTMLButtonElement>>('editorTab');
   protected readonly previewTabRef = viewChild<ElementRef<HTMLButtonElement>>('previewTab');
   protected readonly help = viewChild(MarkdownHelpDialog);
+  protected readonly editorRef = viewChild(MarkdownEditor);
+  protected readonly picker = viewChild(ResourcePickerDialog);
+
+  readonly #resources = inject(ResourceService);
+
+  /**
+   * Cours propriétaire des ressources insérables. `null` (défaut) : pas de
+   * bouton d'insertion (champ hors contexte cours). Descendu à l'aperçu pour la
+   * résolution des `oc-resource:`.
+   */
+  readonly courseId = input<string | null>(null);
+
+  /** Bouton d'insertion + picker proposés uniquement en contexte cours (id non vide). */
+  protected readonly canInsert = computed(() => !!this.courseId());
+
+  /** Ressources insérables : celles `disponible` de la bibliothèque (chargée
+      par la page hôte : block-editor / course-preview). */
+  protected readonly availableResources = computed(() =>
+    this.#resources.list().filter((r) => r.statut === 'disponible'),
+  );
 
   /** Valeur locale en cours de frappe — alimente l'aperçu (pas une version
       sauvegardée). Public : le template la passe à `app-markdown-view`. */
@@ -125,5 +157,16 @@ export class MarkdownField implements ControlValueAccessor {
 
   protected openHelp(): void {
     this.help()?.open();
+  }
+
+  // --- Insertion de ressource --------------------------------------------------
+
+  protected openPicker(): void {
+    this.picker()?.open();
+  }
+
+  /** Ressource choisie : insère le snippet markdown au curseur de l'éditeur. */
+  protected onPick(resource: CourseResource): void {
+    this.editorRef()?.insertAtCursor(buildResourceMarkdown(resource));
   }
 }

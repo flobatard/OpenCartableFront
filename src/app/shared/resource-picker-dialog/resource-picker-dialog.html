@@ -1,0 +1,41 @@
+<dialog
+  #dialogEl
+  class="res-picker"
+  aria-labelledby="res-picker-title"
+  (click)="onBackdropClick($event)"
+>
+  <div class="res-picker__inner">
+    <header class="res-picker__head">
+      <h2 id="res-picker-title" class="res-picker__title">
+        {{ 'resourcePicker.title' | transloco }}
+      </h2>
+      <button
+        type="button"
+        class="res-picker__close"
+        [attr.aria-label]="'resourcePicker.close' | transloco"
+        (click)="close()"
+      >
+        ×
+      </button>
+    </header>
+
+    <div class="res-picker__body">
+      @if (resources().length) {
+        <ul class="res-picker__list">
+          @for (resource of resources(); track resource.id) {
+            <li>
+              <button type="button" class="res-picker__item" (click)="select(resource)">
+                <span class="res-picker__type">
+                  {{ 'courses.resources.types.' + resource.type | transloco }}
+                </span>
+                <span class="res-picker__name">{{ resource.nom_original }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="res-picker__empty">{{ 'resourcePicker.empty' | transloco }}</p>
+      }
+    </div>
+  </div>
+</dialog>

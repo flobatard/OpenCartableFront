@@ -2,9 +2,11 @@ import type { Mock } from 'vitest';
 import mermaid from 'mermaid';
 import {
   hasCourseDiagrams,
+  hasCourseResources,
   mermaidSourceHasMath,
   renderCourseDiagrams,
   renderCourseMarkdown,
+  resolveCourseResources,
 } from './course-markdown';
 
 // mermaid est importé dynamiquement par renderCourseDiagrams ; on le stubbe
@@ -212,6 +214,129 @@ describe('renderCourseDiagrams (Mermaid)', () => {
 
     expect(out).toContain('course-mermaid--error');
     expect(out).not.toContain('course-mermaid__note');
+  });
+});
+
+describe('ressources intégrées (oc-resource)', () => {
+  it('une image oc-resource devient un placeholder data-oc-resource-id sans src', () => {
+    const div = render('![Photo de classe](oc-resource:abc-123)');
+    const img = div.querySelector('img');
+    expect(img?.getAttribute('data-oc-resource-id')).toBe('abc-123');
+    expect(img?.hasAttribute('src')).toBe(false);
+    expect(img?.getAttribute('alt')).toBe('Photo de classe');
+    expect(img?.classList.contains('course-resource--pending')).toBe(true);
+  });
+
+  it('un lien oc-resource devient un <a> sans href, texte interne préservé', () => {
+    const div = render('[le **doc**](oc-resource:def-456)');
+    const a = div.querySelector('a');
+    expect(a?.getAttribute('data-oc-resource-id')).toBe('def-456');
+    expect(a?.hasAttribute('href')).toBe(false);
+    expect(a?.querySelector('strong')?.textContent).toBe('doc');
+  });
+
+  it('une image/lien externe garde le rendu markdown par défaut', () => {
+    const div = render('![y](https://img.test/a.png) et [ext](https://x.test)');
+    expect(div.querySelector('img')?.getAttribute('src')).toBe('https://img.test/a.png');
+    expect(div.querySelector('img')?.hasAttribute('data-oc-resource-id')).toBe(false);
+    expect(div.querySelector('a')?.getAttribute('href')).toBe('https://x.test');
+  });
+
+  it('oc-resource dans un bloc de code n’est pas transformé', () => {
+    const div = render('```\n![x](oc-resource:zzz)\n```');
+    expect(div.querySelector('[data-oc-resource-id]')).toBeNull();
+    expect(div.textContent).toContain('oc-resource:zzz');
+  });
+});
+
+describe('resolveCourseResources', () => {
+  const MISSING = 'Ressource indisponible';
+
+  /** Résout puis rend dans un div jsdom pour interroger le DOM produit. */
+  async function resolveInto(
+    markdown: string,
+    resolve: Parameters<typeof resolveCourseResources>[1],
+  ): Promise<HTMLDivElement> {
+    const div = document.createElement('div');
+    div.innerHTML = await resolveCourseResources(renderCourseMarkdown(markdown), resolve, MISSING);
+    return div;
+  }
+
+  it('détecte la présence de références', () => {
+    expect(hasCourseResources(renderCourseMarkdown('![a](oc-resource:x)'))).toBe(true);
+    expect(hasCourseResources(renderCourseMarkdown('## Titre'))).toBe(false);
+  });
+
+  it('résout une image en <img> présigné (placeholder retiré)', async () => {
+    const resolve = vi
+      .fn()
+      .mockResolvedValue({ url: 'https://s3.test/img.png', kind: 'image', label: 'Photo' });
+    const div = await resolveInto('![Photo](oc-resource:img-1)', resolve);
+    const img = div.querySelector('img');
+    expect(img?.getAttribute('src')).toBe('https://s3.test/img.png');
+    expect(img?.getAttribute('alt')).toBe('Photo');
+    expect(img?.hasAttribute('data-oc-resource-id')).toBe(false);
+    expect(resolve).toHaveBeenCalledWith('img-1');
+  });
+
+  it('résout audio et vidéo en lecteurs intégrés (élément choisi par le type)', async () => {
+    const audio = (
+      await resolveInto('[son](oc-resource:a-1)', () =>
+        Promise.resolve({ url: 'https://s3.test/a.mp3', kind: 'audio', label: 'son' }),
+      )
+    ).querySelector('audio');
+    expect(audio?.getAttribute('src')).toBe('https://s3.test/a.mp3');
+    expect(audio?.hasAttribute('controls')).toBe(true);
+
+    const video = (
+      await resolveInto('[clip](oc-resource:v-1)', () =>
+        Promise.resolve({ url: 'https://s3.test/v.mp4', kind: 'video', label: 'clip' }),
+      )
+    ).querySelector('video');
+    expect(video?.getAttribute('src')).toBe('https://s3.test/v.mp4');
+    expect(video?.hasAttribute('controls')).toBe(true);
+  });
+
+  it('résout un document en lien téléchargeable (nouvel onglet)', async () => {
+    const a = (
+      await resolveInto('[Énoncé.pdf](oc-resource:d-1)', () =>
+        Promise.resolve({ url: 'https://s3.test/e.pdf', kind: 'link', label: 'Énoncé.pdf' }),
+      )
+    ).querySelector('a');
+    expect(a?.getAttribute('href')).toBe('https://s3.test/e.pdf');
+    expect(a?.getAttribute('target')).toBe('_blank');
+    expect(a?.getAttribute('rel')).toContain('noopener');
+    expect(a?.textContent).toBe('Énoncé.pdf');
+  });
+
+  it('ressource indisponible (null) : note « indisponible »', async () => {
+    const div = await resolveInto('![x](oc-resource:gone)', () => Promise.resolve(null));
+    expect(div.querySelector('img')).toBeNull();
+    expect(div.querySelector('.course-resource--missing')?.textContent).toBe(MISSING);
+  });
+
+  it('échec du resolve (rejet) : traité comme indisponible', async () => {
+    const div = await resolveInto('![x](oc-resource:boom)', () =>
+      Promise.reject(new Error('nope')),
+    );
+    expect(div.querySelector('.course-resource--missing')).toBeTruthy();
+  });
+
+  it('un id référencé plusieurs fois n’est présigné qu’une seule fois', async () => {
+    const resolve = vi
+      .fn()
+      .mockResolvedValue({ url: 'https://s3.test/x.png', kind: 'image', label: 'x' });
+    const div = await resolveInto('![a](oc-resource:dup)\n\n![b](oc-resource:dup)', resolve);
+    expect(resolve).toHaveBeenCalledTimes(1);
+    expect(div.querySelectorAll('img')).toHaveLength(2);
+  });
+
+  it('sans référence : HTML inchangé, resolve jamais appelé', async () => {
+    const html = renderCourseMarkdown('Juste du **texte**.');
+    const resolve = vi.fn();
+    const out = await resolveCourseResources(html, resolve, MISSING);
+    expect(out).toBe(html);
+    expect(resolve).not.toHaveBeenCalled();
   });
 });
 

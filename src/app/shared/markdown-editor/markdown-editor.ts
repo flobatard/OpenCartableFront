@@ -97,6 +97,8 @@ export class MarkdownEditor implements ControlValueAccessor {
   readonly #ready = signal(false);
   /** Vrai une fois monaco initialisé ; pilote l'overlay de chargement. */
   protected readonly ready = this.#ready.asReadonly();
+  /** Instance monaco captée à l'init — support de `insertAtCursor`. */
+  #editor: editor.IStandaloneCodeEditor | null = null;
   #value = '';
   #touched = false;
   #onChange: (value: string) => void = () => {};
@@ -125,11 +127,28 @@ export class MarkdownEditor implements ControlValueAccessor {
     });
   }
 
-  protected onEditorInit(): void {
+  protected onEditorInit(instance: editor.IStandaloneCodeEditor): void {
+    this.#editor = instance;
     this.#ready.set(true);
     // La webfont JetBrains Mono arrive souvent après monaco : re-mesurer,
     // sinon curseur et sélection sont décalés.
     document.fonts?.ready.then(() => monacoGlobal()?.editor.remeasureFonts());
+  }
+
+  /**
+   * Insère `text` à la position du curseur (ou remplace la sélection) et rend le
+   * focus à l'éditeur. La mutation du modèle passe la garde anti-écho
+   * ci-dessus et se propage seule au contrôle hôte — pas de `#onChange` manuel.
+   * Sans instance monaco (SSR/jsdom, non initialisé), l'appel est sans effet.
+   */
+  insertAtCursor(text: string): void {
+    const ed = this.#editor;
+    const selection = ed?.getSelection();
+    if (!ed || !selection) {
+      return;
+    }
+    ed.executeEdits('insert-resource', [{ range: selection, text, forceMoveMarkers: true }]);
+    ed.focus();
   }
 
   // --- ControlValueAccessor ---------------------------------------------------

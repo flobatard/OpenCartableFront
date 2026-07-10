@@ -1,8 +1,10 @@
+import { signal } from '@angular/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ExerciseEditor } from './exercise-editor';
 import { ExerciseContentPayload } from '../../../core/courses/course.model';
 import { ExerciseQuestionGroup } from '../../../core/courses/exercise-form';
+import { ResourceService } from '../../../core/resources/resource.service';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
 
 /**
@@ -19,11 +21,20 @@ describe('ExerciseEditor', () => {
     ],
   };
 
+  // markdown-field (picker) et markdown-view (aperçu) injectent ResourceService.
+  const resourcesMock = {
+    list: signal([]),
+    listLoading: signal(false),
+    loadList: vi.fn(),
+    getDownloadUrl: vi.fn(),
+  };
+
   async function createComponent(
     initial: Record<string, unknown> = CONTENT,
   ): Promise<ComponentFixture<ExerciseEditor>> {
     await TestBed.configureTestingModule({
       imports: [ExerciseEditor, provideTranslocoTesting()],
+      providers: [{ provide: ResourceService, useValue: resourcesMock }],
     }).compileComponents();
     const fixture = TestBed.createComponent(ExerciseEditor);
     fixture.componentRef.setInput('initial', initial);

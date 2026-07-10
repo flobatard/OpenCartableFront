@@ -117,10 +117,11 @@
           >
             <div class="block-editor__editor-col" [style.--editor-basis]="editorPct() + '%'">
               @if (block.type === 'texte') {
-                <app-markdown-field [formControl]="content" />
+                <app-markdown-field [formControl]="content" [courseId]="courseId" />
               } @else {
                 <app-exercise-editor
                   [initial]="block.content"
+                  [courseId]="courseId"
                   (contentChange)="onExerciseDraft($event)"
                 />
               }

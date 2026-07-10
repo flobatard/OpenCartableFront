@@ -198,10 +198,13 @@ export class BlockEditor implements OnInit, OnDestroy {
       }
     });
 
-    // Bibliothèque du cours chargée UNE FOIS quand le bloc édité est un
-    // document (le picker n'existe pas pour les autres types).
+    // Bibliothèque du cours chargée UNE FOIS pour tout bloc à contenu éditable :
+    // picker de ressource du bloc document, mais aussi picker d'insertion et
+    // résolution de l'aperçu des blocs texte/exercice (markdown-field).
     effect(() => {
-      if (this.block()?.type === 'document' && !this.#resourcesRequested) {
+      const type = this.block()?.type;
+      const needsResources = type === 'texte' || type === 'exercice' || type === 'document';
+      if (needsResources && !this.#resourcesRequested) {
         this.#resourcesRequested = true;
         this.#resources.loadList(this.courseId);
       }

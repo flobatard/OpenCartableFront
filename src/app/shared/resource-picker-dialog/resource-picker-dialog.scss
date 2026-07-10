@@ -1,0 +1,127 @@
+/* Modale de choix de ressource (élément <dialog> natif) — motif .md-help. ------- */
+
+.res-picker {
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100dvh - 64px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.res-picker::backdrop {
+  background: rgb(15 23 42 / 55%);
+}
+
+.res-picker__inner {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 64px);
+}
+
+.res-picker__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.res-picker__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+.res-picker__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.res-picker__close:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.res-picker__body {
+  padding: 12px 20px 20px;
+  overflow-y: auto;
+}
+
+.res-picker__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.res-picker__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.res-picker__item:hover,
+.res-picker__item:focus-visible {
+  background: var(--bg-subtle);
+  border-color: var(--color-primary);
+}
+
+.res-picker__type {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--slate-700);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.res-picker__item:hover .res-picker__type,
+.res-picker__item:focus-visible .res-picker__type {
+  background: var(--bg-surface);
+}
+
+:host-context([data-theme='dark']) .res-picker__type {
+  color: var(--slate-100);
+}
+
+.res-picker__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.res-picker__empty {
+  margin: 0;
+  padding: 24px 0;
+  color: var(--text-secondary);
+  text-align: center;
+}

@@ -45,10 +45,17 @@
     [hidden]="activeTab() !== 'editor'"
   >
     <app-markdown-editor [formControl]="control" />
-    <button type="button" class="pill markdown-field__help-btn" (click)="openHelp()">
-      <span class="markdown-field__help-icon" aria-hidden="true">?</span>
-      {{ 'markdownHelp.trigger' | transloco }}
-    </button>
+    <div class="markdown-field__actions">
+      @if (canInsert()) {
+        <button type="button" class="pill markdown-field__insert-btn" (click)="openPicker()">
+          {{ 'markdownField.insertResource' | transloco }}
+        </button>
+      }
+      <button type="button" class="pill markdown-field__help-btn" (click)="openHelp()">
+        <span class="markdown-field__help-icon" aria-hidden="true">?</span>
+        {{ 'markdownHelp.trigger' | transloco }}
+      </button>
+    </div>
   </div>
 
   @if (activeTab() === 'preview') {
@@ -59,7 +66,11 @@
       [attr.aria-labelledby]="uid + '-tab-preview'"
     >
       @if (hasDraft()) {
-        <app-markdown-view class="markdown-field__preview" [markdown]="draft()" />
+        <app-markdown-view
+          class="markdown-field__preview"
+          [markdown]="draft()"
+          [courseId]="courseId()"
+        />
       } @else {
         <p class="markdown-field__preview-empty">
           {{ 'markdownField.previewEmpty' | transloco }}
@@ -69,4 +80,5 @@
   }
 
   <app-markdown-help-dialog />
+  <app-resource-picker-dialog [resources]="availableResources()" (pick)="onPick($event)" />
 </div>

@@ -85,6 +85,13 @@ export class ExerciseEditor {
   readonly contentChange = output<ExerciseContentPayload>();
 
   /**
+   * Cours propriétaire des ressources — descendu à chaque `app-markdown-field`
+   * (picker d'insertion + résolution de l'aperçu) et à l'aperçu complet. `null`
+   * (défaut) hors contexte cours.
+   */
+  readonly courseId = input<string | null>(null);
+
+  /**
    * Formulaire de l'exercice. Public — exception à la convention `protected` :
    * jsdom ne peut pas taper dans monaco, les specs et le block-editor
    * (write-back des ids) pilotent ce formulaire.

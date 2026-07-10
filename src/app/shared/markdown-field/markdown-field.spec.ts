@@ -1,20 +1,37 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { MarkdownField } from './markdown-field';
+import { MarkdownEditor } from '../markdown-editor/markdown-editor';
+import { ResourceService } from '../../core/resources/resource.service';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
+import { COURSE_RESOURCES_FIXTURE } from '../../testing/resources.fixture';
 
 /**
  * Monaco reste inerte en jsdom (loader AMD non chargé) : les specs pilotent le
  * FormControl public `control`. L'aperçu (marked + KaTeX) tourne, lui, en jsdom.
+ * `ResourceService` (picker d'insertion + résolution de l'aperçu) est mocké.
  */
 describe('MarkdownField', () => {
+  const resourcesMock = {
+    list: signal(COURSE_RESOURCES_FIXTURE),
+    listLoading: signal(false),
+    loadList: vi.fn(),
+    getDownloadUrl: vi.fn().mockResolvedValue('https://s3.example/presigned'),
+  };
+
   async function configure(): Promise<void> {
     await TestBed.configureTestingModule({
       imports: [MarkdownField, provideTranslocoTesting()],
+      providers: [{ provide: ResourceService, useValue: resourcesMock }],
     }).compileComponents();
   }
 
-  async function instantiate(): Promise<ComponentFixture<MarkdownField>> {
+  async function instantiate(courseId: string | null = null): Promise<ComponentFixture<MarkdownField>> {
     const fixture = TestBed.createComponent(MarkdownField);
+    if (courseId !== null) {
+      fixture.componentRef.setInput('courseId', courseId);
+    }
     await fixture.whenStable();
     return fixture;
   }
@@ -108,5 +125,29 @@ describe('MarkdownField', () => {
     expect(tabs(a)[0].getAttribute('aria-controls')).toBe(
       a.nativeElement.querySelector('.markdown-field__panel--editor')?.id,
     );
+  });
+
+  it('sans courseId : pas de bouton d’insertion de ressource', async () => {
+    const fixture = await createComponent();
+    expect(el(fixture).querySelector('.markdown-field__insert-btn')).toBeNull();
+  });
+
+  it('avec courseId : le bouton d’insertion de ressource apparaît', async () => {
+    await configure();
+    const fixture = await instantiate('course-1');
+    expect(el(fixture).querySelector('.markdown-field__insert-btn')).toBeTruthy();
+  });
+
+  it('choisir une ressource insère son snippet markdown au curseur', async () => {
+    await configure();
+    const fixture = await instantiate('course-1');
+    const editor = fixture.debugElement.query(By.directive(MarkdownEditor))
+      .componentInstance as MarkdownEditor;
+    const insert = vi.spyOn(editor, 'insertAtCursor');
+
+    // Le picker (toujours monté) liste les ressources `disponible` ; on clique la 1re.
+    el(fixture).querySelector<HTMLButtonElement>('.res-picker__item')!.click();
+
+    expect(insert).toHaveBeenCalledWith('[schema-suites.pdf](oc-resource:resource-1)');
   });
 });

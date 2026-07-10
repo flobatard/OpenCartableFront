@@ -226,7 +226,14 @@
     },
     "previewEmpty": "Nothing to show yet — write some markdown in the editor.",
     "mermaidMathNote": "LaTeX formulas are not rendered inside Mermaid nodes; place them in the text, around the diagram.",
-    "mermaidError": "Invalid Mermaid diagram:"
+    "mermaidError": "Invalid Mermaid diagram:",
+    "insertResource": "Insert a resource",
+    "resourceMissing": "Resource unavailable"
+  },
+  "resourcePicker": {
+    "title": "Insert a resource",
+    "close": "Close",
+    "empty": "No resource available. Add some from the Resources tab."
   },
   "markdownHelp": {
     "trigger": "Formatting help",
@@ -246,7 +253,8 @@
       "image": "Image",
       "quote": "Quote",
       "code": "Inline code",
-      "rule": "Horizontal separator"
+      "rule": "Horizontal separator",
+      "resourceNote": "To insert a library file (image, audio, video, document), use the “Insert a resource” button below the editor: the link stays valid over time, unlike a URL pasted by hand."
     },
     "latex": {
       "title": "Formulas (LaTeX)",

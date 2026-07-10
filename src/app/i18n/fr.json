@@ -226,7 +226,14 @@
     },
     "previewEmpty": "Rien à afficher pour l'instant — écris du markdown dans l'éditeur.",
     "mermaidMathNote": "Les formules LaTeX ne sont pas rendues dans les nœuds Mermaid ; placez-les dans le texte, autour du diagramme.",
-    "mermaidError": "Diagramme Mermaid invalide :"
+    "mermaidError": "Diagramme Mermaid invalide :",
+    "insertResource": "Insérer une ressource",
+    "resourceMissing": "Ressource indisponible"
+  },
+  "resourcePicker": {
+    "title": "Insérer une ressource",
+    "close": "Fermer",
+    "empty": "Aucune ressource disponible. Ajoutez-en dans l'onglet Ressources."
   },
   "markdownHelp": {
     "trigger": "Aide à la mise en forme",
@@ -246,7 +253,8 @@
       "image": "Image",
       "quote": "Citation",
       "code": "Code en ligne",
-      "rule": "Séparateur horizontal"
+      "rule": "Séparateur horizontal",
+      "resourceNote": "Pour insérer un fichier de la bibliothèque (image, audio, vidéo, document), utilisez le bouton « Insérer une ressource » sous l'éditeur : le lien reste valide dans le temps, contrairement à une URL collée à la main."
     },
     "latex": {
       "title": "Formules (LaTeX)",

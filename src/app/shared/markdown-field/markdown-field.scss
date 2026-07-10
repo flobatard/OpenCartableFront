@@ -58,9 +58,19 @@
   text-align: center;
 }
 
-/* Bouton d'aide (pilule globale + espacement propre, sous l'éditeur). */
+/* Barre d'actions sous l'éditeur : insertion de ressource + aide (pilules globales). */
+.markdown-field__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.markdown-field__insert-btn {
+  padding: 4px 12px;
+}
+
 .markdown-field__help-btn {
-  margin: 8px 0 0;
   padding: 4px 12px 4px 6px;
 }
 

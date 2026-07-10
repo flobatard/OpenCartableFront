@@ -29,6 +29,7 @@ describe('CoursePreview', () => {
   const coursesMock = { detail };
   const resourcesMock = {
     list: signal(COURSE_RESOURCES_FIXTURE),
+    listLoading: signal(false),
     loadList: vi.fn(),
     getDownloadUrl: vi.fn().mockResolvedValue('https://s3.example/presigned'),
   };

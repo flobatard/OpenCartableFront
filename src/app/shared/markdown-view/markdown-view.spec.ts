@@ -1,18 +1,45 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MarkdownView } from './markdown-view';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
+import { ResourceService } from '../../core/resources/resource.service';
+import { COURSE_RESOURCES_FIXTURE } from '../../testing/resources.fixture';
 
 /**
  * Le rendu markdown+KaTeX (marked) tourne en jsdom ; la passe Mermaid, non
- * (elle exige un vrai navigateur) — on n'asserte donc que la sortie synchrone.
+ * (elle exige un vrai navigateur). La passe ressources, elle, tourne (DOMParser
+ * jsdom) : `ResourceService` est mocké par des signaux + vi.fn().
  */
 describe('MarkdownView', () => {
-  async function createComponent(markdown: string): Promise<ComponentFixture<MarkdownView>> {
+  let resourcesMock: {
+    list: ReturnType<typeof signal<typeof COURSE_RESOURCES_FIXTURE>>;
+    listLoading: ReturnType<typeof signal<boolean>>;
+    loadList: ReturnType<typeof vi.fn>;
+    getDownloadUrl: ReturnType<typeof vi.fn>;
+  };
+
+  beforeEach(() => {
+    resourcesMock = {
+      list: signal(COURSE_RESOURCES_FIXTURE),
+      listLoading: signal(false),
+      loadList: vi.fn(),
+      getDownloadUrl: vi.fn().mockResolvedValue('https://s3.example/presigned'),
+    };
+  });
+
+  async function createComponent(
+    markdown: string,
+    courseId: string | null = null,
+  ): Promise<ComponentFixture<MarkdownView>> {
     await TestBed.configureTestingModule({
       imports: [MarkdownView, provideTranslocoTesting()],
+      providers: [{ provide: ResourceService, useValue: resourcesMock }],
     }).compileComponents();
     const fixture = TestBed.createComponent(MarkdownView);
     fixture.componentRef.setInput('markdown', markdown);
+    if (courseId !== null) {
+      fixture.componentRef.setInput('courseId', courseId);
+    }
     await fixture.whenStable();
     return fixture;
   }
@@ -35,5 +62,35 @@ describe('MarkdownView', () => {
   it('un markdown vide ne rend aucun contenu', async () => {
     const fixture = await createComponent('');
     expect(content(fixture)?.innerHTML.trim()).toBe('');
+  });
+
+  it('sans courseId, une référence oc-resource reste un placeholder non résolu', async () => {
+    const fixture = await createComponent('![illus](oc-resource:resource-2)');
+    await fixture.whenStable();
+    expect(resourcesMock.getDownloadUrl).not.toHaveBeenCalled();
+    expect(content(fixture)?.querySelector('[data-oc-resource-id]')).toBeTruthy();
+  });
+
+  it('avec un courseId, résout une image oc-resource via getDownloadUrl', async () => {
+    const fixture = await createComponent('![illus](oc-resource:resource-2)', 'course-1');
+    await fixture.whenStable();
+    // laisse la chaîne async (présignature + passe DOM) se dérouler.
+    await new Promise((resolve) => setTimeout(resolve));
+    fixture.detectChanges();
+
+    expect(resourcesMock.getDownloadUrl).toHaveBeenCalledWith('course-1', 'resource-2');
+    const img = content(fixture)?.querySelector('img');
+    expect(img?.getAttribute('src')).toBe('https://s3.example/presigned');
+    expect(content(fixture)?.querySelector('[data-oc-resource-id]')).toBeNull();
+  });
+
+  it('une référence en_attente n’est pas présignée (note indisponible)', async () => {
+    const fixture = await createComponent('[capsule](oc-resource:resource-3)', 'course-1');
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve));
+    fixture.detectChanges();
+
+    expect(resourcesMock.getDownloadUrl).not.toHaveBeenCalled();
+    expect(content(fixture)?.querySelector('.course-resource--missing')).toBeTruthy();
   });
 });

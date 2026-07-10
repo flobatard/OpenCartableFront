@@ -18,7 +18,10 @@ class Host {
   readonly control = new FormControl('', { nonNullable: true });
 }
 
-type MarkdownEditorInternals = { inner: FormControl<string> };
+type MarkdownEditorInternals = {
+  inner: FormControl<string>;
+  onEditorInit(instance: unknown): void;
+};
 
 describe('MarkdownEditor', () => {
   async function createHost(): Promise<ComponentFixture<Host>> {
@@ -79,5 +82,36 @@ describe('MarkdownEditor', () => {
 
     fixture.componentInstance.control.enable();
     expect(inner(fixture).disabled).toBe(false);
+  });
+
+  function editorOf(fixture: ComponentFixture<Host>): MarkdownEditor {
+    return fixture.debugElement.query(By.directive(MarkdownEditor)).componentInstance as MarkdownEditor;
+  }
+
+  it('insertAtCursor est sans effet tant que monaco n’est pas initialisé', async () => {
+    const fixture = await createHost();
+
+    expect(() => editorOf(fixture).insertAtCursor('![x](oc-resource:1)')).not.toThrow();
+    expect(fixture.componentInstance.control.value).toBe('');
+  });
+
+  it('insertAtCursor délègue à executeEdits de l’instance monaco puis refocus', async () => {
+    const fixture = await createHost();
+    const editor = editorOf(fixture);
+    const executeEdits = vi.fn();
+    const focus = vi.fn();
+    const selection = { startLineNumber: 1, startColumn: 1, endLineNumber: 1, endColumn: 1 };
+    (editor as unknown as MarkdownEditorInternals).onEditorInit({
+      getSelection: () => selection,
+      executeEdits,
+      focus,
+    });
+
+    editor.insertAtCursor('SNIPPET');
+
+    expect(executeEdits).toHaveBeenCalledWith('insert-resource', [
+      { range: selection, text: 'SNIPPET', forceMoveMarkers: true },
+    ]);
+    expect(focus).toHaveBeenCalledOnce();
   });
 });

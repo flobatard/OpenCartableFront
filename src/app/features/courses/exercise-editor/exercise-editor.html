@@ -60,7 +60,7 @@
     [hidden]="activeTab() !== 'sujet'"
   >
     <p class="exercise-editor__hint">{{ 'courses.editor.exercise.sujetHint' | transloco }}</p>
-    <app-markdown-field [formControl]="form.controls.enonce" />
+    <app-markdown-field [formControl]="form.controls.enonce" [courseId]="courseId()" />
   </section>
 
   <section
@@ -189,7 +189,7 @@
                 <span class="exercise-editor__label">
                   {{ 'courses.editor.exercise.enonceLabel' | transloco }}
                 </span>
-                <app-markdown-field [formControl]="group.controls.enonce" />
+                <app-markdown-field [formControl]="group.controls.enonce" [courseId]="courseId()" />
               </div>
 
               <label class="exercise-editor__field">
@@ -241,7 +241,11 @@
       [attr.aria-labelledby]="uid + '-tab-apercu'"
     >
       @if (hasContent()) {
-        <app-markdown-view class="exercise-editor__preview" [markdown]="fullMarkdown()" />
+        <app-markdown-view
+          class="exercise-editor__preview"
+          [markdown]="fullMarkdown()"
+          [courseId]="courseId()"
+        />
       } @else {
         <p class="exercise-editor__empty">
           {{ 'courses.editor.exercise.apercuEmpty' | transloco }}

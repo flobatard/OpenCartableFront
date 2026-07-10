@@ -1,6 +1,6 @@
 @if (isBrowser) {
   <div class="markdown-editor__frame">
-    <ngx-monaco-editor [options]="editorOptions" [formControl]="inner" (onInit)="onEditorInit()" />
+    <ngx-monaco-editor [options]="editorOptions" [formControl]="inner" (onInit)="onEditorInit($event)" />
     @if (!ready()) {
       <div class="markdown-editor__loading">
         <app-spinner size="lg" />
