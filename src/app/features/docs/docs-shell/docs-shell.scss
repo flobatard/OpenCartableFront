@@ -1,0 +1,36 @@
+.docs-shell {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.docs-shell__intro {
+  color: var(--text-secondary);
+  margin: 4px 0 0;
+}
+
+.docs-shell__tabs {
+  margin: 20px 0 8px;
+  flex-wrap: wrap;
+}
+
+// L'utilitaire .tab est pensé pour des <button> ; en lien de navigation, pas de soulignement.
+.docs-shell__tabs .tab {
+  text-decoration: none;
+}
+
+.docs-shell__loading {
+  display: grid;
+  place-items: center;
+  min-height: 200px;
+}
+
+// Slug inconnu / échec d'import : note atténuée (motif documentMissing).
+.docs-shell__notice {
+  display: inline-block;
+  padding: 8px 12px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-style: italic;
+}

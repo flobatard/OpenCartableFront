@@ -1,0 +1,63 @@
+<p class="doc-intro">{{ 'docs.katex.intro' | transloco }}</p>
+
+<section class="doc-section">
+  <h2>{{ 'docs.katex.delimiters.title' | transloco }}</h2>
+  <p>{{ 'docs.katex.delimiters.body' | transloco }}</p>
+  <ul class="doc-rules">
+    <li>{{ 'docs.katex.delimiters.ruleNoSpace' | transloco }}</li>
+    <li>{{ 'docs.katex.delimiters.ruleDigit' | transloco }}</li>
+    <li>{{ 'docs.katex.delimiters.ruleBlockLine' | transloco }}</li>
+    <li>{{ 'docs.katex.delimiters.ruleLiteral' | transloco }}</li>
+  </ul>
+  <app-markdown-playground [initial]="delimitersExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.katex.basics.title' | transloco }}</h2>
+  <p>{{ 'docs.katex.basics.body' | transloco }}</p>
+  <app-markdown-playground [initial]="basicsExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.katex.operators.title' | transloco }}</h2>
+  <p>{{ 'docs.katex.operators.body' | transloco }}</p>
+  <app-markdown-playground [initial]="operatorsExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.katex.symbols.title' | transloco }}</h2>
+  <p>{{ 'docs.katex.symbols.body' | transloco }}</p>
+  <pre class="doc-source">{{ symbolsExample }}</pre>
+  <app-markdown-view [markdown]="symbolsExample" [showPrint]="false" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.katex.matrices.title' | transloco }}</h2>
+  <p>{{ 'docs.katex.matrices.body' | transloco }}</p>
+  <app-markdown-playground [initial]="matricesExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.katex.systems.title' | transloco }}</h2>
+  <p>{{ 'docs.katex.systems.body' | transloco }}</p>
+  <app-markdown-playground [initial]="systemsExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.katex.text.title' | transloco }}</h2>
+  <p>{{ 'docs.katex.text.body' | transloco }}</p>
+  <pre class="doc-source">{{ textExample }}</pre>
+  <app-markdown-view [markdown]="textExample" [showPrint]="false" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.katex.errors.title' | transloco }}</h2>
+  <p>{{ 'docs.katex.errors.body' | transloco }}</p>
+  <app-markdown-view [markdown]="errorExample" [showPrint]="false" />
+</section>
+
+<p class="doc-more">
+  <a href="https://katex.org/docs/supported.html" target="_blank" rel="noopener noreferrer">
+    {{ 'docs.katex.more' | transloco }}
+  </a>
+</p>

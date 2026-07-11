@@ -19,6 +19,7 @@ const FAKE_EXTENSION_DEF = {
   language: 'fake',
   isPrintable: false,
   loadComponent: () => Promise.resolve(FakeExtension as Type<MarkdownExtensionComponent>),
+  doc: { loadComponent: () => Promise.resolve(FakeExtension as Type<unknown>) },
 };
 
 /**

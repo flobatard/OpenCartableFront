@@ -11,3 +11,9 @@
   margin: 0;
   color: var(--text-secondary);
 }
+
+.footer__links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}

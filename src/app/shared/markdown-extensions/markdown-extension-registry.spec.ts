@@ -13,6 +13,9 @@ class FakeExtension implements MarkdownExtensionComponent {
   readonly source = input.required<string>();
 }
 
+/** Doc factice : le champ est requis par le contrat, sans intérêt ici. */
+const FAKE_DOC = { loadComponent: () => Promise.resolve(FakeExtension as Type<unknown>) };
+
 function setup(defs: MarkdownExtensionDef[]): MarkdownExtensionRegistry {
   TestBed.configureTestingModule({
     providers: defs.map((def) => ({ provide: MARKDOWN_EXTENSIONS, useValue: def, multi: true })),
@@ -26,6 +29,7 @@ describe('MarkdownExtensionRegistry', () => {
       language: 'fake',
       isPrintable: true,
       loadComponent: () => Promise.resolve(FakeExtension as Type<MarkdownExtensionComponent>),
+      doc: FAKE_DOC,
     };
     const registry = setup([def]);
     expect(registry.defs).toEqual([def]);
@@ -43,7 +47,7 @@ describe('MarkdownExtensionRegistry', () => {
     const loadComponent = vi
       .fn()
       .mockResolvedValue(FakeExtension as Type<MarkdownExtensionComponent>);
-    const registry = setup([{ language: 'fake', isPrintable: false, loadComponent }]);
+    const registry = setup([{ language: 'fake', isPrintable: false, loadComponent, doc: FAKE_DOC }]);
     const [first, second] = await Promise.all([registry.load('fake'), registry.load('fake')]);
     expect(first).toBe(FakeExtension);
     expect(second).toBe(FakeExtension);
@@ -60,7 +64,7 @@ describe('MarkdownExtensionRegistry', () => {
       .fn()
       .mockRejectedValueOnce(new Error('offline'))
       .mockResolvedValue(FakeExtension as Type<MarkdownExtensionComponent>);
-    const registry = setup([{ language: 'fake', isPrintable: false, loadComponent }]);
+    const registry = setup([{ language: 'fake', isPrintable: false, loadComponent, doc: FAKE_DOC }]);
     await expect(registry.load('fake')).rejects.toThrow('offline');
     await expect(registry.load('fake')).resolves.toBe(FakeExtension);
     expect(loadComponent).toHaveBeenCalledTimes(2);

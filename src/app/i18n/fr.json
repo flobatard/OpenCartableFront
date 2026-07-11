@@ -14,7 +14,8 @@
   },
   "footer": {
     "license": "Logiciel libre sous licence GNU AGPL v3",
-    "sourceCode": "Code source"
+    "sourceCode": "Code source",
+    "docs": "Documentation"
   },
   "home": {
     "title": "OpenCartable",
@@ -246,6 +247,164 @@
       "loadError": "La figure n'a pas pu être tracée."
     }
   },
+  "markdownPlayground": {
+    "editor": "Éditeur",
+    "preview": "Aperçu"
+  },
+  "docs": {
+    "title": "Documentation",
+    "intro": "Chaque langage utilisable dans un bloc de cours a sa page : syntaxe complète et exemples modifiables, rendus en direct.",
+    "tabsLabel": "Langages documentés",
+    "notFound": "Cette page de documentation n'existe pas.",
+    "loadError": "Impossible de charger cette page. Réessayez.",
+    "pages": {
+      "katex": {
+        "title": "Formules (KaTeX)",
+        "summary": "Écrire des formules LaTeX en ligne ($…$) ou centrées ($$…$$)."
+      },
+      "mermaid": {
+        "title": "Diagrammes (Mermaid)",
+        "summary": "Organigrammes, séquences, Gantt… décrits en texte dans un bloc de code."
+      },
+      "geogebra": {
+        "title": "GeoGebra",
+        "summary": "Intégrer une activité publiée sur geogebra.org dans un cours."
+      },
+      "jsxgraph": {
+        "title": "Figures (JSXGraph)",
+        "summary": "Tracer courbes et points interactifs à partir d'équations."
+      }
+    },
+    "katex": {
+      "intro": "Les formules mathématiques s'écrivent en LaTeX et sont rendues par KaTeX, dans tout bloc texte ou exercice. Chaque exemple ci-dessous est modifiable : reprenez-le comme point de départ.",
+      "delimiters": {
+        "title": "Délimiteurs",
+        "body": "Une formule en ligne s'écrit entre $…$, une formule centrée entre $$…$$. Quelques règles évitent de transformer un prix en formule :",
+        "ruleNoSpace": "pas d'espace juste après le $ ouvrant ni juste avant le $ fermant ;",
+        "ruleDigit": "un $ fermant suivi d'un chiffre reste du texte (« 10$ et 20$ ») ;",
+        "ruleBlockLine": "un bloc $$…$$ doit fermer en fin de ligne (contenu multiligne autorisé) ;",
+        "ruleLiteral": "\\$ affiche un dollar littéral."
+      },
+      "basics": {
+        "title": "Fractions, puissances, racines",
+        "body": "\\frac{a}{b} pour une fraction (\\dfrac force la grande taille en ligne), ^ pour l'exposant, _ pour l'indice — accolades obligatoires au-delà d'un caractère —, \\sqrt{x} et \\sqrt[n]{x} pour les racines."
+      },
+      "operators": {
+        "title": "Sommes, intégrales, limites",
+        "body": "Les grands opérateurs portent leurs bornes en indice/exposant : \\sum, \\int, \\lim, \\prod. \\, insère une petite espace (avant dx par exemple)."
+      },
+      "symbols": {
+        "title": "Lettres grecques et symboles",
+        "body": "Les lettres grecques s'écrivent \\alpha, \\pi, \\Omega… ; comparaisons \\le \\ge \\ne \\approx ; opérations \\times \\cdot \\pm ; ensembles \\mathbb{R}, \\in, \\subset, \\cup, \\cap ; flèches \\rightarrow, \\implies, \\iff."
+      },
+      "matrices": {
+        "title": "Matrices",
+        "body": "Environnements pmatrix (parenthèses), bmatrix (crochets) et vmatrix (déterminant) : & sépare les colonnes, \\\\ les lignes."
+      },
+      "systems": {
+        "title": "Systèmes et alignements",
+        "body": "cases pour une définition par morceaux, aligned pour aligner plusieurs égalités sur le signe = (marqué par &)."
+      },
+      "text": {
+        "title": "Texte dans une formule",
+        "body": "\\text{…} insère du texte en romain dans une formule ; \\, \\quad et \\qquad règlent l'espacement."
+      },
+      "errors": {
+        "title": "Formules invalides",
+        "body": "Une formule invalide n'interrompt jamais le rendu du bloc : elle s'affiche en rouge, source visible, le temps de la corriger."
+      },
+      "more": "Liste complète des commandes supportées (katex.org)"
+    },
+    "mermaid": {
+      "intro": "Un bloc de code « mermaid » décrit un diagramme en texte ; il est rendu automatiquement (la source reste visible tant que le rendu n'a pas tourné). Les deux premiers exemples sont modifiables.",
+      "flowchart": {
+        "title": "Organigramme (flowchart)",
+        "body": "graph TD (vertical) ou graph LR (horizontal). Nœuds : [rectangle], {losange décision}, (arrondi). Les flèches --> acceptent une étiquette entre barres : -->|oui|."
+      },
+      "sequence": {
+        "title": "Diagramme de séquence",
+        "body": "sequenceDiagram décrit des échanges : participant déclare un intervenant (avec alias), ->> une flèche pleine, -->> une flèche en retour pointillée."
+      },
+      "gallery": {
+        "title": "Autres types de diagrammes",
+        "body": "Mermaid couvre bien d'autres besoins — chaque source ci-dessous est copiable dans un bloc mermaid :",
+        "classes": "Diagramme de classes",
+        "states": "Diagramme d'états",
+        "pie": "Camembert",
+        "gantt": "Diagramme de Gantt"
+      },
+      "theme": {
+        "title": "Thème",
+        "body": "Le diagramme suit automatiquement le mode clair/sombre de l'application — rien à configurer, ne fixez pas de couleurs dans la source."
+      },
+      "math": {
+        "title": "Limite : pas de LaTeX dans les nœuds",
+        "body": "Les formules $…$ ne sont pas rendues à l'intérieur d'un nœud mermaid (une note le rappelle sous le diagramme). Écrivez la formule dans le texte autour du diagramme."
+      },
+      "errors": {
+        "title": "Diagrammes invalides",
+        "body": "Une source invalide n'interrompt pas le reste du bloc : la source est conservée avec le message d'erreur en légende."
+      },
+      "more": "Documentation complète de Mermaid (mermaid.js.org)"
+    },
+    "geogebra": {
+      "intro": "Un bloc de code « geogebra » intègre une activité GeoGebra publiée sur geogebra.org, affichée dans un cadre interactif.",
+      "findId": {
+        "title": "Trouver l'identifiant d'une activité",
+        "body": "Ouvrez l'activité sur geogebra.org : l'identifiant est le code à la fin de l'adresse. C'est lui seul qu'on renseigne — jamais l'adresse complète."
+      },
+      "keys": {
+        "title": "Clés du bloc",
+        "body": "Une clé par ligne, au format clé=valeur :",
+        "id": "identifiant du matériel (requis, lettres et chiffres uniquement) ;",
+        "width": "largeur en pixels (défaut 600, bornes 200–1200) ;",
+        "height": "hauteur en pixels (défaut 450, bornes 150–900). Valeur non numérique → défaut, hors bornes → ramenée à la borne."
+      },
+      "invalid": {
+        "title": "Identifiant invalide",
+        "body": "Un identifiant qui n'est pas strictement alphanumérique (une URL, par exemple) n'affiche jamais de cadre : une notice le signale."
+      },
+      "print": {
+        "title": "Impression et export PDF",
+        "body": "Une activité GeoGebra est interactive et ne s'imprime pas : dans l'export PDF, elle est remplacée par la note « Contenu interactif : voir la version en ligne »."
+      },
+      "privacy": {
+        "title": "Confidentialité",
+        "body": "Le contenu est chargé depuis geogebra.org (cadre externe, isolé) : les élèves qui consultent le cours chargent une ressource tierce. À prendre en compte dans la politique de données de l'établissement."
+      },
+      "more": "Parcourir les activités publiques (geogebra.org)"
+    },
+    "jsxgraph": {
+      "intro": "Un bloc de code « jsxgraph » trace une figure mathématique (courbes, points) rendue localement — aucun service externe —, interactive (déplacement, zoom) et imprimable.",
+      "first": {
+        "title": "Premier tracé",
+        "body": "equation= trace la courbe d'une fonction de x. Modifiez l'équation ci-dessous et observez le tracé."
+      },
+      "syntax": {
+        "title": "Syntaxe des équations",
+        "body": "Les équations utilisent JessieCode, le langage de JSXGraph :",
+        "operators": "opérateurs + - * / et ^ pour la puissance ;",
+        "multiplication": "multiplication explicite : 2*x, jamais 2x ;",
+        "functions": "fonctions usuelles : sin, cos, tan, exp, log, sqrt, abs."
+      },
+      "multiple": {
+        "title": "Plusieurs courbes et des points",
+        "body": "Répétez equation= pour superposer des courbes, et point=x,y pour marquer des points (ici les intersections)."
+      },
+      "bbox": {
+        "title": "Cadrage",
+        "body": "bbox=xmin,ymax,xmax,ymin définit la zone visible (défaut -5,5,5,-5). Attention à l'ordre : coin haut-gauche puis coin bas-droit."
+      },
+      "errors": {
+        "title": "Entrées invalides",
+        "body": "Une ligne malformée est ignorée (la figure trace ce qui est valide) ; une équation imparsable affiche une notice à la place de la figure."
+      },
+      "print": {
+        "title": "Impression et export PDF",
+        "body": "La figure est dessinée en SVG : elle part telle quelle dans l'export PDF du cours."
+      }
+    }
+  },
   "resourcePicker": {
     "title": "Insérer une ressource",
     "close": "Fermer",
@@ -290,6 +449,15 @@
       "types": "Mermaid gère aussi les diagrammes de séquence, les diagrammes de Gantt, les camemberts et bien d'autres.",
       "mathNote": "Le LaTeX (`$…$`) n'est pas rendu à l'intérieur des nœuds Mermaid : placez vos formules dans le texte, autour du diagramme.",
       "docs": "Voir la documentation de Mermaid"
+    },
+    "fullDocs": "Documentation complète",
+    "geogebra": {
+      "title": "Activités GeoGebra",
+      "intro": "Intègre une activité publiée sur geogebra.org : indiquez son identifiant dans un bloc de code « geogebra »."
+    },
+    "jsxgraph": {
+      "title": "Figures dynamiques (JSXGraph)",
+      "intro": "Trace courbes et points interactifs à partir d'équations, dans un bloc de code « jsxgraph »."
     }
   },
   "courseChat": {

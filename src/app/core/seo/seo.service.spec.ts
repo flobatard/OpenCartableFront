@@ -40,4 +40,21 @@ describe('SeoService', () => {
     seo.applyHome();
     expect(document.head.querySelectorAll('link[rel="canonical"]').length).toBe(1);
   });
+
+  it('apply() générique pose canonical et hreflang sur le chemin donné', () => {
+    TestBed.inject(SeoService).apply({
+      titleKey: 'docs.pages.katex.title',
+      descriptionKey: 'docs.pages.katex.summary',
+      path: 'markdown-language/docs/katex',
+    });
+
+    const canonical = document.head.querySelector('link[rel="canonical"]');
+    expect(canonical?.getAttribute('href')).toBe(
+      'http://localhost:4200/fr/markdown-language/docs/katex',
+    );
+    const altEn = document.head.querySelector('link[rel="alternate"][hreflang="en"]');
+    expect(altEn?.getAttribute('href')).toBe(
+      'http://localhost:4200/en/markdown-language/docs/katex',
+    );
+  });
 });

@@ -1,0 +1,41 @@
+<p class="doc-intro">{{ 'docs.geogebra.intro' | transloco }}</p>
+
+<section class="doc-section">
+  <h2>{{ 'docs.geogebra.findId.title' | transloco }}</h2>
+  <p>{{ 'docs.geogebra.findId.body' | transloco }}</p>
+  <p><code>https://www.geogebra.org/m/RHYH3UQ8</code> → <code>id=RHYH3UQ8</code></p>
+  <app-markdown-playground [initial]="firstExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.geogebra.keys.title' | transloco }}</h2>
+  <p>{{ 'docs.geogebra.keys.body' | transloco }}</p>
+  <ul class="doc-rules">
+    <li><code>id=</code> — {{ 'docs.geogebra.keys.id' | transloco }}</li>
+    <li><code>width=</code> — {{ 'docs.geogebra.keys.width' | transloco }}</li>
+    <li><code>height=</code> — {{ 'docs.geogebra.keys.height' | transloco }}</li>
+  </ul>
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.geogebra.invalid.title' | transloco }}</h2>
+  <p>{{ 'docs.geogebra.invalid.body' | transloco }}</p>
+  <pre class="doc-source">{{ invalidExample }}</pre>
+  <app-markdown-view [markdown]="invalidExample" [showPrint]="false" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.geogebra.print.title' | transloco }}</h2>
+  <p>{{ 'docs.geogebra.print.body' | transloco }}</p>
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.geogebra.privacy.title' | transloco }}</h2>
+  <p>{{ 'docs.geogebra.privacy.body' | transloco }}</p>
+</section>
+
+<p class="doc-more">
+  <a href="https://www.geogebra.org/materials" target="_blank" rel="noopener noreferrer">
+    {{ 'docs.geogebra.more' | transloco }}
+  </a>
+</p>

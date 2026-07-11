@@ -18,12 +18,25 @@ export class SeoService {
   readonly #transloco = inject(TranslocoService);
   readonly #language = inject(LanguageService);
 
-  /** Metadata de la home dans la langue active : title, description, Open Graph, canonical, hreflang. */
+  /** Metadata de la home dans la langue active (délègue à `apply`). */
   applyHome(): void {
+    this.apply({
+      titleKey: 'home.metaTitle',
+      descriptionKey: 'home.metaDescription',
+      path: 'home',
+    });
+  }
+
+  /**
+   * Metadata d'une page publique dans la langue active : title, description,
+   * Open Graph, canonical, hreflang. `path` = chemin sous `/:lang`
+   * (ex. 'home', 'markdown-language/docs/katex').
+   */
+  apply(options: { titleKey: string; descriptionKey: string; path: string }): void {
     const lang = this.#language.lang();
-    const title = this.#transloco.translate('home.metaTitle');
-    const description = this.#transloco.translate('home.metaDescription');
-    const url = this.#homeUrl(lang);
+    const title = this.#transloco.translate(options.titleKey);
+    const description = this.#transloco.translate(options.descriptionKey);
+    const url = this.#pageUrl(lang, options.path);
 
     this.#title.setTitle(title);
     this.#meta.updateTag({ name: 'description', content: description });
@@ -40,13 +53,13 @@ export class SeoService {
 
     this.#upsertLink('canonical', null, url);
     for (const alt of APP_LANGS) {
-      this.#upsertLink('alternate', alt, this.#homeUrl(alt));
+      this.#upsertLink('alternate', alt, this.#pageUrl(alt, options.path));
     }
-    this.#upsertLink('alternate', 'x-default', this.#homeUrl(DEFAULT_LANG));
+    this.#upsertLink('alternate', 'x-default', this.#pageUrl(DEFAULT_LANG, options.path));
   }
 
-  #homeUrl(lang: string): string {
-    return `${environment.siteUrl}/${lang}/home`;
+  #pageUrl(lang: string, path: string): string {
+    return `${environment.siteUrl}/${lang}/${path}`;
   }
 
   /** Crée ou met à jour une balise <link> (canonical / alternate hreflang), sans doublon. */

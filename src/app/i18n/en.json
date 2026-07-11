@@ -14,7 +14,8 @@
   },
   "footer": {
     "license": "Free software under the GNU AGPL v3 license",
-    "sourceCode": "Source code"
+    "sourceCode": "Source code",
+    "docs": "Documentation"
   },
   "home": {
     "title": "OpenCartable",
@@ -246,6 +247,164 @@
       "loadError": "The figure could not be drawn."
     }
   },
+  "markdownPlayground": {
+    "editor": "Editor",
+    "preview": "Preview"
+  },
+  "docs": {
+    "title": "Documentation",
+    "intro": "Every language available in a course block has its page: full syntax and editable examples, rendered live.",
+    "tabsLabel": "Documented languages",
+    "notFound": "This documentation page does not exist.",
+    "loadError": "This page could not be loaded. Try again.",
+    "pages": {
+      "katex": {
+        "title": "Formulas (KaTeX)",
+        "summary": "Write LaTeX formulas inline ($…$) or centered ($$…$$)."
+      },
+      "mermaid": {
+        "title": "Diagrams (Mermaid)",
+        "summary": "Flowcharts, sequences, Gantt charts… described as text in a code block."
+      },
+      "geogebra": {
+        "title": "GeoGebra",
+        "summary": "Embed an activity published on geogebra.org into a course."
+      },
+      "jsxgraph": {
+        "title": "Figures (JSXGraph)",
+        "summary": "Plot interactive curves and points from equations."
+      }
+    },
+    "katex": {
+      "intro": "Mathematical formulas are written in LaTeX and rendered by KaTeX, in any text or exercise block. Every example below is editable: use it as a starting point.",
+      "delimiters": {
+        "title": "Delimiters",
+        "body": "An inline formula goes between $…$, a centered one between $$…$$. A few rules keep prices from turning into formulas:",
+        "ruleNoSpace": "no space right after the opening $ nor right before the closing $;",
+        "ruleDigit": "a closing $ followed by a digit stays plain text (“10$ and 20$”);",
+        "ruleBlockLine": "a $$…$$ block must close at the end of a line (multi-line content allowed);",
+        "ruleLiteral": "\\$ prints a literal dollar sign."
+      },
+      "basics": {
+        "title": "Fractions, powers, roots",
+        "body": "\\frac{a}{b} for a fraction (\\dfrac forces display size inline), ^ for exponents, _ for subscripts — braces required beyond one character —, \\sqrt{x} and \\sqrt[n]{x} for roots."
+      },
+      "operators": {
+        "title": "Sums, integrals, limits",
+        "body": "Big operators take their bounds as sub/superscripts: \\sum, \\int, \\lim, \\prod. \\, inserts a thin space (before dx for instance)."
+      },
+      "symbols": {
+        "title": "Greek letters and symbols",
+        "body": "Greek letters are \\alpha, \\pi, \\Omega…; comparisons \\le \\ge \\ne \\approx; operations \\times \\cdot \\pm; sets \\mathbb{R}, \\in, \\subset, \\cup, \\cap; arrows \\rightarrow, \\implies, \\iff."
+      },
+      "matrices": {
+        "title": "Matrices",
+        "body": "pmatrix (parentheses), bmatrix (brackets) and vmatrix (determinant) environments: & separates columns, \\\\ separates rows."
+      },
+      "systems": {
+        "title": "Systems and alignment",
+        "body": "cases for piecewise definitions, aligned to line up several equalities on the = sign (marked with &)."
+      },
+      "text": {
+        "title": "Text inside a formula",
+        "body": "\\text{…} inserts upright text inside a formula; \\, \\quad and \\qquad control spacing."
+      },
+      "errors": {
+        "title": "Invalid formulas",
+        "body": "An invalid formula never breaks the block: it renders in red with its source visible until you fix it."
+      },
+      "more": "Full list of supported commands (katex.org)"
+    },
+    "mermaid": {
+      "intro": "A “mermaid” code block describes a diagram as text; it renders automatically (the source stays visible until rendering runs). The first two examples are editable.",
+      "flowchart": {
+        "title": "Flowchart",
+        "body": "graph TD (top-down) or graph LR (left-right). Nodes: [rectangle], {decision diamond}, (rounded). Arrows --> take a label between pipes: -->|yes|."
+      },
+      "sequence": {
+        "title": "Sequence diagram",
+        "body": "sequenceDiagram describes exchanges: participant declares an actor (with an alias), ->> a solid arrow, -->> a dashed reply."
+      },
+      "gallery": {
+        "title": "Other diagram types",
+        "body": "Mermaid covers many more needs — each source below can be copied into a mermaid block:",
+        "classes": "Class diagram",
+        "states": "State diagram",
+        "pie": "Pie chart",
+        "gantt": "Gantt chart"
+      },
+      "theme": {
+        "title": "Theme",
+        "body": "Diagrams automatically follow the app's light/dark mode — nothing to configure; do not hardcode colors in the source."
+      },
+      "math": {
+        "title": "Limitation: no LaTeX inside nodes",
+        "body": "$…$ formulas are not rendered inside a mermaid node (a note under the diagram reminds you). Write the formula in the text around the diagram."
+      },
+      "errors": {
+        "title": "Invalid diagrams",
+        "body": "An invalid source does not break the rest of the block: the source is kept with the error message as a caption."
+      },
+      "more": "Full Mermaid documentation (mermaid.js.org)"
+    },
+    "geogebra": {
+      "intro": "A “geogebra” code block embeds a GeoGebra activity published on geogebra.org, displayed in an interactive frame.",
+      "findId": {
+        "title": "Finding an activity's identifier",
+        "body": "Open the activity on geogebra.org: the identifier is the code at the end of the address. That code alone is what you provide — never the full address."
+      },
+      "keys": {
+        "title": "Block keys",
+        "body": "One key per line, in key=value format:",
+        "id": "material identifier (required, letters and digits only);",
+        "width": "width in pixels (default 600, bounds 200–1200);",
+        "height": "height in pixels (default 450, bounds 150–900). Non-numeric value → default, out of bounds → clamped."
+      },
+      "invalid": {
+        "title": "Invalid identifier",
+        "body": "An identifier that is not strictly alphanumeric (a URL, for instance) never renders a frame: a notice points it out."
+      },
+      "print": {
+        "title": "Printing and PDF export",
+        "body": "A GeoGebra activity is interactive and cannot be printed: in the PDF export it is replaced by the note “Interactive content: see the online version”."
+      },
+      "privacy": {
+        "title": "Privacy",
+        "body": "Content is loaded from geogebra.org (external, sandboxed frame): students viewing the course load a third-party resource. Worth factoring into your school's data policy."
+      },
+      "more": "Browse public activities (geogebra.org)"
+    },
+    "jsxgraph": {
+      "intro": "A “jsxgraph” code block draws a mathematical figure (curves, points) rendered locally — no external service —, interactive (pan, zoom) and printable.",
+      "first": {
+        "title": "First plot",
+        "body": "equation= plots the curve of a function of x. Edit the equation below and watch the plot."
+      },
+      "syntax": {
+        "title": "Equation syntax",
+        "body": "Equations use JessieCode, JSXGraph's language:",
+        "operators": "operators + - * / and ^ for powers;",
+        "multiplication": "explicit multiplication: 2*x, never 2x;",
+        "functions": "usual functions: sin, cos, tan, exp, log, sqrt, abs."
+      },
+      "multiple": {
+        "title": "Several curves and points",
+        "body": "Repeat equation= to overlay curves, and point=x,y to mark points (here the intersections)."
+      },
+      "bbox": {
+        "title": "Framing",
+        "body": "bbox=xmin,ymax,xmax,ymin sets the visible area (default -5,5,5,-5). Mind the order: top-left corner then bottom-right corner."
+      },
+      "errors": {
+        "title": "Invalid input",
+        "body": "A malformed line is ignored (the figure draws what is valid); an unparsable equation shows a notice instead of the figure."
+      },
+      "print": {
+        "title": "Printing and PDF export",
+        "body": "The figure is drawn as SVG: it goes into the course PDF export as-is."
+      }
+    }
+  },
   "resourcePicker": {
     "title": "Insert a resource",
     "close": "Close",
@@ -290,6 +449,15 @@
       "types": "Mermaid also supports sequence diagrams, Gantt charts, pie charts and many more.",
       "mathNote": "LaTeX (`$…$`) is not rendered inside Mermaid nodes: put your formulas in the text, around the diagram.",
       "docs": "See the Mermaid documentation"
+    },
+    "fullDocs": "Full documentation",
+    "geogebra": {
+      "title": "GeoGebra activities",
+      "intro": "Embeds an activity published on geogebra.org: provide its identifier in a “geogebra” code block."
+    },
+    "jsxgraph": {
+      "title": "Dynamic figures (JSXGraph)",
+      "intro": "Plots interactive curves and points from equations, in a “jsxgraph” code block."
     }
   },
   "courseChat": {

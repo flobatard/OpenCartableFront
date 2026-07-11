@@ -10,4 +10,5 @@ export const JSXGRAPH_EXTENSION: MarkdownExtensionDef = {
   language: 'jsxgraph',
   isPrintable: true,
   loadComponent: () => import('./jsxgraph-view').then((m) => m.JsxgraphView),
+  doc: { loadComponent: () => import('./jsxgraph-doc').then((m) => m.JsxgraphDoc) },
 };

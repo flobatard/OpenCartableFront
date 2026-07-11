@@ -92,6 +92,12 @@ export class MarkdownView {
    */
   readonly courseId = input<string | null>(null);
 
+  /**
+   * Affiche le bouton d'impression flottant (défaut). Les hôtes qui rendent
+   * beaucoup de petits extraits (pages de doc, playground) le masquent.
+   */
+  readonly showPrint = input<boolean>(true);
+
   /** Cours pour lequel un chargement défensif de la biblio a déjà été tenté. */
   #loadedCourseId: string | null = null;
 

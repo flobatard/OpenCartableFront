@@ -13,6 +13,17 @@ export const serverRoutes: ServerRoute[] = [
     getPrerenderParams: async () => [{ lang: 'fr' }, { lang: 'en' }],
   },
   {
+    // Simple redirection vers la première page de doc : décision côté navigateur.
+    path: ':lang/markdown-language/docs',
+    renderMode: RenderMode.Client,
+  },
+  {
+    // Monaco (playgrounds) + markdown-view (DOMPurify/mermaid/extensions) :
+    // navigateur uniquement, jamais rendu au serveur.
+    path: ':lang/markdown-language/docs/:slug',
+    renderMode: RenderMode.Client,
+  },
+  {
     // Route protégée (authGuard renvoie false au serveur) : rendu navigateur uniquement,
     // jamais prerendered — aucun appel API à l'IdP/back au build.
     path: ':lang/subjects',

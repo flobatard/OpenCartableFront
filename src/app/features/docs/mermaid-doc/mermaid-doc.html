@@ -1,0 +1,57 @@
+<p class="doc-intro">{{ 'docs.mermaid.intro' | transloco }}</p>
+
+<section class="doc-section">
+  <h2>{{ 'docs.mermaid.flowchart.title' | transloco }}</h2>
+  <p>{{ 'docs.mermaid.flowchart.body' | transloco }}</p>
+  <app-markdown-playground [initial]="flowchartExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.mermaid.sequence.title' | transloco }}</h2>
+  <p>{{ 'docs.mermaid.sequence.body' | transloco }}</p>
+  <app-markdown-playground [initial]="sequenceExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.mermaid.gallery.title' | transloco }}</h2>
+  <p>{{ 'docs.mermaid.gallery.body' | transloco }}</p>
+
+  <h3>{{ 'docs.mermaid.gallery.classes' | transloco }}</h3>
+  <pre class="doc-source">{{ classExample }}</pre>
+  <app-markdown-view [markdown]="classExample" [showPrint]="false" />
+
+  <h3>{{ 'docs.mermaid.gallery.states' | transloco }}</h3>
+  <pre class="doc-source">{{ stateExample }}</pre>
+  <app-markdown-view [markdown]="stateExample" [showPrint]="false" />
+
+  <h3>{{ 'docs.mermaid.gallery.pie' | transloco }}</h3>
+  <pre class="doc-source">{{ pieExample }}</pre>
+  <app-markdown-view [markdown]="pieExample" [showPrint]="false" />
+
+  <h3>{{ 'docs.mermaid.gallery.gantt' | transloco }}</h3>
+  <pre class="doc-source">{{ ganttExample }}</pre>
+  <app-markdown-view [markdown]="ganttExample" [showPrint]="false" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.mermaid.theme.title' | transloco }}</h2>
+  <p>{{ 'docs.mermaid.theme.body' | transloco }}</p>
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.mermaid.math.title' | transloco }}</h2>
+  <p>{{ 'docs.mermaid.math.body' | transloco }}</p>
+  <app-markdown-view [markdown]="mathLimitExample" [showPrint]="false" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.mermaid.errors.title' | transloco }}</h2>
+  <p>{{ 'docs.mermaid.errors.body' | transloco }}</p>
+  <app-markdown-view [markdown]="errorExample" [showPrint]="false" />
+</section>
+
+<p class="doc-more">
+  <a href="https://mermaid.js.org/intro/" target="_blank" rel="noopener noreferrer">
+    {{ 'docs.mermaid.more' | transloco }}
+  </a>
+</p>

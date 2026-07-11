@@ -161,3 +161,50 @@
 .cdk-drop-list-dragging .cdk-drag {
   transition: transform 0.18s cubic-bezier(0, 0, 0.2, 1);
 }
+
+/* Sections des pages de documentation des langages markdown (docs-shell +
+   composants de doc — katex-doc, mermaid-doc, geogebra-doc, jsxgraph-doc…).
+   Utilitaires globaux (motif .tabs/.pill) : les composants de doc sont
+   distincts mais partagent cette anatomie. */
+
+.doc-intro {
+  color: var(--text-secondary);
+  margin: 12px 0 0;
+}
+
+.doc-section {
+  margin: 32px 0 0;
+
+  h2 {
+    font-size: 1.25rem;
+    margin: 0 0 8px;
+  }
+
+  h3 {
+    font-size: 1.05rem;
+    margin: 20px 0 8px;
+  }
+}
+
+.doc-rules {
+  margin: 8px 0;
+  padding-left: 20px;
+  color: var(--text-secondary);
+}
+
+/* Source d'un exemple non éditable (le rendu suit) — fonte mono, copiable. */
+.doc-source {
+  margin: 12px 0 8px;
+  padding: 10px 14px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.doc-more {
+  margin: 32px 0 0;
+}

@@ -9,4 +9,5 @@ export const GEOGEBRA_EXTENSION: MarkdownExtensionDef = {
   language: 'geogebra',
   isPrintable: false,
   loadComponent: () => import('./geogebra-view').then((m) => m.GeogebraView),
+  doc: { loadComponent: () => import('./geogebra-doc').then((m) => m.GeogebraDoc) },
 };

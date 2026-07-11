@@ -27,6 +27,19 @@ export const routes: Routes = [
         loadComponent: () => import('./features/home/home').then((m) => m.Home),
       },
       {
+        // Documentation publique des langages du markdown de cours : l'entrée
+        // sans slug retombe sur la première page (KaTeX).
+        path: 'markdown-language/docs',
+        pathMatch: 'full',
+        redirectTo: 'markdown-language/docs/katex',
+      },
+      {
+        // Coquille à onglets ; le composant de doc du slug est monté dynamiquement.
+        path: 'markdown-language/docs/:slug',
+        loadComponent: () =>
+          import('./features/docs/docs-shell/docs-shell').then((m) => m.DocsShell),
+      },
+      {
         // Réservé au prof authentifié ; jamais rendu authentifié au serveur (cf. authGuard).
         path: 'subjects',
         canActivate: [authGuard, onboardingGuard],

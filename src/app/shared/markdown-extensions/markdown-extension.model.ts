@@ -20,6 +20,21 @@ export interface MarkdownExtensionComponent {
   readonly source: InputSignal<string>;
 }
 
+/**
+ * Documentation d'un langage : le composant de sa page
+ * `/:lang/markdown-language/docs/<language>` (prose + exemples rendus +
+ * playgrounds, cf. features/docs). Un composant même minimal est exigé —
+ * l'obligation « chaque langage a sa doc » est portée par le type. Le langage
+ * fournit aussi ses clés i18n `docs.pages.<language>.{title,summary}`.
+ */
+export interface MarkdownExtensionDoc {
+  /**
+   * Import dynamique du composant de doc — jamais statique depuis la def
+   * (il entrerait dans le bundle initial via app.config).
+   */
+  readonly loadComponent: () => Promise<Type<unknown>>;
+}
+
 /** Déclaration d'un langage d'extension. */
 export interface MarkdownExtensionDef {
   /** Identifiant du fence (```geogebra) — minuscules alphanumériques. */
@@ -36,6 +51,8 @@ export interface MarkdownExtensionDef {
    * app.config).
    */
   readonly loadComponent: () => Promise<Type<MarkdownExtensionComponent>>;
+  /** Page de documentation du langage (requis, cf. MarkdownExtensionDoc). */
+  readonly doc: MarkdownExtensionDoc;
 }
 
 /** Multi-provider : chaque langage s'enregistre par une entrée. */

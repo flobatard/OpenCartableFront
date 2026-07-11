@@ -75,6 +75,15 @@
           </tbody>
         </table>
         <p class="md-help__note">{{ 'markdownHelp.markdown.resourceNote' | transloco }}</p>
+        <p class="md-help__note">
+          <a
+            [routerLink]="['/', language.lang(), 'markdown-language', 'docs']"
+            target="_blank"
+            rel="noopener"
+          >
+            {{ 'markdownHelp.fullDocs' | transloco }}
+          </a>
+        </p>
       </section>
 
       <section class="md-help__section">
@@ -113,6 +122,14 @@
           </tbody>
         </table>
         <p class="md-help__note">
+          <a
+            [routerLink]="['/', language.lang(), 'markdown-language', 'docs', 'katex']"
+            target="_blank"
+            rel="noopener"
+          >
+            {{ 'markdownHelp.fullDocs' | transloco }}
+          </a>
+          ·
           <a href="https://katex.org/docs/supported.html" target="_blank" rel="noopener noreferrer">
             {{ 'markdownHelp.latex.docs' | transloco }}
           </a>
@@ -126,8 +143,46 @@
         <p>{{ 'markdownHelp.mermaid.types' | transloco }}</p>
         <p class="md-help__note">{{ 'markdownHelp.mermaid.mathNote' | transloco }}</p>
         <p class="md-help__note">
+          <a
+            [routerLink]="['/', language.lang(), 'markdown-language', 'docs', 'mermaid']"
+            target="_blank"
+            rel="noopener"
+          >
+            {{ 'markdownHelp.fullDocs' | transloco }}
+          </a>
+          ·
           <a href="https://mermaid.js.org/intro/" target="_blank" rel="noopener noreferrer">
             {{ 'markdownHelp.mermaid.docs' | transloco }}
+          </a>
+        </p>
+      </section>
+
+      <section class="md-help__section">
+        <h3>{{ 'markdownHelp.geogebra.title' | transloco }}</h3>
+        <p>{{ 'markdownHelp.geogebra.intro' | transloco }}</p>
+        <pre class="md-help__code">{{ geogebraExample }}</pre>
+        <p class="md-help__note">
+          <a
+            [routerLink]="['/', language.lang(), 'markdown-language', 'docs', 'geogebra']"
+            target="_blank"
+            rel="noopener"
+          >
+            {{ 'markdownHelp.fullDocs' | transloco }}
+          </a>
+        </p>
+      </section>
+
+      <section class="md-help__section">
+        <h3>{{ 'markdownHelp.jsxgraph.title' | transloco }}</h3>
+        <p>{{ 'markdownHelp.jsxgraph.intro' | transloco }}</p>
+        <pre class="md-help__code">{{ jsxgraphExample }}</pre>
+        <p class="md-help__note">
+          <a
+            [routerLink]="['/', language.lang(), 'markdown-language', 'docs', 'jsxgraph']"
+            target="_blank"
+            rel="noopener"
+          >
+            {{ 'markdownHelp.fullDocs' | transloco }}
           </a>
         </p>
       </section>

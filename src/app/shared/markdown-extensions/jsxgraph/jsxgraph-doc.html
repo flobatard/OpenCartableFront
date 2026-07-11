@@ -1,0 +1,42 @@
+<p class="doc-intro">{{ 'docs.jsxgraph.intro' | transloco }}</p>
+
+<section class="doc-section">
+  <h2>{{ 'docs.jsxgraph.first.title' | transloco }}</h2>
+  <p>{{ 'docs.jsxgraph.first.body' | transloco }}</p>
+  <app-markdown-playground [initial]="firstExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.jsxgraph.syntax.title' | transloco }}</h2>
+  <p>{{ 'docs.jsxgraph.syntax.body' | transloco }}</p>
+  <ul class="doc-rules">
+    <li>{{ 'docs.jsxgraph.syntax.operators' | transloco }}</li>
+    <li>{{ 'docs.jsxgraph.syntax.multiplication' | transloco }}</li>
+    <li>{{ 'docs.jsxgraph.syntax.functions' | transloco }}</li>
+  </ul>
+  <app-markdown-playground [initial]="syntaxExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.jsxgraph.multiple.title' | transloco }}</h2>
+  <p>{{ 'docs.jsxgraph.multiple.body' | transloco }}</p>
+  <app-markdown-playground [initial]="multipleExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.jsxgraph.bbox.title' | transloco }}</h2>
+  <p>{{ 'docs.jsxgraph.bbox.body' | transloco }}</p>
+  <app-markdown-playground [initial]="bboxExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.jsxgraph.errors.title' | transloco }}</h2>
+  <p>{{ 'docs.jsxgraph.errors.body' | transloco }}</p>
+  <pre class="doc-source">{{ errorExample }}</pre>
+  <app-markdown-view [markdown]="errorExample" [showPrint]="false" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.jsxgraph.print.title' | transloco }}</h2>
+  <p>{{ 'docs.jsxgraph.print.body' | transloco }}</p>
+</section>

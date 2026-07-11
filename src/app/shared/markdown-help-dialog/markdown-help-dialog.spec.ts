@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { MarkdownHelpDialog } from './markdown-help-dialog';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
 
@@ -10,6 +11,8 @@ describe('MarkdownHelpDialog', () => {
   async function createComponent(): Promise<ComponentFixture<MarkdownHelpDialog>> {
     await TestBed.configureTestingModule({
       imports: [MarkdownHelpDialog, provideTranslocoTesting()],
+      // RouterLink des liens « documentation complète ».
+      providers: [provideRouter([])],
     }).compileComponents();
     const fixture = TestBed.createComponent(MarkdownHelpDialog);
     await fixture.whenStable();
@@ -31,6 +34,34 @@ describe('MarkdownHelpDialog', () => {
     expect(text).toContain('nœuds Mermaid');
     // L'exemple mermaid est rendu tel quel dans un <pre>.
     expect(fixture.nativeElement.querySelector('.md-help__code')?.textContent).toContain('graph TD');
+  });
+
+  it('rend les sections GeoGebra et JSXGraph avec leur exemple', async () => {
+    const fixture = await createComponent();
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('GeoGebra');
+    expect(text).toContain('JSXGraph');
+    const examples = [...fixture.nativeElement.querySelectorAll('.md-help__code')].map(
+      (pre) => (pre as HTMLElement).textContent ?? '',
+    );
+    expect(examples.some((code) => code.includes('```geogebra'))).toBe(true);
+    expect(examples.some((code) => code.includes('```jsxgraph'))).toBe(true);
+  });
+
+  it('chaque section renvoie vers sa page de doc en nouvel onglet', async () => {
+    const fixture = await createComponent();
+    const links = [
+      ...fixture.nativeElement.querySelectorAll('a[href*="markdown-language/docs"]'),
+    ] as HTMLAnchorElement[];
+    expect(links.map((a) => a.getAttribute('href'))).toEqual([
+      '/fr/markdown-language/docs',
+      '/fr/markdown-language/docs/katex',
+      '/fr/markdown-language/docs/mermaid',
+      '/fr/markdown-language/docs/geogebra',
+      '/fr/markdown-language/docs/jsxgraph',
+    ]);
+    // _blank : RouterLink n'intercepte pas — la modale et l'édition restent en place.
+    expect(links.every((a) => a.getAttribute('target') === '_blank')).toBe(true);
   });
 
   it('open() ouvre la modale, close() la ferme', async () => {

@@ -1,6 +1,7 @@
 import { signal } from '@angular/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { ExerciseEditor } from './exercise-editor';
 import { ExerciseContentPayload } from '../../../core/courses/course.model';
 import { ExerciseQuestionGroup } from '../../../core/courses/exercise-form';
@@ -34,7 +35,8 @@ describe('ExerciseEditor', () => {
   ): Promise<ComponentFixture<ExerciseEditor>> {
     await TestBed.configureTestingModule({
       imports: [ExerciseEditor, provideTranslocoTesting()],
-      providers: [{ provide: ResourceService, useValue: resourcesMock }],
+      // provideRouter : les markdown-field embarqués montent la modale d'aide (RouterLink).
+      providers: [provideRouter([]), { provide: ResourceService, useValue: resourcesMock }],
     }).compileComponents();
     const fixture = TestBed.createComponent(ExerciseEditor);
     fixture.componentRef.setInput('initial', initial);

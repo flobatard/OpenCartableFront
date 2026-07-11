@@ -1,0 +1,14 @@
+<div class="markdown-playground">
+  <div class="markdown-playground__pane">
+    <p class="markdown-playground__caption">{{ 'markdownPlayground.editor' | transloco }}</p>
+    <div class="markdown-playground__editor">
+      <app-markdown-editor [formControl]="control" />
+    </div>
+  </div>
+  <div class="markdown-playground__pane">
+    <p class="markdown-playground__caption">{{ 'markdownPlayground.preview' | transloco }}</p>
+    <div class="markdown-playground__preview">
+      <app-markdown-view [markdown]="draft()" [showPrint]="false" />
+    </div>
+  </div>
+</div>

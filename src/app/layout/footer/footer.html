@@ -1,6 +1,14 @@
 <footer class="footer">
   <p class="footer__license text-caption">{{ 'footer.license' | transloco }}</p>
-  <a class="footer__source text-caption" [href]="sourceUrl" rel="noopener">
-    {{ 'footer.sourceCode' | transloco }}
-  </a>
+  <nav class="footer__links">
+    <a
+      class="footer__docs text-caption"
+      [routerLink]="['/', language.lang(), 'markdown-language', 'docs']"
+    >
+      {{ 'footer.docs' | transloco }}
+    </a>
+    <a class="footer__source text-caption" [href]="sourceUrl" rel="noopener">
+      {{ 'footer.sourceCode' | transloco }}
+    </a>
+  </nav>
 </footer>

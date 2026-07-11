@@ -1,5 +1,6 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { By } from '@angular/platform-browser';
 import { MarkdownField } from './markdown-field';
 import { MarkdownEditor } from '../markdown-editor/markdown-editor';
@@ -23,7 +24,8 @@ describe('MarkdownField', () => {
   async function configure(): Promise<void> {
     await TestBed.configureTestingModule({
       imports: [MarkdownField, provideTranslocoTesting()],
-      providers: [{ provide: ResourceService, useValue: resourcesMock }],
+      // provideRouter : la modale d'aide embarquée porte des RouterLink.
+      providers: [provideRouter([]), { provide: ResourceService, useValue: resourcesMock }],
     }).compileComponents();
   }
 

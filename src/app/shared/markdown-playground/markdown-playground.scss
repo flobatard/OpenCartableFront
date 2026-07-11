@@ -1,0 +1,33 @@
+.markdown-playground {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 12px 0 0;
+}
+
+// Premier breakpoint du motif : sous 900px (précédent block-editor), empilement.
+@media (max-width: 900px) {
+  .markdown-playground {
+    grid-template-columns: 1fr;
+  }
+}
+
+.markdown-playground__caption {
+  margin: 0 0 6px;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+// L'éditeur remplit la hauteur de son hôte (contrat markdown-editor) : on la fixe.
+.markdown-playground__editor {
+  height: 280px;
+}
+
+.markdown-playground__preview {
+  min-height: 280px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  overflow: auto;
+}

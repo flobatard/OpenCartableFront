@@ -1,0 +1,38 @@
+<div class="docs-shell">
+  <header class="docs-shell__head">
+    <h1>{{ 'docs.title' | transloco }}</h1>
+    <p class="docs-shell__intro">{{ 'docs.intro' | transloco }}</p>
+  </header>
+
+  <nav class="tabs docs-shell__tabs" [attr.aria-label]="'docs.tabsLabel' | transloco">
+    @for (page of pages; track page.slug) {
+      <a
+        class="tab"
+        [routerLink]="['/', language.lang(), 'markdown-language', 'docs', page.slug]"
+        routerLinkActive="tab--active"
+        [attr.aria-current]="slug() === page.slug ? 'page' : null"
+      >
+        {{ 'docs.pages.' + page.slug + '.title' | transloco }}
+      </a>
+    }
+  </nav>
+
+  <div class="docs-shell__body">
+    @switch (state()) {
+      @case ('loading') {
+        <div class="docs-shell__loading">
+          <app-spinner size="lg" />
+        </div>
+      }
+      @case ('notFound') {
+        <p class="docs-shell__notice">{{ 'docs.notFound' | transloco }}</p>
+      }
+      @case ('error') {
+        <p class="docs-shell__notice">{{ 'docs.loadError' | transloco }}</p>
+      }
+      @case ('ready') {
+        <ng-container *ngComponentOutlet="component()" />
+      }
+    }
+  </div>
+</div>
