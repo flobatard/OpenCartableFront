@@ -1,0 +1,128 @@
+<dialog
+  #dialogEl
+  class="course-style"
+  [attr.aria-labelledby]="titleId"
+  (click)="onBackdropClick($event)"
+>
+  <div class="course-style__inner">
+    <header class="course-style__head">
+      <h2 [id]="titleId" class="course-style__title">
+        {{ 'courseStyle.title' | transloco }}
+      </h2>
+      <button
+        type="button"
+        class="course-style__close"
+        [attr.aria-label]="'courseStyle.close' | transloco"
+        (click)="close()"
+      >
+        ×
+      </button>
+    </header>
+
+    <div class="course-style__body">
+      <label class="course-style__row">
+        <span class="course-style__label">{{ 'courseStyle.fontSize' | transloco }}</span>
+        <span class="course-style__value">{{ service.settings().fontSizePx }}&nbsp;px</span>
+        <input
+          type="range"
+          class="course-style__range"
+          [min]="bounds.fontSizePx.min"
+          [max]="bounds.fontSizePx.max"
+          [step]="bounds.fontSizePx.step"
+          [value]="service.settings().fontSizePx"
+          (input)="service.update({ fontSizePx: readNumber($event) })"
+        />
+      </label>
+
+      <label class="course-style__row">
+        <span class="course-style__label">{{ 'courseStyle.headingSize' | transloco }}</span>
+        <span class="course-style__value">{{ percent(service.settings().headingScale) }}</span>
+        <input
+          type="range"
+          class="course-style__range"
+          [min]="bounds.headingScale.min"
+          [max]="bounds.headingScale.max"
+          [step]="bounds.headingScale.step"
+          [value]="service.settings().headingScale"
+          (input)="service.update({ headingScale: readNumber($event) })"
+        />
+      </label>
+
+      <label class="course-style__row">
+        <span class="course-style__label">{{ 'courseStyle.lineHeight' | transloco }}</span>
+        <span class="course-style__value">{{ service.settings().lineHeight.toFixed(2) }}</span>
+        <input
+          type="range"
+          class="course-style__range"
+          [min]="bounds.lineHeight.min"
+          [max]="bounds.lineHeight.max"
+          [step]="bounds.lineHeight.step"
+          [value]="service.settings().lineHeight"
+          (input)="service.update({ lineHeight: readNumber($event) })"
+        />
+      </label>
+
+      <label class="course-style__row">
+        <span class="course-style__label">{{ 'courseStyle.width' | transloco }}</span>
+        <span class="course-style__value">{{ service.settings().widthCh }}&nbsp;car.</span>
+        <input
+          type="range"
+          class="course-style__range"
+          [min]="bounds.widthCh.min"
+          [max]="bounds.widthCh.max"
+          [step]="bounds.widthCh.step"
+          [value]="service.settings().widthCh"
+          (input)="service.update({ widthCh: readNumber($event) })"
+        />
+      </label>
+
+      <label class="course-style__row">
+        <span class="course-style__label">{{ 'courseStyle.paragraphGap' | transloco }}</span>
+        <span class="course-style__value">{{ service.settings().paragraphGapEm.toFixed(1) }}&nbsp;em</span>
+        <input
+          type="range"
+          class="course-style__range"
+          [min]="bounds.paragraphGapEm.min"
+          [max]="bounds.paragraphGapEm.max"
+          [step]="bounds.paragraphGapEm.step"
+          [value]="service.settings().paragraphGapEm"
+          (input)="service.update({ paragraphGapEm: readNumber($event) })"
+        />
+      </label>
+
+      <div
+        class="course-style__row course-style__row--group"
+        role="group"
+        [attr.aria-label]="'courseStyle.font' | transloco"
+      >
+        <span class="course-style__label">{{ 'courseStyle.font' | transloco }}</span>
+        <div class="course-style__choices">
+          <button
+            type="button"
+            class="pill"
+            [class.pill--active]="service.settings().font === 'sans'"
+            [attr.aria-pressed]="service.settings().font === 'sans'"
+            (click)="service.update({ font: 'sans' })"
+          >
+            {{ 'courseStyle.fontSans' | transloco }}
+          </button>
+          <button
+            type="button"
+            class="pill"
+            [class.pill--active]="service.settings().font === 'serif'"
+            [attr.aria-pressed]="service.settings().font === 'serif'"
+            (click)="service.update({ font: 'serif' })"
+          >
+            {{ 'courseStyle.fontSerif' | transloco }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="course-style__foot">
+      <button type="button" class="btn btn--ghost" (click)="service.reset()">
+        {{ 'courseStyle.reset' | transloco }}
+      </button>
+    </footer>
+  </div>
+</dialog>

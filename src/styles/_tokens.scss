@@ -62,6 +62,7 @@
   /* Forme & typo */
   --font-display: 'Outfit', system-ui, sans-serif;
   --font-sans: 'Inter', system-ui, sans-serif;
+  --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
   --radius-sm: 6px;
   --radius: 8px;
@@ -79,13 +80,47 @@
   --text-info: var(--sky-800);
   --text-warning: var(--amber-800);
   --text-danger: var(--red-800);
-  max-width: 68ch;
-  line-height: 1.7;
+  /* Typographie paramétrable par cours (CourseStyleService pose ces variables en
+     [style] inline sur le conteneur de rendu ; défauts = valeurs historiques, donc
+     aucune régression tant qu'aucune variable n'est posée). Les dimensions dont le
+     défaut diffère entre écran et papier sont des FACTEURS d'échelle (défaut 1) :
+     chaque média garde sa base propre × le même facteur, si bien que les mêmes
+     réglages pilotent l'écran (base px/1.7/1.5em) et l'impression (base pt/1.5/0.9em,
+     cf. _print.scss) sans jamais altérer les défauts. */
+  font-family: var(--course-font, var(--font-sans));
+  font-size: calc(16px * var(--course-font-scale, 1));
+  max-width: var(--course-width, 68ch);
+  line-height: calc(1.7 * var(--course-line-scale, 1));
   text-align: left;
 }
 
 .course-content p {
-  margin-block: 0 1.5em;
+  margin-block: 0 calc(1.5em * var(--course-para-scale, 1));
+}
+
+/* Titres du markdown de cours : scopés à .course-content (spécificité > aux
+   règles globales h1..h4 de _typography.scss, qui restent inchangées pour l'UI).
+   Tailles en em (suivent le corps) × facteur --course-heading-scale ; famille
+   display conservée (le choix serif ne bascule que le corps). weight/line-height/
+   letter-spacing/margin restent hérités des règles globales. */
+.course-content :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-display);
+}
+
+.course-content h1 {
+  font-size: calc(1.75em * var(--course-heading-scale, 1));
+}
+
+.course-content h2 {
+  font-size: calc(1.5em * var(--course-heading-scale, 1));
+}
+
+.course-content h3 {
+  font-size: calc(1.25em * var(--course-heading-scale, 1));
+}
+
+.course-content h4 {
+  font-size: calc(1.125em * var(--course-heading-scale, 1));
 }
 
 /* Formules KaTeX centrées ($$…$$) : rythme vertical des paragraphes, et

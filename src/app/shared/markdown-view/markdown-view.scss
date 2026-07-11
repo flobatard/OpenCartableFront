@@ -1,22 +1,28 @@
 :host {
   display: block;
-  position: relative; /* ancre le bouton d'impression flottant */
+  position: relative; /* ancre les boutons flottants */
 }
 
-/* Colonne de lecture (68ch, héritée de .course-content) centrée dans un panneau
-   large : sans marges auto elle se collerait à gauche avec un grand vide à droite. */
+/* Colonne de lecture (68ch par défaut, héritée de .course-content) centrée dans
+   un panneau large : sans marges auto elle se collerait à gauche avec un grand
+   vide à droite. */
 .markdown-view__content {
   margin-inline: auto;
 }
 
-/* Bouton d'impression discret, en haut à droite. Presque transparent au repos,
-   il s'éclaircit quand la souris survole le document, puis devient franc au
-   survol/focus du bouton lui-même. */
-.markdown-view__print {
+/* Boutons flottants discrets (style de lecture, impression), en haut à droite.
+   Presque transparents au repos, ils s'éclaircissent quand la souris survole le
+   document, puis deviennent francs au survol/focus du bouton lui-même. */
+.markdown-view__actions {
   position: absolute;
   top: 4px;
   right: 4px;
   z-index: 1;
+  display: flex;
+  gap: 4px;
+}
+
+.markdown-view__action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -34,19 +40,19 @@
     color 0.15s ease;
 }
 
-:host(:hover) .markdown-view__print {
+:host(:hover) .markdown-view__action {
   opacity: 0.55;
 }
 
-.markdown-view__print:hover,
-.markdown-view__print:focus-visible {
+.markdown-view__action:hover,
+.markdown-view__action:focus-visible {
   opacity: 1;
   color: var(--text-primary);
 }
 
-/* En mouvement réduit, pas de fondu : le bouton reste discrètement visible. */
+/* En mouvement réduit, pas de fondu : les boutons restent discrètement visibles. */
 @media (prefers-reduced-motion: reduce) {
-  .markdown-view__print {
+  .markdown-view__action {
     transition: none;
   }
 }

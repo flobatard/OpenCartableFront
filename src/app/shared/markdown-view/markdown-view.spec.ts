@@ -153,4 +153,26 @@ describe('MarkdownView', () => {
     expect(resourcesMock.getDownloadUrl).not.toHaveBeenCalled();
     expect(content(fixture)?.querySelector('.course-resource--missing')).toBeTruthy();
   });
+
+  it('affiche le bouton « style de lecture » et monte la modale en contexte cours', async () => {
+    const fixture = await createComponent('## Titre', 'course-1');
+    const host = fixture.nativeElement as HTMLElement;
+    // aria-label résolu par Transloco (langue par défaut fr).
+    expect(host.querySelector('button[aria-label="Style de lecture"]')).toBeTruthy();
+    expect(host.querySelector('app-course-style-dialog')).toBeTruthy();
+  });
+
+  it('masque le bouton et la modale de style hors contexte cours', async () => {
+    const fixture = await createComponent('## Titre');
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('button[aria-label="Style de lecture"]')).toBeNull();
+    expect(host.querySelector('app-course-style-dialog')).toBeNull();
+  });
+
+  it('applique les variables de style au conteneur en contexte cours', async () => {
+    const fixture = await createComponent('## Titre', 'course-1');
+    // Facteurs neutres par défaut, posés en inline sur .course-content.
+    expect(content(fixture)?.style.getPropertyValue('--course-font-scale')).toBe('1');
+    expect(content(fixture)?.style.getPropertyValue('--course-font')).toBe('var(--font-sans)');
+  });
 });

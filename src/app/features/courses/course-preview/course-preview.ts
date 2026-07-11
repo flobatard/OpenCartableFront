@@ -12,10 +12,12 @@ import { isPlatformBrowser } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CourseBlock } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
+import { CourseStyleService } from '../../../core/courses/course-style.service';
 import { exerciseMarkdownFromContent } from '../../../core/courses/exercise-form';
 import { PrintService } from '../../../core/print/print.service';
 import { CourseResource } from '../../../core/resources/resource.model';
 import { ResourceService } from '../../../core/resources/resource.service';
+import { CourseStyleDialog } from '../../../shared/course-style-dialog/course-style-dialog';
 import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
 import { CoursePreviewDocument } from './course-preview-document';
 
@@ -37,7 +39,7 @@ import { CoursePreviewDocument } from './course-preview-document';
  */
 @Component({
   selector: 'app-course-preview',
-  imports: [TranslocoPipe, MarkdownView, CoursePreviewDocument],
+  imports: [TranslocoPipe, MarkdownView, CoursePreviewDocument, CourseStyleDialog],
   templateUrl: './course-preview.html',
   styleUrl: './course-preview.scss',
 })
@@ -47,10 +49,16 @@ export class CoursePreview {
   readonly #print = inject(PrintService);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
+  /** Réglages de style du cours — exposés au template (binding `[style]`). */
+  protected readonly courseStyle = inject(CourseStyleService);
+
   readonly courseId = input.required<string>();
 
   /** Conteneur des blocs rendus — source de l'export PDF (hors bouton). */
   protected readonly previewContent = viewChild<ElementRef<HTMLElement>>('previewContent');
+
+  /** Modale de style, ouverte par le bouton général de la barre d'actions. */
+  protected readonly styleDialog = viewChild(CourseStyleDialog);
 
   /** Blocs du cours chargé par la page hôte, déjà ordonnés par le back. */
   protected readonly blocks = computed(() => this.#courses.detail()?.blocks ?? []);
@@ -64,7 +72,18 @@ export class CoursePreview {
       if (this.#isBrowser) {
         this.#resources.loadList(courseId);
       }
+      // Applique les réglages de style enregistrés du cours dès que son détail
+      // est là (idempotent sur le même cours — ne clobbe pas une édition en vol).
+      const detail = this.#courses.detail();
+      if (detail?.id === courseId) {
+        this.courseStyle.load(courseId, detail.preview_settings);
+      }
     });
+  }
+
+  /** Ouvre la modale de réglage du style de lecture du cours. */
+  protected openStyle(): void {
+    this.styleDialog()?.open();
   }
 
   /** Markdown d'un bloc texte (`content.markdown`, gardé string). */

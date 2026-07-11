@@ -2,11 +2,14 @@
   <p class="course-preview__empty">{{ 'courses.preview.empty' | transloco }}</p>
 } @else {
   <div class="course-preview__toolbar">
+    <button type="button" class="btn btn--secondary" (click)="openStyle()">
+      {{ 'courseStyle.trigger' | transloco }}
+    </button>
     <button type="button" class="btn btn--secondary" (click)="download()">
       {{ 'courses.preview.downloadPdf' | transloco }}
     </button>
   </div>
-  <div #previewContent class="course-preview">
+  <div #previewContent class="course-preview" [style]="courseStyle.styleVars()">
     @for (block of blocks(); track block.id) {
       @if (block.type !== 'module') {
         <article class="course-preview__block">
@@ -22,10 +25,18 @@
 
           @switch (block.type) {
             @case ('texte') {
-              <app-markdown-view [markdown]="textMarkdown(block)" [courseId]="courseId()" />
+              <app-markdown-view
+                [markdown]="textMarkdown(block)"
+                [courseId]="courseId()"
+                [showSettings]="false"
+              />
             }
             @case ('exercice') {
-              <app-markdown-view [markdown]="exerciseMarkdown(block)" [courseId]="courseId()" />
+              <app-markdown-view
+                [markdown]="exerciseMarkdown(block)"
+                [courseId]="courseId()"
+                [showSettings]="false"
+              />
             }
             @case ('document') {
               <app-course-preview-document
@@ -39,4 +50,5 @@
       }
     }
   </div>
+  <app-course-style-dialog />
 }

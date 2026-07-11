@@ -1,0 +1,113 @@
+/* Modale de style de lecture (élément <dialog> natif : focus trap, Escape,
+   backdrop). Chrome calqué sur .md-help (markdown-help-dialog). */
+
+.course-style {
+  width: min(460px, calc(100vw - 32px));
+  max-height: calc(100dvh - 64px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.course-style::backdrop {
+  background: rgb(15 23 42 / 55%);
+}
+
+.course-style__inner {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 64px);
+}
+
+.course-style__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.course-style__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+.course-style__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.course-style__close:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.course-style__body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 18px 20px;
+  overflow-y: auto;
+}
+
+/* Une ligne de réglage : libellé + valeur sur la première rangée, curseur pleine
+   largeur en-dessous. Le <label> enveloppe l'input → association implicite (pas
+   d'id/for, donc pas de collision entre instances de la modale). */
+.course-style__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.course-style__label {
+  font-weight: 500;
+}
+
+.course-style__value {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.course-style__range {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: 2px 0 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+/* Ligne « Police » : le libellé et le groupe de pilules alignés verticalement. */
+.course-style__row--group {
+  align-items: center;
+}
+
+.course-style__choices {
+  display: flex;
+  gap: 8px;
+}
+
+.course-style__foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}

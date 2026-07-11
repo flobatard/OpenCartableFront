@@ -35,6 +35,7 @@ import {
   payloadFromExerciseForm,
 } from '../../../core/courses/exercise-form';
 import { CourseService } from '../../../core/courses/course.service';
+import { CourseStyleService } from '../../../core/courses/course-style.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { ResourceService } from '../../../core/resources/resource.service';
 import { MarkdownField } from '../../../shared/markdown-field/markdown-field';
@@ -84,6 +85,7 @@ type MetaSaveState = 'idle' | 'saving' | 'saved' | 'error';
 })
 export class BlockEditor implements OnInit, OnDestroy {
   readonly #courses = inject(CourseService);
+  readonly #courseStyle = inject(CourseStyleService);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   readonly #route = inject(ActivatedRoute);
   /** Params lus en snapshot (pas de withComponentInputBinding dans ce projet). */
@@ -207,6 +209,16 @@ export class BlockEditor implements OnInit, OnDestroy {
       if (needsResources && !this.#resourcesRequested) {
         this.#resourcesRequested = true;
         this.#resources.loadList(this.courseId);
+      }
+    });
+
+    // Applique les réglages de style enregistrés du cours dès que le détail
+    // arrive (l'aperçu du markdown-field porte le bouton flottant en contexte
+    // cours). Idempotent sur le même cours — ne clobbe pas une édition en vol.
+    effect(() => {
+      const detail = this.detail();
+      if (detail?.id === this.courseId) {
+        this.#courseStyle.load(this.courseId, detail.preview_settings);
       }
     });
 

@@ -38,7 +38,9 @@ import { MarkdownExtensionRegistry } from '../markdown-extensions/markdown-exten
 import { MarkdownExtensionComponent } from '../markdown-extensions/markdown-extension.model';
 import { CourseResource } from '../../core/resources/resource.model';
 import { ResourceService } from '../../core/resources/resource.service';
+import { CourseStyleService } from '../../core/courses/course-style.service';
 import { ThemeService } from '../../core/theme/theme.service';
+import { CourseStyleDialog } from '../course-style-dialog/course-style-dialog';
 
 /**
  * Vue de rendu markdown de cours réutilisable (présentational, lecture seule) :
@@ -61,7 +63,7 @@ import { ThemeService } from '../../core/theme/theme.service';
  */
 @Component({
   selector: 'app-markdown-view',
-  imports: [TranslocoPipe],
+  imports: [TranslocoPipe, CourseStyleDialog],
   templateUrl: './markdown-view.html',
   styleUrl: './markdown-view.scss',
 })
@@ -71,6 +73,8 @@ export class MarkdownView {
   readonly #transloco = inject(TranslocoService);
   readonly #resources = inject(ResourceService);
   readonly #print = inject(PrintService);
+  /** Réglages de style du cours courant — exposés au template (binding `[style]`). */
+  protected readonly courseStyle = inject(CourseStyleService);
   readonly #extensions = inject(MarkdownExtensionRegistry);
   readonly #envInjector = inject(EnvironmentInjector);
   readonly #injector = inject(Injector);
@@ -97,6 +101,16 @@ export class MarkdownView {
    * beaucoup de petits extraits (pages de doc, playground) le masquent.
    */
   readonly showPrint = input<boolean>(true);
+
+  /**
+   * Affiche le bouton « style de lecture » flottant (défaut). N'apparaît de
+   * toute façon qu'en contexte cours (`courseId` non nul) ; l'aperçu global le
+   * masque (son bouton général de barre suffit — le réglage est unique au cours).
+   */
+  readonly showSettings = input<boolean>(true);
+
+  /** Modale de style, montée en contexte cours (cf. `showSettings`). */
+  protected readonly styleDialog = viewChild(CourseStyleDialog);
 
   /** Cours pour lequel un chargement défensif de la biblio a déjà été tenté. */
   #loadedCourseId: string | null = null;
@@ -284,6 +298,11 @@ export class MarkdownView {
       return;
     }
     await this.#print.printCourseContent(el, this.courseId());
+  }
+
+  /** Ouvre la modale de réglage du style de lecture du cours. */
+  protected openStyle(): void {
+    this.styleDialog()?.open();
   }
 }
 

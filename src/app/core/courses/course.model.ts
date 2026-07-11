@@ -1,3 +1,5 @@
+import type { CourseStyleSettings } from './course-style.service';
+
 /**
  * Cours du prof et blocs qui les composent, servis par le back
  * (`/api/v1/courses`). Les champs reprennent le contrat de l'API tel quel
@@ -86,6 +88,12 @@ export interface CourseSummary {
   block_count: number;
   created_at: string;
   updated_at: string;
+  /**
+   * Réglages d'affichage du rendu markdown (renvoyés par le back). Absent ou
+   * `{}` = cours jamais personnalisé → le front applique ses défauts
+   * (cf. `CourseStyleService`). Écrits via `PUT /courses/{id}/preview`.
+   */
+  preview_settings?: Partial<CourseStyleSettings>;
 }
 
 export interface CourseDetail extends CourseSummary {

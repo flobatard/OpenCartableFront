@@ -42,9 +42,9 @@
     display: none !important;
   }
 
-  /* Bouton d'impression flottant des markdown-view : jamais dans le PDF (il est
-     cloné avec le contenu lors de l'export du cours entier). */
-  #oc-print-root .markdown-view__print {
+  /* Boutons flottants des markdown-view (impression, style de lecture) : jamais
+     dans le PDF (ils sont clonés avec le contenu lors de l'export du cours entier). */
+  #oc-print-root .markdown-view__actions {
     display: none !important;
   }
 
@@ -68,10 +68,17 @@
 
   /* .course-content redéclare --text-secondary/--link (et le fait en version
      sombre sous [data-theme=dark]) : on les rétablit clairs, spécificité > au
-     sélecteur de thème. */
+     sélecteur de thème. On y ré-ancre aussi la typographie d'impression : le bloc
+     global .course-content pose désormais une base d'écran (16px / interligne 1.7)
+     qu'on ramène à la base papier (11pt / 1.5) — les facteurs de réglage restent
+     appliqués. La largeur de lecture est neutralisée : la page A4 l'impose. */
   #oc-print-root .course-content {
     --text-secondary: var(--slate-600);
     --link: var(--indigo-700);
+    max-width: none;
+    font-family: var(--course-font, inherit);
+    font-size: calc(11pt * var(--course-font-scale, 1));
+    line-height: calc(1.5 * var(--course-line-scale, 1));
   }
 
   /* Éviter de couper un bloc au milieu d'une page quand c'est possible. */
@@ -90,8 +97,8 @@
      qu'on ajuste tailles de police et marges du PDF. */
 
   #oc-print-root {
-    font-size: 11pt;
-    line-height: 1.5;
+    font-size: calc(11pt * var(--course-font-scale, 1));
+    line-height: calc(1.5 * var(--course-line-scale, 1));
   }
 
   /* Titre éditorial d'un bloc : respiration au-dessus, resserré sous le titre,
@@ -139,18 +146,18 @@
     widows: 2;
   }
   #oc-print-root .course-content h1 {
-    font-size: 17pt;
+    font-size: calc(1.545em * var(--course-heading-scale, 1)); /* ≈ 17pt */
   }
   #oc-print-root .course-content h2 {
-    font-size: 14pt;
+    font-size: calc(1.273em * var(--course-heading-scale, 1)); /* ≈ 14pt */
   }
   #oc-print-root .course-content h3 {
-    font-size: 12pt;
+    font-size: calc(1.091em * var(--course-heading-scale, 1)); /* ≈ 12pt */
   }
 
   /* Paragraphes : rythme vertical un peu plus resserré qu'à l'écran. */
   #oc-print-root .course-content p {
-    margin-block: 0 0.9em;
+    margin-block: 0 calc(0.9em * var(--course-para-scale, 1));
   }
 
   /* Carte d'un document non visionnable : empilée (le layout horizontal de
