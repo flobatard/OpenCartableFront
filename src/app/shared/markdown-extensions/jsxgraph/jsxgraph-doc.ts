@@ -19,7 +19,7 @@ export class JsxgraphDoc {
     '```jsxgraph\nequation=sin(x)\nequation=exp(-x^2/2)\nbbox=-6,2,6,-2\n```';
 
   protected readonly multipleExample =
-    '```jsxgraph\nequation=x^2 - 2\nequation=2*x + 1\npoint=3,7\npoint=-1,-1\npoint=1,-1```';
+    '```jsxgraph\nequation=x^2 - 2\nequation=2*x + 1\npoint=3,7\npoint=-1,-1\npoint=1,-1\n```';
 
   protected readonly bboxExample = '```jsxgraph\nequation=sqrt(x)\nbbox=0,4,10,-1\n```';
 

@@ -429,6 +429,7 @@
       "quote": "Quote",
       "code": "Inline code",
       "rule": "Horizontal separator",
+      "table": "Table: a header row, a separator row, then the data rows.",
       "resourceNote": "To insert a library file (image, audio, video, document), use the “Insert a resource” button below the editor: the link stays valid over time, unlike a URL pasted by hand."
     },
     "latex": {

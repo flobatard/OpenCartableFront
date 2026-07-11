@@ -149,6 +149,26 @@
   max-width: 100%;
 }
 
+/* Tableaux GFM du markdown de cours : bordures discrètes, en-tête sur fond
+   subtil — tokens uniquement (documentés dans l'aide markdown). */
+.course-content table {
+  border-collapse: collapse;
+  margin: 0 0 1em;
+  max-width: 100%;
+}
+
+.course-content th,
+.course-content td {
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  text-align: left;
+}
+
+.course-content th {
+  background: var(--bg-subtle);
+  font-weight: 600;
+}
+
 /* Hôte d'une extension markdown (```geogebra…, cf. shared/markdown-extensions) :
    le composant est monté dedans par markdown-view ; avant montage il affiche la
    source du fence (repli à la mermaid), en fonte mono discrète. */

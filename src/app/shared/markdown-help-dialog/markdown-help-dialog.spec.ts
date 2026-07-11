@@ -32,8 +32,12 @@ describe('MarkdownHelpDialog', () => {
     expect(text).toContain('Mermaid');
     // La limitation LaTeX-dans-Mermaid est documentée.
     expect(text).toContain('nœuds Mermaid');
-    // L'exemple mermaid est rendu tel quel dans un <pre>.
-    expect(fixture.nativeElement.querySelector('.md-help__code')?.textContent).toContain('graph TD');
+    // Les exemples tableau et mermaid sont rendus tels quels dans des <pre>.
+    const examples = [...fixture.nativeElement.querySelectorAll('.md-help__code')].map(
+      (pre) => (pre as HTMLElement).textContent ?? '',
+    );
+    expect(examples.some((code) => code.includes('| Colonne A |'))).toBe(true);
+    expect(examples.some((code) => code.includes('graph TD'))).toBe(true);
   });
 
   it('rend les sections GeoGebra et JSXGraph avec leur exemple', async () => {

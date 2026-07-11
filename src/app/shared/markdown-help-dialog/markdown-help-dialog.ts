@@ -30,6 +30,9 @@ export class MarkdownHelpDialog {
   protected readonly language = inject(LanguageService);
 
   /** Exemples affichés dans des `<pre>` (chaînes liées : gardent les sauts). */
+  protected readonly tableExample =
+    '| Colonne A | Colonne B |\n| --------- | --------- |\n| valeur    | valeur    |';
+
   protected readonly mermaidExample =
     '```mermaid\ngraph TD\n  A[Début] --> B{Condition ?}\n  B -->|oui| C[Action]\n  B -->|non| D[Fin]\n```';
 
