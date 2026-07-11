@@ -24,6 +24,7 @@
     "@fontsource/inter": "^5.2.8",
     "@fontsource/jetbrains-mono": "^5.2.8",
     "@fontsource/outfit": "^5.2.8",
+    "@fontsource/source-serif-4": "^5.2.9",
     "@jsverse/transloco": "^8.4.0",
     "angular-oauth2-oidc": "^22.0.2",
     "dompurify": "^3.4.11",
