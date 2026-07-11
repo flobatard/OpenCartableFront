@@ -235,6 +235,17 @@
   "markdownView": {
     "print": "Print / export to PDF"
   },
+  "markdownExtensions": {
+    "printFallback": "Interactive content: see the online version.",
+    "geogebra": {
+      "title": "Interactive GeoGebra activity",
+      "invalidConfig": "Invalid GeoGebra configuration: provide id=<material id>."
+    },
+    "jsxgraph": {
+      "label": "Interactive mathematical figure",
+      "loadError": "The figure could not be drawn."
+    }
+  },
   "resourcePicker": {
     "title": "Insert a resource",
     "close": "Close",

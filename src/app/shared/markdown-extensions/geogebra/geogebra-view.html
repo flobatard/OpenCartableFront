@@ -1,0 +1,15 @@
+@if (embedUrl(); as url) {
+  <iframe
+    class="geogebra-view__frame"
+    [src]="url"
+    [width]="config().width"
+    [height]="config().height"
+    sandbox="allow-scripts allow-same-origin"
+    loading="lazy"
+    referrerpolicy="no-referrer"
+    allowfullscreen
+    [title]="'markdownExtensions.geogebra.title' | transloco"
+  ></iframe>
+} @else {
+  <p class="geogebra-view__error">{{ 'markdownExtensions.geogebra.invalidConfig' | transloco }}</p>
+}

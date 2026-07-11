@@ -235,6 +235,17 @@
   "markdownView": {
     "print": "Imprimer / exporter en PDF"
   },
+  "markdownExtensions": {
+    "printFallback": "Contenu interactif : voir la version en ligne.",
+    "geogebra": {
+      "title": "Activité GeoGebra interactive",
+      "invalidConfig": "Configuration GeoGebra invalide : renseigner id=<identifiant du matériel>."
+    },
+    "jsxgraph": {
+      "label": "Figure mathématique interactive",
+      "loadError": "La figure n'a pas pu être tracée."
+    }
+  },
   "resourcePicker": {
     "title": "Insérer une ressource",
     "close": "Fermer",

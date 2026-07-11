@@ -1,11 +1,18 @@
 import {
+  afterRenderEffect,
+  ApplicationRef,
   Component,
+  ComponentRef,
+  createComponent,
   effect,
   ElementRef,
+  EnvironmentInjector,
   inject,
+  Injector,
   input,
   PLATFORM_ID,
   signal,
+  Type,
   untracked,
   viewChild,
 } from '@angular/core';
@@ -22,6 +29,13 @@ import {
 } from '../../core/markdown/course-markdown';
 import { resourceKind } from '../../core/markdown/course-resource-ref';
 import { PrintService } from '../../core/print/print.service';
+import {
+  applyExtensionPlaceholders,
+  EXTENSION_ATTR,
+  hasMarkdownExtensions,
+} from '../markdown-extensions/extension-placeholders';
+import { MarkdownExtensionRegistry } from '../markdown-extensions/markdown-extension-registry';
+import { MarkdownExtensionComponent } from '../markdown-extensions/markdown-extension.model';
 import { CourseResource } from '../../core/resources/resource.model';
 import { ResourceService } from '../../core/resources/resource.service';
 import { ThemeService } from '../../core/theme/theme.service';
@@ -57,6 +71,10 @@ export class MarkdownView {
   readonly #transloco = inject(TranslocoService);
   readonly #resources = inject(ResourceService);
   readonly #print = inject(PrintService);
+  readonly #extensions = inject(MarkdownExtensionRegistry);
+  readonly #envInjector = inject(EnvironmentInjector);
+  readonly #injector = inject(Injector);
+  readonly #appRef = inject(ApplicationRef);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   /** Exposé au template : le bouton d'impression n'a de sens qu'au navigateur. */
@@ -113,7 +131,13 @@ export class MarkdownView {
       }
       const theme = this.#theme.theme();
       const courseId = this.courseId();
-      const base = renderCourseMarkdown(this.markdown());
+      // Passe extensions synchrone : les fences des langages enregistrés
+      // (```geogebra…) deviennent des hôtes `data-oc-extension`, montés en
+      // composants par l'afterRenderEffect ci-dessous une fois le HTML au DOM.
+      let base = renderCourseMarkdown(this.markdown());
+      if (hasMarkdownExtensions(base, this.#extensions.defs)) {
+        base = applyExtensionPlaceholders(base, this.#extensions.defs);
+      }
       this.#html.set(this.#sanitizer.bypassSecurityTrustHtml(base));
 
       const needsDiagrams = hasCourseDiagrams(base);
@@ -137,6 +161,74 @@ export class MarkdownView {
         },
       );
     });
+
+    // Montage des extensions markdown : APRÈS que la change detection a
+    // appliqué `[innerHTML]` au DOM (afterRenderEffect), et re-monté après
+    // CHAQUE nouvelle valeur de `html()` (chaque set réécrit l'innerHTML et
+    // souffle les hôtes précédents). Le onCleanup — exécuté avant chaque
+    // ré-exécution et à la destruction — invalide le montage en vol et détruit
+    // les ComponentRef du cycle précédent (sinon fuite de vues attachées).
+    afterRenderEffect((onCleanup) => {
+      this.html();
+      const host = this.contentEl()?.nativeElement;
+      if (!this.#isBrowser || host === undefined) {
+        return;
+      }
+      let stale = false;
+      const refs: ComponentRef<MarkdownExtensionComponent>[] = [];
+      onCleanup(() => {
+        stale = true;
+        for (const ref of refs) {
+          ref.destroy();
+        }
+      });
+      void this.#mountExtensions(host, refs, () => stale);
+    });
+  }
+
+  /**
+   * Monte un composant d'extension sur chaque hôte `data-oc-extension` du
+   * contenu rendu (placeholders posés par applyExtensionPlaceholders). Le
+   * composant est importé lazy (mémoïsé par le registry) ; un import échoué ou
+   * un langage désenregistré laissent la source visible (repli à la mermaid).
+   * `createComponent({ hostElement })` plutôt qu'un ViewContainerRef : le
+   * placeholder vit dans du `[innerHTML]`, hors template — il devient l'hôte
+   * (ses `data-*` restent, l'export PDF les retrouve) ; `attachView` inscrit
+   * la vue dans le tick zoneless.
+   */
+  async #mountExtensions(
+    host: HTMLElement,
+    refs: ComponentRef<MarkdownExtensionComponent>[],
+    isStale: () => boolean,
+  ): Promise<void> {
+    for (const el of host.querySelectorAll<HTMLElement>(`[${EXTENSION_ATTR}]`)) {
+      const language = el.getAttribute(EXTENSION_ATTR) ?? '';
+      if (this.#extensions.get(language) === undefined) {
+        continue;
+      }
+      const source = el.textContent ?? '';
+      let component: Type<MarkdownExtensionComponent>;
+      try {
+        component = await this.#extensions.load(language);
+      } catch {
+        continue;
+      }
+      if (isStale()) {
+        return;
+      }
+      // Vidé seulement après un import réussi : la source reste le repli. Le
+      // modificateur pending (typo mono du repli) ne doit pas habiller le composant.
+      el.textContent = '';
+      el.classList.remove('course-extension--pending');
+      const ref = createComponent(component, {
+        environmentInjector: this.#envInjector,
+        elementInjector: this.#injector,
+        hostElement: el,
+      });
+      ref.setInput('source', source);
+      this.#appRef.attachView(ref.hostView);
+      refs.push(ref);
+    }
   }
 
   /** Enchaîne les passes async (diagrammes puis ressources) sur le HTML de base. */

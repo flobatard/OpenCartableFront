@@ -1,0 +1,22 @@
+// JSXGraph lit les dimensions du conteneur à l'init : hauteur explicite requise.
+.jsxgraph-view__board {
+  width: 100%;
+  max-width: 640px;
+  height: 360px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+
+// Échec d'import ou de tracé : note atténuée, motif .course-resource--missing.
+.jsxgraph-view__error {
+  display: inline-block;
+  margin: 0.5rem 0 0;
+  padding: 2px 8px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.875em;
+  font-style: italic;
+}

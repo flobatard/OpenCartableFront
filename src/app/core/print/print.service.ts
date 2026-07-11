@@ -2,6 +2,12 @@ import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { TranslocoService } from '@jsverse/transloco';
 import { RESOURCE_REF_ATTR } from '../markdown/course-resource-ref';
+// Exception de layering core→shared assumée : module pur sans Angular, seule
+// source de vérité des attributs posés par la passe placeholder des extensions.
+import {
+  EXTENSION_ATTR,
+  EXTENSION_PRINTABLE_ATTR,
+} from '../../shared/markdown-extensions/extension-placeholders';
 import { resourceContentUrl } from '../resources/resource.utils';
 
 /**
@@ -33,7 +39,10 @@ export class PrintService {
       return;
     }
     const clone = source.cloneNode(true) as HTMLElement;
-    transformForPrint(clone, courseId, this.#transloco.translate('courses.preview.pdfMediaNote'));
+    transformForPrint(clone, courseId, {
+      mediaNote: this.#transloco.translate('courses.preview.pdfMediaNote'),
+      interactiveFallback: this.#transloco.translate('markdownExtensions.printFallback'),
+    });
     keepHeadingsWithContent(clone);
 
     const root = document.createElement('div');
@@ -58,19 +67,39 @@ export const PRINT_ROOT_ID = 'oc-print-root';
 /** Délai max d'attente d'une image avant impression (une image qui traîne ne bloque pas). */
 const IMG_LOAD_TIMEOUT_MS = 3000;
 
+/** Libellés (déjà traduits) des notes de substitution papier. */
+export interface PrintLabels {
+  /** Préfixe de la note remplaçant un lecteur audio/vidéo. */
+  mediaNote: string;
+  /** Note remplaçant une extension markdown interactive non imprimable. */
+  interactiveFallback: string;
+}
+
 /**
- * Transforme (en place) un clone de contenu de cours pour le papier. Passe
- * générique keyée par `data-oc-resource-id` : les images restent (présigné
- * valide à l'instant → embarqué), l'audio/vidéo devient une note renvoyant vers
- * l'URL stable, les liens/boutons de ressource pointent vers l'URL stable.
+ * Transforme (en place) un clone de contenu de cours pour le papier. Deux
+ * passes : les extensions markdown non imprimables (`data-oc-printable`
+ * ≠ "true", ex. iframe GeoGebra) deviennent une note « contenu interactif » —
+ * les imprimables (SVG JSXGraph) sont clonées telles quelles — ; puis la passe
+ * keyée par `data-oc-resource-id` : les images restent (présigné valide à
+ * l'instant → embarqué), l'audio/vidéo devient une note renvoyant vers l'URL
+ * stable, les liens/boutons de ressource pointent vers l'URL stable.
  * Exporté pour être testé isolément (jsdom).
  */
 export function transformForPrint(
   root: HTMLElement,
   courseId: string | null,
-  mediaNotePrefix: string,
+  labels: PrintLabels,
 ): void {
   const doc = root.ownerDocument;
+  for (const el of [...root.querySelectorAll(`[${EXTENSION_ATTR}]`)]) {
+    if (el.getAttribute(EXTENSION_PRINTABLE_ATTR) !== 'true') {
+      const note = doc.createElement('p');
+      note.className = 'oc-print__extension-note';
+      // textContent, jamais innerHTML : libellé traduit de confiance.
+      note.textContent = labels.interactiveFallback;
+      el.replaceWith(note);
+    }
+  }
   for (const el of [...root.querySelectorAll(`[${RESOURCE_REF_ATTR}]`)]) {
     const id = el.getAttribute(RESOURCE_REF_ATTR);
     const url = courseId && id ? resourceContentUrl(courseId, id) : null;
@@ -82,7 +111,7 @@ export function transformForPrint(
     }
     if (tag === 'audio' || tag === 'video') {
       const label = el.getAttribute('aria-label') ?? el.getAttribute('alt') ?? '';
-      el.replaceWith(buildMediaNote(doc, mediaNotePrefix, label, url));
+      el.replaceWith(buildMediaNote(doc, labels.mediaNote, label, url));
       continue;
     }
     if (tag === 'a') {

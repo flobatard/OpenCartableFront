@@ -149,6 +149,23 @@
   max-width: 100%;
 }
 
+/* Hôte d'une extension markdown (```geogebra…, cf. shared/markdown-extensions) :
+   le composant est monté dedans par markdown-view ; avant montage il affiche la
+   source du fence (repli à la mermaid), en fonte mono discrète. */
+.course-content .course-extension {
+  margin: 0 0 1em;
+  max-width: 100%;
+}
+
+/* Avant montage (ou si l'import échoue), l'hôte affiche la source brute du
+   fence : fonte mono discrète. Le modificateur est retiré au montage — la
+   typo ne doit pas hériter dans le composant. */
+.course-content .course-extension--pending {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  white-space: pre-wrap;
+}
+
 /* Ressource supprimée / indisponible : note atténuée à la place du média (jamais
    slate-400 pour du texte). Le pending (avant résolution) est furtif. */
 .course-content .course-resource--missing {

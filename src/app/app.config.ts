@@ -17,6 +17,7 @@ import { routes } from './app.routes';
 import { environment } from '../environments/environment';
 import { TranslocoImportLoader } from './core/i18n/transloco-loader';
 import { langFromPath, LanguageService } from './core/i18n/language.service';
+import { provideMarkdownExtensions } from './shared/markdown-extensions/markdown-extensions.providers';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -26,6 +27,8 @@ export const appConfig: ApplicationConfig = {
     // withInterceptorsFromDi : l'intercepteur d'angular-oauth2-oidc (Bearer vers
     // l'API) est enregistré via le token legacy HTTP_INTERCEPTORS.
     provideHttpClient(withInterceptorsFromDi()),
+    // Langages custom des fences markdown (```geogebra…), montés par markdown-view.
+    provideMarkdownExtensions(),
     provideOAuthClient({
       resourceServer: {
         allowedUrls: [environment.apiUrl],

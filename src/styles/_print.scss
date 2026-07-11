@@ -20,6 +20,15 @@
   word-break: break-all; /* les URL longues restent dans la marge */
 }
 
+/* Extension markdown interactive non imprimable (iframe GeoGebra…) substituée
+   par transformForPrint — motif de la note média. */
+.oc-print__extension-note {
+  margin-block: 0 1.5em;
+  font-size: 0.9em;
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
 @media print {
   /* Marge de page à zéro : les en-têtes/pieds ajoutés par le navigateur (date,
      nom du site, URL) vivent dans cette marge — sans place, ils disparaissent.

@@ -1,0 +1,9 @@
+<div
+  #board
+  class="jsxgraph-view__board"
+  role="img"
+  [attr.aria-label]="'markdownExtensions.jsxgraph.label' | transloco"
+></div>
+@if (error()) {
+  <p class="jsxgraph-view__error">{{ 'markdownExtensions.jsxgraph.loadError' | transloco }}</p>
+}

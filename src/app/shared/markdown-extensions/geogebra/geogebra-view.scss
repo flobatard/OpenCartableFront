@@ -1,0 +1,20 @@
+.geogebra-view__frame {
+  display: block;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+}
+
+// Config invalide : note atténuée, motif .course-resource--missing
+// (bordure dashed, --text-secondary — jamais slate-400).
+.geogebra-view__error {
+  display: inline-block;
+  margin: 0;
+  padding: 2px 8px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.875em;
+  font-style: italic;
+}
