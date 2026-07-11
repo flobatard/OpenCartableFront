@@ -59,6 +59,12 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client,
   },
   {
+    // Route protégée (authGuard) qui présigne puis redirige via window.location :
+    // navigateur uniquement.
+    path: ':lang/courses/:id/resources/:resourceId',
+    renderMode: RenderMode.Client,
+  },
+  {
     // La racine lit la préférence de langue (localStorage) : décision côté navigateur.
     path: '',
     renderMode: RenderMode.Client,

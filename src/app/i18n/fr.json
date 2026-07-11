@@ -219,6 +219,13 @@
         "audio": "Audio",
         "video": "Vidéo"
       }
+    },
+    "resourceView": {
+      "opening": "Ouverture de la ressource…",
+      "notFound": "Ressource introuvable (supprimée ?).",
+      "unavailable": "Ressource indisponible : son envoi n'a pas été finalisé.",
+      "error": "L'ouverture de la ressource n'a pas abouti. Réessayez.",
+      "backToCourse": "Retour au cours"
     }
   },
   "markdownField": {

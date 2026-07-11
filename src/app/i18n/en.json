@@ -219,6 +219,13 @@
         "audio": "Audio",
         "video": "Video"
       }
+    },
+    "resourceView": {
+      "opening": "Opening the resource…",
+      "notFound": "Resource not found (deleted?).",
+      "unavailable": "Resource unavailable: its upload was never completed.",
+      "error": "Opening the resource failed. Try again.",
+      "backToCourse": "Back to the course"
     }
   },
   "markdownField": {

@@ -153,11 +153,22 @@ export class ResourceService {
     }
   }
 
-  /** URL présignée de téléchargement (TTL court) — l'ouverture reste à l'appelant. */
-  async getDownloadUrl(courseId: string, resourceId: string): Promise<string> {
+  /**
+   * URL présignée de lecture (TTL court) — l'ouverture reste à l'appelant.
+   * `disposition: 'inline'` demande un affichage navigateur (route de
+   * redirection des liens PDF) ; le défaut `attachment` (téléchargement)
+   * n'émet pas de query param — la requête des consommateurs existants est
+   * inchangée.
+   */
+  async getDownloadUrl(
+    courseId: string,
+    resourceId: string,
+    disposition: 'attachment' | 'inline' = 'attachment',
+  ): Promise<string> {
     const download = await firstValueFrom(
       this.#http.get<ResourceDownload>(
         `${this.#url}/${courseId}/resources/${resourceId}/download`,
+        disposition === 'inline' ? { params: { disposition } } : {},
       ),
     );
     return download.download_url;

@@ -1,4 +1,5 @@
 import { environment } from '../../../environments/environment';
+import { AppLang } from '../i18n/language.service';
 import { ResourceType } from './resource.model';
 
 /**
@@ -7,24 +8,20 @@ import { ResourceType } from './resource.model';
  */
 
 /**
- * Base absolue de l'API : `apiUrl` s'il est déjà absolu (`http…`, cas dev où
- * l'API est sur un autre port), sinon préfixé par `siteUrl` (cas prod où
- * `apiUrl` est relatif `/api` — un PDF partagé exige une URL absolue).
+ * URL **front** stable de lecture d'une ressource : la route protégée OIDC
+ * `/:lang/courses/:id/resources/:resourceId` (elle présigne via
+ * `getDownloadUrl(..., 'inline')` puis redirige le navigateur vers S3).
+ * Contrairement à l'URL présignée (TTL court), elle est pérenne — utilisable
+ * dans un PDF persistant, mais réservée au prof propriétaire du cours tant
+ * que le régime élève J2 (token de partage) n'existe pas. Toujours absolue
+ * (`siteUrl`) : un PDF partagé l'exige.
  */
-export function apiContentBase(apiUrl: string, siteUrl: string): string {
-  return apiUrl.startsWith('http') ? apiUrl : `${siteUrl}${apiUrl}`;
-}
-
-/**
- * URL API **stable** de lecture d'une ressource (gateway **public** `/public`,
- * sans auth : 307 vers l'URL présignée inline S3). Contrairement à l'URL
- * présignée (TTL court), elle est pérenne — utilisable dans un PDF persistant
- * partagé à des élèves sans compte, d'où le gateway public `/public` et non le
- * gateway authentifié `/content`. Toujours absolue.
- */
-export function resourceContentUrl(courseId: string, resourceId: string): string {
-  const base = apiContentBase(environment.apiUrl, environment.siteUrl);
-  return `${base}/v1/courses/${courseId}/resources/${resourceId}/public`;
+export function resourceContentUrl(
+  lang: AppLang,
+  courseId: string,
+  resourceId: string,
+): string {
+  return `${environment.siteUrl}/${lang}/courses/${courseId}/resources/${resourceId}`;
 }
 
 /**

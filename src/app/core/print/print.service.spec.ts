@@ -27,27 +27,29 @@ describe('transformForPrint', () => {
     const root = fragment(
       '<audio data-oc-resource-id="r1" aria-label="Podcast" src="https://s3/presigned" controls></audio>',
     );
-    transformForPrint(root, 'course-1', labels('Média en ligne :'));
+    transformForPrint(root, 'course-1', 'fr', labels('Média en ligne :'));
 
     expect(root.querySelector('audio')).toBeNull();
     const note = root.querySelector('p.oc-print__media-note');
     expect(note?.textContent).toContain('Podcast');
     expect(note?.querySelector('a')?.getAttribute('href')).toBe(
-      resourceContentUrl('course-1', 'r1'),
+      resourceContentUrl('fr', 'course-1', 'r1'),
     );
   });
 
   it('retire aussi les vidéos', () => {
     const root = fragment('<video data-oc-resource-id="r5" aria-label="Clip" controls></video>');
-    transformForPrint(root, 'course-1', labels('Média :'));
+    transformForPrint(root, 'course-1', 'fr', labels('Média :'));
     expect(root.querySelector('video')).toBeNull();
     expect(root.querySelector('p.oc-print__media-note')).toBeTruthy();
   });
 
   it('réécrit le href d’un lien ressource vers l’URL stable', () => {
     const root = fragment('<a data-oc-resource-id="r2" href="https://s3/presigned">Doc</a>');
-    transformForPrint(root, 'course-1', labels());
-    expect(root.querySelector('a')?.getAttribute('href')).toBe(resourceContentUrl('course-1', 'r2'));
+    transformForPrint(root, 'course-1', 'fr', labels());
+    expect(root.querySelector('a')?.getAttribute('href')).toBe(
+      resourceContentUrl('fr', 'course-1', 'r2'),
+    );
   });
 
   it('carte document : nom cliquable souligné + URL en clair copiable', () => {
@@ -58,8 +60,8 @@ describe('transformForPrint', () => {
         '<button class="btn" data-oc-resource-id="r3">Télécharger</button>' +
         '</div>',
     );
-    transformForPrint(root, 'course-1', labels());
-    const url = resourceContentUrl('course-1', 'r3');
+    transformForPrint(root, 'course-1', 'fr', labels());
+    const url = resourceContentUrl('fr', 'course-1', 'r3');
 
     expect(root.querySelector('button')).toBeNull();
     // Le nom devient un lien vers l'URL stable.
@@ -72,16 +74,16 @@ describe('transformForPrint', () => {
 
   it('bouton document sans nom : repli sur un lien copiable portant l’URL', () => {
     const root = fragment('<button data-oc-resource-id="r3">Télécharger</button>');
-    transformForPrint(root, 'course-1', labels());
+    transformForPrint(root, 'course-1', 'fr', labels());
     expect(root.querySelector('button')).toBeNull();
     expect(root.querySelector('a.oc-print__doc-url')?.getAttribute('href')).toBe(
-      resourceContentUrl('course-1', 'r3'),
+      resourceContentUrl('fr', 'course-1', 'r3'),
     );
   });
 
   it('conserve les images (URL présignée valide au moment de l’impression)', () => {
     const root = fragment('<img data-oc-resource-id="r4" src="https://s3/presigned" alt="x">');
-    transformForPrint(root, 'course-1', labels());
+    transformForPrint(root, 'course-1', 'fr', labels());
     expect(root.querySelector('img')?.getAttribute('src')).toBe('https://s3/presigned');
   });
 
@@ -91,7 +93,7 @@ describe('transformForPrint', () => {
         '<iframe src="https://www.geogebra.org/material/iframe/id/abc"></iframe>' +
         '</div>',
     );
-    transformForPrint(root, 'course-1', labels());
+    transformForPrint(root, 'course-1', 'fr', labels());
 
     expect(root.querySelector('[data-oc-extension]')).toBeNull();
     expect(root.querySelector('iframe')).toBeNull();
@@ -103,7 +105,7 @@ describe('transformForPrint', () => {
     const root = fragment(
       '<div class="course-extension" data-oc-extension="geogebra" data-oc-printable="false">id=abc</div>',
     );
-    transformForPrint(root, 'course-1', labels());
+    transformForPrint(root, 'course-1', 'fr', labels());
     expect(root.querySelector('p.oc-print__extension-note')).not.toBeNull();
   });
 
@@ -113,7 +115,7 @@ describe('transformForPrint', () => {
         '<svg><circle r="1"></circle></svg>' +
         '</div>',
     );
-    transformForPrint(root, 'course-1', labels());
+    transformForPrint(root, 'course-1', 'fr', labels());
     expect(root.querySelector('[data-oc-extension] svg')).not.toBeNull();
     expect(root.querySelector('.oc-print__extension-note')).toBeNull();
   });
@@ -123,7 +125,7 @@ describe('transformForPrint', () => {
       '<audio data-oc-resource-id="r1" aria-label="Podcast" controls></audio>' +
         '<a data-oc-resource-id="r2" href="https://s3/presigned">Doc</a>',
     );
-    transformForPrint(root, null, labels('Média :'));
+    transformForPrint(root, null, 'fr', labels('Média :'));
 
     expect(root.querySelector('audio')).toBeNull();
     expect(root.querySelector('p.oc-print__media-note')?.querySelector('a')).toBeNull();

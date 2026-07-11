@@ -155,7 +155,17 @@ describe('ResourceService', () => {
 
   it('getDownloadUrl retourne l’URL présignée (l’ouverture reste à l’appelant)', async () => {
     const download = service.getDownloadUrl('course-1', 'resource-1');
+    // Sans argument : aucun query param — la requête historique est inchangée.
     const req = httpMock.expectOne(`${url}/resource-1/download`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ download_url: 'https://s3.test/get/uuid/schema.pdf', expires_in: 300 });
+
+    expect(await download).toBe('https://s3.test/get/uuid/schema.pdf');
+  });
+
+  it('getDownloadUrl en inline ajoute le query param disposition', async () => {
+    const download = service.getDownloadUrl('course-1', 'resource-1', 'inline');
+    const req = httpMock.expectOne(`${url}/resource-1/download?disposition=inline`);
     expect(req.request.method).toBe('GET');
     req.flush({ download_url: 'https://s3.test/get/uuid/schema.pdf', expires_in: 300 });
 

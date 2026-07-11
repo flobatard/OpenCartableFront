@@ -1,6 +1,7 @@
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { TranslocoService } from '@jsverse/transloco';
+import { AppLang, LanguageService } from '../i18n/language.service';
 import { RESOURCE_REF_ATTR } from '../markdown/course-resource-ref';
 // Exception de layering core→shared assumée : module pur sans Angular, seule
 // source de vérité des attributs posés par la passe placeholder des extensions.
@@ -17,16 +18,18 @@ import { resourceContentUrl } from '../resources/resource.utils';
  * `course-preview` (cours entier) l'appellent avec l'élément à imprimer.
  *
  * Marche : on clone le DOM rendu (déjà sanitisé par `course-markdown`), on le
- * transforme pour le papier (audio/vidéo retirés, liens ressources réécrits vers
- * l'URL API stable `/public` à la place des URL présignées éphémères), on le
- * pose dans un conteneur d'impression isolé (le stylesheet global `_print.scss`
- * masque le reste de l'app en `@media print`), puis `window.print()`.
+ * transforme pour le papier (audio/vidéo retirés, liens ressources réécrits
+ * vers l'URL front stable — la route de redirection authentifiée — à la place
+ * des URL présignées éphémères), on le pose dans un conteneur d'impression
+ * isolé (le stylesheet global `_print.scss` masque le reste de l'app en
+ * `@media print`), puis `window.print()`.
  *
  * Navigateur uniquement (touche `window`/`document`) : no-op au SSR.
  */
 @Injectable({ providedIn: 'root' })
 export class PrintService {
   readonly #transloco = inject(TranslocoService);
+  readonly #language = inject(LanguageService);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   /**
@@ -39,7 +42,7 @@ export class PrintService {
       return;
     }
     const clone = source.cloneNode(true) as HTMLElement;
-    transformForPrint(clone, courseId, {
+    transformForPrint(clone, courseId, this.#language.lang(), {
       mediaNote: this.#transloco.translate('courses.preview.pdfMediaNote'),
       interactiveFallback: this.#transloco.translate('markdownExtensions.printFallback'),
     });
@@ -82,12 +85,14 @@ export interface PrintLabels {
  * les imprimables (SVG JSXGraph) sont clonées telles quelles — ; puis la passe
  * keyée par `data-oc-resource-id` : les images restent (présigné valide à
  * l'instant → embarqué), l'audio/vidéo devient une note renvoyant vers l'URL
- * stable, les liens/boutons de ressource pointent vers l'URL stable.
+ * stable, les liens/boutons de ressource pointent vers l'URL stable — la
+ * route front de redirection, construite dans la langue active (`lang`).
  * Exporté pour être testé isolément (jsdom).
  */
 export function transformForPrint(
   root: HTMLElement,
   courseId: string | null,
+  lang: AppLang,
   labels: PrintLabels,
 ): void {
   const doc = root.ownerDocument;
@@ -102,7 +107,7 @@ export function transformForPrint(
   }
   for (const el of [...root.querySelectorAll(`[${RESOURCE_REF_ATTR}]`)]) {
     const id = el.getAttribute(RESOURCE_REF_ATTR);
-    const url = courseId && id ? resourceContentUrl(courseId, id) : null;
+    const url = courseId && id ? resourceContentUrl(lang, courseId, id) : null;
     const tag = el.tagName.toLowerCase();
 
     if (tag === 'img') {

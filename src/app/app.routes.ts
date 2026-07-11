@@ -87,6 +87,14 @@ export const routes: Routes = [
           import('./features/courses/block-editor/block-editor').then((m) => m.BlockEditor),
       },
       {
+        // Cible des liens de ressource des PDF exportés : présigne (authentifié)
+        // puis redirige le navigateur vers l'URL S3 inline.
+        path: 'courses/:id/resources/:resourceId',
+        canActivate: [authGuard, onboardingGuard],
+        loadComponent: () =>
+          import('./features/courses/resource-view/resource-view').then((m) => m.ResourceView),
+      },
+      {
         path: '',
         pathMatch: 'full',
         redirectTo: 'home',

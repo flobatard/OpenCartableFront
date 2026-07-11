@@ -1,10 +1,5 @@
 import { environment } from '../../../environments/environment';
-import {
-  apiContentBase,
-  formatBytes,
-  resourceContentUrl,
-  resourceTypeFromMime,
-} from './resource.utils';
+import { formatBytes, resourceContentUrl, resourceTypeFromMime } from './resource.utils';
 
 describe('resourceTypeFromMime', () => {
   it('mappe les familles média évidentes', () => {
@@ -41,25 +36,14 @@ describe('formatBytes', () => {
   });
 });
 
-describe('apiContentBase', () => {
-  it('utilise apiUrl tel quel s’il est absolu (cas dev, API sur un autre port)', () => {
-    expect(apiContentBase('http://localhost:8000/api', 'http://localhost:4200')).toBe(
-      'http://localhost:8000/api',
-    );
-  });
-
-  it('préfixe par siteUrl si apiUrl est relatif (cas prod /api)', () => {
-    expect(apiContentBase('/api', 'https://cartable.example.org')).toBe(
-      'https://cartable.example.org/api',
-    );
-  });
-});
-
 describe('resourceContentUrl', () => {
-  it('construit l’URL /public stable et absolue à partir de l’environnement', () => {
-    const base = apiContentBase(environment.apiUrl, environment.siteUrl);
-    expect(resourceContentUrl('course-1', 'resource-2')).toBe(
-      `${base}/v1/courses/course-1/resources/resource-2/public`,
+  it('construit l’URL front stable et absolue de la route de redirection', () => {
+    expect(resourceContentUrl('fr', 'course-1', 'resource-2')).toBe(
+      `${environment.siteUrl}/fr/courses/course-1/resources/resource-2`,
     );
+  });
+
+  it('porte la langue demandée', () => {
+    expect(resourceContentUrl('en', 'c', 'r')).toBe(`${environment.siteUrl}/en/courses/c/resources/r`);
   });
 });
