@@ -12,7 +12,7 @@ import { resourceContentUrl } from '../resources/resource.utils';
  *
  * Marche : on clone le DOM rendu (déjà sanitisé par `course-markdown`), on le
  * transforme pour le papier (audio/vidéo retirés, liens ressources réécrits vers
- * l'URL API stable `/content` à la place des URL présignées éphémères), on le
+ * l'URL API stable `/public` à la place des URL présignées éphémères), on le
  * pose dans un conteneur d'impression isolé (le stylesheet global `_print.scss`
  * masque le reste de l'app en `@media print`), puis `window.print()`.
  *

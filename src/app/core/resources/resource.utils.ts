@@ -16,9 +16,11 @@ export function apiContentBase(apiUrl: string, siteUrl: string): string {
 }
 
 /**
- * URL API **stable** de lecture d'une ressource (gateway `/content` : 307 vers
- * l'URL présignée inline S3). Contrairement à l'URL présignée (TTL court), elle
- * est pérenne — utilisable dans un PDF persistant. Toujours absolue.
+ * URL API **stable** de lecture d'une ressource (gateway **public** `/public`,
+ * sans auth : 307 vers l'URL présignée inline S3). Contrairement à l'URL
+ * présignée (TTL court), elle est pérenne — utilisable dans un PDF persistant
+ * partagé à des élèves sans compte, d'où le gateway public `/public` et non le
+ * gateway authentifié `/content`. Toujours absolue.
  */
 export function resourceContentUrl(courseId: string, resourceId: string): string {
   const base = apiContentBase(environment.apiUrl, environment.siteUrl);

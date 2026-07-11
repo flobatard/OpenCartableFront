@@ -56,10 +56,10 @@ describe('apiContentBase', () => {
 });
 
 describe('resourceContentUrl', () => {
-  it('construit l’URL /content stable et absolue à partir de l’environnement', () => {
+  it('construit l’URL /public stable et absolue à partir de l’environnement', () => {
     const base = apiContentBase(environment.apiUrl, environment.siteUrl);
     expect(resourceContentUrl('course-1', 'resource-2')).toBe(
-      `${base}/v1/courses/course-1/resources/resource-2/content`,
+      `${base}/v1/courses/course-1/resources/resource-2/public`,
     );
   });
 });

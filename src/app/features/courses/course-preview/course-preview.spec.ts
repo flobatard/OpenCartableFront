@@ -72,11 +72,17 @@ describe('CoursePreview', () => {
     // texte + document + exercice = 3 ; le module est absent.
     expect(rendered.length).toBe(3);
     expect(el(fixture).textContent).not.toContain('Module interactif');
-    // Ordre : titre du bloc texte avant l'exercice.
-    const titles = rendered
-      .map((b) => b.querySelector('.course-preview__title')?.textContent?.trim())
-      .filter(Boolean);
-    expect(titles).toEqual(['Le concept de suite', 'Exercices d’application']);
+    // Ordre : texte, puis document, puis exercice. En vue élève, le titre du
+    // bloc n’est rendu que pour les documents — l’ordre se lit donc sur le type
+    // de contenu de chaque bloc et sur la position des textes rendus.
+    const kinds = rendered.map((b) =>
+      b.querySelector('app-course-preview-document') ? 'document' : 'markdown',
+    );
+    expect(kinds).toEqual(['markdown', 'document', 'markdown']);
+    const text = el(fixture).textContent ?? '';
+    expect(text.indexOf('Introduction aux suites')).toBeLessThan(
+      text.indexOf('Étudier la convergence des suites suivantes.'),
+    );
   });
 
   it('rend le markdown du bloc texte', async () => {
