@@ -266,6 +266,11 @@
     "jsxgraph": {
       "label": "Interactive mathematical figure",
       "loadError": "The figure could not be drawn."
+    },
+    "tikz": {
+      "label": "TikZ figure",
+      "loading": "Compiling the figure…",
+      "loadError": "The figure could not be compiled."
     }
   },
   "markdownPlayground": {
@@ -294,6 +299,10 @@
       "jsxgraph": {
         "title": "Figures (JSXGraph)",
         "summary": "Plot interactive curves and points from equations."
+      },
+      "tikz": {
+        "title": "Figures (TikZ)",
+        "summary": "Draw precise vector diagrams using LaTeX/TikZ syntax."
       }
     },
     "katex": {
@@ -423,6 +432,21 @@
       "print": {
         "title": "Printing and PDF export",
         "body": "The figure is drawn as SVG: it goes into the course PDF export as-is."
+      }
+    },
+    "tikz": {
+      "intro": "A “tikz” code block compiles LaTeX/TikZ code into an SVG directly in the browser — no external service —, crisp vector rendering and natively printable.",
+      "first": {
+        "title": "First drawing",
+        "body": "The block's content is the body of a tikzpicture environment (added automatically if missing). Edit the drawing below."
+      },
+      "advanced": {
+        "title": "TikZ options",
+        "body": "The usual tikzpicture options (scale, fill colors…) are available by writing out the environment with its brackets."
+      },
+      "print": {
+        "title": "Printing and PDF export",
+        "body": "The rendering is a vector SVG: it goes into the course PDF export as-is, with crisp text and lines."
       }
     }
   },

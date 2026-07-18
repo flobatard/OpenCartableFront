@@ -1,0 +1,44 @@
+.tikz-view__wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.tikz-view__container {
+  display: flex;
+  justify-content: center;
+  background: var(--bg-surface);
+  border-radius: var(--radius);
+  padding: 1rem;
+  max-width: 100%;
+  overflow-x: auto;
+  
+  &--hidden {
+    display: none;
+  }
+
+  // TikZJax injecte le SVG directement. On s'assure qu'il s'adapte.
+  ::ng-deep svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+.tikz-view__loading {
+  font-size: 0.875em;
+  color: var(--text-secondary);
+  font-style: italic;
+  padding: 1rem;
+}
+
+.tikz-view__error {
+  display: inline-block;
+  margin: 0.5rem 0 0;
+  padding: 2px 8px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.875em;
+  font-style: italic;
+}

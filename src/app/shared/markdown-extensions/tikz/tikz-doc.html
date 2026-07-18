@@ -1,0 +1,19 @@
+<p class="doc-intro">{{ 'docs.tikz.intro' | transloco }}</p>
+
+<section class="doc-section">
+  <h2>{{ 'docs.tikz.first.title' | transloco }}</h2>
+  <p>{{ 'docs.tikz.first.body' | transloco }}</p>
+  <!-- MarkdownPlayground est un composant de ta codebase qui permet de tester en direct -->
+  <app-markdown-playground [initial]="firstExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.tikz.advanced.title' | transloco }}</h2>
+  <p>{{ 'docs.tikz.advanced.body' | transloco }}</p>
+  <app-markdown-playground [initial]="configExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.tikz.print.title' | transloco }}</h2>
+  <p>{{ 'docs.tikz.print.body' | transloco }}</p>
+</section>

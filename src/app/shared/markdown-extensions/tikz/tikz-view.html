@@ -1,0 +1,17 @@
+<div class="tikz-view__wrapper">
+  @if (loading()) {
+    <div class="tikz-view__loading">{{ 'markdownExtensions.tikz.loading' | transloco }}</div>
+  }
+  
+  <div
+    #container
+    class="tikz-view__container"
+    role="img"
+    [attr.aria-label]="'markdownExtensions.tikz.label' | transloco"
+    [class.tikz-view__container--hidden]="loading()"
+  ></div>
+  
+  @if (error()) {
+    <p class="tikz-view__error">{{ 'markdownExtensions.tikz.loadError' | transloco }}</p>
+  }
+</div>

@@ -266,6 +266,11 @@
     "jsxgraph": {
       "label": "Figure mathématique interactive",
       "loadError": "La figure n'a pas pu être tracée."
+    },
+    "tikz": {
+      "label": "Figure TikZ",
+      "loading": "Compilation de la figure…",
+      "loadError": "La figure n'a pas pu être compilée."
     }
   },
   "markdownPlayground": {
@@ -294,6 +299,10 @@
       "jsxgraph": {
         "title": "Figures (JSXGraph)",
         "summary": "Tracer courbes et points interactifs à partir d'équations."
+      },
+      "tikz": {
+        "title": "Figures (TikZ)",
+        "summary": "Dessiner des schémas vectoriels précis avec la syntaxe LaTeX/TikZ."
       }
     },
     "katex": {
@@ -423,6 +432,21 @@
       "print": {
         "title": "Impression et export PDF",
         "body": "La figure est dessinée en SVG : elle part telle quelle dans l'export PDF du cours."
+      }
+    },
+    "tikz": {
+      "intro": "Un bloc de code « tikz » compile du code LaTeX/TikZ en SVG directement dans le navigateur — aucun service externe —, rendu vectoriel net et imprimable nativement.",
+      "first": {
+        "title": "Premier dessin",
+        "body": "Le contenu du bloc est le corps d'un environnement tikzpicture (ajouté automatiquement s'il est absent). Modifiez le dessin ci-dessous."
+      },
+      "advanced": {
+        "title": "Options TikZ",
+        "body": "Les options usuelles de tikzpicture (échelle, couleurs de remplissage…) sont disponibles en explicitant l'environnement avec ses crochets."
+      },
+      "print": {
+        "title": "Impression et export PDF",
+        "body": "Le rendu est un SVG vectoriel : il part tel quel dans l'export PDF du cours, texte et traits nets."
       }
     }
   },

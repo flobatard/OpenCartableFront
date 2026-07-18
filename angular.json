@@ -42,6 +42,11 @@
                 "glob": "**/*",
                 "input": "node_modules/monaco-editor/min/vs",
                 "output": "/monaco/vs"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/@drgrice1/tikzjax/dist",
+                "output": "/assets/tikzjax"
               }
             ],
             "styles": [
