@@ -1,0 +1,74 @@
+.module-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.module-editor__back {
+  align-self: flex-start;
+  color: var(--text-secondary);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--text-primary);
+    text-decoration: underline;
+  }
+}
+
+.module-editor__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.module-editor__title {
+  margin: 0;
+}
+
+.module-editor__save {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.module-editor__save-error {
+  color: var(--text-danger);
+}
+
+.module-editor__state {
+  color: var(--text-secondary);
+}
+
+// Éditeur | preview côte à côte (motif markdown-playground), empilé <900px.
+.module-editor__workspace {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .module-editor__workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+.module-editor__caption {
+  margin: 0 0 6px;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+// L'éditeur remplit la hauteur de son hôte (contrat markdown-editor).
+.module-editor__panel {
+  height: 420px;
+  margin-top: 8px;
+}
+
+.module-editor__preview {
+  display: block;
+  border: 1px dashed var(--text-secondary);
+  border-radius: var(--radius);
+  padding: 12px;
+}

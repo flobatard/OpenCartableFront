@@ -14,6 +14,7 @@ function block(over: Partial<CourseBlock> = {}): CourseBlock {
     description: null,
     content: {},
     resource_id: null,
+    module_id: null,
     ...over,
   };
 }

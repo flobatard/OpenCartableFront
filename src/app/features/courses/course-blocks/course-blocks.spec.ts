@@ -6,6 +6,8 @@ import { CourseBlocks } from './course-blocks';
 import { CourseBlock, CourseDetail } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
 import { EducationLevelService } from '../../../core/education-levels/education-level.service';
+import { ModuleSummary } from '../../../core/modules/module.model';
+import { ModuleService } from '../../../core/modules/module.service';
 import { ResourceService } from '../../../core/resources/resource.service';
 import { SubjectService } from '../../../core/subjects/subject.service';
 import { COURSE_DETAIL_FIXTURE } from '../../../testing/courses.fixture';
@@ -53,6 +55,19 @@ describe('CourseBlocks', () => {
     deleteResource: vi.fn(),
     getDownloadUrl: vi.fn(),
   };
+  const modulesMock = {
+    list: signal<ModuleSummary[]>([
+      { id: 'module-1', titre: 'Quiz interactif', created_at: '2026-07-01', updated_at: '2026-07-01' },
+    ]),
+    listLoading: signal(false),
+    listError: signal(false),
+    loadList: vi.fn(),
+    createModule: vi.fn(),
+    renameModule: vi.fn(),
+    updateModule: vi.fn(),
+    deleteModule: vi.fn(),
+    getModule: vi.fn(),
+  };
 
   async function createComponent(tab?: string): Promise<ComponentFixture<CourseBlocks>> {
     await TestBed.configureTestingModule({
@@ -63,6 +78,7 @@ describe('CourseBlocks', () => {
         { provide: SubjectService, useValue: subjectsMock },
         { provide: EducationLevelService, useValue: levelsMock },
         { provide: ResourceService, useValue: resourcesMock },
+        { provide: ModuleService, useValue: modulesMock },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -339,7 +355,12 @@ describe('CourseBlocks', () => {
   it('affiche l’onglet Blocs par défaut et bascule vers Ressources', async () => {
     const fixture = await createComponent();
     const tabs = Array.from(el(fixture).querySelectorAll<HTMLButtonElement>('[role="tab"]'));
-    expect(tabs.map((t) => t.textContent?.trim())).toEqual(['Blocs', 'Ressources', 'Aperçu']);
+    expect(tabs.map((t) => t.textContent?.trim())).toEqual([
+      'Blocs',
+      'Ressources',
+      'Modules',
+      'Aperçu',
+    ]);
     expect(tabs[0].getAttribute('aria-selected')).toBe('true');
     expect(el(fixture).querySelector('app-course-resources')).toBeNull();
 
@@ -369,11 +390,11 @@ describe('CourseBlocks', () => {
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     const tabs = Array.from(el(fixture).querySelectorAll<HTMLButtonElement>('[role="tab"]'));
 
-    tabs[2].click();
+    tabs[3].click();
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(tabs[2].getAttribute('aria-selected')).toBe('true');
+    expect(tabs[3].getAttribute('aria-selected')).toBe('true');
     expect(el(fixture).querySelector('app-course-preview')).toBeTruthy();
     expect(el(fixture).querySelector('app-course-resources')).toBeNull();
     expect(navigate).toHaveBeenCalledWith([], {
@@ -386,10 +407,18 @@ describe('CourseBlocks', () => {
     const fixture = await createComponent('preview');
     expect(el(fixture).querySelector('app-course-preview')).toBeTruthy();
     const tabs = Array.from(el(fixture).querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+    expect(tabs[3].getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('?tab=modules ouvre directement l’onglet Modules (deep-link)', async () => {
+    const fixture = await createComponent('modules');
+    expect(el(fixture).querySelector('app-course-modules')).toBeTruthy();
+    expect(modulesMock.loadList).toHaveBeenCalledWith('course-1');
+    const tabs = Array.from(el(fixture).querySelectorAll<HTMLButtonElement>('[role="tab"]'));
     expect(tabs[2].getAttribute('aria-selected')).toBe('true');
   });
 
-  it('les flèches cyclent entre les trois onglets (APG tabs)', async () => {
+  it('les flèches cyclent entre les quatre onglets (APG tabs)', async () => {
     const fixture = await createComponent();
     const tablist = el(fixture).querySelector('[role="tablist"]')!;
     const tabs = () => Array.from(el(fixture).querySelectorAll<HTMLButtonElement>('[role="tab"]'));
@@ -402,10 +431,28 @@ describe('CourseBlocks', () => {
     fixture.detectChanges();
     expect(tabs()[2].getAttribute('aria-selected')).toBe('true');
 
+    tablist.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    fixture.detectChanges();
+    expect(tabs()[3].getAttribute('aria-selected')).toBe('true');
+
     // Cycle : depuis Aperçu, flèche droite revient à Blocs.
     tablist.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
     fixture.detectChanges();
     expect(tabs()[0].getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('une suppression de module recharge le détail du cours (blocs module supprimés en cascade)', async () => {
+    const fixture = await createComponent('modules');
+    coursesMock.loadDetail.mockClear();
+
+    const modules = el(fixture).querySelector('app-course-modules')!;
+    modulesMock.deleteModule.mockResolvedValue(undefined);
+    modules.querySelectorAll<HTMLButtonElement>('.course-modules__delete')[0].click(); // arme
+    fixture.detectChanges();
+    modules.querySelectorAll<HTMLButtonElement>('.course-modules__delete')[0].click();
+    await fixture.whenStable();
+
+    expect(coursesMock.loadDetail).toHaveBeenCalledWith('course-1');
   });
 
   it('une suppression de ressource recharge le détail du cours (blocs document supprimés en cascade)', async () => {

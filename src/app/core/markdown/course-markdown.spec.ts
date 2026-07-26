@@ -2,6 +2,7 @@ import type { Mock } from 'vitest';
 import mermaid from 'mermaid';
 import {
   hasCourseDiagrams,
+  hasCourseModules,
   hasCourseResources,
   mermaidSourceHasMath,
   renderCourseDiagrams,
@@ -246,6 +247,35 @@ describe('ressources intégrées (oc-resource)', () => {
     const div = render('```\n![x](oc-resource:zzz)\n```');
     expect(div.querySelector('[data-oc-resource-id]')).toBeNull();
     expect(div.textContent).toContain('oc-resource:zzz');
+  });
+});
+
+describe('modules intégrés (oc-module)', () => {
+  it('un lien oc-module devient un span placeholder data-oc-module-id (texte en repli)', () => {
+    const div = render('[Quiz interactif](oc-module:mod-123)');
+    const span = div.querySelector('span.course-module-embed');
+    expect(span?.getAttribute('data-oc-module-id')).toBe('mod-123');
+    expect(span?.classList.contains('course-module-embed--pending')).toBe(true);
+    expect(span?.textContent).toBe('Quiz interactif');
+    // Jamais un <a> : le placeholder est monté en composant par markdown-view.
+    expect(div.querySelector('a')).toBeNull();
+  });
+
+  it('oc-module est reconnu avant oc-resource (schémas disjoints)', () => {
+    const div = render('[m](oc-module:m-1) et [r](oc-resource:r-1)');
+    expect(div.querySelector('[data-oc-module-id]')).not.toBeNull();
+    expect(div.querySelector('[data-oc-resource-id]')).not.toBeNull();
+  });
+
+  it('oc-module dans un bloc de code n’est pas transformé', () => {
+    const div = render('```\n[x](oc-module:zzz)\n```');
+    expect(div.querySelector('[data-oc-module-id]')).toBeNull();
+    expect(div.textContent).toContain('oc-module:zzz');
+  });
+
+  it('hasCourseModules détecte la présence d’un placeholder', () => {
+    expect(hasCourseModules(renderCourseMarkdown('[m](oc-module:x)'))).toBe(true);
+    expect(hasCourseModules(renderCourseMarkdown('du texte'))).toBe(false);
   });
 });
 

@@ -2,13 +2,14 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CourseBlock, CourseDetail } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
+import { ModuleService } from '../../../core/modules/module.service';
 import { ResourceService } from '../../../core/resources/resource.service';
 import { COURSE_DETAIL_FIXTURE } from '../../../testing/courses.fixture';
 import { COURSE_RESOURCES_FIXTURE } from '../../../testing/resources.fixture';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
 import { CoursePreview } from './course-preview';
 
-/** Bloc module ajouté au mix : il doit être omis de l'aperçu (vue élève). */
+/** Bloc module ajouté au mix : rendu par app-module-embed (vue élève). */
 const MODULE_BLOCK: CourseBlock = {
   id: 'block-module',
   position: 3,
@@ -17,6 +18,7 @@ const MODULE_BLOCK: CourseBlock = {
   description: null,
   content: {},
   resource_id: null,
+  module_id: 'module-1',
 };
 
 const DETAIL_WITH_MODULE: CourseDetail = {
@@ -33,6 +35,20 @@ describe('CoursePreview', () => {
     loadList: vi.fn(),
     getDownloadUrl: vi.fn().mockResolvedValue('https://s3.example/presigned'),
   };
+  const modulesMock = {
+    list: signal([]),
+    listLoading: signal(false),
+    loadList: vi.fn(),
+    getModule: vi.fn().mockResolvedValue({
+      id: 'module-1',
+      titre: 'Quiz interactif',
+      html: '<p>Salut</p>',
+      css: '',
+      js: '',
+      created_at: '',
+      updated_at: '',
+    }),
+  };
 
   async function createComponent(): Promise<ComponentFixture<CoursePreview>> {
     await TestBed.configureTestingModule({
@@ -40,6 +56,7 @@ describe('CoursePreview', () => {
       providers: [
         { provide: CourseService, useValue: coursesMock },
         { provide: ResourceService, useValue: resourcesMock },
+        { provide: ModuleService, useValue: modulesMock },
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(CoursePreview);
@@ -66,19 +83,23 @@ describe('CoursePreview', () => {
     expect(resourcesMock.loadList).toHaveBeenCalledWith('course-1');
   });
 
-  it('rend les blocs prévisualisables dans l’ordre, module omis', async () => {
+  it('rend tous les blocs dans l’ordre, module inclus (app-module-embed)', async () => {
     const fixture = await createComponent();
     const rendered = blocks(fixture);
-    // texte + document + exercice = 3 ; le module est absent.
-    expect(rendered.length).toBe(3);
-    expect(el(fixture).textContent).not.toContain('Module interactif');
-    // Ordre : texte, puis document, puis exercice. En vue élève, le titre du
-    // bloc n’est rendu que pour les documents — l’ordre se lit donc sur le type
-    // de contenu de chaque bloc et sur la position des textes rendus.
+    // texte + document + exercice + module = 4.
+    expect(rendered.length).toBe(4);
+    // Le titre du bloc module est rendu (comme celui des documents).
+    expect(el(fixture).textContent).toContain('Module interactif');
     const kinds = rendered.map((b) =>
-      b.querySelector('app-course-preview-document') ? 'document' : 'markdown',
+      b.querySelector('app-course-preview-document')
+        ? 'document'
+        : b.querySelector('app-module-embed')
+          ? 'module'
+          : 'markdown',
     );
-    expect(kinds).toEqual(['markdown', 'document', 'markdown']);
+    expect(kinds).toEqual(['markdown', 'document', 'markdown', 'module']);
+    // Le module du bloc est résolu par son id via le service.
+    expect(modulesMock.getModule).toHaveBeenCalledWith('course-1', 'module-1');
     const text = el(fixture).textContent ?? '';
     expect(text.indexOf('Introduction aux suites')).toBeLessThan(
       text.indexOf('Étudier la convergence des suites suivantes.'),

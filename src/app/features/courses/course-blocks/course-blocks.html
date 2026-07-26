@@ -87,6 +87,20 @@
           {{ 'courses.tabs.resources' | transloco }}
         </button>
         <button
+          #modulesTab
+          type="button"
+          class="tab"
+          role="tab"
+          [id]="uid + '-tab-modules'"
+          [class.tab--active]="activeTab() === 'modules'"
+          [attr.aria-selected]="activeTab() === 'modules'"
+          [attr.aria-controls]="uid + '-panel-modules'"
+          [tabindex]="activeTab() === 'modules' ? 0 : -1"
+          (click)="selectTab('modules')"
+        >
+          {{ 'courses.tabs.modules' | transloco }}
+        </button>
+        <button
           #previewTab
           type="button"
           class="tab"
@@ -110,6 +124,15 @@
           [attr.aria-labelledby]="uid + '-tab-resources'"
         >
           <app-course-resources [courseId]="courseId" (deleted)="onResourceDeleted()" />
+        </div>
+      } @else if (activeTab() === 'modules') {
+        <div
+          class="course-blocks__panel"
+          role="tabpanel"
+          [id]="uid + '-panel-modules'"
+          [attr.aria-labelledby]="uid + '-tab-modules'"
+        >
+          <app-course-modules [courseId]="courseId" (deleted)="onModuleDeleted()" />
         </div>
       } @else if (activeTab() === 'preview') {
         <div

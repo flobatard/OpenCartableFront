@@ -50,6 +50,9 @@
         <button type="button" class="pill markdown-field__insert-btn" (click)="openPicker()">
           {{ 'markdownField.insertResource' | transloco }}
         </button>
+        <button type="button" class="pill markdown-field__insert-btn" (click)="openModulePicker()">
+          {{ 'markdownField.insertModule' | transloco }}
+        </button>
       }
       <button type="button" class="pill markdown-field__help-btn" (click)="openHelp()">
         <span class="markdown-field__help-icon" aria-hidden="true">?</span>
@@ -81,4 +84,5 @@
 
   <app-markdown-help-dialog />
   <app-resource-picker-dialog [resources]="availableResources()" (pick)="onPick($event)" />
+  <app-module-picker-dialog [modules]="availableModules()" (pick)="onModulePick($event)" />
 </div>

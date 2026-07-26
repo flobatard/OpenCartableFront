@@ -19,19 +19,21 @@ import { CourseResource } from '../../../core/resources/resource.model';
 import { ResourceService } from '../../../core/resources/resource.service';
 import { CourseStyleDialog } from '../../../shared/course-style-dialog/course-style-dialog';
 import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
+import { ModuleEmbed } from '../../../shared/module-runner/module-embed';
 import { CoursePreviewDocument } from './course-preview-document';
 
 /**
  * Aperçu global d'un cours (onglet « Aperçu » de la page cours) : rend tous les
- * blocs prévisualisables les uns à la suite des autres, dans l'ordre du back —
- * le cours tel que le verra l'élève. Vue élève : les blocs `module` (placeholder
- * J4) sont **omis** et les réponses attendues des exercices restent masquées
- * (via `exerciseMarkdownFromContent`).
+ * blocs les uns à la suite des autres, dans l'ordre du back — le cours tel que
+ * le verra l'élève. Vue élève : les réponses attendues des exercices restent
+ * masquées (via `exerciseMarkdownFromContent`).
  *
  * Rendu **par bloc** (pas de markdown concaténé) : les blocs `document`
  * s'intercalent entre texte et exercice et ne sont pas du markdown. Texte et
  * exercice passent par `app-markdown-view` (pipeline partagé) ; les documents
- * par `app-course-preview-document` (média intégré / carte).
+ * par `app-course-preview-document` (média intégré / carte) ; les modules
+ * interactifs par `app-module-embed` (iframe sandbox origine opaque, résolue
+ * par id — module non choisi/supprimé → notice).
  *
  * Navigateur uniquement : `app-markdown-view` et la résolution d'URL présignée
  * touchent `window` — la page hôte (courses/:id) est en `RenderMode.Client`, et
@@ -39,7 +41,7 @@ import { CoursePreviewDocument } from './course-preview-document';
  */
 @Component({
   selector: 'app-course-preview',
-  imports: [TranslocoPipe, MarkdownView, CoursePreviewDocument, CourseStyleDialog],
+  imports: [TranslocoPipe, MarkdownView, CoursePreviewDocument, CourseStyleDialog, ModuleEmbed],
   templateUrl: './course-preview.html',
   styleUrl: './course-preview.scss',
 })

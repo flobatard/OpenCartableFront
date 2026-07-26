@@ -1,0 +1,24 @@
+@switch (state()) {
+  @case ('ready') {
+    <div class="module-embed__frame">
+      <span class="module-embed__badge">{{ 'moduleEmbed.badge' | transloco }}</span>
+      <app-module-runner
+        [html]="module()!.html"
+        [css]="module()!.css"
+        [js]="module()!.js"
+        [title]="module()!.titre"
+      />
+    </div>
+  }
+  @case ('missing') {
+    <p class="module-embed__notice">{{ 'moduleEmbed.missing' | transloco }}</p>
+  }
+  @case ('empty') {
+    <p class="module-embed__notice">{{ 'moduleEmbed.none' | transloco }}</p>
+  }
+  @case ('loading') {
+    <p class="module-embed__notice module-embed__notice--loading">
+      {{ 'common.loading' | transloco }}
+    </p>
+  }
+}

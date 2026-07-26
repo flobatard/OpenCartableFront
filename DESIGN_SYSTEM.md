@@ -192,7 +192,7 @@ Toute la zone d'édition/lecture d'un cours vit sous `.course-content` : largeur
 - **Titre** Outfit 600, 24/20 px. **Paragraphe** Inter 400, 16 px.
 - **Encadré** : fond `indigo-50`, liseré gauche `3px indigo-600` (`radius 0`), texte `indigo-700` (7.07).
 - **Fichier / image** : carte icône + nom + taille, téléchargement en bouton fantôme, **légende `slate-600`**.
-- **Module interactif** : cadre `1px slate-500 dashed`, badge « interactif », iframe sandbox.
+- **Module interactif** : cadre `1px slate-500 dashed`, badge « interactif », iframe sandbox (hauteur pilotée par l'auto-resize du module). États vide (« aucun module choisi ») et manquant (module supprimé) : note atténuée façon `.course-resource--missing` (bordure dashed, `--text-secondary`).
 
 ### Spinner / loader
 

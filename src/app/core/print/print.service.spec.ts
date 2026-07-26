@@ -109,6 +109,22 @@ describe('transformForPrint', () => {
     expect(root.querySelector('p.oc-print__extension-note')).not.toBeNull();
   });
 
+  it('remplace un embed de module interactif par la note « contenu interactif »', () => {
+    // Couvre les deux hôtes : span oc-module du markdown et hôte ModuleEmbed
+    // d'un bloc module de l'aperçu — tous deux portent data-oc-module-id.
+    const root = fragment(
+      '<span class="course-module-embed" data-oc-module-id="m-1"><iframe sandbox="allow-scripts"></iframe></span>' +
+        '<app-module-embed data-oc-module-id="m-2"></app-module-embed>',
+    );
+    transformForPrint(root, 'course-1', 'fr', labels());
+
+    expect(root.querySelector('[data-oc-module-id]')).toBeNull();
+    expect(root.querySelector('iframe')).toBeNull();
+    const notes = root.querySelectorAll('p.oc-print__extension-note');
+    expect(notes.length).toBe(2);
+    expect(notes[0].textContent).toBe('Contenu interactif : voir la version en ligne.');
+  });
+
   it('conserve telle quelle une extension imprimable (SVG cloné)', () => {
     const root = fragment(
       '<div class="course-extension" data-oc-extension="jsxgraph" data-oc-printable="true">' +

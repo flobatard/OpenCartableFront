@@ -16,12 +16,16 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { buildModuleMarkdown } from '../../core/markdown/course-module-ref';
 import { buildResourceMarkdown } from '../../core/markdown/course-resource-ref';
+import { ModuleSummary } from '../../core/modules/module.model';
+import { ModuleService } from '../../core/modules/module.service';
 import { CourseResource } from '../../core/resources/resource.model';
 import { ResourceService } from '../../core/resources/resource.service';
 import { MarkdownEditor } from '../markdown-editor/markdown-editor';
 import { MarkdownHelpDialog } from '../markdown-help-dialog/markdown-help-dialog';
 import { MarkdownView } from '../markdown-view/markdown-view';
+import { ModulePickerDialog } from '../module-picker-dialog/module-picker-dialog';
 import { ResourcePickerDialog } from '../resource-picker-dialog/resource-picker-dialog';
 
 /** Suffixe d'ids uniques par instance (le tablist ARIA doit être unique — un
@@ -49,6 +53,7 @@ type FieldTab = 'editor' | 'preview';
     MarkdownEditor,
     MarkdownHelpDialog,
     MarkdownView,
+    ModulePickerDialog,
     ResourcePickerDialog,
   ],
   templateUrl: './markdown-field.html',
@@ -76,8 +81,10 @@ export class MarkdownField implements ControlValueAccessor {
   protected readonly help = viewChild(MarkdownHelpDialog);
   protected readonly editorRef = viewChild(MarkdownEditor);
   protected readonly picker = viewChild(ResourcePickerDialog);
+  protected readonly modulePicker = viewChild(ModulePickerDialog);
 
   readonly #resources = inject(ResourceService);
+  readonly #modules = inject(ModuleService);
 
   /**
    * Cours propriétaire des ressources insérables. `null` (défaut) : pas de
@@ -94,6 +101,9 @@ export class MarkdownField implements ControlValueAccessor {
   protected readonly availableResources = computed(() =>
     this.#resources.list().filter((r) => r.statut === 'disponible'),
   );
+
+  /** Modules insérables (bibliothèque chargée par la page hôte : block-editor). */
+  protected readonly availableModules = this.#modules.list;
 
   /** Valeur locale en cours de frappe — alimente l'aperçu (pas une version
       sauvegardée). Public : le template la passe à `app-markdown-view`. */
@@ -159,7 +169,7 @@ export class MarkdownField implements ControlValueAccessor {
     this.help()?.open();
   }
 
-  // --- Insertion de ressource --------------------------------------------------
+  // --- Insertion de ressource / module ------------------------------------------
 
   protected openPicker(): void {
     this.picker()?.open();
@@ -168,5 +178,14 @@ export class MarkdownField implements ControlValueAccessor {
   /** Ressource choisie : insère le snippet markdown au curseur de l'éditeur. */
   protected onPick(resource: CourseResource): void {
     this.editorRef()?.insertAtCursor(buildResourceMarkdown(resource));
+  }
+
+  protected openModulePicker(): void {
+    this.modulePicker()?.open();
+  }
+
+  /** Module choisi : insère `[titre](oc-module:<id>)` au curseur de l'éditeur. */
+  protected onModulePick(module: ModuleSummary): void {
+    this.editorRef()?.insertAtCursor(buildModuleMarkdown(module));
   }
 }

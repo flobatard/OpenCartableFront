@@ -22,20 +22,21 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { SubjectService } from '../../../core/subjects/subject.service';
 import { findById as findSubjectById } from '../../../core/subjects/subject.utils';
 import { BlockCreateDialog } from '../block-create-dialog/block-create-dialog';
+import { CourseModules } from '../course-modules/course-modules';
 import { CoursePreview } from '../course-preview/course-preview';
 import { CourseResources } from '../course-resources/course-resources';
 import { moveIdTo } from './course-blocks.utils';
 
-/** Types proposés à l'ajout — tous créables (module = placeholder J4). */
+/** Types proposés à l'ajout — tous créables. */
 const CREATABLE_TYPES: readonly BlockType[] = ['texte', 'exercice', 'document', 'module'];
 
 /** Suffixe d'ids ARIA uniques par instance (compteur de module, jamais Date/Random). */
 let sequence = 0;
 
-type CourseTab = 'blocks' | 'resources' | 'preview';
+type CourseTab = 'blocks' | 'resources' | 'modules' | 'preview';
 
 /** Ordre des onglets pour la navigation clavier ←/→ (APG tabs). */
-const TAB_ORDER: readonly CourseTab[] = ['blocks', 'resources', 'preview'];
+const TAB_ORDER: readonly CourseTab[] = ['blocks', 'resources', 'modules', 'preview'];
 
 /**
  * Page d'un cours, à deux onglets (tablist APG, motif `markdown-field`) :
@@ -44,11 +45,13 @@ const TAB_ORDER: readonly CourseTab[] = ['blocks', 'resources', 'preview'];
  * réordonnancement par glisser-déposer (poignée CDK) ou flèches discrètes — la
  * poignée est aussi opérable au clavier ; l'affichage est optimiste, mais une
  * mutation en vol fige les actions le temps de l'aller-retour — et suppression
- * en deux temps (le bouton s'arme puis confirme — pas de modale) ; et
+ * en deux temps (le bouton s'arme puis confirme — pas de modale) ;
  * « Ressources » — bibliothèque de fichiers du cours (`CourseResources`),
- * indépendante des blocs. L'onglet actif est reflété dans `?tab=resources`
- * (deep-link, `replaceUrl` pour ne pas polluer l'historique) ; panneaux en
- * `@if` (pas de Monaco ici, rien à préserver dans le DOM).
+ * indépendante des blocs ; « Modules » — bibliothèque de modules interactifs
+ * (`CourseModules`), indépendante des blocs elle aussi. L'onglet actif est
+ * reflété dans `?tab=` (deep-link, `replaceUrl` pour ne pas polluer
+ * l'historique) ; panneaux en `@if` (pas de Monaco ici, rien à préserver
+ * dans le DOM).
  */
 @Component({
   selector: 'app-course-blocks',
@@ -56,6 +59,7 @@ const TAB_ORDER: readonly CourseTab[] = ['blocks', 'resources', 'preview'];
     RouterLink,
     TranslocoPipe,
     BlockCreateDialog,
+    CourseModules,
     CourseResources,
     CoursePreview,
     CdkDropList,
@@ -91,6 +95,7 @@ export class CourseBlocks implements OnInit {
 
   protected readonly blocksTabRef = viewChild<ElementRef<HTMLButtonElement>>('blocksTab');
   protected readonly resourcesTabRef = viewChild<ElementRef<HTMLButtonElement>>('resourcesTab');
+  protected readonly modulesTabRef = viewChild<ElementRef<HTMLButtonElement>>('modulesTab');
   protected readonly previewTabRef = viewChild<ElementRef<HTMLButtonElement>>('previewTab');
 
   protected readonly detail = this.#courses.detail;
@@ -146,13 +151,15 @@ export class CourseBlocks implements OnInit {
         ? this.blocksTabRef()
         : next === 'resources'
           ? this.resourcesTabRef()
-          : this.previewTabRef();
+          : next === 'modules'
+            ? this.modulesTabRef()
+            : this.previewTabRef();
     ref?.nativeElement.focus();
   }
 
   /** Onglet dérivé du param `?tab=` : seuls les non-défaut connus sont acceptés. */
   #tabFromParam(tab: string | null): CourseTab {
-    return tab === 'resources' || tab === 'preview' ? tab : 'blocks';
+    return tab === 'resources' || tab === 'modules' || tab === 'preview' ? tab : 'blocks';
   }
 
   /**
@@ -160,6 +167,14 @@ export class CourseBlocks implements OnInit {
    * ont été supprimés par le serveur (FK CASCADE) — on recharge le détail.
    */
   protected onResourceDeleted(): void {
+    this.reload();
+  }
+
+  /**
+   * Un module a été supprimé : les blocs `module` qui le pointaient ont été
+   * supprimés par le serveur (FK CASCADE) — on recharge le détail.
+   */
+  protected onModuleDeleted(): void {
     this.reload();
   }
 

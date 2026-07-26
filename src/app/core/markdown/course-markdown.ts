@@ -1,6 +1,7 @@
 import DOMPurify from 'dompurify';
 import katex from 'katex';
 import { Marked, Tokens, TokenizerAndRendererExtension } from 'marked';
+import { MODULE_REF_ATTR, parseModuleRef } from './course-module-ref';
 import { parseResourceRef, ResourceRefKind, RESOURCE_REF_ATTR } from './course-resource-ref';
 
 /**
@@ -116,6 +117,20 @@ function resourcePlaceholderAttrs(id: string): string {
   return ` ${RESOURCE_REF_ATTR}="${escapeHtmlAttr(id)}" class="course-resource course-resource--pending"`;
 }
 
+/**
+ * Placeholder d'un module interactif (`oc-module:<id>`) : un `<span>` inerte
+ * portant l'id en `data-*` (survit à DOMPurify) et le texte du lien en repli
+ * lisible ; `markdown-view` y monte dynamiquement un `ModuleEmbed` (hors
+ * contexte cours, le span reste une note inerte). Pas de passe async ici :
+ * le montage est un composant, pas une substitution HTML.
+ */
+function modulePlaceholder(id: string, label: string): string {
+  return (
+    `<span ${MODULE_REF_ATTR}="${escapeHtmlAttr(id)}"` +
+    ` class="course-module-embed course-module-embed--pending">${label}</span>`
+  );
+}
+
 // Instance dédiée, configurée UNE fois au chargement du module : ne jamais
 // muter le singleton `marked` (son use() est global). Défauts identiques
 // (gfm actif) — le markdown sans formule se rend comme avant.
@@ -136,6 +151,12 @@ const courseMarked = new Marked({
         : `<img${resourcePlaceholderAttrs(id)} alt="${escapeHtmlAttr(text)}">`;
     },
     link({ href, tokens }) {
+      // `oc-module:` d'abord (schéma disjoint de `oc-resource:`) : le
+      // placeholder est un span monté en composant par markdown-view.
+      const moduleId = parseModuleRef(href);
+      if (moduleId !== null) {
+        return modulePlaceholder(moduleId, this.parser.parseInline(tokens));
+      }
       const id = parseResourceRef(href);
       return id === null
         ? false
@@ -313,6 +334,11 @@ export interface ResolvedResource {
 /** Vrai si `html` (sortie de renderCourseMarkdown) référence une ressource. */
 export function hasCourseResources(html: string): boolean {
   return html.includes(RESOURCE_REF_ATTR);
+}
+
+/** Vrai si `html` (sortie de renderCourseMarkdown) référence un module. */
+export function hasCourseModules(html: string): boolean {
+  return html.includes(MODULE_REF_ATTR);
 }
 
 /**

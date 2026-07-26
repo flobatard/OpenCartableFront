@@ -46,7 +46,7 @@ Notes, rendus d'élèves, messagerie, gestion de classe. Ce n'est pas un ENT, c'
 - Recherche plein texte sur titres / contenu / tags.
 
 ### V1
-- **Modules interactifs** HTML/JS (upload, sandbox, intégration dans un cours).
+- **Modules interactifs** HTML/CSS/JS (éditeur intégré, sandbox, intégration dans un cours).
 - Facettes de recherche (matière, niveau, type).
 - Aperçus / miniatures des documents.
 - Liens de partage avec options (expiration, révocation).
@@ -122,21 +122,20 @@ Pour « agencer texte de cours + documents + images », le modèle gagnant est u
 - Un cours = une liste ordonnée de blocs de quatre types : `texte`, `exercice`, `document`, `module`.
 - Le **texte de cours** (bloc `texte`) est du **markdown simple stocké en JSONB**, pas de HTML brut → plus sûr, réindexable, exploitable par l'IA ; titres, paragraphes, encadrés **et liens externes** sont couverts par le markdown (pas de types de blocs dédiés — l'ancien type `lien` a été supprimé).
 - Les blocs `document` sont un **pont nullable** vers une ressource de la bibliothèque (colonne `resource_id`, FK `CASCADE` : supprimer la ressource supprime les blocs qui la pointent — un document sans son fichier n'a pas de sens) ; leur JSONB ne porte que l'éditorial (`legende`, `affichage`). Une ressource peut exister sans bloc, ou être pointée par plusieurs.
-- Les blocs `module` (modules interactifs, cf. 5.5) existent comme type — leur logique métier arrive au J4.
-- UX côté Angular : page de cours à **deux onglets Blocs / Ressources**, éditeur d'ordre des blocs (drag & drop), picker de ressources dans l'éditeur du bloc document, upload direct navigateur→S3 avec progression.
+- Les blocs `module` (modules interactifs HTML/CSS/JS, cf. 5.5) suivent le même motif que les blocs `document` : un **pont nullable** vers un module de la **bibliothèque de modules du cours** (colonne `module_id`, FK `CASCADE` : supprimer le module supprime ses blocs pointeurs).
+- UX côté Angular : page de cours à **quatre onglets Blocs / Ressources / Modules / Aperçu**, éditeur d'ordre des blocs (drag & drop), picker de ressources dans l'éditeur du bloc document, picker de module dans l'éditeur du bloc module, upload direct navigateur→S3 avec progression.
 
 ### 5.4 Recherche
 - MVP : **Full-Text Search Postgres** (`tsvector` + index GIN) sur titres de cours, texte des blocs, noms et tags de ressources. Configuration `french` pour le *stemming*.
 - Facettes : matière (filtre par sous-arbre `subjects`), niveau (filtre par sous-arbre `education_levels`, pivot international `cite`), type de ressource (filtres SQL classiques).
 - Évolution : recherche **sémantique** via ChromaDB si la vectorisation est actée (cf. 5.7), combinable avec la FTS (recherche hybride).
 
-### 5.5 Modules interactifs HTML/JS
-Le point le plus sensible niveau sécurité : tu vas servir du **code arbitraire** (le tien, mais quand même).
-- Un module est un **bloc** (`type='module'`, cf. 5.3), pas une ressource : le type existe déjà, la logique métier (upload du bundle, stockage, exécution) sera conçue au **J4**.
-- Un module = **bundle HTML/JS auto-porté** (un dossier ou un `.zip`), stocké sur S3, métadonnées en base.
-- Rendu **isolé** : intégration via `<iframe sandbox>` servie depuis un **chemin/origine séparé** de l'app principale, avec une **CSP** stricte → empêche un module de toucher au DOM de l'app, aux tokens, etc.
-- **Versionnage** par clé S3 (`module-id/v3/...`) pour pouvoir corriger un module sans casser les liens existants.
-- Communication module ↔ app éventuelle via `postMessage` contrôlé (utile plus tard, ex. remonter un score).
+### 5.5 Modules interactifs HTML/CSS/JS (J4 — livré, anticipé)
+Le point le plus sensible niveau sécurité : on sert du **code arbitraire** (celui du prof, mais quand même). **Décision actée au J4 (qui a été anticipé avant J2/J3) : le cadrage initial « bundle .zip sur S3, origine de service séparée, versionnage par clé » a été remplacé par un modèle plus simple** — le module est édité dans l'app, pas uploadé :
+- Un module = **code HTML + CSS + JS stocké en base** (table `modules`, cf. back), écrit par le prof dans un **éditeur intégré** (`courses/:id/modules/:moduleId` : 3 Monaco HTML | CSS | JS commutés par tabs + **preview live sandboxée**, autosave débouncé).
+- Les modules forment une **bibliothèque par cours** (onglet « Modules », motif de l'onglet Ressources) : création, renommage, suppression. Un bloc `module` en pointe un via `module_id` (cf. 5.3) ; un module peut aussi être **inséré dans le markdown** d'un bloc texte via la référence stable `oc-module:<id>` (motif `oc-resource:`).
+- Rendu **isolé, sans origine de service séparée** : `<iframe sandbox="allow-scripts allow-forms allow-modals">` **sans `allow-same-origin`**, composée via `srcdoc` → **origine opaque** (`'null'`) : le code du module n'a accès ni aux cookies, ni au localStorage, ni aux tokens, ni au DOM de l'app. Le **réseau sortant reste autorisé** (CDN, images, fetch — liberté maximale du prof, sans risque pour la session).
+- Communication module ↔ app par **`postMessage` contrôlé** (`oc-module:*`) : auto-resize de l'iframe + événements applicatifs (`ocModule.emit(name, data)`, ex. remonter un score) ; messages validés côté parent par provenance (`event.source`, `event.origin === 'null'`) et par forme, hauteur bornée.
 
 ### 5.6 Partage public par lien
 - Chaque partage = un **token opaque non devinable** (≥128 bits), lié à un cours.
@@ -223,13 +222,13 @@ erDiagram
 | **J1 — Contenu** | Matières, cours, upload S3 (presigned), éditeur de blocs basique | Le prof crée et remplit un cours |
 | **J2 — Partage** | Liens publics, vue lecture seule élève, présignature des ressources | Un cours consultable par lien |
 | **J3 — Recherche** | FTS Postgres + facettes | Retrouver n'importe quel support |
-| **J4 — Interactif** | Upload + sandbox des modules HTML/JS | Intégrer un quiz dans un cours |
+| **J4 — Interactif** *(livré, anticipé avant J2/J3)* | Bibliothèque de modules HTML/CSS/JS par cours (code en base, éditeur intégré) + sandbox iframe origine opaque | Intégrer un quiz dans un cours |
 | **J5 — IA** | extraction texte, vectorisation (ChromaDB, si actée), recherche sémantique / RAG | Première brique IA |
 
 ---
 
 ## 8. Risques & points d'attention
-- **Sécurité des modules JS** : ne pas servir les bundles depuis l'origine de l'app (sandbox + CSP obligatoires).
+- **Sécurité des modules JS** : l'isolation vient du **sandbox à origine opaque** (`<iframe sandbox>` sans `allow-same-origin`, composée en `srcdoc`) — jamais d'`allow-same-origin`, jamais de code de module injecté dans le DOM de l'app (cf. 5.5).
 - **Fuite via presigned URL** : TTL courts, et ne jamais rendre le bucket public « pour aller plus vite ».
 - **Charge sur le Pi** : déporter systématiquement les transferts vers S3 ; jobs lourds en asynchrone.
 - **Cohérence DB ↔ S3** : un fichier orphelin sur S3 (upload abandonné) ou une ligne sans objet → prévoir nettoyage / confirmation d'upload (l'API valide que l'objet existe avant de créer la `resource`).
@@ -242,6 +241,6 @@ erDiagram
 > Construire une plateforme pédagogique : **API FastAPI (Python)** + **Angular** SPA + **PostgreSQL** + **stockage S3** + **auth OIDC Zitadel**.
 > Édition réservée au prof (flow OIDC géré par la SPA ; l'API valide le JWT Zitadel via JWKS — config : issuer + audience) ; consultation élève via **liens publics à token opaque**, sans compte.
 > Fichiers stockés sur S3 **privé**, accès par **URL présignées** (upload direct navigateur→S3). Cours modélisés en **blocs ordonnés (JSONB)** référençant des ressources. Recherche **FTS Postgres** puis sémantique.
-> Modules interactifs HTML/JS servis en **iframe sandbox + CSP** depuis une origine séparée.
+> Modules interactifs HTML/CSS/JS (code en base, éditeur intégré) exécutés en **iframe sandbox à origine opaque** (`srcdoc`, jamais `allow-same-origin`).
 > Déploiement **Docker Compose** sur Raspberry Pi, derrière un **nginx géré par l'infra** (déporter le lourd vers S3 / l'asynchrone).
 > Commencer par le jalon **J0** (socle auth + une route protégée).

@@ -1,0 +1,11 @@
+@if (isBrowser) {
+  <iframe
+    #frame
+    class="module-runner__frame"
+    sandbox="allow-scripts allow-forms allow-modals"
+    referrerpolicy="no-referrer"
+    loading="lazy"
+    [style.height.px]="frameHeight()"
+    [title]="title() || ('moduleEmbed.frameTitle' | transloco)"
+  ></iframe>
+}

@@ -9,7 +9,8 @@ import type { CourseStyleSettings } from './course-style.service';
 /**
  * Types de blocs du modèle (contrainte CHECK en base). Tous créables depuis
  * l'UI : `document` naît vide (pont vers une ressource de la bibliothèque,
- * choisie ensuite dans l'éditeur), `module` est un placeholder J4.
+ * choisie ensuite dans l'éditeur), `module` naît vide lui aussi (pont vers
+ * un module interactif de la bibliothèque de modules du cours).
  */
 export type BlockType = 'texte' | 'exercice' | 'document' | 'module';
 
@@ -29,6 +30,12 @@ export interface CourseBlock {
    * vide à la création. Supprimer la ressource supprime le bloc (FK CASCADE).
    */
   resource_id: string | null;
+  /**
+   * Blocs `module` uniquement : module interactif du cours pointé, `null` =
+   * bloc vide à la création. Supprimer le module supprime le bloc (FK
+   * CASCADE).
+   */
+  module_id: string | null;
 }
 
 /**

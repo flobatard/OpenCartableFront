@@ -200,6 +200,28 @@ export class CourseService {
   }
 
   /**
+   * Pointe (ou détache, avec `null`) le module interactif d'un bloc `module`
+   * et répercute la réponse dans le détail chargé. PATCH dédié — miroir
+   * d'`updateBlockResource` pour la bibliothèque de modules.
+   */
+  async updateBlockModule(
+    courseId: string,
+    blockId: string,
+    moduleId: string | null,
+  ): Promise<CourseBlock> {
+    const block = await firstValueFrom(
+      this.#http.patch<CourseBlock>(`${this.#url}/${courseId}/blocks/${blockId}`, {
+        module_id: moduleId,
+      }),
+    );
+    this.#patchDetail(courseId, (detail) => ({
+      ...detail,
+      blocks: detail.blocks.map((b) => (b.id === blockId ? block : b)),
+    }));
+    return block;
+  }
+
+  /**
    * Réécrit l'ordre complet des blocs. Approche optimiste : le signal est
    * réordonné (positions 0..n-1, comme le back) **avant** le PUT — feedback
    * immédiat pour le glisser-déposer. Sur erreur, le PUT rejette et l'appelant

@@ -176,12 +176,20 @@
         "affichageLabel": "Display",
         "affichageInline": "Inline in the course",
         "affichageTelechargement": "As a download"
+      },
+      "module": {
+        "moduleLabel": "Module shown by this block",
+        "noModule": "No module",
+        "modulesEmpty": "No modules in this course yet: create one in the Modules tab.",
+        "editModule": "Edit this module",
+        "moduleError": "Could not save the module choice. Try again."
       }
     },
     "tabs": {
       "label": "Course sections",
       "blocks": "Blocks",
       "resources": "Resources",
+      "modules": "Modules",
       "preview": "Preview"
     },
     "preview": {
@@ -220,6 +228,43 @@
         "video": "Video"
       }
     },
+    "modules": {
+      "create": "Create a module",
+      "createLabel": "Title of the new module",
+      "createPlaceholder": "Module title (e.g. Sequences quiz)",
+      "loading": "Loading modules…",
+      "loadError": "Could not load the course modules.",
+      "retry": "Retry",
+      "empty": "No modules yet",
+      "emptyHint": "Create an interactive module (HTML, CSS, JS): it can be shown in a module block or inserted into a text block.",
+      "badge": "interactive",
+      "edit": "Edit",
+      "rename": "Rename",
+      "renameLabel": "New module title",
+      "renameSave": "Save",
+      "renameCancel": "Cancel",
+      "delete": "Delete",
+      "confirmDelete": "Confirm deletion?",
+      "mutationError": "The operation failed. Try again."
+    },
+    "moduleEditor": {
+      "back": "Back to course",
+      "loadError": "Could not load this module.",
+      "retry": "Retry",
+      "preview": "Module preview",
+      "tabs": {
+        "label": "Module code",
+        "html": "HTML",
+        "css": "CSS",
+        "js": "JS"
+      },
+      "save": {
+        "dirty": "Unsaved changes…",
+        "saving": "Saving…",
+        "saved": "Saved",
+        "error": "Save failed — will retry on the next change."
+      }
+    },
     "resourceView": {
       "opening": "Opening the resource…",
       "notFound": "Resource not found (deleted?).",
@@ -238,6 +283,7 @@
     "mermaidMathNote": "LaTeX formulas are not rendered inside Mermaid nodes; place them in the text, around the diagram.",
     "mermaidError": "Invalid Mermaid diagram:",
     "insertResource": "Insert a resource",
+    "insertModule": "Insert a module",
     "resourceMissing": "Resource unavailable"
   },
   "markdownView": {
@@ -430,6 +476,18 @@
     "title": "Insert a resource",
     "close": "Close",
     "empty": "No resource available. Add some from the Resources tab."
+  },
+  "modulePicker": {
+    "title": "Insert a module",
+    "close": "Close",
+    "badge": "interactive",
+    "empty": "No modules available. Create one in the Modules tab."
+  },
+  "moduleEmbed": {
+    "badge": "interactive",
+    "frameTitle": "Interactive module",
+    "none": "No module selected for this block.",
+    "missing": "Module unavailable (deleted or not found)."
   },
   "markdownHelp": {
     "trigger": "Formatting help",

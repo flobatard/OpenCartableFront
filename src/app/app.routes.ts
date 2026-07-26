@@ -87,6 +87,14 @@ export const routes: Routes = [
           import('./features/courses/block-editor/block-editor').then((m) => m.BlockEditor),
       },
       {
+        // Éditeur d'un module interactif (3 Monaco HTML/CSS/JS + preview
+        // sandbox — charge au navigateur).
+        path: 'courses/:id/modules/:moduleId',
+        canActivate: [authGuard, onboardingGuard],
+        loadComponent: () =>
+          import('./features/courses/module-editor/module-editor').then((m) => m.ModuleEditor),
+      },
+      {
         // Cible des liens de ressource des PDF exportés : présigne (authentifié)
         // puis redirige le navigateur vers l'URL S3 inline.
         path: 'courses/:id/resources/:resourceId',

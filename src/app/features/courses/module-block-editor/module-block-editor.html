@@ -1,0 +1,29 @@
+<div class="module-block-editor">
+  <label class="module-block-editor__field">
+    <span class="module-block-editor__label">
+      {{ 'courses.editor.module.moduleLabel' | transloco }}
+    </span>
+    <select class="module-block-editor__select" [formControl]="moduleControl">
+      <option value="">{{ 'courses.editor.module.noModule' | transloco }}</option>
+      @for (module of modules(); track module.id) {
+        <option [value]="module.id">{{ module.titre }}</option>
+      }
+    </select>
+  </label>
+  @if (!modules().length) {
+    <p class="module-block-editor__hint">
+      {{ 'courses.editor.module.modulesEmpty' | transloco }}
+    </p>
+  }
+
+  @if (moduleId(); as id) {
+    <a
+      class="module-block-editor__edit-link"
+      [routerLink]="['/', language.lang(), 'courses', courseId(), 'modules', id]"
+    >
+      {{ 'courses.editor.module.editModule' | transloco }}
+    </a>
+  }
+
+  <app-module-embed [courseId]="courseId()" [moduleId]="moduleId()" />
+</div>

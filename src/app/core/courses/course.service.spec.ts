@@ -106,6 +106,7 @@ describe('CourseService', () => {
       description: null,
       content: { enonce: '', questions: [] },
       resource_id: null,
+      module_id: null,
     };
 
     const add = service.addBlock(COURSE_DETAIL_FIXTURE.id, 'exercice');
@@ -130,6 +131,7 @@ describe('CourseService', () => {
       description: meta.description,
       content: { legende: null, affichage: 'inline' },
       resource_id: null,
+      module_id: null,
     };
 
     const add = service.addBlock(COURSE_DETAIL_FIXTURE.id, 'document', meta);

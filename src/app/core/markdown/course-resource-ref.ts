@@ -55,8 +55,9 @@ export function buildResourceMarkdown(
   return resource.type === 'image' ? `![${label}](${ref})` : `[${label}](${ref})`;
 }
 
-/** Échappe `[`/`]` et aplatit les retours ligne d'un libellé de lien markdown. */
-function escapeLinkText(text: string): string {
+/** Échappe `[`/`]` et aplatit les retours ligne d'un libellé de lien markdown.
+ *  Exporté : partagé avec le schéma `oc-module:` (course-module-ref.ts). */
+export function escapeLinkText(text: string): string {
   return text
     .replace(/[[\]]/g, '\\$&')
     .replace(/[\r\n]+/g, ' ')

@@ -1,0 +1,111 @@
+<div class="module-editor">
+  <a
+    class="module-editor__back"
+    [routerLink]="['/', language.lang(), 'courses', courseId]"
+    [queryParams]="{ tab: 'modules' }"
+  >
+    ← {{ 'courses.moduleEditor.back' | transloco }}
+  </a>
+
+  @if (loading()) {
+    <p class="module-editor__state">{{ 'common.loading' | transloco }}</p>
+  } @else if (loadError()) {
+    <div class="module-editor__state">
+      <p>{{ 'courses.moduleEditor.loadError' | transloco }}</p>
+      <button type="button" class="btn" (click)="reload()">
+        {{ 'courses.moduleEditor.retry' | transloco }}
+      </button>
+    </div>
+  } @else {
+    <header class="module-editor__header">
+      <h1 class="module-editor__title">{{ titre() }}</h1>
+      <p class="module-editor__save" role="status">
+        @switch (saveState()) {
+          @case ('dirty') {
+            {{ 'courses.moduleEditor.save.dirty' | transloco }}
+          }
+          @case ('saving') {
+            {{ 'courses.moduleEditor.save.saving' | transloco }}
+          }
+          @case ('saved') {
+            {{ 'courses.moduleEditor.save.saved' | transloco }}
+          }
+          @case ('error') {
+            <span class="module-editor__save-error">
+              {{ 'courses.moduleEditor.save.error' | transloco }}
+            </span>
+          }
+        }
+      </p>
+    </header>
+
+    <div class="module-editor__workspace">
+      <div class="module-editor__pane">
+        <div
+          class="tabs module-editor__tabbar"
+          role="tablist"
+          [attr.aria-label]="'courses.moduleEditor.tabs.label' | transloco"
+          (keydown)="onTablistKeydown($event)"
+        >
+          @for (tab of tabs; track tab) {
+            <button
+              type="button"
+              role="tab"
+              class="tab"
+              [id]="uid + '-tab-' + tab"
+              [class.tab--active]="activeTab() === tab"
+              [attr.aria-selected]="activeTab() === tab"
+              [attr.aria-controls]="uid + '-panel-' + tab"
+              [tabindex]="activeTab() === tab ? 0 : -1"
+              (click)="selectTab(tab)"
+            >
+              {{ 'courses.moduleEditor.tabs.' + tab | transloco }}
+            </button>
+          }
+        </div>
+
+        <!-- Panneaux masqués par [hidden], jamais @if : Monaco vit dans les trois. -->
+        <div
+          role="tabpanel"
+          class="module-editor__panel"
+          [id]="uid + '-panel-html'"
+          [attr.aria-labelledby]="uid + '-tab-html'"
+          [hidden]="activeTab() !== 'html'"
+        >
+          <app-markdown-editor language="html" [formControl]="htmlControl" />
+        </div>
+        <div
+          role="tabpanel"
+          class="module-editor__panel"
+          [id]="uid + '-panel-css'"
+          [attr.aria-labelledby]="uid + '-tab-css'"
+          [hidden]="activeTab() !== 'css'"
+        >
+          <app-markdown-editor language="css" [formControl]="cssControl" />
+        </div>
+        <div
+          role="tabpanel"
+          class="module-editor__panel"
+          [id]="uid + '-panel-js'"
+          [attr.aria-labelledby]="uid + '-tab-js'"
+          [hidden]="activeTab() !== 'js'"
+        >
+          <app-markdown-editor language="javascript" [formControl]="jsControl" />
+        </div>
+      </div>
+
+      <div class="module-editor__pane">
+        <p class="module-editor__caption">{{ 'courses.moduleEditor.preview' | transloco }}</p>
+        @if (previewReady()) {
+          <app-module-runner
+            class="module-editor__preview"
+            [html]="previewHtml()"
+            [css]="previewCss()"
+            [js]="previewJs()"
+            [title]="titre()"
+          />
+        }
+      </div>
+    </div>
+  }
+</div>

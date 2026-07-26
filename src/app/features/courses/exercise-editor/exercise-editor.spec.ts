@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { ExerciseEditor } from './exercise-editor';
 import { ExerciseContentPayload } from '../../../core/courses/course.model';
 import { ExerciseQuestionGroup } from '../../../core/courses/exercise-form';
+import { ModuleService } from '../../../core/modules/module.service';
 import { ResourceService } from '../../../core/resources/resource.service';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
 
@@ -29,6 +30,13 @@ describe('ExerciseEditor', () => {
     loadList: vi.fn(),
     getDownloadUrl: vi.fn(),
   };
+  // markdown-field injecte aussi ModuleService (picker de module).
+  const modulesMock = {
+    list: signal([]),
+    listLoading: signal(false),
+    loadList: vi.fn(),
+    getModule: vi.fn(),
+  };
 
   async function createComponent(
     initial: Record<string, unknown> = CONTENT,
@@ -36,7 +44,11 @@ describe('ExerciseEditor', () => {
     await TestBed.configureTestingModule({
       imports: [ExerciseEditor, provideTranslocoTesting()],
       // provideRouter : les markdown-field embarqués montent la modale d'aide (RouterLink).
-      providers: [provideRouter([]), { provide: ResourceService, useValue: resourcesMock }],
+      providers: [
+        provideRouter([]),
+        { provide: ResourceService, useValue: resourcesMock },
+        { provide: ModuleService, useValue: modulesMock },
+      ],
     }).compileComponents();
     const fixture = TestBed.createComponent(ExerciseEditor);
     fixture.componentRef.setInput('initial', initial);

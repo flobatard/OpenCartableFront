@@ -205,6 +205,20 @@
               (resourcePick)="onResourcePick($event)"
             />
           </section>
+        } @else if (block.type === 'module') {
+          <section class="block-editor__document">
+            @if (moduleSaveError()) {
+              <p class="block-editor__save block-editor__save--error" role="alert">
+                {{ 'courses.editor.module.moduleError' | transloco }}
+              </p>
+            }
+            <app-module-block-editor
+              [courseId]="courseId"
+              [moduleId]="block.module_id"
+              [modules]="availableModules()"
+              (modulePick)="onModulePick($event)"
+            />
+          </section>
         } @else {
           <div class="block-editor__notice">
             <p>{{ 'courses.editor.unsupported' | transloco }}</p>

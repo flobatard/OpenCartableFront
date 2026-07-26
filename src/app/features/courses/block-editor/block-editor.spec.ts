@@ -6,6 +6,8 @@ import { BlockEditor } from './block-editor';
 import { CourseBlock, CourseDetail } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
 import { addQuestion, ExerciseForm } from '../../../core/courses/exercise-form';
+import { ModuleSummary } from '../../../core/modules/module.model';
+import { ModuleService } from '../../../core/modules/module.service';
 import { ResourceService } from '../../../core/resources/resource.service';
 import { DocumentEditor } from '../document-editor/document-editor';
 import { ExerciseEditor } from '../exercise-editor/exercise-editor';
@@ -30,6 +32,18 @@ describe('BlockEditor', () => {
     updateBlockContent: vi.fn(),
     updateBlockMeta: vi.fn(),
     updateBlockResource: vi.fn(),
+    updateBlockModule: vi.fn(),
+  };
+  const modulesMock = {
+    list: signal<ModuleSummary[]>([]),
+    listLoading: signal(false),
+    listError: signal(false),
+    loadList: vi.fn(),
+    getModule: vi.fn().mockResolvedValue(null),
+    createModule: vi.fn(),
+    renameModule: vi.fn(),
+    updateModule: vi.fn(),
+    deleteModule: vi.fn(),
   };
   const resourcesMock = {
     list: signal(COURSE_RESOURCES_FIXTURE),
@@ -77,6 +91,7 @@ describe('BlockEditor', () => {
         provideRouter([]),
         { provide: CourseService, useValue: coursesMock },
         { provide: ResourceService, useValue: resourcesMock },
+        { provide: ModuleService, useValue: modulesMock },
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { paramMap: convertToParamMap({ id: 'course-1', blockId }) } },
@@ -396,7 +411,7 @@ describe('BlockEditor', () => {
     expect(el(fixture).querySelector('app-markdown-field')).toBeNull();
   });
 
-  it('type sans éditeur (module) : méta éditable, contenu absent + message dédié', async () => {
+  it('bloc module : méta éditable + picker de module (bibliothèque chargée)', async () => {
     detail.set({
       ...COURSE_DETAIL_FIXTURE,
       blocks: [
@@ -409,6 +424,7 @@ describe('BlockEditor', () => {
           description: null,
           content: {},
           resource_id: null,
+          module_id: null,
         },
       ],
     });
@@ -416,10 +432,12 @@ describe('BlockEditor', () => {
 
     // Le formulaire titre/description est présent (méta éditable sur tous types)…
     expect(metaField(fixture, 'titre')).toBeTruthy();
-    // …mais aucun éditeur de contenu (module = placeholder J4), un message l'annonce.
+    // …et le contenu est le picker de module (pas de Monaco ni de document).
     expect(el(fixture).querySelector('app-markdown-field')).toBeNull();
     expect(el(fixture).querySelector('app-document-editor')).toBeNull();
-    expect(el(fixture).textContent).toContain('arrive bientôt');
+    expect(el(fixture).querySelector('app-module-block-editor')).toBeTruthy();
+    // La bibliothèque de modules du cours a été chargée pour le picker.
+    expect(modulesMock.loadList).toHaveBeenCalledWith('course-1');
   });
 
   it('bloc document : monte l’éditeur, charge la bibliothèque et pré-remplit', async () => {

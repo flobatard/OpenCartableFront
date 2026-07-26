@@ -1,0 +1,39 @@
+<dialog
+  #dialogEl
+  class="module-picker"
+  aria-labelledby="module-picker-title"
+  (click)="onBackdropClick($event)"
+>
+  <div class="module-picker__inner">
+    <header class="module-picker__head">
+      <h2 id="module-picker-title" class="module-picker__title">
+        {{ 'modulePicker.title' | transloco }}
+      </h2>
+      <button
+        type="button"
+        class="module-picker__close"
+        [attr.aria-label]="'modulePicker.close' | transloco"
+        (click)="close()"
+      >
+        ×
+      </button>
+    </header>
+
+    <div class="module-picker__body">
+      @if (modules().length) {
+        <ul class="module-picker__list">
+          @for (module of modules(); track module.id) {
+            <li>
+              <button type="button" class="module-picker__item" (click)="select(module)">
+                <span class="module-picker__badge">{{ 'modulePicker.badge' | transloco }}</span>
+                <span class="module-picker__name">{{ module.titre }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="module-picker__empty">{{ 'modulePicker.empty' | transloco }}</p>
+      }
+    </div>
+  </div>
+</dialog>

@@ -1,0 +1,35 @@
+// Cadre du module interactif (DESIGN_SYSTEM.md §Blocs de contenu) : cadre
+// slate dashed + badge « interactif » ; les notices (vide/manquant)
+// reprennent le motif `.course-resource--missing`.
+:host {
+  display: block;
+}
+
+.module-embed__frame {
+  position: relative;
+  padding: 12px;
+  border: 1px dashed var(--text-secondary);
+  border-radius: var(--radius);
+}
+
+.module-embed__badge {
+  position: absolute;
+  top: -0.7em;
+  left: 12px;
+  padding: 0 6px;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  text-transform: lowercase;
+}
+
+.module-embed__notice {
+  display: inline-block;
+  margin: 0;
+  padding: 2px 8px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.875em;
+  font-style: italic;
+}

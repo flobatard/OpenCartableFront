@@ -1,4 +1,13 @@
-import { Component, effect, forwardRef, inject, PLATFORM_ID, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  forwardRef,
+  inject,
+  input,
+  PLATFORM_ID,
+  signal,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import {
   ControlValueAccessor,
@@ -84,15 +93,30 @@ export class MarkdownEditor implements ControlValueAccessor {
 
   protected readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
+  /**
+   * Langage monaco de l'instance — `oc-markdown` (défaut historique) ou un
+   * langage BUILT-IN de monaco (`html`/`css`/`javascript`, éditeur de module).
+   * STATIQUE par instance : le wrapper détruit et recrée l'éditeur à chaque
+   * changement de référence de `[options]` — ne jamais binder un langage
+   * variable.
+   */
+  readonly language = input<string>('oc-markdown');
+
   /** Relais interne vers le CVA de ngx-monaco-editor. */
   protected readonly inner = new FormControl('', { nonNullable: true });
 
-  /** Référence stable (cf. EDITOR_OPTIONS) ; thème initial snapshotté.
+  /** Thème snapshotté à la construction : ses changements ultérieurs passent
+   *  par `monaco.editor.setTheme` (global), jamais par les options. */
+  readonly #initialTheme = this.#theme.theme();
+
+  /** Référence stable (cf. EDITOR_OPTIONS) : le computed ne réévalue qu'à
+   *  l'arrivée du `language` de l'instance, avant la création de l'éditeur.
    *  Thèmes custom oc-vs/oc-vs-dark (accent indigo sur le math) — cf. course-monaco-lang.ts. */
-  protected readonly editorOptions: editor.IStandaloneEditorConstructionOptions = {
+  protected readonly editorOptions = computed<editor.IStandaloneEditorConstructionOptions>(() => ({
     ...EDITOR_OPTIONS,
-    theme: this.#theme.theme() === 'dark' ? 'oc-vs-dark' : 'oc-vs',
-  };
+    language: this.language(),
+    theme: this.#initialTheme === 'dark' ? 'oc-vs-dark' : 'oc-vs',
+  }));
 
   readonly #ready = signal(false);
   /** Vrai une fois monaco initialisé ; pilote l'overlay de chargement. */

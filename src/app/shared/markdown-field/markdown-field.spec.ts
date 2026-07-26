@@ -4,6 +4,8 @@ import { provideRouter } from '@angular/router';
 import { By } from '@angular/platform-browser';
 import { MarkdownField } from './markdown-field';
 import { MarkdownEditor } from '../markdown-editor/markdown-editor';
+import { ModuleSummary } from '../../core/modules/module.model';
+import { ModuleService } from '../../core/modules/module.service';
 import { ResourceService } from '../../core/resources/resource.service';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
 import { COURSE_RESOURCES_FIXTURE } from '../../testing/resources.fixture';
@@ -11,7 +13,8 @@ import { COURSE_RESOURCES_FIXTURE } from '../../testing/resources.fixture';
 /**
  * Monaco reste inerte en jsdom (loader AMD non chargé) : les specs pilotent le
  * FormControl public `control`. L'aperçu (marked + KaTeX) tourne, lui, en jsdom.
- * `ResourceService` (picker d'insertion + résolution de l'aperçu) est mocké.
+ * `ResourceService` (picker d'insertion + résolution de l'aperçu) et
+ * `ModuleService` (picker de module) sont mockés.
  */
 describe('MarkdownField', () => {
   const resourcesMock = {
@@ -20,12 +23,24 @@ describe('MarkdownField', () => {
     loadList: vi.fn(),
     getDownloadUrl: vi.fn().mockResolvedValue('https://s3.example/presigned'),
   };
+  const modulesMock = {
+    list: signal<ModuleSummary[]>([
+      { id: 'module-1', titre: 'Quiz interactif', created_at: '', updated_at: '' },
+    ]),
+    listLoading: signal(false),
+    loadList: vi.fn(),
+    getModule: vi.fn(),
+  };
 
   async function configure(): Promise<void> {
     await TestBed.configureTestingModule({
       imports: [MarkdownField, provideTranslocoTesting()],
       // provideRouter : la modale d'aide embarquée porte des RouterLink.
-      providers: [provideRouter([]), { provide: ResourceService, useValue: resourcesMock }],
+      providers: [
+        provideRouter([]),
+        { provide: ResourceService, useValue: resourcesMock },
+        { provide: ModuleService, useValue: modulesMock },
+      ],
     }).compileComponents();
   }
 

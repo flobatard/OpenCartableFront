@@ -37,11 +37,13 @@ import {
 import { CourseService } from '../../../core/courses/course.service';
 import { CourseStyleService } from '../../../core/courses/course-style.service';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { ModuleService } from '../../../core/modules/module.service';
 import { ResourceService } from '../../../core/resources/resource.service';
 import { MarkdownField } from '../../../shared/markdown-field/markdown-field';
 import { CourseChat } from '../course-chat/course-chat';
 import { DocumentEditor } from '../document-editor/document-editor';
 import { ExerciseEditor } from '../exercise-editor/exercise-editor';
+import { ModuleBlockEditor } from '../module-block-editor/module-block-editor';
 
 const AUTOSAVE_DELAY_MS = 1500;
 
@@ -79,6 +81,7 @@ type MetaSaveState = 'idle' | 'saving' | 'saved' | 'error';
     CourseChat,
     DocumentEditor,
     ExerciseEditor,
+    ModuleBlockEditor,
   ],
   templateUrl: './block-editor.html',
   styleUrl: './block-editor.scss',
@@ -119,6 +122,9 @@ export class BlockEditor implements OnInit, OnDestroy {
       `resetResource` appelé sur échec du PATCH de ressource. */
   protected readonly documentEditor = viewChild(DocumentEditor);
 
+  /** Picker de module monté (blocs module) — `resetModule` sur échec du PATCH. */
+  protected readonly moduleBlockEditor = viewChild(ModuleBlockEditor);
+
   /** Frappes de l'éditeur d'exercice, fusionnées dans le pipeline d'autosave. */
   readonly #exerciseDrafts = new Subject<ExerciseContentPayload>();
 
@@ -135,6 +141,13 @@ export class BlockEditor implements OnInit, OnDestroy {
   /** Échec du PATCH de ressource (canal distinct de l'autosave du contenu). */
   protected readonly resourceSaveError = signal(false);
   #resourcesRequested = false;
+
+  readonly #modules = inject(ModuleService);
+  /** Modules du cours, proposés au picker du bloc module. */
+  protected readonly availableModules = this.#modules.list;
+  /** Échec du PATCH de module (canal distinct — pas d'autosave sur ce type). */
+  protected readonly moduleSaveError = signal(false);
+  #modulesRequested = false;
 
   /**
    * Titre/description du bloc (tous types) — enregistrement explicite (bouton),
@@ -209,6 +222,18 @@ export class BlockEditor implements OnInit, OnDestroy {
       if (needsResources && !this.#resourcesRequested) {
         this.#resourcesRequested = true;
         this.#resources.loadList(this.courseId);
+      }
+    });
+
+    // Bibliothèque de modules chargée UNE FOIS : picker du bloc module, mais
+    // aussi picker d'insertion `oc-module:` des blocs texte/exercice
+    // (markdown-field) et résolution de leur aperçu.
+    effect(() => {
+      const type = this.block()?.type;
+      const needsModules = type === 'texte' || type === 'exercice' || type === 'module';
+      if (needsModules && !this.#modulesRequested) {
+        this.#modulesRequested = true;
+        this.#modules.loadList(this.courseId);
       }
     });
 
@@ -307,6 +332,24 @@ export class BlockEditor implements OnInit, OnDestroy {
     } catch {
       this.resourceSaveError.set(true);
       this.documentEditor()?.resetResource(previous);
+    }
+  }
+
+  /**
+   * Choix (ou retrait) du module d'un bloc module : PATCH immédiat — miroir
+   * d'`onResourcePick`. Sur échec, le select est rétabli à la valeur du bloc.
+   */
+  protected async onModulePick(moduleId: string | null): Promise<void> {
+    const previous = this.block()?.module_id ?? null;
+    if (moduleId === previous) {
+      return;
+    }
+    this.moduleSaveError.set(false);
+    try {
+      await this.#courses.updateBlockModule(this.courseId, this.blockId, moduleId);
+    } catch {
+      this.moduleSaveError.set(true);
+      this.moduleBlockEditor()?.resetModule(previous);
     }
   }
 

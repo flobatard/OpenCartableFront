@@ -11,43 +11,44 @@
   </div>
   <div #previewContent class="course-preview" [style]="courseStyle.styleVars()">
     @for (block of blocks(); track block.id) {
-      @if (block.type !== 'module') {
-        <article class="course-preview__block">
-          @if (block.type === 'document')
-          {
-            @if (block.titre) {
-              <h2 class="course-preview__title">{{ block.titre }}</h2>
-            }
-            @if (block.description) {
-              <p class="course-preview__desc">{{ block.description }}</p>
-            }
+      <article class="course-preview__block">
+        @if (block.type === 'document' || block.type === 'module')
+        {
+          @if (block.titre) {
+            <h2 class="course-preview__title">{{ block.titre }}</h2>
           }
+          @if (block.description) {
+            <p class="course-preview__desc">{{ block.description }}</p>
+          }
+        }
 
-          @switch (block.type) {
-            @case ('texte') {
-              <app-markdown-view
-                [markdown]="textMarkdown(block)"
-                [courseId]="courseId()"
-                [showSettings]="false"
-              />
-            }
-            @case ('exercice') {
-              <app-markdown-view
-                [markdown]="exerciseMarkdown(block)"
-                [courseId]="courseId()"
-                [showSettings]="false"
-              />
-            }
-            @case ('document') {
-              <app-course-preview-document
-                [courseId]="courseId()"
-                [resource]="resourceFor(block.resource_id)"
-                [legende]="documentLegende(block)"
-              />
-            }
+        @switch (block.type) {
+          @case ('texte') {
+            <app-markdown-view
+              [markdown]="textMarkdown(block)"
+              [courseId]="courseId()"
+              [showSettings]="false"
+            />
           }
-        </article>
-      }
+          @case ('exercice') {
+            <app-markdown-view
+              [markdown]="exerciseMarkdown(block)"
+              [courseId]="courseId()"
+              [showSettings]="false"
+            />
+          }
+          @case ('document') {
+            <app-course-preview-document
+              [courseId]="courseId()"
+              [resource]="resourceFor(block.resource_id)"
+              [legende]="documentLegende(block)"
+            />
+          }
+          @case ('module') {
+            <app-module-embed [courseId]="courseId()" [moduleId]="block.module_id" />
+          }
+        }
+      </article>
     }
   </div>
   <app-course-style-dialog />

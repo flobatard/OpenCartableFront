@@ -176,12 +176,20 @@
         "affichageLabel": "Affichage",
         "affichageInline": "Intégré au cours",
         "affichageTelechargement": "En téléchargement"
+      },
+      "module": {
+        "moduleLabel": "Module affiché par ce bloc",
+        "noModule": "Aucun module",
+        "modulesEmpty": "Aucun module dans ce cours : créez-en un dans l’onglet Modules.",
+        "editModule": "Modifier ce module",
+        "moduleError": "Impossible d’enregistrer le choix du module. Réessayez."
       }
     },
     "tabs": {
       "label": "Sections du cours",
       "blocks": "Blocs",
       "resources": "Ressources",
+      "modules": "Modules",
       "preview": "Aperçu"
     },
     "preview": {
@@ -220,6 +228,43 @@
         "video": "Vidéo"
       }
     },
+    "modules": {
+      "create": "Créer un module",
+      "createLabel": "Titre du nouveau module",
+      "createPlaceholder": "Titre du module (ex. Quiz sur les suites)",
+      "loading": "Chargement des modules…",
+      "loadError": "Impossible de charger les modules du cours.",
+      "retry": "Réessayer",
+      "empty": "Aucun module pour l’instant",
+      "emptyHint": "Créez un module interactif (HTML, CSS, JS) : il pourra être affiché dans un bloc module ou inséré dans un bloc texte.",
+      "badge": "interactif",
+      "edit": "Modifier",
+      "rename": "Renommer",
+      "renameLabel": "Nouveau titre du module",
+      "renameSave": "Enregistrer",
+      "renameCancel": "Annuler",
+      "delete": "Supprimer",
+      "confirmDelete": "Confirmer la suppression ?",
+      "mutationError": "L’opération a échoué. Réessayez."
+    },
+    "moduleEditor": {
+      "back": "Retour au cours",
+      "loadError": "Impossible de charger ce module.",
+      "retry": "Réessayer",
+      "preview": "Aperçu du module",
+      "tabs": {
+        "label": "Code du module",
+        "html": "HTML",
+        "css": "CSS",
+        "js": "JS"
+      },
+      "save": {
+        "dirty": "Modifications non enregistrées…",
+        "saving": "Enregistrement…",
+        "saved": "Enregistré",
+        "error": "Échec de l’enregistrement — nouvelle tentative à la prochaine modification."
+      }
+    },
     "resourceView": {
       "opening": "Ouverture de la ressource…",
       "notFound": "Ressource introuvable (supprimée ?).",
@@ -238,6 +283,7 @@
     "mermaidMathNote": "Les formules LaTeX ne sont pas rendues dans les nœuds Mermaid ; placez-les dans le texte, autour du diagramme.",
     "mermaidError": "Diagramme Mermaid invalide :",
     "insertResource": "Insérer une ressource",
+    "insertModule": "Insérer un module",
     "resourceMissing": "Ressource indisponible"
   },
   "markdownView": {
@@ -430,6 +476,18 @@
     "title": "Insérer une ressource",
     "close": "Fermer",
     "empty": "Aucune ressource disponible. Ajoutez-en dans l'onglet Ressources."
+  },
+  "modulePicker": {
+    "title": "Insérer un module",
+    "close": "Fermer",
+    "badge": "interactif",
+    "empty": "Aucun module disponible. Créez-en un dans l’onglet Modules."
+  },
+  "moduleEmbed": {
+    "badge": "interactif",
+    "frameTitle": "Module interactif",
+    "none": "Aucun module choisi pour ce bloc.",
+    "missing": "Module indisponible (supprimé ou introuvable)."
   },
   "markdownHelp": {
     "trigger": "Aide à la mise en forme",

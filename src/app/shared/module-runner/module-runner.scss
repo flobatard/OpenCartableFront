@@ -1,0 +1,14 @@
+// Cadre du module interactif (DESIGN_SYSTEM.md §Blocs de contenu) : l'iframe
+// occupe la largeur disponible, sa hauteur est pilotée par l'auto-resize du
+// bridge ([style.height.px]).
+:host {
+  display: block;
+}
+
+.module-runner__frame {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+}

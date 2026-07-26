@@ -59,6 +59,12 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client,
   },
   {
+    // Impératif : Monaco (3 instances) + iframe sandbox de la preview —
+    // navigateur uniquement, jamais rendu au serveur.
+    path: ':lang/courses/:id/modules/:moduleId',
+    renderMode: RenderMode.Client,
+  },
+  {
     // Route protégée (authGuard) qui présigne puis redirige via window.location :
     // navigateur uniquement.
     path: ':lang/courses/:id/resources/:resourceId',

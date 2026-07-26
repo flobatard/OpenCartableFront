@@ -38,6 +38,7 @@ export const COURSE_BLOCKS_FIXTURE: CourseBlock[] = [
     description: 'Définitions et premiers exemples.',
     content: { markdown: 'Introduction aux suites' },
     resource_id: null,
+    module_id: null,
   },
   {
     id: 'block-2',
@@ -47,6 +48,7 @@ export const COURSE_BLOCKS_FIXTURE: CourseBlock[] = [
     description: null,
     content: { legende: 'Schéma récapitulatif', affichage: 'inline' },
     resource_id: 'resource-1',
+    module_id: null,
   },
   {
     id: 'block-3',
@@ -66,6 +68,7 @@ export const COURSE_BLOCKS_FIXTURE: CourseBlock[] = [
       ],
     },
     resource_id: null,
+    module_id: null,
   },
 ];
 

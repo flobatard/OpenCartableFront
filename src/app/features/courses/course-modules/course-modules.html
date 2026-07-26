@@ -1,0 +1,106 @@
+<div class="course-modules">
+  <form class="course-modules__create" (submit)="$event.preventDefault(); create()">
+    <input
+      type="text"
+      class="course-modules__create-input"
+      [formControl]="createControl"
+      [attr.placeholder]="'courses.modules.createPlaceholder' | transloco"
+      [attr.aria-label]="'courses.modules.createLabel' | transloco"
+    />
+    <button
+      type="submit"
+      class="btn btn--secondary"
+      [disabled]="mutating() || createControl.invalid"
+    >
+      {{ 'courses.modules.create' | transloco }}
+    </button>
+  </form>
+
+  @if (loading()) {
+    <p class="course-modules__status" role="status">
+      {{ 'courses.modules.loading' | transloco }}
+    </p>
+  } @else if (loadError()) {
+    <div class="course-modules__error" role="alert">
+      <p>{{ 'courses.modules.loadError' | transloco }}</p>
+      <button type="button" class="btn btn--primary" (click)="reload()">
+        {{ 'courses.modules.retry' | transloco }}
+      </button>
+    </div>
+  } @else if (!list().length) {
+    <div class="course-modules__empty">
+      <p class="course-modules__empty-title">{{ 'courses.modules.empty' | transloco }}</p>
+      <p class="course-modules__empty-hint">{{ 'courses.modules.emptyHint' | transloco }}</p>
+    </div>
+  } @else {
+    <ul class="course-modules__list">
+      @for (module of list(); track module.id) {
+        <li class="course-modules__row">
+          <span class="course-modules__badge">{{ 'courses.modules.badge' | transloco }}</span>
+          <span class="course-modules__body">
+            @if (renamingId() === module.id) {
+              <form
+                class="course-modules__rename"
+                (submit)="$event.preventDefault(); saveRename(module)"
+              >
+                <input
+                  type="text"
+                  class="course-modules__rename-input"
+                  [formControl]="renameControl"
+                  [attr.aria-label]="'courses.modules.renameLabel' | transloco"
+                  (keydown.escape)="cancelRename()"
+                />
+                <button type="submit" class="btn btn--primary" [disabled]="mutating()">
+                  {{ 'courses.modules.renameSave' | transloco }}
+                </button>
+                <button type="button" class="btn btn--ghost" (click)="cancelRename()">
+                  {{ 'courses.modules.renameCancel' | transloco }}
+                </button>
+              </form>
+            } @else {
+              <span class="course-modules__name">{{ module.titre }}</span>
+              <span class="course-modules__meta">{{ addedOn(module.created_at) }}</span>
+            }
+          </span>
+          <div class="course-modules__actions">
+            <a
+              class="btn btn--ghost"
+              [routerLink]="['/', language.lang(), 'courses', courseId(), 'modules', module.id]"
+            >
+              {{ 'courses.modules.edit' | transloco }}
+            </a>
+            <button
+              type="button"
+              class="btn btn--ghost"
+              [disabled]="mutating() || renamingId() === module.id"
+              (click)="startRename(module)"
+            >
+              {{ 'courses.modules.rename' | transloco }}
+            </button>
+            <button
+              type="button"
+              class="btn btn--ghost course-modules__delete"
+              [class.course-modules__delete--armed]="pendingDelete() === module.id"
+              [disabled]="mutating()"
+              (click)="remove(module)"
+              (blur)="disarmDelete()"
+            >
+              {{
+                (pendingDelete() === module.id
+                  ? 'courses.modules.confirmDelete'
+                  : 'courses.modules.delete'
+                ) | transloco
+              }}
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (mutationError()) {
+    <p class="course-modules__mutation-error" role="alert">
+      {{ 'courses.modules.mutationError' | transloco }}
+    </p>
+  }
+</div>

@@ -27,6 +27,7 @@ import {
   ResolvedResource,
   resolveCourseResources,
 } from '../../core/markdown/course-markdown';
+import { MODULE_REF_ATTR } from '../../core/markdown/course-module-ref';
 import { resourceKind } from '../../core/markdown/course-resource-ref';
 import { PrintService } from '../../core/print/print.service';
 import {
@@ -182,12 +183,13 @@ export class MarkdownView {
       );
     });
 
-    // Montage des extensions markdown : APRÈS que la change detection a
-    // appliqué `[innerHTML]` au DOM (afterRenderEffect), et re-monté après
-    // CHAQUE nouvelle valeur de `html()` (chaque set réécrit l'innerHTML et
-    // souffle les hôtes précédents). Le onCleanup — exécuté avant chaque
-    // ré-exécution et à la destruction — invalide le montage en vol et détruit
-    // les ComponentRef du cycle précédent (sinon fuite de vues attachées).
+    // Montage des extensions markdown et des embeds de module : APRÈS que la
+    // change detection a appliqué `[innerHTML]` au DOM (afterRenderEffect), et
+    // re-monté après CHAQUE nouvelle valeur de `html()` (chaque set réécrit
+    // l'innerHTML et souffle les hôtes précédents). Le onCleanup — exécuté
+    // avant chaque ré-exécution et à la destruction — invalide le montage en
+    // vol et détruit les ComponentRef du cycle précédent (sinon fuite de vues
+    // attachées).
     afterRenderEffect((onCleanup) => {
       this.html();
       const host = this.contentEl()?.nativeElement;
@@ -195,7 +197,7 @@ export class MarkdownView {
         return;
       }
       let stale = false;
-      const refs: ComponentRef<MarkdownExtensionComponent>[] = [];
+      const refs: ComponentRef<unknown>[] = [];
       onCleanup(() => {
         stale = true;
         for (const ref of refs) {
@@ -203,6 +205,7 @@ export class MarkdownView {
         }
       });
       void this.#mountExtensions(host, refs, () => stale);
+      void this.#mountModuleEmbeds(host, refs, () => stale);
     });
   }
 
@@ -218,7 +221,7 @@ export class MarkdownView {
    */
   async #mountExtensions(
     host: HTMLElement,
-    refs: ComponentRef<MarkdownExtensionComponent>[],
+    refs: ComponentRef<unknown>[],
     isStale: () => boolean,
   ): Promise<void> {
     for (const el of host.querySelectorAll<HTMLElement>(`[${EXTENSION_ATTR}]`)) {
@@ -246,6 +249,63 @@ export class MarkdownView {
         hostElement: el,
       });
       ref.setInput('source', source);
+      this.#appRef.attachView(ref.hostView);
+      refs.push(ref);
+    }
+  }
+
+  /** Import mémoïsé de ModuleEmbed (iframe sandbox hors des chunks sans module). */
+  #moduleEmbedImport: Promise<Type<unknown>> | null = null;
+
+  /**
+   * Monte un `ModuleEmbed` sur chaque placeholder `data-oc-module-id` du
+   * contenu rendu (posés par l'override du renderer `link` pour les
+   * `oc-module:<id>`). Même mécanique que `#mountExtensions` (createComponent
+   * sur l'hôte innerHTML, import dynamique mémoïsé) ; hors contexte cours
+   * (`courseId` nul), les spans restent des notes inertes.
+   */
+  async #mountModuleEmbeds(
+    host: HTMLElement,
+    refs: ComponentRef<unknown>[],
+    isStale: () => boolean,
+  ): Promise<void> {
+    const courseId = this.courseId();
+    if (courseId === null) {
+      return;
+    }
+    const placeholders = host.querySelectorAll<HTMLElement>(`[${MODULE_REF_ATTR}]`);
+    if (placeholders.length === 0) {
+      return;
+    }
+    this.#moduleEmbedImport ??= import('../module-runner/module-embed').then(
+      (m) => m.ModuleEmbed,
+    );
+    let component: Type<unknown>;
+    try {
+      component = await this.#moduleEmbedImport;
+    } catch {
+      this.#moduleEmbedImport = null;
+      return;
+    }
+    if (isStale()) {
+      return;
+    }
+    for (const el of placeholders) {
+      const moduleId = el.getAttribute(MODULE_REF_ATTR) ?? '';
+      if (moduleId === '') {
+        continue;
+      }
+      // Le texte du lien (repli lisible) laisse place au composant ; les
+      // `data-*` de l'hôte restent (l'export PDF les retrouve).
+      el.textContent = '';
+      el.classList.remove('course-module-embed--pending');
+      const ref = createComponent(component, {
+        environmentInjector: this.#envInjector,
+        elementInjector: this.#injector,
+        hostElement: el,
+      });
+      ref.setInput('courseId', courseId);
+      ref.setInput('moduleId', moduleId);
       this.#appRef.attachView(ref.hostView);
       refs.push(ref);
     }

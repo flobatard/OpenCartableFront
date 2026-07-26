@@ -10,6 +10,7 @@ function block(type: CourseBlock['type'], content: Record<string, unknown>): Cou
     description: null,
     content,
     resource_id: null,
+    module_id: null,
   };
 }
 

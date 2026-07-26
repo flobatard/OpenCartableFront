@@ -2,6 +2,7 @@ import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { TranslocoService } from '@jsverse/transloco';
 import { AppLang, LanguageService } from '../i18n/language.service';
+import { MODULE_REF_ATTR } from '../markdown/course-module-ref';
 import { RESOURCE_REF_ATTR } from '../markdown/course-resource-ref';
 // Exception de layering core→shared assumée : module pur sans Angular, seule
 // source de vérité des attributs posés par la passe placeholder des extensions.
@@ -104,6 +105,15 @@ export function transformForPrint(
       note.textContent = labels.interactiveFallback;
       el.replaceWith(note);
     }
+  }
+  // Modules interactifs (iframe sandbox) : jamais imprimables. L'attribut est
+  // porté à la fois par les embeds `oc-module:` du markdown et par l'hôte de
+  // ModuleEmbed des blocs module de l'aperçu — une seule passe couvre les deux.
+  for (const el of [...root.querySelectorAll(`[${MODULE_REF_ATTR}]`)]) {
+    const note = doc.createElement('p');
+    note.className = 'oc-print__extension-note';
+    note.textContent = labels.interactiveFallback;
+    el.replaceWith(note);
   }
   for (const el of [...root.querySelectorAll(`[${RESOURCE_REF_ATTR}]`)]) {
     const id = el.getAttribute(RESOURCE_REF_ATTR);
