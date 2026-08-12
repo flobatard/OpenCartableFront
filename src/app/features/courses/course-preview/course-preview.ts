@@ -10,23 +10,20 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { CourseBlock } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
 import { CourseStyleService } from '../../../core/courses/course-style.service';
-import { exerciseMarkdownFromContent } from '../../../core/courses/exercise-form';
 import { PrintService } from '../../../core/print/print.service';
-import { CourseResource } from '../../../core/resources/resource.model';
 import { ResourceService } from '../../../core/resources/resource.service';
+import { CourseBlocksView } from '../../../shared/course-blocks-view/course-blocks-view';
 import { CourseStyleDialog } from '../../../shared/course-style-dialog/course-style-dialog';
-import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
-import { ModuleEmbed } from '../../../shared/module-runner/module-embed';
-import { CoursePreviewDocument } from './course-preview-document';
 
 /**
- * Aperçu global d'un cours (onglet « Aperçu » de la page cours) : rend tous les
- * blocs les uns à la suite des autres, dans l'ordre du back — le cours tel que
- * le verra l'élève. Vue élève : les réponses attendues des exercices restent
- * masquées (via `exerciseMarkdownFromContent`).
+ * Aperçu global d'un cours (onglet « Aperçu » de la page cours) : le cours tel
+ * que le verra l'élève. Le rendu par bloc est délégué au composant partagé
+ * `CourseBlocksView` (`shared/course-blocks-view/`), commun avec la vue élève
+ * publique (J2) — cette page ne garde que le contexte prof : chargement de la
+ * bibliothèque (`ResourceService`), style de lecture, barre d'actions
+ * (« Style de lecture », « Télécharger en PDF »).
  *
  * Rendu **par bloc** (pas de markdown concaténé) : les blocs `document`
  * s'intercalent entre texte et exercice et ne sont pas du markdown. Texte et
@@ -42,7 +39,7 @@ import { CoursePreviewDocument } from './course-preview-document';
  */
 @Component({
   selector: 'app-course-preview',
-  imports: [TranslocoPipe, MarkdownView, CoursePreviewDocument, CourseStyleDialog, ModuleEmbed],
+  imports: [TranslocoPipe, CourseBlocksView, CourseStyleDialog],
   templateUrl: './course-preview.html',
   styleUrl: './course-preview.scss',
 })
@@ -74,6 +71,9 @@ export class CoursePreview {
     ),
   );
 
+  /** Bibliothèque du cours (résolution des blocs document par la vue partagée). */
+  protected readonly resourceList = this.#resources.list;
+
   constructor() {
     // Charge la bibliothèque de ressources au montage (onglet Aperçu actif) —
     // couvre le deep-link `?tab=preview` à froid et rafraîchit une liste périmée.
@@ -95,26 +95,6 @@ export class CoursePreview {
   /** Ouvre la modale de réglage du style de lecture du cours. */
   protected openStyle(): void {
     this.styleDialog()?.open();
-  }
-
-  /** Markdown d'un bloc texte (`content.markdown`, gardé string). */
-  protected textMarkdown(block: CourseBlock): string {
-    return typeof block.content['markdown'] === 'string' ? block.content['markdown'] : '';
-  }
-
-  /** Markdown concaténé d'un bloc exercice (sujet + énoncés, réponses exclues). */
-  protected exerciseMarkdown(block: CourseBlock): string {
-    return exerciseMarkdownFromContent(block.content);
-  }
-
-  /** Légende éditoriale d'un bloc document (`content.legende`, gardé string). */
-  protected documentLegende(block: CourseBlock): string | null {
-    return typeof block.content['legende'] === 'string' ? block.content['legende'] : null;
-  }
-
-  /** Ressource pointée par un bloc document (id inconnu/supprimé → `undefined`). */
-  protected resourceFor(id: string | null): CourseResource | undefined {
-    return id === null ? undefined : this.#resources.list().find((r) => r.id === id);
   }
 
   /** Exporte le cours entier en PDF (impression navigateur). No-op au SSR. */

@@ -146,3 +146,21 @@
 .profile__actions .profile__error {
   margin: 0;
 }
+
+/* Champ « nom public » (catalogue J2) — sous les cartes de rôle. */
+.profile__nom-public {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 16px;
+  max-width: 420px;
+}
+
+.profile__nom-public input {
+  padding: 8px 12px;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font: inherit;
+}

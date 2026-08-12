@@ -86,6 +86,13 @@ export interface BlockMetaPayload {
   description: string | null;
 }
 
+/**
+ * Régime d'accès élève d'un cours (J2) : `public` = URL directe + catalogue
+ * public du prof ; `prive` = liens de partage à token uniquement ; `en_cours`
+ * (défaut) = inaccessible publiquement, liens suspendus.
+ */
+export type CourseVisibility = 'public' | 'prive' | 'en_cours';
+
 export interface CourseSummary {
   id: string;
   titre: string;
@@ -93,6 +100,7 @@ export interface CourseSummary {
   subject_ids: string[];
   education_level_ids: string[];
   block_count: number;
+  visibilite: CourseVisibility;
   created_at: string;
   updated_at: string;
   /**

@@ -1,0 +1,84 @@
+:host {
+  display: block;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.student-course__header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.student-course__title {
+  margin: 0;
+}
+
+.student-course__desc {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.student-course__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Badges du DS §8 : matière = indigo-50 / indigo-700 (inversé en sombre),
+   niveau = slate. Mêmes valeurs que les chips des pickers. */
+.student-course__chip {
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.student-course__chip--subject {
+  background: var(--indigo-50);
+  color: var(--indigo-700);
+}
+
+:host-context([data-theme='dark']) .student-course__chip--subject {
+  background: var(--indigo-900);
+  color: var(--indigo-100);
+}
+
+.student-course__chip--level {
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+}
+
+.student-course__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.student-course__loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.student-course__notice {
+  margin: 0;
+  padding: 48px 24px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* L'en-tête (actions comprises) n'a rien à faire sur le papier : seul le
+   contenu des blocs part au PDF (le clone imprimé est #content). */
+@media print {
+  .student-course__header {
+    display: none;
+  }
+}

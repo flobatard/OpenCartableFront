@@ -1,0 +1,98 @@
+:host {
+  display: block;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.student-catalog__header {
+  margin-bottom: 24px;
+}
+
+.student-catalog__title {
+  margin: 0;
+}
+
+.student-catalog__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.student-catalog__card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.student-catalog__card-title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.student-catalog__card-desc {
+  margin: 0;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.student-catalog__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Badges du DS §8 (mêmes valeurs que les chips des pickers). */
+.student-catalog__chip {
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.student-catalog__chip--subject {
+  background: var(--indigo-50);
+  color: var(--indigo-700);
+}
+
+:host-context([data-theme='dark']) .student-catalog__chip--subject {
+  background: var(--indigo-900);
+  color: var(--indigo-100);
+}
+
+.student-catalog__chip--level {
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+}
+
+.student-catalog__open {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+.student-catalog__loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.student-catalog__notice {
+  margin: 0;
+  padding: 48px 24px;
+  color: var(--text-secondary);
+  text-align: center;
+}

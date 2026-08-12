@@ -49,6 +49,16 @@
                 <span class="onboarding__role-hint">{{ 'onboarding.roles.eleveHint' | transloco }}</span>
               </label>
             </div>
+            <label class="onboarding__nom-public">
+              <span>{{ 'onboarding.nomPublic.label' | transloco }}</span>
+              <input
+                type="text"
+                maxlength="100"
+                [formControl]="form.controls.nomPublic"
+                [placeholder]="'onboarding.nomPublic.placeholder' | transloco"
+              />
+              <span class="onboarding__hint">{{ 'onboarding.nomPublic.hint' | transloco }}</span>
+            </label>
           </fieldset>
         }
         @case ('systeme') {

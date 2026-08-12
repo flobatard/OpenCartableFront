@@ -1,0 +1,42 @@
+@if (error()) {
+  <p class="student-course__notice">{{ 'student.course.notFound' | transloco }}</p>
+} @else if (loading()) {
+  <div class="student-course__loading">
+    <app-spinner size="lg" />
+  </div>
+} @else if (detail(); as course) {
+  <header class="student-course__header">
+    <h1 class="student-course__title">{{ course.titre }}</h1>
+    @if (course.description) {
+      <p class="student-course__desc">{{ course.description }}</p>
+    }
+    @if (course.subjects.length || course.education_levels.length) {
+      <ul class="student-course__chips">
+        @for (subject of course.subjects; track subject) {
+          <li class="student-course__chip student-course__chip--subject">{{ subject }}</li>
+        }
+        @for (level of course.education_levels; track level) {
+          <li class="student-course__chip student-course__chip--level">{{ level }}</li>
+        }
+      </ul>
+    }
+    <div class="student-course__actions">
+      <button type="button" class="btn btn--secondary" (click)="download()">
+        {{ 'student.course.downloadPdf' | transloco }}
+      </button>
+    </div>
+  </header>
+
+  @if (!course.blocks.length) {
+    <p class="student-course__notice">{{ 'student.course.empty' | transloco }}</p>
+  } @else {
+    <div #content [style]="courseStyle.styleVars()">
+      <app-course-blocks-view
+        [blocks]="course.blocks"
+        [courseId]="course.id"
+        [resources]="resources()"
+        [exerciseLink]="exerciseLink"
+      />
+    </div>
+  }
+}

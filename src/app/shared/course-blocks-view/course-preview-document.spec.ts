@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { CourseResource } from '../../../core/resources/resource.model';
-import { ResourceService } from '../../../core/resources/resource.service';
-import { provideTranslocoTesting } from '../../../testing/transloco-testing';
+import { CourseResource } from '../../core/resources/resource.model';
+import { ResourceService } from '../../core/resources/resource.service';
+import { provideTranslocoTesting } from '../../testing/transloco-testing';
 import { CoursePreviewDocument } from './course-preview-document';
 
 const IMAGE: CourseResource = {

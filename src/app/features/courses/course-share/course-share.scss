@@ -1,0 +1,162 @@
+:host {
+  display: block;
+}
+
+.course-share {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.course-share__visibility {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.course-share__legend {
+  padding: 0;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.course-share__visibility-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+/* Cartes radio — motif des cartes de rôle de l'onboarding. */
+.course-share__visibility-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+}
+
+.course-share__visibility-card--active {
+  border-color: var(--color-primary);
+  outline: 1px solid var(--color-primary);
+}
+
+.course-share__visibility-title {
+  font-weight: 600;
+}
+
+.course-share__visibility-hint {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.course-share__catalog {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  color: var(--text-secondary);
+}
+
+.course-share__url {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  word-break: break-all;
+  color: var(--text-primary);
+}
+
+.course-share__links-title {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+}
+
+.course-share__links-hint {
+  margin: 0 0 12px;
+  color: var(--text-secondary);
+}
+
+.course-share__create {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.course-share__libelle {
+  flex: 1 1 240px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.course-share__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.course-share__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+/* Révoqué/expiré : atténué (motif ressource en_attente), jamais slate-400 en texte. */
+.course-share__row--inactive {
+  border-style: dashed;
+}
+
+.course-share__row--inactive .course-share__url,
+.course-share__row--inactive .course-share__row-libelle {
+  color: var(--text-secondary);
+}
+
+.course-share__row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.course-share__row-libelle {
+  font-weight: 600;
+}
+
+.course-share__row-meta {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.course-share__row-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.course-share__revoke--armed {
+  color: var(--text-danger);
+}
+
+.course-share__status {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.course-share__error {
+  margin: 8px 0 0;
+  color: var(--text-danger);
+}

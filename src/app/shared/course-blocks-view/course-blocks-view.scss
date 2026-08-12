@@ -1,0 +1,38 @@
+:host {
+  display: block;
+}
+
+/* Blocs empilés, séparés par un rythme vertical généreux (lecture continue). */
+.course-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Chaque bloc : titre/description éditoriaux au-dessus de son rendu. */
+.course-preview__block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.course-preview__title {
+  margin: 0;
+}
+
+.course-preview__desc {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+/* CTA élève sous un bloc exercice — masqué à l'impression (_print.scss ne
+   l'atteint pas : lien interne sans data-oc-resource-id, inutile sur papier). */
+.course-preview__exercise-cta {
+  margin: 0;
+}
+
+@media print {
+  .course-preview__exercise-cta {
+    display: none;
+  }
+}

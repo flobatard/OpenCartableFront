@@ -1,0 +1,100 @@
+@if (error()) {
+  <p class="student-exercise__notice">{{ 'student.course.notFound' | transloco }}</p>
+} @else if (loading()) {
+  <div class="student-exercise__loading">
+    <app-spinner size="lg" />
+  </div>
+} @else if (block(); as exercise) {
+  <header class="student-exercise__header">
+    @if (backLink(); as link) {
+      <a class="student-exercise__back" [routerLink]="link">
+        {{ 'student.course.backToCourse' | transloco }}
+      </a>
+    }
+    <h1 class="student-exercise__title">
+      {{ exercise.titre || ('student.exercise.title' | transloco) }}
+    </h1>
+    @if (exercise.description) {
+      <p class="student-exercise__desc">{{ exercise.description }}</p>
+    }
+  </header>
+
+  @if (!storageOk()) {
+    <p class="student-exercise__storage-warning" role="alert">
+      {{ 'student.exercise.storageUnavailable' | transloco }}
+    </p>
+  }
+
+  @if (enonce()) {
+    <section class="student-exercise__subject course-content">
+      <app-markdown-view
+        [markdown]="enonce()"
+        [courseId]="detail()!.id"
+        [showPrint]="false"
+        [showSettings]="false"
+      />
+    </section>
+  }
+
+  <ol class="student-exercise__questions">
+    @for (question of questions(); track question.id; let index = $index) {
+      <li class="student-exercise__question">
+        <h2 class="student-exercise__question-title">
+          {{ 'student.exercise.question' | transloco: { number: index + 1 } }}
+          @if (isLocked(question.id)) {
+            <span class="student-exercise__done-badge">
+              {{ 'student.exercise.done' | transloco }}
+            </span>
+          }
+        </h2>
+        @if (question.enonce) {
+          <div class="course-content">
+            <app-markdown-view
+              [markdown]="question.enonce"
+              [courseId]="detail()!.id"
+              [showPrint]="false"
+              [showSettings]="false"
+            />
+          </div>
+        }
+        <label class="student-exercise__answer-label">
+          <span>{{ 'student.exercise.yourAnswer' | transloco }}</span>
+          <textarea
+            class="student-exercise__answer"
+            rows="5"
+            [value]="answerText(question.id)"
+            [readOnly]="isLocked(question.id)"
+            (input)="onAnswerInput(question.id, $any($event.target).value)"
+          ></textarea>
+        </label>
+        <div class="student-exercise__question-actions">
+          <button type="button" class="btn btn--secondary" (click)="toggleLocked(question.id)">
+            {{
+              (isLocked(question.id) ? 'student.exercise.edit' : 'student.exercise.markDone')
+                | transloco
+            }}
+          </button>
+        </div>
+      </li>
+    }
+  </ol>
+
+  <footer class="student-exercise__footer">
+    @if (storageOk()) {
+      <p class="student-exercise__saved-hint">{{ 'student.exercise.savedHint' | transloco }}</p>
+    }
+    @if (hasAnswers()) {
+      <button
+        type="button"
+        class="btn btn--ghost student-exercise__clear"
+        [class.student-exercise__clear--armed]="clearArmed()"
+        (click)="clearAll()"
+        (blur)="disarmClear()"
+      >
+        {{
+          (clearArmed() ? 'student.exercise.clearConfirm' : 'student.exercise.clear') | transloco
+        }}
+      </button>
+    }
+  </footer>
+}

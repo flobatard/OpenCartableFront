@@ -33,6 +33,13 @@ export const appConfig: ApplicationConfig = {
       resourceServer: {
         allowedUrls: [environment.apiUrl],
         sendAccessToken: true,
+        // Les routes publiques élèves (/v1/public/*, J2) sont anonymes par
+        // contrat : un prof connecté qui ouvre un lien de partage ne doit pas
+        // y fuiter son JWT Zitadel. customUrlValidation REMPLACE le check
+        // allowedUrls quand il est présent — il réimplémente donc le préfixe.
+        customUrlValidation: (url) =>
+          url.toLowerCase().startsWith(environment.apiUrl.toLowerCase()) &&
+          !url.includes('/v1/public/'),
       },
     }),
     {

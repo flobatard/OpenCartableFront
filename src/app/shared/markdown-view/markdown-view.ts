@@ -37,8 +37,8 @@ import {
 } from '../markdown-extensions/extension-placeholders';
 import { MarkdownExtensionRegistry } from '../markdown-extensions/markdown-extension-registry';
 import { MarkdownExtensionComponent } from '../markdown-extensions/markdown-extension.model';
+import { COURSE_RESOURCE_RESOLVER } from '../../core/course-content/course-content-resolvers';
 import { CourseResource } from '../../core/resources/resource.model';
-import { ResourceService } from '../../core/resources/resource.service';
 import { CourseStyleService } from '../../core/courses/course-style.service';
 import { ThemeService } from '../../core/theme/theme.service';
 import { CourseStyleDialog } from '../course-style-dialog/course-style-dialog';
@@ -53,8 +53,10 @@ import { CourseStyleDialog } from '../course-style-dialog/course-style-dialog';
  *
  * Avec un `courseId`, une troisième passe résout les ressources intégrées
  * (`oc-resource:<id>`, cf. `course-resource-ref`) en média/lien via l'URL
- * présignée fraîche du `ResourceService` — la bibliothèque est normalement
- * chargée par la page hôte ; un chargement défensif comble le cas contraire.
+ * présignée fraîche du résolveur injecté (`COURSE_RESOURCE_RESOLVER` :
+ * bibliothèque prof par défaut, endpoints publics élèves sur les routes
+ * partagées J2) — la bibliothèque est normalement chargée par la page hôte ;
+ * un chargement défensif (`ensureList`) comble le cas contraire.
  *
  * À la différence des deux consommateurs éditeurs (qui gardaient le rendu sur
  * l'onglet actif pour la paresse), ce composant rend dès qu'il est **monté** :
@@ -72,7 +74,7 @@ export class MarkdownView {
   readonly #sanitizer = inject(DomSanitizer);
   readonly #theme = inject(ThemeService);
   readonly #transloco = inject(TranslocoService);
-  readonly #resources = inject(ResourceService);
+  readonly #resources = inject(COURSE_RESOURCE_RESOLVER);
   readonly #print = inject(PrintService);
   /** Réglages de style du cours courant — exposés au template (binding `[style]`). */
   protected readonly courseStyle = inject(CourseStyleService);
@@ -136,11 +138,7 @@ export class MarkdownView {
         return;
       }
       this.#loadedCourseId = courseId;
-      untracked(() => {
-        if (this.#resources.list().length === 0 && !this.#resources.listLoading()) {
-          this.#resources.loadList(courseId);
-        }
-      });
+      untracked(() => this.#resources.ensureList(courseId));
     });
 
     // Rendu markdown+KaTeX synchrone (chemin rapide), puis passes asynchrones
@@ -361,7 +359,10 @@ export class MarkdownView {
     if (!this.#isBrowser || !el) {
       return;
     }
-    await this.#print.printCourseContent(el, this.courseId());
+    // Les liens du PDF pointent l'URL stable du régime courant (prof ou élève).
+    await this.#print.printCourseContent(el, this.courseId(), (lang, courseId, resourceId) =>
+      this.#resources.contentUrl(lang, courseId, resourceId),
+    );
   }
 
   /** Ouvre la modale de réglage du style de lecture du cours. */

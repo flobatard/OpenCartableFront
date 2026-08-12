@@ -37,8 +37,16 @@ export class PrintService {
    * Clone `source`, le prépare pour l'impression et déclenche le dialogue.
    * `courseId` sert à reconstruire les URL stables des ressources (`null` :
    * hors contexte cours — médias retirés, liens laissés tels quels).
+   * `resourceUrl` (optionnel) construit ces URL stables — défaut : la route
+   * prof protégée (`resourceContentUrl`) ; les pages élèves (J2) passent le
+   * builder de leur régime public pour que les liens des PDF partagés
+   * n'exigent jamais de login.
    */
-  async printCourseContent(source: HTMLElement, courseId: string | null): Promise<void> {
+  async printCourseContent(
+    source: HTMLElement,
+    courseId: string | null,
+    resourceUrl: ResourceUrlBuilder = resourceContentUrl,
+  ): Promise<void> {
     if (!this.#isBrowser) {
       return;
     }
@@ -72,6 +80,17 @@ export const PRINT_ROOT_ID = 'oc-print-root';
 /** Délai max d'attente d'une image avant impression (une image qui traîne ne bloque pas). */
 const IMG_LOAD_TIMEOUT_MS = 3000;
 
+/**
+ * Constructeur d'URL front stable d'une ressource (liens embarqués dans les
+ * PDF). La signature est celle de `resourceContentUrl` (défaut, régime prof) ;
+ * le régime élève fournit la sienne (`PublicCourseService.contentUrl`).
+ */
+export type ResourceUrlBuilder = (
+  lang: AppLang,
+  courseId: string,
+  resourceId: string,
+) => string;
+
 /** Libellés (déjà traduits) des notes de substitution papier. */
 export interface PrintLabels {
   /** Préfixe de la note remplaçant un lecteur audio/vidéo. */
@@ -98,6 +117,7 @@ export function transformForPrint(
   courseId: string | null,
   lang: AppLang,
   labels: PrintLabels,
+  resourceUrl: ResourceUrlBuilder = resourceContentUrl,
 ): void {
   const doc = root.ownerDocument;
   for (const el of [...root.querySelectorAll(`[${EXTENSION_ATTR}]`)]) {
@@ -122,7 +142,7 @@ export function transformForPrint(
   }
   for (const el of [...root.querySelectorAll(`[${RESOURCE_REF_ATTR}]`)]) {
     const id = el.getAttribute(RESOURCE_REF_ATTR);
-    const url = courseId && id ? resourceContentUrl(lang, courseId, id) : null;
+    const url = courseId && id ? resourceUrl(lang, courseId, id) : null;
     const tag = el.tagName.toLowerCase();
 
     if (tag === 'img') {

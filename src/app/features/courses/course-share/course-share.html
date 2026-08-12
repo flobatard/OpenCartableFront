@@ -1,0 +1,135 @@
+<section class="course-share">
+  <fieldset class="course-share__visibility">
+    <legend class="course-share__legend">{{ 'courses.share.visibility.legend' | transloco }}</legend>
+    <div class="course-share__visibility-cards">
+      @for (option of visibilities; track option) {
+        <label
+          class="course-share__visibility-card"
+          [class.course-share__visibility-card--active]="visibility() === option"
+        >
+          <input
+            type="radio"
+            name="visibility"
+            class="course-share__visibility-radio"
+            [checked]="visibility() === option"
+            [disabled]="visibilityBusy()"
+            (change)="setVisibility(option)"
+          />
+          <span class="course-share__visibility-title">
+            {{ 'courses.share.visibility.' + option | transloco }}
+          </span>
+          <span class="course-share__visibility-hint">
+            {{ 'courses.share.visibility.' + option + 'Hint' | transloco }}
+          </span>
+        </label>
+      }
+    </div>
+    @if (visibilityError()) {
+      <p class="course-share__error" role="alert">
+        {{ 'courses.share.visibility.error' | transloco }}
+      </p>
+    }
+    @if (visibility() === 'public' && catalogUrl(); as url) {
+      <p class="course-share__catalog">
+        {{ 'courses.share.catalogHint' | transloco }}
+        <span class="course-share__url">{{ url }}</span>
+        <button type="button" class="btn btn--ghost" (click)="copy(url)">
+          {{ 'courses.share.copy' | transloco }}
+        </button>
+      </p>
+    }
+  </fieldset>
+
+  <section class="course-share__links">
+    <h2 class="course-share__links-title">{{ 'courses.share.links.title' | transloco }}</h2>
+    <p class="course-share__links-hint">{{ 'courses.share.links.hint' | transloco }}</p>
+
+    <form class="course-share__create" (submit)="$event.preventDefault(); create()">
+      <input
+        type="text"
+        class="course-share__libelle"
+        maxlength="200"
+        [value]="libelle()"
+        [placeholder]="'courses.share.links.libellePlaceholder' | transloco"
+        (input)="libelle.set($any($event.target).value)"
+      />
+      <button type="submit" class="btn btn--primary" [disabled]="creating()">
+        {{ 'courses.share.links.create' | transloco }}
+      </button>
+    </form>
+    @if (createError()) {
+      <p class="course-share__error" role="alert">
+        {{ 'courses.share.links.createError' | transloco }}
+      </p>
+    }
+
+    @if (linksLoading()) {
+      <p class="course-share__status" role="status">
+        {{ 'courses.share.links.loading' | transloco }}
+      </p>
+    } @else if (linksError()) {
+      <div class="course-share__error" role="alert">
+        <p>{{ 'courses.share.links.loadError' | transloco }}</p>
+        <button type="button" class="btn btn--secondary" (click)="reloadLinks()">
+          {{ 'courses.share.links.retry' | transloco }}
+        </button>
+      </div>
+    } @else if (!links().length) {
+      <p class="course-share__status">{{ 'courses.share.links.empty' | transloco }}</p>
+    } @else {
+      <ul class="course-share__list">
+        @for (link of links(); track link.id) {
+          <li
+            class="course-share__row"
+            [class.course-share__row--inactive]="link.revoked || isExpired(link)"
+          >
+            <div class="course-share__row-main">
+              @if (link.libelle) {
+                <span class="course-share__row-libelle">{{ link.libelle }}</span>
+              }
+              <span class="course-share__url">{{ shareUrl(link) }}</span>
+              <span class="course-share__row-meta">
+                @if (link.revoked) {
+                  {{ 'courses.share.links.revoked' | transloco }}
+                } @else if (isExpired(link)) {
+                  {{ 'courses.share.links.expired' | transloco }}
+                } @else {
+                  {{
+                    'courses.share.links.expires'
+                      | transloco: { date: formatDate(link.expires_at) }
+                  }}
+                }
+              </span>
+            </div>
+            <div class="course-share__row-actions">
+              @if (!link.revoked && !isExpired(link)) {
+                <button type="button" class="btn btn--secondary" (click)="copy(shareUrl(link))">
+                  {{ 'courses.share.copy' | transloco }}
+                </button>
+                <button
+                  type="button"
+                  class="btn btn--ghost course-share__revoke"
+                  [class.course-share__revoke--armed]="pendingRevoke() === link.id"
+                  (click)="revoke(link)"
+                  (blur)="disarmRevoke()"
+                >
+                  {{
+                    (pendingRevoke() === link.id
+                      ? 'courses.share.links.revokeConfirm'
+                      : 'courses.share.links.revoke'
+                    ) | transloco
+                  }}
+                </button>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+      @if (revokeError()) {
+        <p class="course-share__error" role="alert">
+          {{ 'courses.share.links.revokeError' | transloco }}
+        </p>
+      }
+    }
+  </section>
+</section>

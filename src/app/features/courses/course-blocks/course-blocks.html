@@ -22,6 +22,12 @@
       <header class="course-blocks__head">
         <div class="course-blocks__head-row">
           <h1 class="course-blocks__title">{{ course.titre }}</h1>
+          <span
+            class="course-blocks__visibility-badge"
+            [class.course-blocks__visibility-badge--shared]="course.visibilite !== 'en_cours'"
+          >
+            {{ 'courses.share.badge.' + course.visibilite | transloco }}
+          </span>
           <button
             type="button"
             class="btn btn--ghost course-blocks__delete-course"
@@ -114,6 +120,20 @@
         >
           {{ 'courses.tabs.preview' | transloco }}
         </button>
+        <button
+          #shareTab
+          type="button"
+          class="tab"
+          role="tab"
+          [id]="uid + '-tab-share'"
+          [class.tab--active]="activeTab() === 'share'"
+          [attr.aria-selected]="activeTab() === 'share'"
+          [attr.aria-controls]="uid + '-panel-share'"
+          [tabindex]="activeTab() === 'share' ? 0 : -1"
+          (click)="selectTab('share')"
+        >
+          {{ 'courses.tabs.share' | transloco }}
+        </button>
       </div>
 
       @if (activeTab() === 'resources') {
@@ -142,6 +162,15 @@
           [attr.aria-labelledby]="uid + '-tab-preview'"
         >
           <app-course-preview [courseId]="courseId" />
+        </div>
+      } @else if (activeTab() === 'share') {
+        <div
+          class="course-blocks__panel"
+          role="tabpanel"
+          [id]="uid + '-panel-share'"
+          [attr.aria-labelledby]="uid + '-tab-share'"
+        >
+          <app-course-share [courseId]="courseId" />
         </div>
       } @else {
         <div

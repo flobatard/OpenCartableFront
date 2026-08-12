@@ -179,3 +179,23 @@
   margin: 0 0 8px;
   color: var(--text-secondary);
 }
+
+/* Badge d'état de partage (DS §8) — ambre « brouillon » / émeraude « partagé ». */
+.course-list__visibility-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 8px;
+  vertical-align: middle;
+  background: var(--amber-100);
+  color: var(--amber-800);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.course-list__visibility-badge--shared {
+  background: var(--emerald-100);
+  color: var(--emerald-700);
+}

@@ -36,7 +36,15 @@
             class="course-list__card"
             [routerLink]="['/', language.lang(), 'courses', course.id]"
           >
-            <h2 class="course-list__card-title">{{ course.titre }}</h2>
+            <h2 class="course-list__card-title">
+              {{ course.titre }}
+              <span
+                class="course-list__visibility-badge"
+                [class.course-list__visibility-badge--shared]="course.visibilite !== 'en_cours'"
+              >
+                {{ 'courses.share.badge.' + course.visibilite | transloco }}
+              </span>
+            </h2>
             @if (course.description) {
               <p class="course-list__card-description">{{ course.description }}</p>
             }

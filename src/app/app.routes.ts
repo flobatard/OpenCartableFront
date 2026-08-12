@@ -1,8 +1,28 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
+import {
+  COURSE_MODULE_RESOLVER,
+  COURSE_RESOURCE_RESOLVER,
+} from './core/course-content/course-content-resolvers';
 import { langGuard } from './core/i18n/lang.guard';
 import { rootLangRedirect } from './core/i18n/root-redirect';
+import {
+  PublicModuleResolver,
+  PublicResourceResolver,
+} from './core/public-courses/public-content-resolvers';
 import { onboardingGuard } from './core/users/onboarding.guard';
+
+/**
+ * Providers des sous-arbres élèves (J2) : substituent les résolveurs publics
+ * (endpoints /v1/public/*, sans Bearer) aux impl. prof par défaut dans les
+ * composants de rendu partagés (markdown-view, module-embed, …).
+ */
+const PUBLIC_CONTENT_PROVIDERS = [
+  PublicResourceResolver,
+  PublicModuleResolver,
+  { provide: COURSE_RESOURCE_RESOLVER, useExisting: PublicResourceResolver },
+  { provide: COURSE_MODULE_RESOLVER, useExisting: PublicModuleResolver },
+];
 
 export const routes: Routes = [
   {
@@ -38,6 +58,79 @@ export const routes: Routes = [
         path: 'markdown-language/docs/:slug',
         loadComponent: () =>
           import('./features/docs/docs-shell/docs-shell').then((m) => m.DocsShell),
+      },
+      {
+        // Vue élève d'un cours partagé par LIEN (J2) : token opaque dans
+        // l'URL, aucune auth — les guards prof n'ont rien à faire ici.
+        path: 'shared/:token',
+        data: { access: 'token' },
+        providers: PUBLIC_CONTENT_PROVIDERS,
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            loadComponent: () =>
+              import('./features/student/student-course/student-course').then(
+                (m) => m.StudentCourse,
+              ),
+          },
+          {
+            path: 'exercises/:blockId',
+            loadComponent: () =>
+              import('./features/student/student-exercise/student-exercise').then(
+                (m) => m.StudentExercise,
+              ),
+          },
+          {
+            // Cible des liens de ressource des PDF exportés côté élève :
+            // présigne sans Bearer puis redirige vers l'URL S3 inline.
+            path: 'resources/:resourceId',
+            loadComponent: () =>
+              import(
+                './features/student/student-resource-view/student-resource-view'
+              ).then((m) => m.StudentResourceView),
+          },
+        ],
+      },
+      {
+        // Vue élève d'un cours PUBLIC (J2) : accès direct par id, sans token.
+        // Déclaré avant `p/:profId` : `courses` doit matcher le segment
+        // littéral, pas un id de prof (convention `courses/new`).
+        path: 'p/courses/:courseId',
+        data: { access: 'public' },
+        providers: PUBLIC_CONTENT_PROVIDERS,
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            loadComponent: () =>
+              import('./features/student/student-course/student-course').then(
+                (m) => m.StudentCourse,
+              ),
+          },
+          {
+            path: 'exercises/:blockId',
+            loadComponent: () =>
+              import('./features/student/student-exercise/student-exercise').then(
+                (m) => m.StudentExercise,
+              ),
+          },
+          {
+            path: 'resources/:resourceId',
+            loadComponent: () =>
+              import(
+                './features/student/student-resource-view/student-resource-view'
+              ).then((m) => m.StudentResourceView),
+          },
+        ],
+      },
+      {
+        // Catalogue public d'un prof (J2) : ses cours `public` uniquement.
+        path: 'p/:profId',
+        loadComponent: () =>
+          import('./features/student/student-catalog/student-catalog').then(
+            (m) => m.StudentCatalog,
+          ),
       },
       {
         // Réservé au prof authentifié ; jamais rendu authentifié au serveur (cf. authGuard).

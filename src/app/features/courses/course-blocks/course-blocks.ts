@@ -25,6 +25,7 @@ import { BlockCreateDialog } from '../block-create-dialog/block-create-dialog';
 import { CourseModules } from '../course-modules/course-modules';
 import { CoursePreview } from '../course-preview/course-preview';
 import { CourseResources } from '../course-resources/course-resources';
+import { CourseShare } from '../course-share/course-share';
 import { moveIdTo } from './course-blocks.utils';
 
 /** Types proposés à l'ajout — tous créables. */
@@ -33,10 +34,10 @@ const CREATABLE_TYPES: readonly BlockType[] = ['texte', 'exercice', 'document', 
 /** Suffixe d'ids ARIA uniques par instance (compteur de module, jamais Date/Random). */
 let sequence = 0;
 
-type CourseTab = 'blocks' | 'resources' | 'modules' | 'preview';
+type CourseTab = 'blocks' | 'resources' | 'modules' | 'preview' | 'share';
 
 /** Ordre des onglets pour la navigation clavier ←/→ (APG tabs). */
-const TAB_ORDER: readonly CourseTab[] = ['blocks', 'resources', 'modules', 'preview'];
+const TAB_ORDER: readonly CourseTab[] = ['blocks', 'resources', 'modules', 'preview', 'share'];
 
 /**
  * Page d'un cours, à deux onglets (tablist APG, motif `markdown-field`) :
@@ -62,6 +63,7 @@ const TAB_ORDER: readonly CourseTab[] = ['blocks', 'resources', 'modules', 'prev
     CourseModules,
     CourseResources,
     CoursePreview,
+    CourseShare,
     CdkDropList,
     CdkDrag,
     CdkDragHandle,
@@ -97,6 +99,7 @@ export class CourseBlocks implements OnInit {
   protected readonly resourcesTabRef = viewChild<ElementRef<HTMLButtonElement>>('resourcesTab');
   protected readonly modulesTabRef = viewChild<ElementRef<HTMLButtonElement>>('modulesTab');
   protected readonly previewTabRef = viewChild<ElementRef<HTMLButtonElement>>('previewTab');
+  protected readonly shareTabRef = viewChild<ElementRef<HTMLButtonElement>>('shareTab');
 
   protected readonly detail = this.#courses.detail;
   protected readonly loading = this.#courses.detailLoading;
@@ -153,13 +156,17 @@ export class CourseBlocks implements OnInit {
           ? this.resourcesTabRef()
           : next === 'modules'
             ? this.modulesTabRef()
-            : this.previewTabRef();
+            : next === 'preview'
+              ? this.previewTabRef()
+              : this.shareTabRef();
     ref?.nativeElement.focus();
   }
 
   /** Onglet dérivé du param `?tab=` : seuls les non-défaut connus sont acceptés. */
   #tabFromParam(tab: string | null): CourseTab {
-    return tab === 'resources' || tab === 'modules' || tab === 'preview' ? tab : 'blocks';
+    return tab === 'resources' || tab === 'modules' || tab === 'preview' || tab === 'share'
+      ? tab
+      : 'blocks';
   }
 
   /**

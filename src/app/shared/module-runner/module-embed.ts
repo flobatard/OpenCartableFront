@@ -1,8 +1,8 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Component, effect, inject, input, PLATFORM_ID, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { COURSE_MODULE_RESOLVER } from '../../core/course-content/course-content-resolvers';
 import { ModuleDetail } from '../../core/modules/module.model';
-import { ModuleService } from '../../core/modules/module.service';
 import { ModuleRunner } from './module-runner';
 
 /**
@@ -28,7 +28,7 @@ import { ModuleRunner } from './module-runner';
   },
 })
 export class ModuleEmbed {
-  readonly #modules = inject(ModuleService);
+  readonly #modules = inject(COURSE_MODULE_RESOLVER);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly courseId = input.required<string>();

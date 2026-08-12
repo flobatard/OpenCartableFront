@@ -22,6 +22,11 @@ export interface UserProfile {
   est_eleve: boolean;
   /** Code du système scolaire (`fr`, `uk`, …), `null` avant onboarding. */
   systeme_scolaire: string | null;
+  /**
+   * Nom d'affichage des pages publiques (catalogue de cours, J2) — seule
+   * donnée d'identité montrée aux élèves ; `null` = catalogue anonyme.
+   */
+  nom_public: string | null;
   /** `false` tant que l'onboarding bloquant n'a pas été soumis. */
   onboarding_complete: boolean;
   enseignement: ProfilContexte | null;
@@ -33,6 +38,8 @@ export interface OnboardingPayload {
   est_prof: boolean;
   est_eleve: boolean;
   systeme_scolaire: string;
+  /** Optionnel — blanc/absent devient `null` côté back (catalogue anonyme). */
+  nom_public: string | null;
   enseignement: ProfilContexte | null;
   apprentissage: ProfilContexte | null;
 }

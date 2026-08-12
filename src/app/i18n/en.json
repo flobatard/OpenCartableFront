@@ -193,7 +193,8 @@
       "blocks": "Blocks",
       "resources": "Resources",
       "modules": "Modules",
-      "preview": "Preview"
+      "preview": "Preview",
+      "share": "Sharing"
     },
     "preview": {
       "empty": "This course has no blocks yet.",
@@ -274,6 +275,44 @@
       "unavailable": "Resource unavailable: its upload was never completed.",
       "error": "Opening the resource failed. Try again.",
       "backToCourse": "Back to the course"
+    },
+    "share": {
+      "badge": {
+        "public": "Public",
+        "prive": "Shared by link",
+        "en_cours": "Draft"
+      },
+      "visibility": {
+        "legend": "Who can view this course?",
+        "en_cours": "Draft",
+        "en_coursHint": "Nobody but you. Existing share links are suspended.",
+        "prive": "Shared by link",
+        "priveHint": "Only students with a valid share link (9 months).",
+        "public": "Public",
+        "publicHint": "Available to anyone with its address and listed in your public catalogue.",
+        "error": "The visibility change did not go through. Try again."
+      },
+      "catalogHint": "Your public catalogue:",
+      "copy": "Copy the link",
+      "copied": "Link copied to the clipboard.",
+      "copyError": "Copying the link did not go through.",
+      "links": {
+        "title": "Share links",
+        "hint": "Create one link per class or group: each can be revoked separately. A link expires after 9 months.",
+        "libellePlaceholder": "Label (optional) — e.g. 6B 2026",
+        "create": "Create a link",
+        "createError": "Creating the link did not go through. Try again.",
+        "loading": "Loading links…",
+        "loadError": "The links could not be loaded.",
+        "retry": "Retry",
+        "empty": "No share links yet.",
+        "expires": "Expires on {{ date }}",
+        "expired": "Expired",
+        "revoked": "Revoked",
+        "revoke": "Revoke",
+        "revokeConfirm": "Confirm revocation",
+        "revokeError": "The revocation did not go through. Try again."
+      }
     }
   },
   "markdownField": {
@@ -609,7 +648,12 @@
     "loading": "Loading your profile…",
     "loadError": "Could not load your profile. Check your connection.",
     "submitError": "Saving did not complete. Try again.",
-    "retry": "Retry"
+    "retry": "Retry",
+    "nomPublic": {
+      "label": "Public name (optional)",
+      "placeholder": "e.g. Ms. Smith",
+      "hint": "Shown to students on your public course catalogue. Leave empty to stay anonymous."
+    }
   },
   "educationLevels": {
     "picker": {
@@ -618,6 +662,39 @@
       "listLabel": "Education levels",
       "remove": "Remove {{ nom }}",
       "empty": "No levels to display."
+    }
+  },
+  "student": {
+    "course": {
+      "notFound": "This link is no longer valid or the course is not available.",
+      "empty": "This course has no content yet.",
+      "downloadPdf": "Download the PDF",
+      "solveExercise": "Solve the exercise",
+      "backToCourse": "Back to the course"
+    },
+    "catalog": {
+      "title": "Public courses",
+      "titleNamed": "Courses by {{ name }}",
+      "open": "Open the course",
+      "empty": "No public courses yet.",
+      "error": "This catalogue is not available."
+    },
+    "resource": {
+      "opening": "Opening the resource…",
+      "notFound": "This link is no longer valid or the resource is not available.",
+      "unavailable": "This resource is not available yet."
+    },
+    "exercise": {
+      "title": "Exercise",
+      "question": "Question {{ number }}",
+      "yourAnswer": "Your answer",
+      "markDone": "Mark as done",
+      "edit": "Edit",
+      "done": "Done",
+      "savedHint": "Your answers are saved on this device.",
+      "storageUnavailable": "Your answers cannot be saved on this device (storage unavailable). You can still work, but they will be lost when you leave the page.",
+      "clear": "Clear my answers",
+      "clearConfirm": "Confirm clearing"
     }
   }
 }

@@ -24,6 +24,37 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client,
   },
   {
+    // Pages élèves (J2) : markdown-view/DOMPurify/Mermaid/iframe/localStorage
+    // sont browser-only — et DOMPurify sans `window` retournerait le HTML NON
+    // filtré. Explicites, pour ne jamais retomber dans le catch-all Server.
+    path: ':lang/shared/:token',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: ':lang/shared/:token/exercises/:blockId',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: ':lang/shared/:token/resources/:resourceId',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: ':lang/p/:profId',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: ':lang/p/courses/:courseId',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: ':lang/p/courses/:courseId/exercises/:blockId',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: ':lang/p/courses/:courseId/resources/:resourceId',
+    renderMode: RenderMode.Client,
+  },
+  {
     // Route protégée (authGuard renvoie false au serveur) : rendu navigateur uniquement,
     // jamais prerendered — aucun appel API à l'IdP/back au build.
     path: ':lang/subjects',

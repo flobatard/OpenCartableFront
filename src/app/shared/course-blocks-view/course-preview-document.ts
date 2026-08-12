@@ -1,9 +1,9 @@
 import { Component, effect, inject, input, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { CourseResource } from '../../../core/resources/resource.model';
-import { ResourceService } from '../../../core/resources/resource.service';
-import { formatBytes } from '../../../core/resources/resource.utils';
+import { COURSE_RESOURCE_RESOLVER } from '../../core/course-content/course-content-resolvers';
+import { CourseResource } from '../../core/resources/resource.model';
+import { formatBytes } from '../../core/resources/resource.utils';
 
 /**
  * Rendu d'un bloc `document` dans l'aperçu global du cours : média intégré
@@ -22,7 +22,7 @@ import { formatBytes } from '../../../core/resources/resource.utils';
   styleUrl: './course-preview-document.scss',
 })
 export class CoursePreviewDocument {
-  readonly #resources = inject(ResourceService);
+  readonly #resources = inject(COURSE_RESOURCE_RESOLVER);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly courseId = input.required<string>();

@@ -34,6 +34,16 @@
             <span class="profile__role-hint">{{ 'onboarding.roles.eleveHint' | transloco }}</span>
           </label>
         </div>
+        <label class="profile__nom-public">
+          <span>{{ 'onboarding.nomPublic.label' | transloco }}</span>
+          <input
+            type="text"
+            maxlength="100"
+            [formControl]="form.controls.nomPublic"
+            [placeholder]="'onboarding.nomPublic.placeholder' | transloco"
+          />
+          <span class="profile__hint">{{ 'onboarding.nomPublic.hint' | transloco }}</span>
+        </label>
       </fieldset>
 
       <fieldset class="profile__fieldset">

@@ -21,6 +21,8 @@ export function buildProfileForm() {
     estProf: new FormControl(false, { nonNullable: true }),
     estEleve: new FormControl(false, { nonNullable: true }),
     systeme: new FormControl<string | null>(null),
+    // Nom affiché sur les pages publiques (catalogue J2) — optionnel.
+    nomPublic: new FormControl('', { nonNullable: true }),
     enseignement: blocGroup(),
     apprentissage: blocGroup(),
   });
@@ -62,6 +64,7 @@ export function patchFormFromProfile(form: ProfileForm, profile: UserProfile): v
   form.controls.estProf.setValue(profile.est_prof);
   form.controls.estEleve.setValue(profile.est_eleve);
   form.controls.systeme.setValue(profile.systeme_scolaire);
+  form.controls.nomPublic.setValue(profile.nom_public ?? '');
   form.controls.enseignement.setValue({
     educationLevelIds: [...(profile.enseignement?.education_level_ids ?? [])],
     subjectIds: [...(profile.enseignement?.subject_ids ?? [])],
@@ -79,6 +82,7 @@ export function payloadFromForm(form: ProfileForm): OnboardingPayload {
     est_prof: v.estProf,
     est_eleve: v.estEleve,
     systeme_scolaire: v.systeme ?? '',
+    nom_public: v.nomPublic.trim() || null,
     enseignement: v.estProf
       ? {
           education_level_ids: v.enseignement.educationLevelIds,
