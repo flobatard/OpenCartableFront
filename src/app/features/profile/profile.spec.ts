@@ -180,6 +180,7 @@ describe('Profile', () => {
       est_prof: true,
       est_eleve: false,
       systeme_scolaire: 'fr',
+      nom_public: null,
       enseignement: { education_level_ids: ['college'], subject_ids: ['math'] },
       apprentissage: null,
     });

@@ -8,6 +8,7 @@ export const USER_PROFILE_FIXTURE: UserProfile = {
   est_prof: false,
   est_eleve: false,
   systeme_scolaire: null,
+  nom_public: null,
   onboarding_complete: false,
   enseignement: null,
   apprentissage: null,

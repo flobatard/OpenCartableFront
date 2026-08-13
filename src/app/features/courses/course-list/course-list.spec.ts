@@ -66,10 +66,16 @@ describe('CourseList', () => {
   it('affiche les cartes : titres, badges résolus, compteur de blocs', async () => {
     const fixture = await createComponent();
 
+    // Le h2 embarque le badge de visibilité : on ne lit que le nœud texte du titre.
     const titles = Array.from(el(fixture).querySelectorAll('.course-list__card-title')).map(
-      (n) => n.textContent?.trim(),
+      (n) => n.childNodes[0].textContent?.trim(),
     );
     expect(titles).toEqual(['Suites numériques', 'Grammaire — les accords']);
+
+    const visibility = Array.from(
+      el(fixture).querySelectorAll('.course-list__visibility-badge'),
+    ).map((n) => n.textContent?.trim());
+    expect(visibility).toEqual(['Brouillon', 'Brouillon']);
 
     const cards = el(fixture).querySelectorAll('.course-list__card');
     const badges = (card: Element) =>

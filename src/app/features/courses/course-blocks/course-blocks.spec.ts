@@ -9,7 +9,10 @@ import { EducationLevelService } from '../../../core/education-levels/education-
 import { ModuleSummary } from '../../../core/modules/module.model';
 import { ModuleService } from '../../../core/modules/module.service';
 import { ResourceService } from '../../../core/resources/resource.service';
+import { ShareLink } from '../../../core/share/share-link.model';
+import { ShareLinkService } from '../../../core/share/share-link.service';
 import { SubjectService } from '../../../core/subjects/subject.service';
+import { UserProfileService } from '../../../core/users/user-profile.service';
 import { COURSE_DETAIL_FIXTURE } from '../../../testing/courses.fixture';
 import { EDUCATION_LEVELS_FIXTURE } from '../../../testing/education-levels.fixture';
 import { COURSE_RESOURCES_FIXTURE } from '../../../testing/resources.fixture';
@@ -68,6 +71,18 @@ describe('CourseBlocks', () => {
     deleteModule: vi.fn(),
     getModule: vi.fn(),
   };
+  const shareLinksMock = {
+    list: signal<ShareLink[]>([]),
+    listLoading: signal(false),
+    listError: signal(false),
+    loadList: vi.fn(),
+    createLink: vi.fn(),
+    revokeLink: vi.fn(),
+  };
+  const profileMock = {
+    profile: signal(null),
+    ensureLoaded: vi.fn().mockResolvedValue(null),
+  };
 
   async function createComponent(tab?: string): Promise<ComponentFixture<CourseBlocks>> {
     await TestBed.configureTestingModule({
@@ -79,6 +94,8 @@ describe('CourseBlocks', () => {
         { provide: EducationLevelService, useValue: levelsMock },
         { provide: ResourceService, useValue: resourcesMock },
         { provide: ModuleService, useValue: modulesMock },
+        { provide: ShareLinkService, useValue: shareLinksMock },
+        { provide: UserProfileService, useValue: profileMock },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -360,6 +377,7 @@ describe('CourseBlocks', () => {
       'Ressources',
       'Modules',
       'Aperçu',
+      'Partage',
     ]);
     expect(tabs[0].getAttribute('aria-selected')).toBe('true');
     expect(el(fixture).querySelector('app-course-resources')).toBeNull();
@@ -418,7 +436,7 @@ describe('CourseBlocks', () => {
     expect(tabs[2].getAttribute('aria-selected')).toBe('true');
   });
 
-  it('les flèches cyclent entre les quatre onglets (APG tabs)', async () => {
+  it('les flèches cyclent entre les cinq onglets (APG tabs)', async () => {
     const fixture = await createComponent();
     const tablist = el(fixture).querySelector('[role="tablist"]')!;
     const tabs = () => Array.from(el(fixture).querySelectorAll<HTMLButtonElement>('[role="tab"]'));
@@ -435,7 +453,11 @@ describe('CourseBlocks', () => {
     fixture.detectChanges();
     expect(tabs()[3].getAttribute('aria-selected')).toBe('true');
 
-    // Cycle : depuis Aperçu, flèche droite revient à Blocs.
+    tablist.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    fixture.detectChanges();
+    expect(tabs()[4].getAttribute('aria-selected')).toBe('true');
+
+    // Cycle : depuis Partage, flèche droite revient à Blocs.
     tablist.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
     fixture.detectChanges();
     expect(tabs()[0].getAttribute('aria-selected')).toBe('true');
