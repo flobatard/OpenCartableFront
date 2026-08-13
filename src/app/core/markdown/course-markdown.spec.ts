@@ -251,30 +251,51 @@ describe('ressources intégrées (oc-resource)', () => {
 });
 
 describe('modules intégrés (oc-module)', () => {
+  // Les ids de module sont des UUID (forme validée par parseModuleRef —
+  // garde contre les requêtes API forgées depuis le markdown).
+  const MOD_ID = '5f0f9c3a-1234-4abc-8def-0123456789ab';
+  const MOD_ID_2 = '6a1e8d4b-5678-4cde-9f01-23456789abcd';
+
   it('un lien oc-module devient un span placeholder data-oc-module-id (texte en repli)', () => {
-    const div = render('[Quiz interactif](oc-module:mod-123)');
+    const div = render(`[Quiz interactif](oc-module:${MOD_ID})`);
     const span = div.querySelector('span.course-module-embed');
-    expect(span?.getAttribute('data-oc-module-id')).toBe('mod-123');
+    expect(span?.getAttribute('data-oc-module-id')).toBe(MOD_ID);
     expect(span?.classList.contains('course-module-embed--pending')).toBe(true);
     expect(span?.textContent).toBe('Quiz interactif');
     // Jamais un <a> : le placeholder est monté en composant par markdown-view.
     expect(div.querySelector('a')).toBeNull();
   });
 
+  it('la syntaxe image ![…](oc-module:…) rend le même placeholder (pas d’<img> vidé)', () => {
+    const div = render(`![Quiz interactif](oc-module:${MOD_ID})`);
+    const span = div.querySelector('span.course-module-embed');
+    expect(span?.getAttribute('data-oc-module-id')).toBe(MOD_ID);
+    expect(span?.textContent).toBe('Quiz interactif');
+    expect(div.querySelector('img')).toBeNull();
+  });
+
+  it('un id qui n’a pas la forme UUID est rejeté (lien marked par défaut)', () => {
+    // Path traversal ou id fantaisiste : jamais de placeholder → jamais
+    // interpolé dans l’URL du GET /modules/{id}.
+    for (const md of ['[x](oc-module:../../autre)', '[x](oc-module:mod-123)']) {
+      expect(render(md).querySelector('[data-oc-module-id]')).toBeNull();
+    }
+  });
+
   it('oc-module est reconnu avant oc-resource (schémas disjoints)', () => {
-    const div = render('[m](oc-module:m-1) et [r](oc-resource:r-1)');
+    const div = render(`[m](oc-module:${MOD_ID}) et [r](oc-resource:r-1)`);
     expect(div.querySelector('[data-oc-module-id]')).not.toBeNull();
     expect(div.querySelector('[data-oc-resource-id]')).not.toBeNull();
   });
 
   it('oc-module dans un bloc de code n’est pas transformé', () => {
-    const div = render('```\n[x](oc-module:zzz)\n```');
+    const div = render(`\`\`\`\n[x](oc-module:${MOD_ID_2})\n\`\`\``);
     expect(div.querySelector('[data-oc-module-id]')).toBeNull();
-    expect(div.textContent).toContain('oc-module:zzz');
+    expect(div.textContent).toContain(`oc-module:${MOD_ID_2}`);
   });
 
   it('hasCourseModules détecte la présence d’un placeholder', () => {
-    expect(hasCourseModules(renderCourseMarkdown('[m](oc-module:x)'))).toBe(true);
+    expect(hasCourseModules(renderCourseMarkdown(`[m](oc-module:${MOD_ID})`))).toBe(true);
     expect(hasCourseModules(renderCourseMarkdown('du texte'))).toBe(false);
   });
 });

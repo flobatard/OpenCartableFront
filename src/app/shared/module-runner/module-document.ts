@@ -6,8 +6,10 @@
  * `<iframe sandbox="allow-scripts allow-forms allow-modals">` SANS
  * `allow-same-origin` — origine opaque (`'null'`) : le JS du prof n'a accès
  * ni aux cookies, ni au localStorage (lève une exception), ni au DOM/tokens
- * de l'app. Le réseau sortant (CDN, images, fetch) reste autorisé, décision
- * actée. Seul un pont postMessage contrôlé relie le module à la page.
+ * de l'app. Le réseau sortant est **bloqué par CSP** (`MODULE_CSP`, décision
+ * actée — révise le « CDN autorisés » du cadrage initial) : un module est
+ * self-contained, ses assets passent en `data:`/`blob:`. Seul un pont
+ * postMessage contrôlé relie le module à la page.
  */
 
 /** Marqueur `source` des messages du pont (filtre côté parent). */
@@ -54,10 +56,28 @@ const MODULE_BRIDGE = `(function () {
 })();`;
 
 /**
- * Compose le document `srcdoc` d'un module : CSS en tête, HTML dans le body,
- * puis le bridge et enfin le JS du prof. Le JS est neutralisé contre un
- * `</script>` littéral qui casserait la composition (`<\/script` — dans une
- * chaîne JS, `\/` ≡ `/`, transformation sémantiquement neutre) ; le CSS
+ * CSP du document composé : **aucun réseau sortant**. `default-src 'none'`
+ * coupe tous les canaux silencieux (fetch/XHR/WebSocket/beacon, scripts,
+ * feuilles de style, images, fonts et iframes externes, workers) ; seuls
+ * restent le code inline du module et les assets embarqués `data:`/`blob:`
+ * (canvas, `URL.createObjectURL`). `form-action 'none'` (non couvert par
+ * default-src) ferme l'exfiltration par soumission de formulaire — les
+ * formulaires gérés en JS (preventDefault) continuent de marcher. Un second
+ * `<meta>` CSP écrit par le prof ne peut que restreindre davantage (les
+ * politiques s'intersectent), jamais rouvrir. Résidu assumé : la navigation
+ * du document lui-même par clic sur un lien (non couvrable en meta CSP),
+ * visible à l'écran et confinée par le sandbox (ni popup ni top-navigation).
+ */
+export const MODULE_CSP =
+  "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; " +
+  "img-src data: blob:; media-src data: blob:; font-src data:; " +
+  "form-action 'none'; base-uri 'none'";
+
+/**
+ * Compose le document `srcdoc` d'un module : CSP puis CSS en tête, HTML dans
+ * le body, puis le bridge et enfin le JS du prof. Le JS est neutralisé contre
+ * un `</script>` littéral qui casserait la composition (`<\/script` — dans
+ * une chaîne JS, `\/` ≡ `/`, transformation sémantiquement neutre) ; le CSS
  * l'est contre `</style`.
  */
 export function composeModuleDocument(html: string, css: string, js: string): string {
@@ -68,6 +88,7 @@ export function composeModuleDocument(html: string, css: string, js: string): st
     '<html>',
     '<head>',
     '<meta charset="utf-8">',
+    `<meta http-equiv="Content-Security-Policy" content="${MODULE_CSP}">`,
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
     `<style>${safeCss}</style>`,
     '</head>',

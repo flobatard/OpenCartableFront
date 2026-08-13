@@ -106,6 +106,26 @@ describe('CoursePreview', () => {
     );
   });
 
+  it('masque entièrement un bloc module encore vide (vue élève)', async () => {
+    detail.set({
+      ...DETAIL_WITH_MODULE,
+      blocks: [
+        ...DETAIL_WITH_MODULE.blocks,
+        { ...MODULE_BLOCK, id: 'block-module-vide', position: 4, titre: 'Brouillon', module_id: null },
+      ],
+    });
+    const fixture = await createComponent();
+    // Ni article, ni titre, ni notice « Aucun module choisi » : un bloc module
+    // sans module n'est pas du contenu élève (et sans data-oc-module-id il
+    // échapperait à la note d'impression).
+    expect(blocks(fixture).length).toBe(4);
+    expect(el(fixture).querySelectorAll('app-module-embed').length).toBe(1);
+    const text = el(fixture).textContent ?? '';
+    expect(text).not.toContain('Brouillon');
+    expect(text).not.toContain('Aucun module');
+    expect(text).not.toContain('moduleEmbed.none');
+  });
+
   it('rend le markdown du bloc texte', async () => {
     const fixture = await createComponent();
     expect(el(fixture).querySelector('app-markdown-view')?.innerHTML).toContain(

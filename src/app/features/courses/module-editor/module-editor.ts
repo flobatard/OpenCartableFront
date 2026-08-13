@@ -1,6 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit, PLATFORM_ID, signal } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -70,19 +70,13 @@ export class ModuleEditor implements OnInit, OnDestroy {
   readonly cssControl = new FormControl('', { nonNullable: true });
   readonly jsControl = new FormControl('', { nonNullable: true });
 
-  /** Code affiché par la preview — suit la frappe, débouncé (recharge l'iframe). */
-  protected readonly previewHtml = toSignal(
-    this.htmlControl.valueChanges.pipe(debounceTime(PREVIEW_DEBOUNCE_MS)),
-    { initialValue: '' },
-  );
-  protected readonly previewCss = toSignal(
-    this.cssControl.valueChanges.pipe(debounceTime(PREVIEW_DEBOUNCE_MS)),
-    { initialValue: '' },
-  );
-  protected readonly previewJs = toSignal(
-    this.jsControl.valueChanges.pipe(debounceTime(PREVIEW_DEBOUNCE_MS)),
-    { initialValue: '' },
-  );
+  /** Code affiché par la preview — seedé au chargement du module (les
+   *  `setValue(…, emitEvent: false)` de l'init n'émettent pas sur
+   *  `valueChanges`, sinon preview vide à l'ouverture), puis suit la frappe,
+   *  débouncé (recharge l'iframe). */
+  protected readonly previewHtml = signal('');
+  protected readonly previewCss = signal('');
+  protected readonly previewJs = signal('');
   /** La preview ne monte l'iframe qu'une fois le module chargé. */
   protected readonly previewReady = signal(false);
 
@@ -91,8 +85,22 @@ export class ModuleEditor implements OnInit, OnDestroy {
   #initialized = false;
   /** JSON du dernier payload persisté (référence dirty/idle). */
   #lastSaved = '';
+  /** PATCH d'autosave en vol (concatMap n'en laisse qu'un à la fois) — le
+   *  flush du destroy s'enchaîne derrière lui, sinon deux écritures
+   *  concurrentes dont l'ordre serveur n'est pas garanti pourraient persister
+   *  l'ancien code. Toujours résolue (jamais rejetée). */
+  #inFlightSave: Promise<void> = Promise.resolve();
 
   constructor() {
+    for (const [control, preview] of [
+      [this.htmlControl, this.previewHtml],
+      [this.cssControl, this.previewCss],
+      [this.jsControl, this.previewJs],
+    ] as const) {
+      control.valueChanges
+        .pipe(debounceTime(PREVIEW_DEBOUNCE_MS), takeUntilDestroyed())
+        .subscribe((value) => preview.set(value));
+    }
     merge(this.htmlControl.valueChanges, this.cssControl.valueChanges, this.jsControl.valueChanges)
       .pipe(
         tap(() => {
@@ -118,15 +126,17 @@ export class ModuleEditor implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Sortie avant la fin du debounce : flush fire-and-forget (service root).
+    // Sortie avant la fin du debounce : flush fire-and-forget (service root),
+    // enchaîné derrière l'éventuel PATCH en vol pour garantir l'ordre serveur
+    // (takeUntilDestroyed annule la file du concatMap, pas la requête partie).
     if (!this.#initialized) {
       return;
     }
     const payload = this.#currentPayload();
     if (JSON.stringify(payload) !== this.#lastSaved) {
-      void this.#modules
-        .updateModule(this.courseId, this.moduleId, payload)
-        .catch(() => undefined);
+      void this.#inFlightSave.then(() =>
+        this.#modules.updateModule(this.courseId, this.moduleId, payload).catch(() => undefined),
+      );
     }
   }
 
@@ -145,6 +155,11 @@ export class ModuleEditor implements OnInit, OnDestroy {
           this.htmlControl.setValue(module.html, { emitEvent: false });
           this.cssControl.setValue(module.css, { emitEvent: false });
           this.jsControl.setValue(module.js, { emitEvent: false });
+          // Seed direct : emitEvent false n'alimente pas les valueChanges,
+          // la preview doit refléter le code sauvegardé dès l'ouverture.
+          this.previewHtml.set(module.html);
+          this.previewCss.set(module.css);
+          this.previewJs.set(module.js);
           this.previewReady.set(true);
         }
       },
@@ -193,7 +208,12 @@ export class ModuleEditor implements OnInit, OnDestroy {
     }
     this.saveState.set('saving');
     try {
-      await this.#modules.updateModule(this.courseId, this.moduleId, payload);
+      const request = this.#modules.updateModule(this.courseId, this.moduleId, payload);
+      this.#inFlightSave = request.then(
+        () => undefined,
+        () => undefined,
+      );
+      await request;
       this.#lastSaved = serialized;
       // Frappe pendant le save en vol : on reste « dirty », le suivant est en file.
       this.saveState.set(

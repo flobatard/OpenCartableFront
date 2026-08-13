@@ -10,7 +10,7 @@ import {
   EXTENSION_ATTR,
   EXTENSION_PRINTABLE_ATTR,
 } from '../../shared/markdown-extensions/extension-placeholders';
-import { resourceContentUrl } from '../resources/resource.utils';
+import { courseContentUrl, resourceContentUrl } from '../resources/resource.utils';
 
 /**
  * Export PDF d'un contenu de cours par **impression native** du navigateur
@@ -46,6 +46,7 @@ export class PrintService {
     transformForPrint(clone, courseId, this.#language.lang(), {
       mediaNote: this.#transloco.translate('courses.preview.pdfMediaNote'),
       interactiveFallback: this.#transloco.translate('markdownExtensions.printFallback'),
+      moduleFallback: this.#transloco.translate('moduleEmbed.printFallback'),
     });
     keepHeadingsWithContent(clone);
 
@@ -77,6 +78,8 @@ export interface PrintLabels {
   mediaNote: string;
   /** Note remplaçant une extension markdown interactive non imprimable. */
   interactiveFallback: string;
+  /** Préfixe de la note remplaçant un module interactif (suivi du lien cours). */
+  moduleFallback: string;
 }
 
 /**
@@ -109,11 +112,13 @@ export function transformForPrint(
   // Modules interactifs (iframe sandbox) : jamais imprimables. L'attribut est
   // porté à la fois par les embeds `oc-module:` du markdown et par l'hôte de
   // ModuleEmbed des blocs module de l'aperçu — une seule passe couvre les deux.
+  // Note au motif GeoGebra + lien vers la page du cours (URL stable, motif
+  // media note) : le lecteur du PDF sait où retrouver le contenu interactif.
+  const courseUrl = courseId === null ? null : courseContentUrl(lang, courseId);
   for (const el of [...root.querySelectorAll(`[${MODULE_REF_ATTR}]`)]) {
-    const note = doc.createElement('p');
-    note.className = 'oc-print__extension-note';
-    note.textContent = labels.interactiveFallback;
-    el.replaceWith(note);
+    el.replaceWith(
+      buildMediaNote(doc, labels.moduleFallback, '', courseUrl, 'oc-print__extension-note'),
+    );
   }
   for (const el of [...root.querySelectorAll(`[${RESOURCE_REF_ATTR}]`)]) {
     const id = el.getAttribute(RESOURCE_REF_ATTR);
@@ -221,18 +226,20 @@ export function keepHeadingsWithContent(root: HTMLElement): void {
 }
 
 /**
- * Note remplaçant un lecteur audio/vidéo (non imprimable) : préfixe traduit,
- * libellé de la ressource et lien vers l'URL stable. Construite par API DOM
- * (jamais innerHTML). Sans URL (hors contexte cours), note textuelle simple.
+ * Note remplaçant un contenu non imprimable (lecteur audio/vidéo, module
+ * interactif) : préfixe traduit, libellé éventuel et lien vers l'URL stable.
+ * Construite par API DOM (jamais innerHTML). Sans URL (hors contexte cours),
+ * note textuelle simple.
  */
 function buildMediaNote(
   doc: Document,
   prefix: string,
   label: string,
   url: string | null,
+  className = 'oc-print__media-note',
 ): HTMLElement {
   const p = doc.createElement('p');
-  p.className = 'oc-print__media-note';
+  p.className = className;
   const lead = [prefix, label].filter((s) => s !== '').join(' ');
   if (url === null) {
     p.textContent = lead;

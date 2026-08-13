@@ -33,7 +33,8 @@ import { CoursePreviewDocument } from './course-preview-document';
  * exercice passent par `app-markdown-view` (pipeline partagé) ; les documents
  * par `app-course-preview-document` (média intégré / carte) ; les modules
  * interactifs par `app-module-embed` (iframe sandbox origine opaque, résolue
- * par id — module non choisi/supprimé → notice).
+ * par id — module supprimé → notice ; un bloc `module` encore vide est
+ * entièrement masqué, cf. `blocks`).
  *
  * Navigateur uniquement : `app-markdown-view` et la résolution d'URL présignée
  * touchent `window` — la page hôte (courses/:id) est en `RenderMode.Client`, et
@@ -62,8 +63,16 @@ export class CoursePreview {
   /** Modale de style, ouverte par le bouton général de la barre d'actions. */
   protected readonly styleDialog = viewChild(CourseStyleDialog);
 
-  /** Blocs du cours chargé par la page hôte, déjà ordonnés par le back. */
-  protected readonly blocks = computed(() => this.#courses.detail()?.blocks ?? []);
+  /** Blocs du cours chargé par la page hôte, déjà ordonnés par le back.
+   *  Vue élève : un bloc `module` encore vide (`module_id` null) est masqué
+   *  en entier — rien à montrer, et la notice « Aucun module choisi » de
+   *  l'embed est un message d'autorat qui partirait sinon dans l'aperçu et
+   *  le PDF (l'hôte sans `data-oc-module-id` échappe à `transformForPrint`). */
+  protected readonly blocks = computed(() =>
+    (this.#courses.detail()?.blocks ?? []).filter(
+      (block) => block.type !== 'module' || block.module_id !== null,
+    ),
+  );
 
   constructor() {
     // Charge la bibliothèque de ressources au montage (onglet Aperçu actif) —

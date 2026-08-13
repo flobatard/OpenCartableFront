@@ -7,7 +7,7 @@ import {
   keepHeadingsWithContent,
   transformForPrint,
 } from './print.service';
-import { resourceContentUrl } from '../resources/resource.utils';
+import { courseContentUrl, resourceContentUrl } from '../resources/resource.utils';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
 
 /** Fragment DOM détaché à partir d'un HTML (jsdom). */
@@ -19,7 +19,11 @@ function fragment(html: string): HTMLElement {
 
 /** Libellés de test — seule la note média varie selon les cas. */
 function labels(mediaNote = ''): PrintLabels {
-  return { mediaNote, interactiveFallback: 'Contenu interactif : voir la version en ligne.' };
+  return {
+    mediaNote,
+    interactiveFallback: 'Contenu interactif : voir la version en ligne.',
+    moduleFallback: 'Module interactif : à retrouver dans le cours en ligne.',
+  };
 }
 
 describe('transformForPrint', () => {
@@ -109,7 +113,7 @@ describe('transformForPrint', () => {
     expect(root.querySelector('p.oc-print__extension-note')).not.toBeNull();
   });
 
-  it('remplace un embed de module interactif par la note « contenu interactif »', () => {
+  it('remplace un embed de module par la note dédiée + lien vers le cours', () => {
     // Couvre les deux hôtes : span oc-module du markdown et hôte ModuleEmbed
     // d'un bloc module de l'aperçu — tous deux portent data-oc-module-id.
     const root = fragment(
@@ -122,7 +126,22 @@ describe('transformForPrint', () => {
     expect(root.querySelector('iframe')).toBeNull();
     const notes = root.querySelectorAll('p.oc-print__extension-note');
     expect(notes.length).toBe(2);
-    expect(notes[0].textContent).toBe('Contenu interactif : voir la version en ligne.');
+    // Note au motif extension (même classe) mais libellé module + URL stable
+    // de la page du cours — le lecteur du PDF sait où retrouver l'interactif.
+    expect(notes[0].textContent).toContain(
+      'Module interactif : à retrouver dans le cours en ligne.',
+    );
+    expect(notes[0].querySelector('a')?.getAttribute('href')).toBe(
+      courseContentUrl('fr', 'course-1'),
+    );
+  });
+
+  it('module hors contexte cours : note textuelle sans lien', () => {
+    const root = fragment('<span data-oc-module-id="m-1"></span>');
+    transformForPrint(root, null, 'fr', labels());
+    const note = root.querySelector('p.oc-print__extension-note');
+    expect(note?.textContent).toBe('Module interactif : à retrouver dans le cours en ligne.');
+    expect(note?.querySelector('a')).toBeNull();
   });
 
   it('conserve telle quelle une extension imprimable (SVG cloné)', () => {

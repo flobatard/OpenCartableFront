@@ -145,6 +145,13 @@ const courseMarked = new Marked({
   extensions: [mathBlock, mathInline],
   renderer: {
     image({ href, text }) {
+      // `![…](oc-module:…)` : symétrie naturelle avec `![…](oc-resource:…)` —
+      // même placeholder d'embed que le lien (sans lui, marked émettrait un
+      // <img src="oc-module:…"> que DOMPurify vide : perte silencieuse).
+      const moduleId = parseModuleRef(href);
+      if (moduleId !== null) {
+        return modulePlaceholder(moduleId, escapeHtmlAttr(text));
+      }
       const id = parseResourceRef(href);
       return id === null
         ? false

@@ -1,6 +1,7 @@
 import {
   clampFrameHeight,
   composeModuleDocument,
+  MODULE_CSP,
   MODULE_FRAME_MAX_HEIGHT,
   MODULE_FRAME_MIN_HEIGHT,
   parseModuleMessage,
@@ -19,6 +20,20 @@ describe('composeModuleDocument', () => {
     expect(cssIdx).toBeLessThan(htmlIdx);
     expect(htmlIdx).toBeLessThan(bridgeIdx);
     expect(bridgeIdx).toBeLessThan(jsIdx);
+  });
+
+  it('embarque la CSP anti-réseau-sortant en tête du head', () => {
+    const doc = composeModuleDocument('<p>x</p>', 'p {}', 'let a = 1');
+    expect(doc).toContain(`<meta http-equiv="Content-Security-Policy" content="${MODULE_CSP}">`);
+    // Tous les canaux réseau silencieux sont coupés ; seuls vivent le code
+    // inline du module et les assets embarqués data:/blob:.
+    expect(MODULE_CSP).toContain("default-src 'none'");
+    expect(MODULE_CSP).toContain("script-src 'unsafe-inline'");
+    expect(MODULE_CSP).toContain("style-src 'unsafe-inline'");
+    expect(MODULE_CSP).toContain("form-action 'none'");
+    expect(MODULE_CSP).toContain('img-src data: blob:');
+    // La CSP précède le <style> composé : elle gouverne tout ce qui suit.
+    expect(doc.indexOf('Content-Security-Policy')).toBeLessThan(doc.indexOf('<style>'));
   });
 
   it('expose l’API ocModule.emit dans le bridge', () => {

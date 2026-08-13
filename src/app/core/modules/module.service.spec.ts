@@ -63,6 +63,23 @@ describe('ModuleService', () => {
     expect(service.list()).toEqual(SUMMARIES);
   });
 
+  it('une réponse stale (cours précédent) ne touche ni error ni loading du cours courant', () => {
+    const urlB = `${environment.apiUrl}/v1/courses/course-2/modules`;
+    service.loadList('course-1');
+    const staleReq = httpMock.expectOne(url);
+    service.loadList('course-2'); // navigation vers un autre cours
+
+    // L'échec tardif du cours 1 n'affiche pas d'erreur sur le cours 2, et ne
+    // coupe pas son état de chargement.
+    staleReq.flush(null, { status: 500, statusText: 'Server Error' });
+    expect(service.listError()).toBe(false);
+    expect(service.listLoading()).toBe(true);
+
+    httpMock.expectOne(urlB).flush(SUMMARIES);
+    expect(service.list()).toEqual(SUMMARIES);
+    expect(service.listLoading()).toBe(false);
+  });
+
   it('createModule POST le titre et insère le résumé en tête de liste', async () => {
     loadList();
     const create = service.createModule('course-1', { titre: 'Nouveau module' });

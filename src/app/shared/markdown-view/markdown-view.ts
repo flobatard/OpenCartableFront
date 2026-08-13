@@ -27,7 +27,7 @@ import {
   ResolvedResource,
   resolveCourseResources,
 } from '../../core/markdown/course-markdown';
-import { MODULE_REF_ATTR } from '../../core/markdown/course-module-ref';
+import { isModuleId, MODULE_REF_ATTR } from '../../core/markdown/course-module-ref';
 import { resourceKind } from '../../core/markdown/course-resource-ref';
 import { PrintService } from '../../core/print/print.service';
 import {
@@ -292,7 +292,11 @@ export class MarkdownView {
     }
     for (const el of placeholders) {
       const moduleId = el.getAttribute(MODULE_REF_ATTR) ?? '';
-      if (moduleId === '') {
+      // Garde de forme (UUID) : un `data-oc-module-id` peut aussi arriver par
+      // du HTML brut dans le markdown (DOMPurify garde les data-*) sans passer
+      // par parseModuleRef — un id forgé n'atteint jamais l'URL de l'API ; le
+      // span reste alors une note inerte.
+      if (!isModuleId(moduleId)) {
         continue;
       }
       // Le texte du lien (repli lisible) laisse place au composant ; les

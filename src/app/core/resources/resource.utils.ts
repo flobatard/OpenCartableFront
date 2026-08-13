@@ -8,6 +8,16 @@ import { ResourceType } from './resource.model';
  */
 
 /**
+ * URL **front** stable de la page d'un cours (`/:lang/courses/:id`), toujours
+ * absolue (`siteUrl`) — destinée aux documents qui survivent à la session
+ * (note « module interactif » du PDF). Même caveat que `resourceContentUrl` :
+ * réservée au prof propriétaire tant que le régime élève J2 n'existe pas.
+ */
+export function courseContentUrl(lang: AppLang, courseId: string): string {
+  return `${environment.siteUrl}/${lang}/courses/${courseId}`;
+}
+
+/**
  * URL **front** stable de lecture d'une ressource : la route protégée OIDC
  * `/:lang/courses/:id/resources/:resourceId` (elle présigne via
  * `getDownloadUrl(..., 'inline')` puis redirige le navigateur vers S3).
@@ -21,7 +31,7 @@ export function resourceContentUrl(
   courseId: string,
   resourceId: string,
 ): string {
-  return `${environment.siteUrl}/${lang}/courses/${courseId}/resources/${resourceId}`;
+  return `${courseContentUrl(lang, courseId)}/resources/${resourceId}`;
 }
 
 /**

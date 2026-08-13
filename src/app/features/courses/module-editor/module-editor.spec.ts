@@ -97,15 +97,21 @@ describe('ModuleEditor', () => {
       const fixture = await createComponent();
       const runner = fixture.debugElement.query(By.directive(ModuleRunner))
         .componentInstance as ModuleRunner;
-      // Avant toute frappe : la preview affiche le code chargé... via les
-      // signaux débouncés initialisés à '' puis la frappe. Le code chargé est
-      // posé sans emitEvent : la preview part de l'état initial vide.
+      // À l'ouverture : la preview reflète le code SAUVEGARDÉ (seed direct au
+      // chargement — les setValue d'init n'émettent pas sur valueChanges).
+      expect(runner.html()).toBe(DETAIL.html);
+      expect(runner.css()).toBe(DETAIL.css);
+      expect(runner.js()).toBe(DETAIL.js);
+
       fixture.componentInstance.htmlControl.setValue('<p>V2</p>');
-      // Pas encore : debounce en cours.
-      expect(runner.html()).toBe('');
+      // Pas encore : debounce en cours, la preview garde le code chargé.
+      expect(runner.html()).toBe(DETAIL.html);
       vi.advanceTimersByTime(500);
       fixture.detectChanges();
       expect(runner.html()).toBe('<p>V2</p>');
+      // Les volets jamais retouchés restent fidèles au code sauvegardé.
+      expect(runner.css()).toBe(DETAIL.css);
+      expect(runner.js()).toBe(DETAIL.js);
     } finally {
       vi.useRealTimers();
     }
@@ -152,8 +158,51 @@ describe('ModuleEditor', () => {
       const fixture = await createComponent();
       fixture.componentInstance.htmlControl.setValue('<p>V2</p>');
       fixture.destroy();
+      // Le flush s'enchaîne derrière l'éventuel PATCH en vol (ici aucun) :
+      // une microtâche plus tard, jamais synchrone.
+      await Promise.resolve();
+      await Promise.resolve();
       expect(modulesMock.updateModule).toHaveBeenCalledWith('course-1', 'module-1', {
         html: '<p>V2</p>',
+        css: DETAIL.css,
+        js: DETAIL.js,
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('le flush au destroy attend le PATCH en vol (l’ancien code n’écrase jamais le nouveau)', async () => {
+    vi.useFakeTimers();
+    try {
+      const fixture = await createComponent();
+      let resolveInFlight!: (value: ModuleDetail) => void;
+      modulesMock.updateModule.mockImplementationOnce(
+        () =>
+          new Promise<ModuleDetail>((resolve) => {
+            resolveInFlight = resolve;
+          }),
+      );
+      // PATCH A part (autosave) et reste en vol.
+      fixture.componentInstance.htmlControl.setValue('<p>V2</p>');
+      vi.advanceTimersByTime(1500);
+      await Promise.resolve();
+      expect(modulesMock.updateModule).toHaveBeenCalledTimes(1);
+
+      // Frappe plus récente puis sortie : le flush B ne doit pas doubler A.
+      fixture.componentInstance.htmlControl.setValue('<p>V3</p>');
+      fixture.destroy();
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(modulesMock.updateModule).toHaveBeenCalledTimes(1); // toujours en attente
+
+      resolveInFlight(DETAIL);
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(modulesMock.updateModule).toHaveBeenCalledTimes(2);
+      expect(modulesMock.updateModule).toHaveBeenLastCalledWith('course-1', 'module-1', {
+        html: '<p>V3</p>',
         css: DETAIL.css,
         js: DETAIL.js,
       });

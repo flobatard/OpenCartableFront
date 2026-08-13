@@ -25,13 +25,28 @@ export function moduleRefHref(id: string): string {
   return `${MODULE_REF_SCHEME}${id}`;
 }
 
-/** Id de module extrait d'un href `oc-module:<id>`, sinon `null`. */
+/** Forme UUID (celle des ids de l'API) — insensible à la casse. */
+const MODULE_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Vrai si `id` a la forme d'un id de module (UUID). Garde de sécurité : l'id
+ * finit interpolé dans l'URL du `GET /modules/{id}` — un markdown piégé
+ * (`oc-module:../../x`, ou un `data-oc-module-id` posé en HTML brut, que
+ * DOMPurify laisse passer) forgerait sinon des requêtes API arbitraires,
+ * Bearer attaché. Partagée par `parseModuleRef` et le montage des embeds
+ * (`markdown-view`), les deux chemins d'entrée d'un id non issu de l'API.
+ */
+export function isModuleId(id: string): boolean {
+  return MODULE_ID_PATTERN.test(id);
+}
+
+/** Id de module extrait d'un href `oc-module:<id>` valide (UUID), sinon `null`. */
 export function parseModuleRef(href: string): string | null {
   if (!href.startsWith(MODULE_REF_SCHEME)) {
     return null;
   }
   const id = href.slice(MODULE_REF_SCHEME.length).trim();
-  return id === '' ? null : id;
+  return isModuleId(id) ? id : null;
 }
 
 /** Snippet markdown insérant un module : `[titre](oc-module:<id>)`. */

@@ -61,13 +61,20 @@ export class ModuleService {
     this.#listError.set(false);
     this.#detailCache.clear();
     this.#http.get<ModuleSummary[]>(`${this.#url}/${courseId}/modules`).subscribe({
+      // Garde anti-stale sur TOUS les états (pas seulement la liste) : une
+      // réponse tardive du cours précédent ne doit ni couper le loading du
+      // cours courant ni le marquer en erreur.
       next: (modules) => {
-        if (this.#courseId === courseId) {
-          this.#list.set(modules);
+        if (this.#courseId !== courseId) {
+          return;
         }
+        this.#list.set(modules);
         this.#listLoading.set(false);
       },
       error: () => {
+        if (this.#courseId !== courseId) {
+          return;
+        }
         this.#listError.set(true);
         this.#listLoading.set(false);
       },
