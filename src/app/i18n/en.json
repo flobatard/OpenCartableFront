@@ -71,6 +71,7 @@
     "list": {
       "title": "My courses",
       "create": "Create a course",
+      "import": "Import a course",
       "loading": "Loading your courses…",
       "error": "Could not load your courses. Check your connection.",
       "retry": "Retry",
@@ -78,6 +79,21 @@
       "emptyHint": "Create a course, then add text, exercises and documents to it.",
       "blockCount": "{{ count }} block(s)",
       "updated": "Updated on {{ date }}"
+    },
+    "import": {
+      "title": "Import a course",
+      "hint": "Pick a .zip archive produced by “Export”: the course will be recreated identically (blocks, resources, modules).",
+      "choose": "Choose an archive (.zip)",
+      "close": "Close",
+      "cancel": "Cancel",
+      "submit": "Import",
+      "uploading": "Uploading archive…",
+      "processing": "Processing archive…",
+      "tooBig": "The archive exceeds the maximum size (500 MB).",
+      "invalid": "This archive is not a valid course export.",
+      "storageError": "Storage is unavailable. Try again later.",
+      "error": "Import failed. Try again.",
+      "success": "Course imported."
     },
     "create": {
       "title": "Create a course",
@@ -112,6 +128,9 @@
       "dragHandle": "Reorder block {{ position }}",
       "delete": "Delete",
       "confirmDelete": "Confirm deletion",
+      "export": "Export",
+      "exporting": "Exporting…",
+      "exportError": "Course export failed. Try again.",
       "deleteCourse": "Delete this course",
       "confirmDeleteCourse": "Confirm course deletion",
       "untitled": "Untitled block",

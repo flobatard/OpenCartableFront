@@ -1,8 +1,9 @@
-import { Component, inject, PLATFORM_ID } from '@angular/core';
+import { Component, inject, PLATFORM_ID, viewChild } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CourseService } from '../../../core/courses/course.service';
+import { CourseImportDialog } from '../course-import-dialog/course-import-dialog';
 import { EducationLevelService } from '../../../core/education-levels/education-level.service';
 import {
   findById as findLevelById,
@@ -17,11 +18,13 @@ import { findById as findSubjectById } from '../../../core/subjects/subject.util
  * compteur de blocs, dernière modification), entrée vers la création et vers
  * l'espace blocs de chaque cours. La liste est refetchée à chaque entrée sur
  * la page (données mutables). États chargement / erreur / vide soignés,
- * l'état vide étant une invitation à composer le premier cours.
+ * l'état vide étant une invitation à composer le premier cours. Le header
+ * porte aussi l'entrée « Importer un cours » (modale `CourseImportDialog`,
+ * qui recrée un cours depuis une archive d'export puis y navigue).
  */
 @Component({
   selector: 'app-course-list',
-  imports: [RouterLink, TranslocoPipe],
+  imports: [RouterLink, TranslocoPipe, CourseImportDialog],
   templateUrl: './course-list.html',
   styleUrl: './course-list.scss',
 })
@@ -32,6 +35,9 @@ export class CourseList {
 
   protected readonly courses = inject(CourseService);
   protected readonly language = inject(LanguageService);
+
+  /** Modale d'import d'archive de cours. */
+  protected readonly importDialog = viewChild(CourseImportDialog);
 
   constructor() {
     if (this.#isBrowser) {
@@ -44,6 +50,10 @@ export class CourseList {
 
   protected retry(): void {
     this.courses.loadList();
+  }
+
+  protected openImport(): void {
+    this.importDialog()?.open();
   }
 
   /** Noms des matières du cours (id inconnu de l'arbre → pas de chip). */

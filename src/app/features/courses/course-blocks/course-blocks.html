@@ -30,6 +30,16 @@
           </span>
           <button
             type="button"
+            class="btn btn--ghost course-blocks__export-course"
+            [disabled]="exporting()"
+            (click)="exportCourse()"
+          >
+            {{
+              (exporting() ? 'courses.blocks.exporting' : 'courses.blocks.export') | transloco
+            }}
+          </button>
+          <button
+            type="button"
             class="btn btn--ghost course-blocks__delete-course"
             [class.course-blocks__delete-course--armed]="pendingCourseDelete()"
             [disabled]="mutating()"

@@ -1,9 +1,14 @@
 <section class="course-list">
   <header class="course-list__head">
     <h1 class="course-list__title">{{ 'courses.list.title' | transloco }}</h1>
-    <a class="btn btn--primary" [routerLink]="['/', language.lang(), 'courses', 'new']">
-      {{ 'courses.list.create' | transloco }}
-    </a>
+    <div class="course-list__actions">
+      <button type="button" class="btn btn--secondary" (click)="openImport()">
+        {{ 'courses.list.import' | transloco }}
+      </button>
+      <a class="btn btn--primary" [routerLink]="['/', language.lang(), 'courses', 'new']">
+        {{ 'courses.list.create' | transloco }}
+      </a>
+    </div>
   </header>
 
   @if (courses.listLoading()) {
@@ -68,4 +73,6 @@
       }
     </ul>
   }
+
+  <app-course-import-dialog />
 </section>

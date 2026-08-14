@@ -1,0 +1,82 @@
+<dialog
+  #dialogEl
+  class="import-dialog"
+  [attr.aria-labelledby]="uid + '-title'"
+  (click)="onBackdropClick($event)"
+>
+  <div class="import-dialog__inner">
+    <header class="import-dialog__head">
+      <h2 [id]="uid + '-title'" class="import-dialog__title">
+        {{ 'courses.import.title' | transloco }}
+      </h2>
+      <button
+        type="button"
+        class="import-dialog__close"
+        [attr.aria-label]="'courses.import.close' | transloco"
+        [disabled]="busy()"
+        (click)="close()"
+      >
+        ×
+      </button>
+    </header>
+
+    <div class="import-dialog__body">
+      <p class="import-dialog__hint">{{ 'courses.import.hint' | transloco }}</p>
+
+      <input
+        #fileInput
+        type="file"
+        accept=".zip,application/zip"
+        class="import-dialog__native-input"
+        hidden
+        (change)="onFileChange($event)"
+      />
+      <button
+        type="button"
+        class="btn btn--secondary"
+        [disabled]="busy()"
+        (click)="fileInput.click()"
+      >
+        {{ 'courses.import.choose' | transloco }}
+      </button>
+
+      @if (file(); as selected) {
+        <p class="import-dialog__file">
+          <span class="import-dialog__file-name">{{ selected.name }}</span>
+          <span class="import-dialog__file-size">{{ sizeOf(selected) }}</span>
+        </p>
+      }
+
+      @if (state().phase === 'uploading') {
+        <div class="import-dialog__progress" role="status">
+          <progress max="100" [value]="state().progress"></progress>
+          <span>{{ 'courses.import.uploading' | transloco }} {{ state().progress }} %</span>
+        </div>
+      } @else if (state().phase === 'processing') {
+        <p class="import-dialog__progress" role="status">
+          {{ 'courses.import.processing' | transloco }}
+        </p>
+      }
+
+      @if (errorKey(); as key) {
+        <p class="import-dialog__error" role="alert">
+          {{ 'courses.import.' + key | transloco }}
+        </p>
+      }
+    </div>
+
+    <footer class="import-dialog__foot">
+      <button type="button" class="btn btn--ghost" [disabled]="busy()" (click)="close()">
+        {{ 'courses.import.cancel' | transloco }}
+      </button>
+      <button
+        type="button"
+        class="btn btn--primary"
+        [disabled]="!file() || busy()"
+        (click)="submit()"
+      >
+        {{ 'courses.import.submit' | transloco }}
+      </button>
+    </footer>
+  </div>
+</dialog>

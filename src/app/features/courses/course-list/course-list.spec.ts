@@ -14,7 +14,16 @@ describe('CourseList', () => {
   const list = signal(COURSES_FIXTURE);
   const listLoading = signal(false);
   const listError = signal(false);
-  const coursesMock = { list, listLoading, listError, loadList: vi.fn() };
+  // importState/importCourse : consommés par la modale d'import montée par la page.
+  const importState = signal({ phase: 'idle' as const, progress: 0 });
+  const coursesMock = {
+    list,
+    listLoading,
+    listError,
+    loadList: vi.fn(),
+    importState,
+    importCourse: vi.fn(),
+  };
   const subjectsMock = {
     tree: signal(SUBJECTS_FIXTURE),
     loading: signal(false),

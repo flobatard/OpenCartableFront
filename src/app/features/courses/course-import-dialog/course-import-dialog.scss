@@ -1,0 +1,117 @@
+/* Modale d'import d'archive de cours (élément <dialog> natif : focus trap,
+   Escape, backdrop). Chrome calqué sur `block-create-dialog`. */
+
+.import-dialog {
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100dvh - 64px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.import-dialog::backdrop {
+  background: rgb(15 23 42 / 55%);
+}
+
+.import-dialog__inner {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 64px);
+}
+
+.import-dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.import-dialog__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+.import-dialog__close {
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+
+  &:hover:not(:disabled) {
+    color: var(--text-primary);
+    background: var(--bg-muted);
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.import-dialog__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.import-dialog__hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.import-dialog__file {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.import-dialog__file-size {
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.import-dialog__progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  width: 100%;
+  font-size: 14px;
+  color: var(--text-secondary);
+
+  progress {
+    flex: 1;
+    accent-color: var(--color-primary);
+  }
+}
+
+.import-dialog__error {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-danger);
+}
+
+.import-dialog__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}

@@ -71,6 +71,7 @@
     "list": {
       "title": "Mes cours",
       "create": "Créer un cours",
+      "import": "Importer un cours",
       "loading": "Chargement de vos cours…",
       "error": "Impossible de charger vos cours. Vérifiez votre connexion.",
       "retry": "Réessayer",
@@ -78,6 +79,21 @@
       "emptyHint": "Crée un cours puis ajoute-lui du texte, des exercices et des documents.",
       "blockCount": "{{ count }} bloc(s)",
       "updated": "Modifié le {{ date }}"
+    },
+    "import": {
+      "title": "Importer un cours",
+      "hint": "Choisissez une archive .zip produite par « Exporter » : le cours sera recréé à l'identique (blocs, ressources, modules).",
+      "choose": "Choisir une archive (.zip)",
+      "close": "Fermer",
+      "cancel": "Annuler",
+      "submit": "Importer",
+      "uploading": "Envoi de l'archive…",
+      "processing": "Traitement de l'archive…",
+      "tooBig": "L'archive dépasse la taille maximale (500 Mo).",
+      "invalid": "Cette archive n'est pas un export de cours valide.",
+      "storageError": "Le stockage est indisponible. Réessayez plus tard.",
+      "error": "L'import a échoué. Réessayez.",
+      "success": "Cours importé."
     },
     "create": {
       "title": "Créer un cours",
@@ -112,6 +128,9 @@
       "dragHandle": "Réordonner le bloc {{ position }}",
       "delete": "Supprimer",
       "confirmDelete": "Confirmer la suppression",
+      "export": "Exporter",
+      "exporting": "Export…",
+      "exportError": "L'export du cours a échoué. Réessayez.",
       "deleteCourse": "Supprimer ce cours",
       "confirmDeleteCourse": "Confirmer la suppression du cours",
       "untitled": "Bloc sans titre",

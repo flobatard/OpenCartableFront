@@ -22,6 +22,13 @@
   font-family: var(--font-display);
 }
 
+.course-list__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
 /* Cartes — DESIGN_SYSTEM §8 : surface, bordure slate-200, radius 12, titre
    Outfit 600/18, méta 13 slate-500. La carte entière est le lien. */
 

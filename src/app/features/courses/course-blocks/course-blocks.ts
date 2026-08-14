@@ -10,8 +10,12 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { BlockMetaPayload, BlockType, CourseBlock } from '../../../core/courses/course.model';
+import {
+  courseExportFilename,
+  downloadBlob,
+} from '../../../core/courses/course-transfer.utils';
 import { CourseService } from '../../../core/courses/course.service';
 import { EducationLevelService } from '../../../core/education-levels/education-level.service';
 import {
@@ -19,6 +23,7 @@ import {
   sortByTreeOrder,
 } from '../../../core/education-levels/education-level.utils';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { NotificationService } from '../../../core/notifications/notification.service';
 import { SubjectService } from '../../../core/subjects/subject.service';
 import { findById as findSubjectById } from '../../../core/subjects/subject.utils';
 import { BlockCreateDialog } from '../block-create-dialog/block-create-dialog';
@@ -75,6 +80,8 @@ export class CourseBlocks implements OnInit {
   readonly #courses = inject(CourseService);
   readonly #subjects = inject(SubjectService);
   readonly #levels = inject(EducationLevelService);
+  readonly #notifications = inject(NotificationService);
+  readonly #transloco = inject(TranslocoService);
   readonly #router = inject(Router);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   /** Param `:id` lu en snapshot (pas de withComponentInputBinding dans ce projet). */
@@ -114,6 +121,8 @@ export class CourseBlocks implements OnInit {
   protected readonly pendingDelete = signal<string | null>(null);
   /** Cours « armé » pour suppression (le 2e clic confirme, puis retour à la liste). */
   protected readonly pendingCourseDelete = signal(false);
+  /** Export d'archive en vol (fige le bouton Exporter). */
+  protected readonly exporting = signal(false);
 
   ngOnInit(): void {
     if (!this.#isBrowser) {
@@ -338,6 +347,27 @@ export class CourseBlocks implements OnInit {
   /** Quitter le bouton armé (focus ailleurs) annule la suppression du cours. */
   protected disarmCourseDelete(): void {
     this.pendingCourseDelete.set(false);
+  }
+
+  /**
+   * Télécharge l'archive .zip d'export du cours (blob → `<a download>`, nom
+   * dérivé du titre côté front). Échec signalé en toast — message traduit par
+   * l'appelant, motif `CourseShare.copy()`.
+   */
+  protected async exportCourse(): Promise<void> {
+    const detail = this.detail();
+    if (!detail || this.exporting()) {
+      return;
+    }
+    this.exporting.set(true);
+    try {
+      const blob = await this.#courses.exportCourse(this.#courseId);
+      downloadBlob(blob, courseExportFilename(detail.titre));
+    } catch {
+      this.#notifications.error(this.#transloco.translate('courses.blocks.exportError'));
+    } finally {
+      this.exporting.set(false);
+    }
   }
 
   #startMutation(): void {
