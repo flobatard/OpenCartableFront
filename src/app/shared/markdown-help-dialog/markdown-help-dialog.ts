@@ -5,8 +5,8 @@ import { LanguageService } from '../../core/i18n/language.service';
 
 /**
  * Modale d'aide à la mise en forme (markdown + LaTeX/KaTeX + Mermaid +
- * extensions GeoGebra/JSXGraph), réutilisable par tout éditeur de contenu de
- * cours. Élément `<dialog>` natif : focus-trap, Escape et backdrop gérés par
+ * extensions GeoGebra/JSXGraph/TikZ), réutilisable par tout éditeur de
+ * contenu de cours. Élément `<dialog>` natif : focus-trap, Escape et backdrop gérés par
  * la plateforme. Présentational — pilotée par le parent via les méthodes
  * publiques `open()` / `close()`.
  *
@@ -40,6 +40,8 @@ export class MarkdownHelpDialog {
 
   protected readonly jsxgraphExample =
     '```jsxgraph\nequation=x^2 - 2\npoint=1,-1\nbbox=-5,5,5,-5\n```';
+
+  protected readonly tikzExample = '```tikz\n\\draw (0,0) -- (4,0) -- (0,3) -- cycle;\n```';
 
   open(): void {
     this.dialog()?.nativeElement.showModal();

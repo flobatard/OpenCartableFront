@@ -188,6 +188,21 @@
           </a>
         </p>
       </section>
+
+      <section class="md-help__section">
+        <h3>{{ 'markdownHelp.tikz.title' | transloco }}</h3>
+        <p>{{ 'markdownHelp.tikz.intro' | transloco }}</p>
+        <pre class="md-help__code">{{ tikzExample }}</pre>
+        <p class="md-help__note">
+          <a
+            [routerLink]="['/', language.lang(), 'markdown-language', 'docs', 'tikz']"
+            target="_blank"
+            rel="noopener"
+          >
+            {{ 'markdownHelp.fullDocs' | transloco }}
+          </a>
+        </p>
+      </section>
     </div>
   </div>
 </dialog>
