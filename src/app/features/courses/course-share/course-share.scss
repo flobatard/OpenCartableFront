@@ -61,6 +61,17 @@
   color: var(--text-secondary);
 }
 
+/* Le partage expose TOUTE la bibliothèque du cours, blocs ou pas : note
+   atténuée (motif ressource en_attente), jamais slate-400 en texte. */
+.course-share__library-note {
+  margin: 12px 0 0;
+  padding: 8px 12px;
+  border: 1px dashed var(--border-control);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
 .course-share__url {
   font-family: var(--font-mono);
   font-size: 0.85rem;

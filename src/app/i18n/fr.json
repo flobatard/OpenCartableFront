@@ -293,6 +293,7 @@
         "error": "Le changement de visibilité n'a pas abouti. Réessayez."
       },
       "catalogHint": "Votre catalogue public :",
+      "libraryNotice": "Tous les fichiers de la bibliothèque de ce cours (onglet Ressources) deviennent consultables et téléchargeables par les élèves, y compris ceux qui ne sont utilisés dans aucun bloc.",
       "copy": "Copier le lien",
       "copied": "Lien copié dans le presse-papiers.",
       "copyError": "La copie du lien n'a pas abouti.",

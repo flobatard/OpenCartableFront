@@ -293,6 +293,7 @@
         "error": "The visibility change did not go through. Try again."
       },
       "catalogHint": "Your public catalogue:",
+      "libraryNotice": "Every file in this course's library (Resources tab) becomes viewable and downloadable by students, including files not used in any block.",
       "copy": "Copy the link",
       "copied": "Link copied to the clipboard.",
       "copyError": "Copying the link did not go through.",

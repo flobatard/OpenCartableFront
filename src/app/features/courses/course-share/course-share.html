@@ -38,6 +38,11 @@
         </button>
       </p>
     }
+    @if (visibility() !== 'en_cours') {
+      <p class="course-share__library-note">
+        {{ 'courses.share.libraryNotice' | transloco }}
+      </p>
+    }
   </fieldset>
 
   <section class="course-share__links">
