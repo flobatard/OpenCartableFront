@@ -34,6 +34,22 @@ describe('SeoService', () => {
     expect(xDefault?.getAttribute('href')).toBe('http://localhost:4200/fr/home');
   });
 
+  it('pose une carte sociale matricielle (og:image PNG + twitter)', () => {
+    TestBed.inject(SeoService).applyHome();
+    const meta = TestBed.inject(Meta);
+
+    expect(meta.getTag('property="og:image"')?.content).toBe(
+      'http://localhost:4200/og-image.png',
+    );
+    expect(meta.getTag('property="og:image:width"')?.content).toBe('1200');
+    expect(meta.getTag('property="og:image:height"')?.content).toBe('630');
+    expect(meta.getTag('property="og:image:alt"')?.content).toBe('Logo OpenCartable');
+    expect(meta.getTag('name="twitter:card"')?.content).toBe('summary_large_image');
+    expect(meta.getTag('name="twitter:image"')?.content).toBe(
+      'http://localhost:4200/og-image.png',
+    );
+  });
+
   it('n’ajoute pas de doublon de canonical au réappel', () => {
     const seo = TestBed.inject(SeoService);
     seo.applyHome();

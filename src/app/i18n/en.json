@@ -25,6 +25,9 @@
     "metaTitle": "OpenCartable — compose courses and share them by link",
     "metaDescription": "OpenCartable, a free self-hosted teaching platform: compose your courses, organize your resources and share them with your students through a simple link, no account needed."
   },
+  "seo": {
+    "imageAlt": "OpenCartable logo"
+  },
   "auth": {
     "signingIn": "Signing you in…",
     "error": "Sign-in did not complete. Try again from the home page."

@@ -7,6 +7,12 @@ import { environment } from '../../../environments/environment';
 const OG_LOCALE: Record<AppLang, string> = { fr: 'fr_FR', en: 'en_US' };
 
 /**
+ * Carte sociale : PNG 1200×630 (`public/og-image.png`, logo horizontal sur fond blanc).
+ * Les réseaux ne rendent pas le SVG — l'image partagée doit être matricielle.
+ */
+const OG_IMAGE = { path: '/og-image.png', type: 'image/png', width: '1200', height: '630' };
+
+/**
  * Pose les metadata SEO au rendu (serveur/prerender comme navigateur). Title/Meta et les balises
  * <link> vivent hors de la frontière d'hydratation (racine = app-root) : les muter est sans risque.
  */
@@ -46,10 +52,20 @@ export class SeoService {
     this.#meta.updateTag({ property: 'og:description', content: description });
     this.#meta.updateTag({ property: 'og:url', content: url });
     this.#meta.updateTag({ property: 'og:locale', content: OG_LOCALE[lang] });
-    this.#meta.updateTag({
-      property: 'og:image',
-      content: `${environment.siteUrl}/opencartable-symbol.svg`,
-    });
+
+    const image = `${environment.siteUrl}${OG_IMAGE.path}`;
+    const imageAlt = this.#transloco.translate('seo.imageAlt');
+    this.#meta.updateTag({ property: 'og:image', content: image });
+    this.#meta.updateTag({ property: 'og:image:type', content: OG_IMAGE.type });
+    this.#meta.updateTag({ property: 'og:image:width', content: OG_IMAGE.width });
+    this.#meta.updateTag({ property: 'og:image:height', content: OG_IMAGE.height });
+    this.#meta.updateTag({ property: 'og:image:alt', content: imageAlt });
+
+    this.#meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
+    this.#meta.updateTag({ name: 'twitter:title', content: title });
+    this.#meta.updateTag({ name: 'twitter:description', content: description });
+    this.#meta.updateTag({ name: 'twitter:image', content: image });
+    this.#meta.updateTag({ name: 'twitter:image:alt', content: imageAlt });
 
     this.#upsertLink('canonical', null, url);
     for (const alt of APP_LANGS) {

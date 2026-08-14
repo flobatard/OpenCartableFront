@@ -25,6 +25,9 @@
     "metaTitle": "OpenCartable — cours à composer et partager par lien",
     "metaDescription": "OpenCartable, plateforme pédagogique libre et auto-hébergée : composez vos cours, organisez vos ressources et partagez-les à vos élèves par simple lien, sans compte à créer."
   },
+  "seo": {
+    "imageAlt": "Logo OpenCartable"
+  },
   "auth": {
     "signingIn": "Connexion en cours…",
     "error": "La connexion n'a pas abouti. Réessayez depuis la page d'accueil."
