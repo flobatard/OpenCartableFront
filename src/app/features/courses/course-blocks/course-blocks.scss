@@ -39,9 +39,10 @@
   font-family: var(--font-display);
 }
 
-/* Export : margin-left auto groupe titre + badge à gauche, actions à droite. */
+/* Le margin-left auto d'Exporter groupe titre + badge à gauche, actions à droite. */
 .course-blocks__export-course,
-.course-blocks__delete-course {
+.course-blocks__delete-course,
+.course-blocks__type {
   flex: 0 0 auto;
 }
 
@@ -49,11 +50,24 @@
   margin-left: auto;
 }
 
-.course-blocks__delete-course--armed {
+.course-blocks__delete-course--armed,
+.course-blocks__delete--armed {
   color: var(--text-danger);
 }
 
-/* Badges — mêmes tokens que les chips des pickers (DS §8). */
+/* Chips — un seul gabarit (mêmes tokens que les chips des pickers, DS §8) pour
+   les badges matières/niveaux, le type de bloc et le badge d'état de partage ;
+   seules les couleurs varient. */
+
+.course-blocks__badge,
+.course-blocks__type,
+.course-blocks__visibility-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
 
 .course-blocks__badges {
   display: flex;
@@ -64,20 +78,14 @@
   list-style: none;
 }
 
-.course-blocks__badge {
-  padding: 3px 8px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.4;
-}
-
-.course-blocks__badge--subject {
+.course-blocks__badge--subject,
+.course-blocks__type {
   background: var(--indigo-50);
   color: var(--indigo-700);
 }
 
-:host-context([data-theme='dark']) .course-blocks__badge--subject {
+:host-context([data-theme='dark']) .course-blocks__badge--subject,
+:host-context([data-theme='dark']) .course-blocks__type {
   background: var(--indigo-900);
   color: var(--indigo-100);
 }
@@ -91,6 +99,21 @@
   color: var(--slate-100);
 }
 
+/* Badge d'état de partage (DS §8) : « brouillon » ambre pour en_cours,
+   « partagé » émeraude pour public/prive. L'ambre n'est jamais du texte :
+   fond amber-100 + texte amber-800. */
+.course-blocks__visibility-badge {
+  align-self: center;
+  background: var(--amber-100);
+  color: var(--amber-800);
+  white-space: nowrap;
+}
+
+.course-blocks__visibility-badge--shared {
+  background: var(--emerald-100);
+  color: var(--emerald-700);
+}
+
 /* Onglets Blocs | Ressources : styles portés par les utilitaires globaux
    .tabs/.tab/.tab--active (_components.scss), le composant n'ajoute que
    l'espacement. */
@@ -99,9 +122,10 @@
   margin-bottom: 20px;
 }
 
-/* Liste des blocs ------------------------------------------------------------ */
+/* Liste des blocs (le skeleton partage son gabarit) --------------------------- */
 
-.course-blocks__list {
+.course-blocks__list,
+.course-blocks__skeleton {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -121,22 +145,6 @@
   border-radius: var(--radius-lg);
 }
 
-.course-blocks__type {
-  flex: 0 0 auto;
-  padding: 3px 8px;
-  background: var(--indigo-50);
-  border-radius: var(--radius-sm);
-  color: var(--indigo-700);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.4;
-}
-
-:host-context([data-theme='dark']) .course-blocks__type {
-  background: var(--indigo-900);
-  color: var(--indigo-100);
-}
-
 .course-blocks__body {
   display: flex;
   flex: 1 1 200px;
@@ -145,11 +153,15 @@
   min-width: 0;
 }
 
-.course-blocks__title-line {
+.course-blocks__title-line,
+.course-blocks__desc {
   overflow: hidden;
-  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.course-blocks__title-line {
+  font-weight: 600;
 }
 
 .course-blocks__title-line--empty {
@@ -159,11 +171,8 @@
 }
 
 .course-blocks__desc {
-  overflow: hidden;
   color: var(--text-secondary);
   font-size: 13px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .course-blocks__actions {
@@ -194,10 +203,6 @@
   opacity: 0.3;
 }
 
-.course-blocks__delete--armed {
-  color: var(--text-danger);
-}
-
 .course-blocks__mutation-error {
   margin: 12px 0 0;
   color: var(--text-danger);
@@ -223,15 +228,6 @@
 }
 
 /* États ------------------------------------------------------------------------ */
-
-.course-blocks__skeleton {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
 
 .course-blocks__skeleton-row {
   height: 56px;
@@ -287,24 +283,4 @@
 .course-blocks__empty-hint {
   margin: 0;
   color: var(--text-secondary);
-}
-
-/* Badge d'état de partage (DS §8) : « brouillon » ambre pour en_cours,
-   « partagé » émeraude pour public/prive. L'ambre n'est jamais du texte :
-   fond amber-100 + texte amber-800. */
-.course-blocks__visibility-badge {
-  align-self: center;
-  padding: 3px 8px;
-  background: var(--amber-100);
-  color: var(--amber-800);
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.4;
-  white-space: nowrap;
-}
-
-.course-blocks__visibility-badge--shared {
-  background: var(--emerald-100);
-  color: var(--emerald-700);
 }
