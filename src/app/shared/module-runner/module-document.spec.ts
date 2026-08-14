@@ -25,10 +25,11 @@ describe('composeModuleDocument', () => {
   it('embarque la CSP anti-réseau-sortant en tête du head', () => {
     const doc = composeModuleDocument('<p>x</p>', 'p {}', 'let a = 1');
     expect(doc).toContain(`<meta http-equiv="Content-Security-Policy" content="${MODULE_CSP}">`);
-    // Tous les canaux réseau silencieux sont coupés ; seuls vivent le code
-    // inline du module et les assets embarqués data:/blob:.
+    // Tous les canaux réseau silencieux sont coupés ; vivent le code inline
+    // du module, l'eval d'expressions saisies (grapheurs — aucune capacité
+    // nouvelle dans une iframe opaque sans réseau) et les assets data:/blob:.
     expect(MODULE_CSP).toContain("default-src 'none'");
-    expect(MODULE_CSP).toContain("script-src 'unsafe-inline'");
+    expect(MODULE_CSP).toContain("script-src 'unsafe-inline' 'unsafe-eval'");
     expect(MODULE_CSP).toContain("style-src 'unsafe-inline'");
     expect(MODULE_CSP).toContain("form-action 'none'");
     expect(MODULE_CSP).toContain('img-src data: blob:');

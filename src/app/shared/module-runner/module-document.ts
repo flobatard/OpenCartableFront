@@ -62,14 +62,27 @@ const MODULE_BRIDGE = `(function () {
  * restent le code inline du module et les assets embarqués `data:`/`blob:`
  * (canvas, `URL.createObjectURL`). `form-action 'none'` (non couvert par
  * default-src) ferme l'exfiltration par soumission de formulaire — les
- * formulaires gérés en JS (preventDefault) continuent de marcher. Un second
- * `<meta>` CSP écrit par le prof ne peut que restreindre davantage (les
- * politiques s'intersectent), jamais rouvrir. Résidu assumé : la navigation
- * du document lui-même par clic sur un lien (non couvrable en meta CSP),
- * visible à l'écran et confinée par le sandbox (ni popup ni top-navigation).
+ * formulaires gérés en JS (preventDefault) continuent de marcher.
+ *
+ * `'unsafe-eval'` est autorisé (décision actée) : les modules pédagogiques
+ * évaluent des expressions saisies (`new Function`/`eval` — ex. grapheur de
+ * `f(x)`). Dans CE contexte, eval n'accorde aucune capacité nouvelle (tout
+ * le JS du module est déjà du code arbitraire du prof) et ne rouvre ni le
+ * réseau ni le sandbox ; le résidu est un self-XSS confiné : un élève qui
+ * injecte du code via une saisie évaluée n'atteint que l'iframe opaque —
+ * sans données, sans réseau, sans session. Corollaire de contrat : les
+ * événements du bridge (`ocModule.emit`) restent NON FIABLES côté app.
+ *
+ * Un second `<meta>` CSP écrit par le prof ne peut que restreindre davantage
+ * (les politiques s'intersectent), jamais rouvrir. Résidu assumé : la
+ * navigation du document lui-même par clic sur un lien (non couvrable en
+ * meta CSP), visible à l'écran et confinée par le sandbox (ni popup ni
+ * top-navigation). Caveat déploiement : une iframe `srcdoc` HÉRITE aussi de
+ * la CSP de la page hôte — si l'infra (nginx) pose un jour une CSP d'en-tête
+ * sur l'app, elle devra tolérer `'unsafe-eval'` ou les modules casseront.
  */
 export const MODULE_CSP =
-  "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; " +
+  "default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; " +
   "img-src data: blob:; media-src data: blob:; font-src data:; " +
   "form-action 'none'; base-uri 'none'";
 
