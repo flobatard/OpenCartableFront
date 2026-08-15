@@ -45,9 +45,8 @@
               },
               {
                 "glob": "**/*",
-                "input": "node_modules/@drgrice1/tikzjax/dist",
-                "output": "/assets/tikzjax",
-                "ignore": ["**/*.map"]
+                "input": ".tikzjax",
+                "output": "/assets/tikzjax"
               }
             ],
             "styles": [
