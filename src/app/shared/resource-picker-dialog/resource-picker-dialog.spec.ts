@@ -38,14 +38,18 @@ describe('ResourcePickerDialog', () => {
   it('liste les ressources fournies (nom + type)', async () => {
     const fixture = await createComponent([
       resource({ id: 'a', nom_original: 'Schéma.png', type: 'image' }),
-      resource({ id: 'b', nom_original: 'Énoncé.pdf', type: 'document' }),
+      resource({ id: 'b', nom_original: 'Énoncé.pdf', type: 'document', mime: 'application/pdf' }),
+      resource({ id: 'c', nom_original: 'Archive.zip', type: 'document', mime: 'application/zip' }),
     ]);
     const items = (fixture.nativeElement as HTMLElement).querySelectorAll('.res-picker__item');
-    expect(items).toHaveLength(2);
+    expect(items).toHaveLength(3);
     expect(items[0].textContent).toContain('Schéma.png');
     expect(items[0].textContent).toContain('Image');
+    // Badge « PDF » dédié parmi les documents.
     expect(items[1].textContent).toContain('Énoncé.pdf');
-    expect(items[1].textContent).toContain('Document');
+    expect(items[1].textContent).toContain('PDF');
+    expect(items[2].textContent).toContain('Archive.zip');
+    expect(items[2].textContent).toContain('Document');
   });
 
   it('état vide quand aucune ressource', async () => {

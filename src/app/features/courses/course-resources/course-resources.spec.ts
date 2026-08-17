@@ -70,7 +70,8 @@ describe('CourseResources', () => {
     const types = rows(fixture).map((r) =>
       r.querySelector('.course-resources__type')?.textContent?.trim(),
     );
-    expect(types).toEqual(['Document', 'Image', 'Vidéo']);
+    // Badge « PDF » dédié (resource-1 est un application/pdf).
+    expect(types).toEqual(['PDF', 'Image', 'Vidéo']);
 
     // Taille lisible + mention « en attente » sur l'upload non confirmé.
     expect(rows(fixture)[0].textContent).toContain('245,0 ko');
@@ -136,7 +137,11 @@ describe('CourseResources', () => {
     const fixture = await createComponent();
     const open = vi.spyOn(window, 'open').mockReturnValue(null);
 
-    const downloadBtn = (row: HTMLElement) => row.querySelectorAll<HTMLButtonElement>('.btn')[1];
+    // Par libellé : la présence du bouton « Voir » varie selon la ligne.
+    const downloadBtn = (row: HTMLElement) =>
+      Array.from(row.querySelectorAll<HTMLButtonElement>('.btn')).find(
+        (b) => b.textContent?.trim() === 'Télécharger',
+      )!;
     expect(downloadBtn(rows(fixture)[2]).disabled).toBe(true); // en_attente → 409 côté back
 
     downloadBtn(rows(fixture)[0]).click();
@@ -145,6 +150,43 @@ describe('CourseResources', () => {
     expect(resourcesMock.getDownloadUrl).toHaveBeenCalledWith('course-1', 'resource-1');
     expect(open).toHaveBeenCalledWith('https://s3.test/get/x', '_blank', 'noopener');
     open.mockRestore();
+  });
+
+  it('bouton « Voir » : présent sur PDF et image disponibles, absent sinon', async () => {
+    const fixture = await createComponent();
+    const viewBtn = (row: HTMLElement) =>
+      Array.from(row.querySelectorAll<HTMLButtonElement>('.btn')).find(
+        (b) => b.textContent?.trim() === 'Voir',
+      );
+
+    expect(viewBtn(rows(fixture)[0])).toBeTruthy(); // pdf disponible
+    expect(viewBtn(rows(fixture)[1])).toBeTruthy(); // image disponible
+    expect(viewBtn(rows(fixture)[2])).toBeUndefined(); // vidéo en_attente
+  });
+
+  it('« Voir » ouvre la modale d’aperçu, la fermer démonte l’embed', async () => {
+    const fixture = await createComponent();
+    const dialogEl = el(fixture).querySelector<HTMLDialogElement>(
+      'app-resource-preview-dialog dialog',
+    )!;
+    const showModal = (dialogEl.showModal = vi.fn());
+
+    Array.from(rows(fixture)[0].querySelectorAll<HTMLButtonElement>('.btn'))
+      .find((b) => b.textContent?.trim() === 'Voir')!
+      .click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(showModal).toHaveBeenCalledOnce();
+    expect(dialogEl.querySelector('.res-preview__title')?.textContent).toContain(
+      'schema-suites.pdf',
+    );
+    expect(dialogEl.querySelector('app-course-preview-document')).toBeTruthy();
+
+    dialogEl.dispatchEvent(new Event('close'));
+    fixture.detectChanges();
+    expect(dialogEl.querySelector('app-course-preview-document')).toBeNull();
   });
 
   it('suppression en deux temps, désarmée au blur, puis émet deleted', async () => {

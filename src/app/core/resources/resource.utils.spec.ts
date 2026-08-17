@@ -1,5 +1,11 @@
 import { environment } from '../../../environments/environment';
-import { formatBytes, resourceContentUrl, resourceTypeFromMime } from './resource.utils';
+import {
+  formatBytes,
+  isPdfResource,
+  resourceContentUrl,
+  resourceTypeFromMime,
+  resourceTypeLabelKey,
+} from './resource.utils';
 
 describe('resourceTypeFromMime', () => {
   it('mappe les familles média évidentes', () => {
@@ -14,6 +20,35 @@ describe('resourceTypeFromMime', () => {
     expect(resourceTypeFromMime('text/plain')).toBe('document');
     expect(resourceTypeFromMime('application/octet-stream')).toBe('document');
     expect(resourceTypeFromMime('')).toBe('document');
+  });
+});
+
+describe('isPdfResource', () => {
+  it('reconnaît le mime exact application/pdf', () => {
+    expect(isPdfResource({ mime: 'application/pdf' })).toBe(true);
+  });
+
+  it('rejette tout autre mime (égalité stricte)', () => {
+    expect(isPdfResource({ mime: 'image/png' })).toBe(false);
+    expect(isPdfResource({ mime: 'application/zip' })).toBe(false);
+    expect(isPdfResource({ mime: '' })).toBe(false);
+  });
+});
+
+describe('resourceTypeLabelKey', () => {
+  it('donne une clé dédiée aux documents PDF', () => {
+    expect(resourceTypeLabelKey({ type: 'document', mime: 'application/pdf' })).toBe(
+      'courses.resources.types.pdf',
+    );
+  });
+
+  it('garde la clé du type pour le reste', () => {
+    expect(resourceTypeLabelKey({ type: 'document', mime: 'application/zip' })).toBe(
+      'courses.resources.types.document',
+    );
+    expect(resourceTypeLabelKey({ type: 'image', mime: 'image/png' })).toBe(
+      'courses.resources.types.image',
+    );
   });
 });
 

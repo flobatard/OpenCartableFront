@@ -107,10 +107,10 @@ export interface PrintLabels {
  * ≠ "true", ex. iframe GeoGebra) deviennent une note « contenu interactif » —
  * les imprimables (SVG JSXGraph) sont clonées telles quelles — ; puis la passe
  * keyée par `data-oc-resource-id` : les images restent (présigné valide à
- * l'instant → embarqué), l'audio/vidéo devient une note renvoyant vers l'URL
- * stable, les liens/boutons de ressource pointent vers l'URL stable — la
- * route front de redirection, construite dans la langue active (`lang`).
- * Exporté pour être testé isolément (jsdom).
+ * l'instant → embarqué), l'audio/vidéo et l'iframe du PDF embarqué deviennent
+ * une note renvoyant vers l'URL stable, les liens/boutons de ressource
+ * pointent vers l'URL stable — la route front de redirection, construite dans
+ * la langue active (`lang`). Exporté pour être testé isolément (jsdom).
  */
 export function transformForPrint(
   root: HTMLElement,
@@ -151,6 +151,14 @@ export function transformForPrint(
     }
     if (tag === 'audio' || tag === 'video') {
       const label = el.getAttribute('aria-label') ?? el.getAttribute('alt') ?? '';
+      el.replaceWith(buildMediaNote(doc, labels.mediaNote, label, url));
+      continue;
+    }
+    if (tag === 'iframe') {
+      // PDF embarqué (bloc document) : pas d'équivalent papier — note + URL
+      // stable, motif audio/vidéo. Sans cette branche l'iframe traverserait le
+      // dispatch et sortirait en cadre vide dans le PDF exporté.
+      const label = el.getAttribute('title') ?? '';
       el.replaceWith(buildMediaNote(doc, labels.mediaNote, label, url));
       continue;
     }

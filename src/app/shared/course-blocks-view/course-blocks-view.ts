@@ -2,6 +2,7 @@ import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CourseBlock } from '../../core/courses/course.model';
+import { payloadFromDocumentContent } from '../../core/courses/document-form';
 import { exerciseMarkdownFromContent } from '../../core/courses/exercise-form';
 import { CourseResource } from '../../core/resources/resource.model';
 import { MarkdownView } from '../markdown-view/markdown-view';
@@ -56,6 +57,11 @@ export class CourseBlocksView {
   /** Légende éditoriale d'un bloc document (`content.legende`, gardé string). */
   protected documentLegende(block: CourseBlock): string | null {
     return typeof block.content['legende'] === 'string' ? block.content['legende'] : null;
+  }
+
+  /** Mode d'affichage éditorial d'un bloc document (repli `inline`). */
+  protected documentAffichage(block: CourseBlock): 'inline' | 'telechargement' {
+    return payloadFromDocumentContent(block.content).affichage;
   }
 
   /** Ressource pointée par un bloc document (id inconnu/supprimé → `undefined`). */

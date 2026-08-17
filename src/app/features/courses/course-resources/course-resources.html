@@ -48,7 +48,7 @@
           [class.course-resources__row--pending]="resource.statut === 'en_attente'"
         >
           <span class="course-resources__type">
-            {{ 'courses.resources.types.' + resource.type | transloco }}
+            {{ typeKey(resource) | transloco }}
           </span>
           <span class="course-resources__body">
             @if (renamingId() === resource.id) {
@@ -86,6 +86,16 @@
             >
               {{ 'courses.resources.rename' | transloco }}
             </button>
+            @if (canPreview(resource)) {
+              <button
+                type="button"
+                class="btn btn--ghost"
+                [disabled]="mutating()"
+                (click)="preview(resource)"
+              >
+                {{ 'courses.resources.view' | transloco }}
+              </button>
+            }
             <button
               type="button"
               class="btn btn--ghost"
@@ -120,4 +130,6 @@
       {{ 'courses.resources.mutationError' | transloco }}
     </p>
   }
+
+  <app-resource-preview-dialog [courseId]="courseId()" />
 </div>

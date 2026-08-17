@@ -197,7 +197,8 @@
         "legendePlaceholder": "Short caption shown with the document (optional)",
         "affichageLabel": "Display",
         "affichageInline": "Inline in the course",
-        "affichageTelechargement": "As a download"
+        "affichageTelechargement": "As a download",
+        "previewLabel": "Preview"
       },
       "module": {
         "moduleLabel": "Module shown by this block",
@@ -219,6 +220,7 @@
       "empty": "This course has no blocks yet.",
       "documentMissing": "Resource not found (deleted?).",
       "download": "Download",
+      "openInTab": "Open in a new tab",
       "downloadError": "Download failed. Try again.",
       "downloadPdf": "Download as PDF",
       "pdfMediaNote": "Media available online:"
@@ -236,6 +238,7 @@
       "renameLabel": "New file name",
       "renameSave": "Save",
       "renameCancel": "Cancel",
+      "view": "View",
       "download": "Download",
       "delete": "Delete",
       "confirmDelete": "Confirm deletion",
@@ -246,6 +249,7 @@
       },
       "types": {
         "document": "Document",
+        "pdf": "PDF",
         "image": "Image",
         "audio": "Audio",
         "video": "Video"
@@ -563,6 +567,9 @@
     "title": "Insert a resource",
     "close": "Close",
     "empty": "No resource available. Add some from the Resources tab."
+  },
+  "resourcePreview": {
+    "close": "Close"
   },
   "modulePicker": {
     "title": "Insert a module",

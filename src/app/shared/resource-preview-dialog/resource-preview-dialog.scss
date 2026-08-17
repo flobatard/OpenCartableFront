@@ -1,0 +1,70 @@
+/* Modale d'aperçu de ressource (élément <dialog> natif) — motif .res-picker,
+   élargie : un PDF a besoin de place. ---------------------------------------- */
+
+.res-preview {
+  width: min(960px, calc(100vw - 32px));
+  max-height: calc(100dvh - 64px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.res-preview::backdrop {
+  background: rgb(15 23 42 / 55%);
+}
+
+.res-preview__inner {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 64px);
+}
+
+.res-preview__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Titre = nom du fichier (métier) : tronqué, jamais sur deux lignes. */
+.res-preview__title {
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.res-preview__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.res-preview__close:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+/* L'iframe PDF (75dvh) défile dans le corps si l'écran est plus petit. */
+.res-preview__body {
+  padding: 16px 20px 20px;
+  overflow-y: auto;
+}

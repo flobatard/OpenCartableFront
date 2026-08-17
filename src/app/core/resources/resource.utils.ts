@@ -1,6 +1,6 @@
 import { environment } from '../../../environments/environment';
 import { AppLang } from '../i18n/language.service';
-import { ResourceType } from './resource.model';
+import { CourseResource, ResourceType } from './resource.model';
 
 /**
  * Helpers purs de la bibliothèque de ressources, testés isolément
@@ -32,6 +32,26 @@ export function resourceContentUrl(
   resourceId: string,
 ): string {
   return `${courseContentUrl(lang, courseId)}/resources/${resourceId}`;
+}
+
+/**
+ * PDF détecté par le `mime` déclaré au presign (`File.type` du navigateur,
+ * exactement `application/pdf`) — pas de nouveau `ResourceType` : le PDF reste
+ * un `document`, seul son affichage diffère (embarqué en ligne, bouton Voir).
+ * Le shape `Pick` couvre aussi les `PublicResource` des pages élèves.
+ */
+export function isPdfResource(resource: Pick<CourseResource, 'mime'>): boolean {
+  return resource.mime === 'application/pdf';
+}
+
+/**
+ * Clé i18n du badge de type — les PDF ont leur badge dédié parmi les
+ * `document` ; clé choisie par code, jamais interpolée depuis le mime.
+ */
+export function resourceTypeLabelKey(resource: Pick<CourseResource, 'type' | 'mime'>): string {
+  return resource.type === 'document' && isPdfResource(resource)
+    ? 'courses.resources.types.pdf'
+    : `courses.resources.types.${resource.type}`;
 }
 
 /**

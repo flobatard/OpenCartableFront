@@ -47,6 +47,12 @@
   font-size: 13px;
 }
 
+/* Aperçu embarqué de la ressource sélectionnée (rendu élève exact). */
+.document-editor__preview {
+  display: grid;
+  gap: 6px;
+}
+
 .document-editor__fieldset {
   display: flex;
   flex-direction: column;

@@ -18,7 +18,27 @@ audio.course-preview-document__media {
   width: 100%;
 }
 
-/* Carte téléchargeable (PDF/autres, ou repli sur présignature échouée). */
+/* PDF embarqué : pleine largeur de colonne, hauteur de lecture confortable
+   bornée à l'écran (dvh quand supporté). */
+.course-preview-document__pdf {
+  display: block;
+  width: 100%;
+  height: clamp(360px, 75vh, 860px);
+  height: clamp(360px, 75dvh, 860px);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* Rangée de repli sous l'embed (chemin nominal iOS Safari : 1re page seule). */
+.course-preview-document__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Carte téléchargeable (autres documents, PDF en mode téléchargement, ou
+   repli sur présignature échouée). */
 .course-preview-document__card {
   display: flex;
   align-items: center;

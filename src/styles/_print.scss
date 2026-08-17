@@ -48,6 +48,12 @@
     display: none !important;
   }
 
+  /* Rangée d'actions sous un PDF embarqué (ouvrir/télécharger) : l'iframe est
+     remplacée par une note média, la rangée n'a pas de sens sur papier. */
+  #oc-print-root .course-preview-document__actions {
+    display: none !important;
+  }
+
   #oc-print-root {
     position: static;
     left: auto;

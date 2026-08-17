@@ -16,6 +16,20 @@
     </p>
   }
 
+  @if (selectedResource(); as selected) {
+    <div class="document-editor__preview">
+      <span class="document-editor__label">
+        {{ 'courses.editor.document.previewLabel' | transloco }}
+      </span>
+      <app-course-preview-document
+        [courseId]="courseId()"
+        [resource]="selected"
+        [legende]="editorial().legende"
+        [affichage]="editorial().affichage"
+      />
+    </div>
+  }
+
   <form [formGroup]="form" class="document-editor__form">
     <label class="document-editor__field">
       <span class="document-editor__label">

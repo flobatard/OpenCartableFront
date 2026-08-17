@@ -29,6 +29,23 @@
           ></video>
         }
       }
+    } @else if (showsPdf()) {
+      <iframe
+        class="course-preview-document__pdf"
+        [attr.data-oc-resource-id]="res.id"
+        [src]="pdfUrl()"
+        [title]="res.nom_original"
+        loading="lazy"
+        referrerpolicy="no-referrer"
+      ></iframe>
+      <div class="course-preview-document__actions">
+        <button type="button" class="btn btn--ghost" (click)="openInTab()">
+          {{ 'courses.preview.openInTab' | transloco }}
+        </button>
+        <button type="button" class="btn btn--ghost" (click)="download()">
+          {{ 'courses.preview.download' | transloco }}
+        </button>
+      </div>
     } @else {
       <div class="course-preview-document__card">
         <span class="course-preview-document__name">{{ res.nom_original }}</span>

@@ -56,7 +56,9 @@ describe('CourseBlocks', () => {
     upload: vi.fn(),
     rename: vi.fn(),
     deleteResource: vi.fn(),
-    getDownloadUrl: vi.fn(),
+    // Résolue : l'onglet Aperçu présigne le PDF du bloc document dès le montage
+    // (un vi.fn() nu renverrait undefined → TypeError sur le .then de l'effect).
+    getDownloadUrl: vi.fn().mockResolvedValue('https://s3.test/get/x'),
   };
   const modulesMock = {
     list: signal<ModuleSummary[]>([

@@ -1,0 +1,27 @@
+<dialog
+  #dialogEl
+  class="res-preview"
+  aria-labelledby="res-preview-title"
+  (click)="onBackdropClick($event)"
+  (close)="onClosed()"
+>
+  <div class="res-preview__inner">
+    <header class="res-preview__head">
+      <h2 id="res-preview-title" class="res-preview__title">{{ current()?.nom_original }}</h2>
+      <button
+        type="button"
+        class="res-preview__close"
+        [attr.aria-label]="'resourcePreview.close' | transloco"
+        (click)="close()"
+      >
+        ×
+      </button>
+    </header>
+
+    <div class="res-preview__body">
+      @if (current(); as res) {
+        <app-course-preview-document [courseId]="courseId()" [resource]="res" />
+      }
+    </div>
+  </div>
+</dialog>

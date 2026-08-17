@@ -1,6 +1,7 @@
 import { Component, ElementRef, input, output, viewChild } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CourseResource } from '../../core/resources/resource.model';
+import { resourceTypeLabelKey } from '../../core/resources/resource.utils';
 
 /**
  * Modale de choix d'une ressource de la bibliothèque du cours à insérer dans le
@@ -23,6 +24,11 @@ export class ResourcePickerDialog {
 
   /** Ref nommée `dialogEl` (jamais `dialog` : collision avec un signal). */
   protected readonly dialog = viewChild<ElementRef<HTMLDialogElement>>('dialogEl');
+
+  /** Clé i18n du badge de type (badge « PDF » dédié parmi les documents). */
+  protected typeKey(resource: CourseResource): string {
+    return resourceTypeLabelKey(resource);
+  }
 
   open(): void {
     this.dialog()?.nativeElement.showModal();

@@ -54,7 +54,9 @@ describe('BlockEditor', () => {
     upload: vi.fn(),
     rename: vi.fn(),
     deleteResource: vi.fn(),
-    getDownloadUrl: vi.fn(),
+    // Résolue : l'aperçu embarqué du DocumentEditor présigne dès le montage
+    // (un vi.fn() nu renverrait undefined → TypeError sur le .then de l'effect).
+    getDownloadUrl: vi.fn().mockResolvedValue('https://s3.test/get/x'),
   };
 
   const INITIAL = 'Introduction aux suites'; // content.markdown du block-1 de la fixture

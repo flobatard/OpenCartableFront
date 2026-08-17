@@ -91,6 +91,28 @@ describe('transformForPrint', () => {
     expect(root.querySelector('img')?.getAttribute('src')).toBe('https://s3/presigned');
   });
 
+  it('remplace l’iframe d’un PDF embarqué par une note renvoyant vers l’URL stable', () => {
+    const root = fragment(
+      '<iframe class="course-preview-document__pdf" data-oc-resource-id="r6" title="Notes.pdf" src="https://s3/presigned"></iframe>',
+    );
+    transformForPrint(root, 'course-1', 'fr', labels('Média en ligne :'));
+
+    expect(root.querySelector('iframe')).toBeNull();
+    const note = root.querySelector('p.oc-print__media-note');
+    expect(note?.textContent).toContain('Notes.pdf');
+    expect(note?.querySelector('a')?.getAttribute('href')).toBe(
+      resourceContentUrl('fr', 'course-1', 'r6'),
+    );
+  });
+
+  it('iframe PDF sans cours (courseId null) : note sans lien', () => {
+    const root = fragment('<iframe data-oc-resource-id="r6" title="Notes.pdf"></iframe>');
+    transformForPrint(root, null, 'fr', labels('Média en ligne :'));
+    expect(root.querySelector('iframe')).toBeNull();
+    expect(root.querySelector('p.oc-print__media-note')).toBeTruthy();
+    expect(root.querySelector('p.oc-print__media-note a')).toBeNull();
+  });
+
   it('remplace une extension non imprimable par la note « contenu interactif »', () => {
     const root = fragment(
       '<div class="course-extension" data-oc-extension="geogebra" data-oc-printable="false">' +

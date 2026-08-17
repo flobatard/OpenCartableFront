@@ -197,7 +197,8 @@
         "legendePlaceholder": "Courte légende affichée avec le document (facultatif)",
         "affichageLabel": "Affichage",
         "affichageInline": "Intégré au cours",
-        "affichageTelechargement": "En téléchargement"
+        "affichageTelechargement": "En téléchargement",
+        "previewLabel": "Aperçu"
       },
       "module": {
         "moduleLabel": "Module affiché par ce bloc",
@@ -219,6 +220,7 @@
       "empty": "Ce cours ne contient encore aucun bloc.",
       "documentMissing": "Ressource introuvable (supprimée ?).",
       "download": "Télécharger",
+      "openInTab": "Ouvrir dans un onglet",
       "downloadError": "Le téléchargement n'a pas abouti. Réessayez.",
       "downloadPdf": "Télécharger en PDF",
       "pdfMediaNote": "Média disponible en ligne :"
@@ -236,6 +238,7 @@
       "renameLabel": "Nouveau nom du fichier",
       "renameSave": "Enregistrer",
       "renameCancel": "Annuler",
+      "view": "Voir",
       "download": "Télécharger",
       "delete": "Supprimer",
       "confirmDelete": "Confirmer la suppression",
@@ -246,6 +249,7 @@
       },
       "types": {
         "document": "Document",
+        "pdf": "PDF",
         "image": "Image",
         "audio": "Audio",
         "video": "Vidéo"
@@ -563,6 +567,9 @@
     "title": "Insérer une ressource",
     "close": "Fermer",
     "empty": "Aucune ressource disponible. Ajoutez-en dans l'onglet Ressources."
+  },
+  "resourcePreview": {
+    "close": "Fermer"
   },
   "modulePicker": {
     "title": "Insérer un module",

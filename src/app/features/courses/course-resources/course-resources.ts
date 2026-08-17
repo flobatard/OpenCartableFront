@@ -4,21 +4,27 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { CourseResource } from '../../../core/resources/resource.model';
 import { ResourceService } from '../../../core/resources/resource.service';
-import { formatBytes } from '../../../core/resources/resource.utils';
+import {
+  formatBytes,
+  isPdfResource,
+  resourceTypeLabelKey,
+} from '../../../core/resources/resource.utils';
+import { ResourcePreviewDialog } from '../../../shared/resource-preview-dialog/resource-preview-dialog';
 
 /**
  * Onglet « Ressources » d'un cours : bibliothèque des fichiers S3 rattachés au
  * cours, indépendante des blocs. Upload en trois temps orchestré par
  * `ResourceService` (presign → PUT direct S3 → confirm, avec progression),
- * renommage inline (pas de modale — testable en jsdom), téléchargement par URL
- * présignée et suppression en deux temps désarmée au blur (motif des blocs).
- * Après une suppression, l'output `deleted` prévient la page : les blocs
- * `document` pointeurs ont été supprimés PAR LE SERVEUR (FK CASCADE), le
- * détail du cours doit être rechargé.
+ * renommage inline (pas de modale — testable en jsdom), aperçu en modale
+ * (bouton « Voir », images et PDF `disponible` — `ResourcePreviewDialog`),
+ * téléchargement par URL présignée et suppression en deux temps désarmée au
+ * blur (motif des blocs). Après une suppression, l'output `deleted` prévient
+ * la page : les blocs `document` pointeurs ont été supprimés PAR LE SERVEUR
+ * (FK CASCADE), le détail du cours doit être rechargé.
  */
 @Component({
   selector: 'app-course-resources',
-  imports: [ReactiveFormsModule, TranslocoPipe],
+  imports: [ReactiveFormsModule, TranslocoPipe, ResourcePreviewDialog],
   templateUrl: './course-resources.html',
   styleUrl: './course-resources.scss',
 })
@@ -32,6 +38,7 @@ export class CourseResources implements OnInit {
   readonly deleted = output<void>();
 
   protected readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
+  protected readonly previewDialog = viewChild(ResourcePreviewDialog);
 
   protected readonly list = this.#resources.list;
   protected readonly loading = this.#resources.listLoading;
@@ -62,6 +69,20 @@ export class CourseResources implements OnInit {
 
   protected formatSize(taille: number): string {
     return formatBytes(taille);
+  }
+
+  /** Clé i18n du badge de type (badge « PDF » dédié parmi les documents). */
+  protected typeKey(resource: CourseResource): string {
+    return resourceTypeLabelKey(resource);
+  }
+
+  /** Prévisualisable en modale : images et PDF, une fois `disponible`. */
+  protected canPreview(resource: CourseResource): boolean {
+    return resource.statut === 'disponible' && (resource.type === 'image' || isPdfResource(resource));
+  }
+
+  protected preview(resource: CourseResource): void {
+    this.previewDialog()?.open(resource);
   }
 
   /** Date d'ajout dans la locale de l'UI (pas de DatePipe : locale fr non enregistrée). */
