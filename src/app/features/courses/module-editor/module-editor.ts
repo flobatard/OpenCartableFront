@@ -10,8 +10,13 @@ import { ModuleUpdatePayload } from '../../../core/modules/module.model';
 import { ModuleService } from '../../../core/modules/module.service';
 import { MarkdownEditor } from '../../../shared/markdown-editor/markdown-editor';
 import { ModuleRunner } from '../../../shared/module-runner/module-runner';
+import { CourseChat } from '../course-chat/course-chat';
 
 const AUTOSAVE_DELAY_MS = 1500;
+
+/** Bornes du partage panes/chat (en % de largeur de l'espace de travail). */
+const MIN_EDITOR_PCT = 15;
+const MAX_EDITOR_PCT = 85;
 
 /** Frappe → preview : un peu plus large que le playground (400 ms) car chaque
  *  recomposition RECHARGE l'iframe sandbox (srcdoc), pas juste un re-rendu. */
@@ -30,7 +35,11 @@ let sequence = 0;
  * Monaco HTML | CSS | JS commutés par tabs (panneaux masqués par `[hidden]`,
  * jamais `@if` — Monaco vit dans les trois) et preview live sandboxée
  * (`app-module-runner`) côte à côte (grid 50/50 motif markdown-playground,
- * empilé <900px), alimentée par la frappe débouncée. Autosave débouncé
+ * empilé <900px), alimentée par la frappe débouncée. Cette grille et le
+ * panneau assistant (`app-course-chat`, placeholder IA) composent un espace
+ * de travail redimensionnable au motif block-editor : poignée `separator`
+ * pilotant `--editor-basis`, repli `[hidden]` (les panes reprennent toute la
+ * largeur), bouton de réouverture sous 900px. Autosave débouncé
  * unique (motif block-editor : `merge → debounceTime → concatMap`, payload
  * relu à l'ENVOI, flush fire-and-forget au destroy) via le PATCH partiel
  * `updateModule` (code sans titre — le renommage vit dans l'onglet Modules).
@@ -42,7 +51,14 @@ let sequence = 0;
  */
 @Component({
   selector: 'app-module-editor',
-  imports: [ReactiveFormsModule, RouterLink, TranslocoPipe, MarkdownEditor, ModuleRunner],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    TranslocoPipe,
+    MarkdownEditor,
+    ModuleRunner,
+    CourseChat,
+  ],
   templateUrl: './module-editor.html',
   styleUrl: './module-editor.scss',
 })
@@ -81,6 +97,14 @@ export class ModuleEditor implements OnInit, OnDestroy {
   protected readonly previewReady = signal(false);
 
   protected readonly saveState = signal<SaveState>('idle');
+
+  /** Partage de largeur panes/chat piloté par la poignée (drag), en % de
+      l'espace de travail ; `dragging` désactive la sélection pendant le glissé.
+      Motif block-editor — défaut plus large ici : la colonne porte DEUX panes. */
+  protected readonly editorPct = signal(68);
+  protected readonly dragging = signal(false);
+  /** Repli du panneau assistant : les panes reprennent toute la largeur. */
+  protected readonly chatCollapsed = signal(false);
 
   #initialized = false;
   /** JSON du dernier payload persisté (référence dirty/idle). */
@@ -185,6 +209,76 @@ export class ModuleEditor implements OnInit, OnDestroy {
     const next = TAB_ORDER[(index + delta + TAB_ORDER.length) % TAB_ORDER.length];
     this.activeTab.set(next);
     (document.getElementById(`${this.uid}-tab-${next}`) as HTMLButtonElement | null)?.focus();
+  }
+
+  protected toggleChat(): void {
+    this.chatCollapsed.update((collapsed) => !collapsed);
+  }
+
+  #clampPct(value: number): number {
+    return Math.min(MAX_EDITOR_PCT, Math.max(MIN_EDITOR_PCT, value));
+  }
+
+  /**
+   * Redimensionne la colonne des panes via la poignée (motif block-editor) :
+   * pointeur capturé sur le divider (monaco ne vole pas les events pendant le
+   * glissé), axe dérivé du flex-direction réel — row (desktop) → X, column
+   * (mobile empilé) → Y.
+   */
+  protected startDrag(event: PointerEvent): void {
+    event.preventDefault();
+    const divider = event.currentTarget as HTMLElement;
+    const container = divider.closest('.module-editor__workspace') as HTMLElement | null;
+    if (!container) {
+      return;
+    }
+    const isVertical = getComputedStyle(container).flexDirection === 'column';
+    this.dragging.set(true);
+    divider.setPointerCapture(event.pointerId);
+
+    const onMove = (e: PointerEvent): void => {
+      const rect = container.getBoundingClientRect();
+      const pct = isVertical
+        ? ((e.clientY - rect.top) / rect.height) * 100
+        : ((e.clientX - rect.left) / rect.width) * 100;
+      this.editorPct.set(this.#clampPct(pct));
+    };
+    const onUp = (): void => {
+      this.dragging.set(false);
+      if (divider.hasPointerCapture(event.pointerId)) {
+        divider.releasePointerCapture(event.pointerId);
+      }
+      divider.removeEventListener('pointermove', onMove);
+      divider.removeEventListener('pointerup', onUp);
+      divider.removeEventListener('pointercancel', onUp);
+    };
+    divider.addEventListener('pointermove', onMove);
+    divider.addEventListener('pointerup', onUp);
+    divider.addEventListener('pointercancel', onUp);
+  }
+
+  /** Clavier sur la poignée (separator WAI-ARIA) : ± un pas, ou extrêmes. */
+  protected onDividerKeydown(event: KeyboardEvent): void {
+    const step = 2;
+    switch (event.key) {
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        this.editorPct.set(this.#clampPct(this.editorPct() - step));
+        break;
+      case 'ArrowRight':
+      case 'ArrowDown':
+        this.editorPct.set(this.#clampPct(this.editorPct() + step));
+        break;
+      case 'Home':
+        this.editorPct.set(MIN_EDITOR_PCT);
+        break;
+      case 'End':
+        this.editorPct.set(MAX_EDITOR_PCT);
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
   }
 
   /** Code courant des trois contrôles (payload du PATCH partiel, sans titre). */

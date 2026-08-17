@@ -211,6 +211,39 @@ describe('ModuleEditor', () => {
     }
   });
 
+  it('assistant : visible par défaut, replié par la bascule, rouvert au repli', async () => {
+    const fixture = await createComponent();
+    const chat = () => el(fixture).querySelector<HTMLElement>('app-course-chat')!;
+    const divider = () => el(fixture).querySelector<HTMLElement>('.module-editor__divider')!;
+    expect(chat().hidden).toBe(false);
+    expect(divider().hidden).toBe(false);
+
+    // Repli : chat et poignée masqués par [hidden] (jamais détruits — la
+    // future conversation doit survivre), bouton de réouverture disponible.
+    el(fixture).querySelector<HTMLButtonElement>('.module-editor__chat-toggle')!.click();
+    fixture.detectChanges();
+    expect(chat().hidden).toBe(true);
+    expect(divider().hidden).toBe(true);
+
+    el(fixture).querySelector<HTMLButtonElement>('.module-editor__chat-reopen')!.click();
+    fixture.detectChanges();
+    expect(chat().hidden).toBe(false);
+  });
+
+  it('la poignée redimensionne au clavier, bornée 15–85 %', async () => {
+    const fixture = await createComponent();
+    const divider = el(fixture).querySelector<HTMLElement>('.module-editor__divider')!;
+    expect(divider.getAttribute('aria-valuenow')).toBe('68');
+
+    divider.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    fixture.detectChanges();
+    expect(divider.getAttribute('aria-valuenow')).toBe('66');
+
+    divider.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    fixture.detectChanges();
+    expect(divider.getAttribute('aria-valuenow')).toBe('85');
+  });
+
   it('erreur de chargement : message + bouton Réessayer', async () => {
     modulesMock.getModule.mockRejectedValueOnce(new Error('boom'));
     const fixture = await createComponent();

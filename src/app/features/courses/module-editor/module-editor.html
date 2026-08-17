@@ -19,93 +19,168 @@
   } @else {
     <header class="module-editor__header">
       <h1 class="module-editor__title">{{ titre() }}</h1>
-      <p class="module-editor__save" role="status">
-        @switch (saveState()) {
-          @case ('dirty') {
-            {{ 'courses.moduleEditor.save.dirty' | transloco }}
+      <div class="module-editor__header-end">
+        <p class="module-editor__save" role="status">
+          @switch (saveState()) {
+            @case ('dirty') {
+              {{ 'courses.moduleEditor.save.dirty' | transloco }}
+            }
+            @case ('saving') {
+              {{ 'courses.moduleEditor.save.saving' | transloco }}
+            }
+            @case ('saved') {
+              {{ 'courses.moduleEditor.save.saved' | transloco }}
+            }
+            @case ('error') {
+              <span class="module-editor__save-error">
+                {{ 'courses.moduleEditor.save.error' | transloco }}
+              </span>
+            }
           }
-          @case ('saving') {
-            {{ 'courses.moduleEditor.save.saving' | transloco }}
-          }
-          @case ('saved') {
-            {{ 'courses.moduleEditor.save.saved' | transloco }}
-          }
-          @case ('error') {
-            <span class="module-editor__save-error">
-              {{ 'courses.moduleEditor.save.error' | transloco }}
-            </span>
-          }
-        }
-      </p>
+        </p>
+
+        <button
+          type="button"
+          class="pill module-editor__chat-toggle"
+          [class.pill--active]="!chatCollapsed()"
+          [attr.aria-pressed]="!chatCollapsed()"
+          (click)="toggleChat()"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          {{ 'courses.editor.toggleChat' | transloco }}
+        </button>
+      </div>
     </header>
 
-    <div class="module-editor__workspace">
-      <div class="module-editor__pane">
-        <div
-          class="tabs module-editor__tabbar"
-          role="tablist"
-          [attr.aria-label]="'courses.moduleEditor.tabs.label' | transloco"
-          (keydown)="onTablistKeydown($event)"
-        >
-          @for (tab of tabs; track tab) {
-            <button
-              type="button"
-              role="tab"
-              class="tab"
-              [id]="uid + '-tab-' + tab"
-              [class.tab--active]="activeTab() === tab"
-              [attr.aria-selected]="activeTab() === tab"
-              [attr.aria-controls]="uid + '-panel-' + tab"
-              [tabindex]="activeTab() === tab ? 0 : -1"
-              (click)="selectTab(tab)"
-            >
-              {{ 'courses.moduleEditor.tabs.' + tab | transloco }}
-            </button>
+    <div
+      class="module-editor__workspace"
+      [class.module-editor__workspace--dragging]="dragging()"
+      [class.module-editor__workspace--solo]="chatCollapsed()"
+    >
+      <div class="module-editor__panes" [style.--editor-basis]="editorPct() + '%'">
+        <div class="module-editor__pane">
+          <div
+            class="tabs module-editor__tabbar"
+            role="tablist"
+            [attr.aria-label]="'courses.moduleEditor.tabs.label' | transloco"
+            (keydown)="onTablistKeydown($event)"
+          >
+            @for (tab of tabs; track tab) {
+              <button
+                type="button"
+                role="tab"
+                class="tab"
+                [id]="uid + '-tab-' + tab"
+                [class.tab--active]="activeTab() === tab"
+                [attr.aria-selected]="activeTab() === tab"
+                [attr.aria-controls]="uid + '-panel-' + tab"
+                [tabindex]="activeTab() === tab ? 0 : -1"
+                (click)="selectTab(tab)"
+              >
+                {{ 'courses.moduleEditor.tabs.' + tab | transloco }}
+              </button>
+            }
+          </div>
+
+          <!-- Panneaux masqués par [hidden], jamais @if : Monaco vit dans les trois. -->
+          <div
+            role="tabpanel"
+            class="module-editor__panel"
+            [id]="uid + '-panel-html'"
+            [attr.aria-labelledby]="uid + '-tab-html'"
+            [hidden]="activeTab() !== 'html'"
+          >
+            <app-markdown-editor language="html" [formControl]="htmlControl" />
+          </div>
+          <div
+            role="tabpanel"
+            class="module-editor__panel"
+            [id]="uid + '-panel-css'"
+            [attr.aria-labelledby]="uid + '-tab-css'"
+            [hidden]="activeTab() !== 'css'"
+          >
+            <app-markdown-editor language="css" [formControl]="cssControl" />
+          </div>
+          <div
+            role="tabpanel"
+            class="module-editor__panel"
+            [id]="uid + '-panel-js'"
+            [attr.aria-labelledby]="uid + '-tab-js'"
+            [hidden]="activeTab() !== 'js'"
+          >
+            <app-markdown-editor language="javascript" [formControl]="jsControl" />
+          </div>
+        </div>
+
+        <div class="module-editor__pane module-editor__pane--preview">
+          <p class="module-editor__caption">{{ 'courses.moduleEditor.preview' | transloco }}</p>
+          @if (previewReady()) {
+            <app-module-runner
+              class="module-editor__preview"
+              [html]="previewHtml()"
+              [css]="previewCss()"
+              [js]="previewJs()"
+              [title]="titre()"
+            />
           }
         </div>
-
-        <!-- Panneaux masqués par [hidden], jamais @if : Monaco vit dans les trois. -->
-        <div
-          role="tabpanel"
-          class="module-editor__panel"
-          [id]="uid + '-panel-html'"
-          [attr.aria-labelledby]="uid + '-tab-html'"
-          [hidden]="activeTab() !== 'html'"
-        >
-          <app-markdown-editor language="html" [formControl]="htmlControl" />
-        </div>
-        <div
-          role="tabpanel"
-          class="module-editor__panel"
-          [id]="uid + '-panel-css'"
-          [attr.aria-labelledby]="uid + '-tab-css'"
-          [hidden]="activeTab() !== 'css'"
-        >
-          <app-markdown-editor language="css" [formControl]="cssControl" />
-        </div>
-        <div
-          role="tabpanel"
-          class="module-editor__panel"
-          [id]="uid + '-panel-js'"
-          [attr.aria-labelledby]="uid + '-tab-js'"
-          [hidden]="activeTab() !== 'js'"
-        >
-          <app-markdown-editor language="javascript" [formControl]="jsControl" />
-        </div>
       </div>
 
-      <div class="module-editor__pane">
-        <p class="module-editor__caption">{{ 'courses.moduleEditor.preview' | transloco }}</p>
-        @if (previewReady()) {
-          <app-module-runner
-            class="module-editor__preview"
-            [html]="previewHtml()"
-            [css]="previewCss()"
-            [js]="previewJs()"
-            [title]="titre()"
-          />
-        }
-      </div>
+      <!-- Poignée de redimensionnement panes/chat (separator WAI-ARIA, motif block-editor). -->
+      <div
+        class="module-editor__divider"
+        role="separator"
+        tabindex="0"
+        aria-orientation="vertical"
+        [attr.aria-label]="'courses.editor.resize' | transloco"
+        [attr.aria-valuenow]="editorPct()"
+        aria-valuemin="15"
+        aria-valuemax="85"
+        [hidden]="chatCollapsed()"
+        (pointerdown)="startDrag($event)"
+        (keydown)="onDividerKeydown($event)"
+      ></div>
+
+      <app-course-chat
+        class="module-editor__chat"
+        [courseId]="courseId"
+        [moduleId]="moduleId"
+        [hidden]="chatCollapsed()"
+        (collapse)="toggleChat()"
+      />
+
+      <!-- Réouverture au repli : bouton adjacent (droite/bas), pour rouvrir
+         le chat sans remonter jusqu'à l'en-tête. -->
+      @if (chatCollapsed()) {
+        <button type="button" class="pill module-editor__chat-reopen" (click)="toggleChat()">
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          {{ 'courses.editor.showChat' | transloco }}
+        </button>
+      }
     </div>
   }
 </div>

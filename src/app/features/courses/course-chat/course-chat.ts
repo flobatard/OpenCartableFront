@@ -14,10 +14,13 @@ import { TranslocoPipe } from '@jsverse/transloco';
   styleUrl: './course-chat.scss',
 })
 export class CourseChat {
-  /** Contexte du cours — réservés au câblage IA, passés dès maintenant. */
+  /** Contexte — réservés au câblage IA, passés dès maintenant. Deux hôtes :
+      le block-editor (courseId + blockId) et le module-editor (courseId +
+      moduleId) ; seul le cours est toujours connu. */
   readonly courseId = input.required<string>();
-  readonly blockId = input.required<string>();
+  readonly blockId = input<string | null>(null);
+  readonly moduleId = input<string | null>(null);
 
-  /** Demande de repli du panneau ; le parent (block-editor) pilote l'affichage. */
+  /** Demande de repli du panneau ; l'hôte (block/module-editor) pilote l'affichage. */
   readonly collapse = output<void>();
 }

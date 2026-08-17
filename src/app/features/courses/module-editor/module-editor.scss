@@ -17,9 +17,25 @@
 
 .module-editor__header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.module-editor__header-end {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+// Bascule du chat : état porté par aria-pressed + .pill--active (motif block-editor).
+.module-editor__chat-toggle {
+  padding: 6px 12px;
+  font-weight: 500;
+
+  &.pill--active {
+    background: var(--bg-subtle);
+  }
 }
 
 .module-editor__title {
@@ -40,18 +56,44 @@
   color: var(--text-secondary);
 }
 
-// Éditeur | preview côte à côte (motif markdown-playground), empilé <900px.
+// Espace de travail : panes (éditeur | preview) + poignée + assistant, motif
+// block-editor. Hauteur définie (le drag en % en a besoin) ; les colonnes
+// défilent en interne.
 .module-editor__workspace {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   gap: 16px;
-  align-items: start;
+  height: clamp(520px, 78vh, 900px);
+  min-height: 0;
 }
 
-@media (max-width: 900px) {
-  .module-editor__workspace {
-    grid-template-columns: 1fr;
-  }
+// Éditeur | preview côte à côte (motif markdown-playground), empilé <900px.
+// --editor-basis piloté en template (editorPct()) ; en custom property pour
+// qu'au repli la règle --solo puisse faire grandir les panes à la place du chat.
+// ⚠ La ligne de grille est EXPLICITE (minmax(0,1fr)) : une ligne implicite
+// `auto` se calerait sur le contenu, pas sur la hauteur de l'espace de
+// travail — Monaco (flex:1, hauteur intrinsèque nulle) serait écrasé.
+.module-editor__panes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 16px;
+  flex: 0 0 var(--editor-basis, 68%);
+  min-width: 0; // laisse monaco rétrécir
+  min-height: 0;
+}
+
+// Les deux panes remplissent la hauteur de l'espace de travail. Colonne
+// éditeur : Monaco maximal et toujours visible — elle ne défile jamais,
+// c'est l'aperçu qui défile dans SA colonne quand le module est long.
+.module-editor__pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.module-editor__pane--preview {
+  overflow-y: auto;
 }
 
 .module-editor__caption {
@@ -60,9 +102,13 @@
   font-size: 0.8125rem;
 }
 
-// L'éditeur remplit la hauteur de son hôte (contrat markdown-editor).
+// Le panneau actif prend toute la hauteur restante sous le tabbar ; l'éditeur
+// remplit la hauteur de son hôte (contrat markdown-editor). Les panneaux
+// inactifs sont [hidden] (display:none UA) et ne consomment rien.
+// ⚠ Règle AVANT la media query : son override mobile (420px fixes) doit gagner.
 .module-editor__panel {
-  height: 420px;
+  flex: 1;
+  min-height: 0;
   margin-top: 8px;
 }
 
@@ -71,4 +117,102 @@
   border: 1px dashed var(--text-secondary);
   border-radius: var(--radius);
   padding: 12px;
+}
+
+// Repli : les panes grandissent pour occuper la place libérée (à côté du
+// bouton de réouverture), au lieu du flex-basis figé de la poignée.
+.module-editor__workspace--solo .module-editor__panes {
+  flex: 1 1 0;
+}
+
+.module-editor__chat {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.module-editor__divider {
+  flex: 0 0 6px;
+  align-self: stretch;
+  background: var(--border);
+  border-radius: var(--radius-full);
+  cursor: col-resize;
+  touch-action: none; // le drag tactile ne déclenche pas le scroll de page
+
+  &:hover,
+  &:focus-visible {
+    background: var(--border-control);
+  }
+}
+
+.module-editor__workspace--dragging {
+  cursor: col-resize;
+  user-select: none;
+}
+
+// Réouverture du chat, réservée au petit écran (empilé) : sur desktop la
+// bascule de l'en-tête suffit → display:none ici, rétabli dans la media-query.
+.module-editor__chat-reopen {
+  display: none;
+  flex: 0 0 auto;
+  align-self: center;
+  padding: 8px 14px;
+  background: var(--bg-surface);
+  font-weight: 500;
+}
+
+// Écran étroit : le CHAT passe dessous (poignée en axe vertical — le drag
+// reste utile, l'IA peut être verbeuse), mais éditeur | aperçu restent côte à
+// côte : les panes récupèrent toute la largeur, deux colonnes y tiennent
+// encore. Deux seuils distincts, donc : 900px pour le chat, 640px (ci-dessous)
+// pour l'empilement complet des panes.
+@media (max-width: 900px) {
+  .module-editor__workspace {
+    flex-direction: column;
+    height: clamp(600px, 90vh, 980px);
+  }
+
+  // Cède du terrain au min-height du chat ; la ligne minmax(0,1fr) de base est
+  // conservée → l'éditeur remplit la part des panes, l'aperçu défile toujours
+  // dans sa colonne.
+  .module-editor__panes {
+    flex-shrink: 1;
+  }
+
+  // Le chat garde une hauteur utilisable même quand la part des panes (basis
+  // 68 %) mangerait tout — les panes rétrécissent (flex-shrink ci-dessus).
+  .module-editor__chat {
+    min-height: 260px;
+  }
+
+  .module-editor__divider {
+    cursor: row-resize;
+  }
+
+  .module-editor__workspace--dragging {
+    cursor: row-resize;
+  }
+
+  .module-editor__chat-reopen {
+    display: inline-flex; // flex → l'icône et le libellé gardent gap + centrage
+  }
+}
+
+// Très étroit (téléphone) : panes empilées en une colonne qui défile.
+@media (max-width: 640px) {
+  .module-editor__panes {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto; // deux lignes au contenu (éditeur fixe + preview)
+    overflow-y: auto;
+  }
+
+  // Empilé : hauteur d'éditeur fixe (remplir n'a pas de sens en une colonne),
+  // les deux panes défilent ensemble dans le conteneur.
+  .module-editor__panel {
+    flex: 0 0 420px;
+  }
+
+  .module-editor__pane--preview {
+    overflow-y: visible;
+  }
 }
