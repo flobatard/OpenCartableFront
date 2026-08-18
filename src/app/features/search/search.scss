@@ -1,0 +1,220 @@
+/* Exception de largeur (motif block-editor) : la sidebar de facettes + la
+   grille de résultats justifient de dépasser les 880px habituels. */
+:host {
+  display: block;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.search__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.search__title {
+  margin: 0;
+}
+
+/* Champ du DS §8 (mêmes valeurs que .subjects__search). */
+.search__input {
+  flex: 1 1 240px;
+  height: 40px;
+  padding: 0 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.search__input::placeholder {
+  color: var(--text-secondary);
+}
+
+.search__layout {
+  display: grid;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .search__layout {
+    grid-template-columns: 280px 1fr;
+  }
+
+  /* Sidebar permanente : le disclosure ne sert qu'en dessous de 900px. */
+  .search__filters-summary {
+    display: none;
+  }
+}
+
+.search__filters {
+  padding: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.search__filters-summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.search__filters-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.search__filters[open] .search__filters-body {
+  margin-top: 8px;
+}
+
+@media (min-width: 900px) {
+  .search__filters[open] .search__filters-body {
+    margin-top: 0;
+  }
+}
+
+.search__filter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.search__filter-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Champ du DS §8. */
+.search__select {
+  height: 40px;
+  padding: 0 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.search__reset {
+  align-self: flex-start;
+}
+
+.search__tabbar {
+  margin-bottom: 16px;
+}
+
+.search__tab-count {
+  color: var(--text-secondary);
+}
+
+.tab--active .search__tab-count {
+  color: var(--text-primary);
+}
+
+.search__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.search__cell {
+  display: flex;
+}
+
+.search__cell app-public-course-card {
+  flex: 1;
+}
+
+/* Carte prof : même moule DS que la carte de cours. */
+.search__teacher-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.search__teacher-name {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.search__teacher-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Badge matière du DS §8. */
+.search__teacher-chip {
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  background: var(--indigo-50);
+  color: var(--indigo-700);
+}
+
+:host-context([data-theme='dark']) .search__teacher-chip {
+  background: var(--indigo-900);
+  color: var(--indigo-100);
+}
+
+.search__teacher-count {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.search__teacher-open {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+.search__loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.search__notice {
+  margin: 0;
+  padding: 48px 24px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.search__notice p {
+  margin: 0 0 12px;
+}
+
+.search__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.search__pagination-range {
+  font-size: 13px;
+  color: var(--text-secondary);
+}

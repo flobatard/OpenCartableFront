@@ -55,6 +55,13 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client,
   },
   {
+    // Recherche publique (J3) : Client comme toutes les pages élèves — aucun
+    // précédent de route SSR appelant l'API (couplage d'infra jamais acté,
+    // contrainte Pi), et l'état vit dans les query params.
+    path: ':lang/search',
+    renderMode: RenderMode.Client,
+  },
+  {
     // Route protégée (authGuard renvoie false au serveur) : rendu navigateur uniquement,
     // jamais prerendered — aucun appel API à l'IdP/back au build.
     path: ':lang/subjects',

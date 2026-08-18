@@ -1,0 +1,62 @@
+/* Carte du DS §8 — valeurs migrées depuis .student-catalog__card. */
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.public-course-card__title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.public-course-card__desc {
+  margin: 0;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.public-course-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Badges du DS §8 (mêmes valeurs que les chips des pickers). */
+.public-course-card__chip {
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.public-course-card__chip--subject {
+  background: var(--indigo-50);
+  color: var(--indigo-700);
+}
+
+:host-context([data-theme='dark']) .public-course-card__chip--subject {
+  background: var(--indigo-900);
+  color: var(--indigo-100);
+}
+
+.public-course-card__chip--level {
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+}
+
+.public-course-card__open {
+  align-self: flex-start;
+  margin-top: auto;
+}

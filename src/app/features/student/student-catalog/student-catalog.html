@@ -20,26 +20,8 @@
   } @else {
     <ul class="student-catalog__grid">
       @for (course of prof.courses; track course.id) {
-        <li class="student-catalog__card">
-          <h2 class="student-catalog__card-title">{{ course.titre }}</h2>
-          @if (course.description) {
-            <p class="student-catalog__card-desc">{{ course.description }}</p>
-          }
-          @if (course.subjects.length || course.education_levels.length) {
-            <ul class="student-catalog__chips">
-              @for (subject of course.subjects; track subject) {
-                <li class="student-catalog__chip student-catalog__chip--subject">
-                  {{ subject }}
-                </li>
-              }
-              @for (level of course.education_levels; track level) {
-                <li class="student-catalog__chip student-catalog__chip--level">{{ level }}</li>
-              }
-            </ul>
-          }
-          <a class="btn btn--primary student-catalog__open" [routerLink]="courseLink(course.id)">
-            {{ 'student.catalog.open' | transloco }}
-          </a>
+        <li class="student-catalog__cell">
+          <app-public-course-card [course]="course" [link]="courseLink(course.id)" />
         </li>
       }
     </ul>

@@ -1,0 +1,200 @@
+<header class="search__header">
+  <h1 class="search__title">{{ 'search.title' | transloco }}</h1>
+  <input
+    type="search"
+    class="search__input"
+    [placeholder]="'search.placeholder' | transloco"
+    [attr.aria-label]="'search.placeholder' | transloco"
+    [formControl]="searchControl"
+  />
+</header>
+
+<div class="search__layout">
+  <details class="search__filters" open>
+    <summary class="search__filters-summary">{{ 'search.filters.title' | transloco }}</summary>
+    <div class="search__filters-body">
+      <label class="search__filter">
+        <span class="search__filter-label">{{ 'search.filters.subject' | transloco }}</span>
+        <select
+          class="search__select"
+          [value]="subjectId() ?? ''"
+          (change)="onSubjectChange($event)"
+        >
+          <option value="">{{ 'search.filters.all' | transloco }}</option>
+          @for (option of subjectOptions(); track option.id) {
+            <option [value]="option.id" [selected]="option.id === subjectId()">
+              {{ option.label }}
+            </option>
+          }
+        </select>
+      </label>
+      <label class="search__filter">
+        <span class="search__filter-label">{{ 'search.filters.level' | transloco }}</span>
+        <select class="search__select" [value]="levelId() ?? ''" (change)="onLevelChange($event)">
+          <option value="">{{ 'search.filters.all' | transloco }}</option>
+          @for (option of levelOptions(); track option.id) {
+            <option [value]="option.id" [selected]="option.id === levelId()">
+              {{ option.label }}
+            </option>
+          }
+        </select>
+      </label>
+      <button
+        type="button"
+        class="btn btn--ghost search__reset"
+        [disabled]="!hasFilters()"
+        (click)="resetFilters()"
+      >
+        {{ 'search.filters.reset' | transloco }}
+      </button>
+    </div>
+  </details>
+
+  <div class="search__results">
+    <div
+      class="tabs search__tabbar"
+      role="tablist"
+      [attr.aria-label]="'search.tabs.label' | transloco"
+      (keydown)="onTablistKeydown($event)"
+    >
+      <button
+        type="button"
+        class="tab"
+        role="tab"
+        [id]="uid + '-tab-courses'"
+        [class.tab--active]="activeTab() === 'courses'"
+        [attr.aria-selected]="activeTab() === 'courses'"
+        [attr.aria-controls]="uid + '-panel-courses'"
+        [tabindex]="activeTab() === 'courses' ? 0 : -1"
+        (click)="selectTab('courses')"
+      >
+        {{ 'search.tabs.courses' | transloco }}
+        @if (coursesPage(); as page) {
+          <span class="search__tab-count">({{ page.total }})</span>
+        }
+      </button>
+      <button
+        type="button"
+        class="tab"
+        role="tab"
+        [id]="uid + '-tab-teachers'"
+        [class.tab--active]="activeTab() === 'teachers'"
+        [attr.aria-selected]="activeTab() === 'teachers'"
+        [attr.aria-controls]="uid + '-panel-teachers'"
+        [tabindex]="activeTab() === 'teachers' ? 0 : -1"
+        (click)="selectTab('teachers')"
+      >
+        {{ 'search.tabs.teachers' | transloco }}
+        @if (teachersPage(); as page) {
+          <span class="search__tab-count">({{ page.total }})</span>
+        }
+      </button>
+    </div>
+
+    @if (activeTab() === 'courses') {
+      <section
+        role="tabpanel"
+        [id]="uid + '-panel-courses'"
+        [attr.aria-labelledby]="uid + '-tab-courses'"
+      >
+        @if (coursesError()) {
+          <div class="search__notice">
+            <p>{{ 'search.results.error' | transloco }}</p>
+            <button type="button" class="btn btn--secondary" (click)="retry()">
+              {{ 'search.results.retry' | transloco }}
+            </button>
+          </div>
+        } @else if (coursesLoading()) {
+          <div class="search__loading"><app-spinner size="lg" /></div>
+        } @else if (coursesPage(); as page) {
+          @if (!page.items.length) {
+            <p class="search__notice">{{ 'search.results.emptyCourses' | transloco }}</p>
+          } @else {
+            <ul class="search__grid">
+              @for (course of page.items; track course.id) {
+                <li class="search__cell">
+                  <app-public-course-card [course]="course" [link]="courseLink(course.id)" />
+                </li>
+              }
+            </ul>
+          }
+        }
+      </section>
+    } @else {
+      <section
+        role="tabpanel"
+        [id]="uid + '-panel-teachers'"
+        [attr.aria-labelledby]="uid + '-tab-teachers'"
+      >
+        @if (teachersError()) {
+          <div class="search__notice">
+            <p>{{ 'search.results.error' | transloco }}</p>
+            <button type="button" class="btn btn--secondary" (click)="retry()">
+              {{ 'search.results.retry' | transloco }}
+            </button>
+          </div>
+        } @else if (teachersLoading()) {
+          <div class="search__loading"><app-spinner size="lg" /></div>
+        } @else if (teachersPage(); as page) {
+          @if (!page.items.length) {
+            <p class="search__notice">{{ 'search.results.emptyTeachers' | transloco }}</p>
+          } @else {
+            <ul class="search__grid">
+              @for (teacher of page.items; track teacher.id) {
+                <li class="search__teacher-card">
+                  <h2 class="search__teacher-name">{{ teacher.nom_public }}</h2>
+                  @if (teacher.subjects.length) {
+                    <ul class="search__teacher-chips">
+                      @for (subject of teacher.subjects; track subject) {
+                        <li class="search__teacher-chip">{{ subject }}</li>
+                      }
+                    </ul>
+                  }
+                  <p class="search__teacher-count">
+                    {{
+                      'search.teachers.courseCount'
+                        | transloco: { count: teacher.public_course_count }
+                    }}
+                  </p>
+                  <a
+                    class="btn btn--primary search__teacher-open"
+                    [routerLink]="teacherLink(teacher.id)"
+                  >
+                    {{ 'search.teachers.viewCourses' | transloco }}
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        }
+      </section>
+    }
+
+    @if (pagination(); as pager) {
+      <nav class="search__pagination" [attr.aria-label]="'search.pagination.label' | transloco">
+        <button
+          type="button"
+          class="btn btn--secondary"
+          [disabled]="!pager.hasPrev"
+          (click)="goToPage(-1)"
+        >
+          {{ 'search.pagination.prev' | transloco }}
+        </button>
+        <span class="search__pagination-range">
+          {{
+            'search.pagination.range'
+              | transloco: { start: pager.start, end: pager.end, total: pager.total }
+          }}
+        </span>
+        <button
+          type="button"
+          class="btn btn--secondary"
+          [disabled]="!pager.hasNext"
+          (click)="goToPage(1)"
+        >
+          {{ 'search.pagination.next' | transloco }}
+        </button>
+      </nav>
+    }
+  </div>
+</div>

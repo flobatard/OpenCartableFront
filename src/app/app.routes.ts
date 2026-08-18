@@ -133,6 +133,12 @@ export const routes: Routes = [
           ),
       },
       {
+        // Recherche publique (J3) : cours publics et profs opt-in, sans compte
+        // ni guard — l'état (q, onglet, facettes, page) vit dans les query params.
+        path: 'search',
+        loadComponent: () => import('./features/search/search').then((m) => m.Search),
+      },
+      {
         // Réservé au prof authentifié ; jamais rendu authentifié au serveur (cf. authGuard).
         path: 'subjects',
         canActivate: [authGuard, onboardingGuard],

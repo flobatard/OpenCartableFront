@@ -23,6 +23,9 @@ export function buildProfileForm() {
     systeme: new FormControl<string | null>(null),
     // Nom affiché sur les pages publiques (catalogue J2) — optionnel.
     nomPublic: new FormControl('', { nonNullable: true }),
+    // Opt-in recherche publique de profs (J3) — l'onboarding ne l'affiche
+    // pas (défaut false, opt-in réfléchi depuis la page profil).
+    cherchable: new FormControl(false, { nonNullable: true }),
     enseignement: blocGroup(),
     apprentissage: blocGroup(),
   });
@@ -65,6 +68,7 @@ export function patchFormFromProfile(form: ProfileForm, profile: UserProfile): v
   form.controls.estEleve.setValue(profile.est_eleve);
   form.controls.systeme.setValue(profile.systeme_scolaire);
   form.controls.nomPublic.setValue(profile.nom_public ?? '');
+  form.controls.cherchable.setValue(profile.cherchable);
   form.controls.enseignement.setValue({
     educationLevelIds: [...(profile.enseignement?.education_level_ids ?? [])],
     subjectIds: [...(profile.enseignement?.subject_ids ?? [])],
@@ -83,6 +87,7 @@ export function payloadFromForm(form: ProfileForm): OnboardingPayload {
     est_eleve: v.estEleve,
     systeme_scolaire: v.systeme ?? '',
     nom_public: v.nomPublic.trim() || null,
+    cherchable: v.cherchable,
     enseignement: v.estProf
       ? {
           education_level_ids: v.enseignement.educationLevelIds,

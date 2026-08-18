@@ -84,11 +84,16 @@ describe('Header', () => {
     expect(localStorage.getItem('oc-lang')).toBe('en');
   });
 
-  it('masque la nav prof pour les visiteurs', async () => {
+  it('montre « Rechercher » aux visiteurs mais pas « Mes cours »', async () => {
     const fixture = TestBed.createComponent(Header);
     await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
 
-    expect((fixture.nativeElement as HTMLElement).querySelector('.header__nav')).toBeNull();
+    // La nav est publique depuis le J3 : seul « Mes cours » reste réservé.
+    const links = [...el.querySelectorAll<HTMLAnchorElement>('.header__nav-link')];
+    expect(links.map((link) => link.getAttribute('href'))).toEqual(['/fr/search']);
+    expect(links[0].textContent).toContain('Rechercher');
+    expect(el.textContent).not.toContain('Mes cours');
   });
 
   it('affiche le lien « Mes cours » une fois authentifié', async () => {
@@ -97,12 +102,17 @@ describe('Header', () => {
 
     const fixture = TestBed.createComponent(Header);
     await fixture.whenStable();
-    const link = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(
-      '.header__nav-link',
-    );
+    const links = [
+      ...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLAnchorElement>(
+        '.header__nav-link',
+      ),
+    ];
 
-    expect(link?.textContent).toContain('Mes cours');
-    expect(link?.getAttribute('href')).toBe('/fr/courses');
+    expect(links.map((link) => link.getAttribute('href'))).toEqual([
+      '/fr/search',
+      '/fr/courses',
+    ]);
+    expect(links[1].textContent).toContain('Mes cours');
   });
 
   it('affiche le menu utilisateur une fois authentifié', async () => {

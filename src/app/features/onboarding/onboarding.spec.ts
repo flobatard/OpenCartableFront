@@ -221,6 +221,7 @@ describe('Onboarding', () => {
       est_eleve: true,
       systeme_scolaire: 'fr',
       nom_public: null,
+      cherchable: false,
       enseignement: {
         education_level_ids: ['college'],
         subject_ids: ['math-algebre-ev'],

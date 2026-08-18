@@ -44,6 +44,13 @@
           />
           <span class="profile__hint">{{ 'onboarding.nomPublic.hint' | transloco }}</span>
         </label>
+        <!-- Opt-in recherche publique (J3) : le back n'expose le profil que si
+             nom public ET au moins un cours public — le hint l'explique. -->
+        <label class="profile__cherchable">
+          <input type="checkbox" [formControl]="form.controls.cherchable" />
+          <span>{{ 'profile.searchable.label' | transloco }}</span>
+        </label>
+        <span class="profile__hint">{{ 'profile.searchable.hint' | transloco }}</span>
       </fieldset>
 
       <fieldset class="profile__fieldset">

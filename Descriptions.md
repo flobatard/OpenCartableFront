@@ -125,9 +125,10 @@ Pour « agencer texte de cours + documents + images », le modèle gagnant est u
 - Les blocs `module` (modules interactifs HTML/CSS/JS, cf. 5.5) suivent le même motif que les blocs `document` : un **pont nullable** vers un module de la **bibliothèque de modules du cours** (colonne `module_id`, FK `CASCADE` : supprimer le module supprime ses blocs pointeurs).
 - UX côté Angular : page de cours à **quatre onglets Blocs / Ressources / Modules / Aperçu**, éditeur d'ordre des blocs (drag & drop), picker de ressources dans l'éditeur du bloc document, picker de module dans l'éditeur du bloc module, upload direct navigateur→S3 avec progression.
 
-### 5.4 Recherche
-- MVP : **Full-Text Search Postgres** (`tsvector` + index GIN) sur titres de cours, texte des blocs, noms et tags de ressources. Configuration `french` pour le *stemming*.
-- Facettes : matière (filtre par sous-arbre `subjects`), niveau (filtre par sous-arbre `education_levels`, pivot international `cite`), type de ressource (filtres SQL classiques).
+### 5.4 Recherche (J3 — livré)
+- Côté back : **FTS Postgres** en config `french_unaccent` (stemming français + insensibilité aux accents), vecteurs stockés sur cours et blocs maintenus par triggers, **jamais les corrigés d'exercice** (`reponse_attendue`) — détail dans le `Descriptions.md` du back. Endpoints publics sans JWT : `GET /api/v1/public/search/courses` et `/teachers` (enveloppe paginée `{items, total, limit, offset}`), plus les arbres de taxonomie en lecture publique (`/v1/public/subjects/tree`, `/v1/public/education-levels/tree`).
+- Côté front : **page publique `/:lang/search`** (`RenderMode.Client`, sans guard) — barre de recherche débouncée, onglets **Cours | Professeurs** (tablist APG, total affiché), **facettes** matière/niveau en `<select>` natifs alimentés par les arbres publics (sidebar ≥900px, `<details>` repliable en dessous), pagination Précédent/Suivant. Tout l'état (`q`, `tab`, `subject`, `level`, `page`) vit dans les **query params** → URL partageable. Les cartes de cours réutilisent la **carte publique partagée** (`shared/public-course-card`, extraite du catalogue élève) ; une carte prof mène à son catalogue `/p/:profId`.
+- **Règle d'or** : seuls les cours `public` remontent ; un prof ne remonte que s'il a coché l'**opt-in « cherchable »** dans sa page profil ET renseigné un nom public ET publié au moins un cours. Le lien « Rechercher » du header est public (seul « Mes cours » reste conditionné à la session).
 - Évolution : recherche **sémantique** via ChromaDB si la vectorisation est actée (cf. 5.7), combinable avec la FTS (recherche hybride).
 
 ### 5.5 Modules interactifs HTML/CSS/JS (J4 — livré, anticipé)
@@ -192,6 +193,7 @@ erDiagram
       int position
       string type
       jsonb content
+      tsvector search_vector
     }
     RESOURCE {
       uuid id
@@ -221,7 +223,7 @@ erDiagram
 | **J0 — Socle** | Repo, Docker Compose, FastAPI + Postgres + Alembic, validation JWT Zitadel, squelette Angular + login OIDC | Une route protégée qui répond, un login prof qui marche |
 | **J1 — Contenu** | Matières, cours, upload S3 (presigned), éditeur de blocs basique | Le prof crée et remplit un cours |
 | **J2 — Partage** | Liens publics, vue lecture seule élève, présignature des ressources | Un cours consultable par lien |
-| **J3 — Recherche** | FTS Postgres + facettes | Retrouver n'importe quel support |
+| **J3 — Recherche** *(livré)* | Page publique `/search` (onglets Cours / Professeurs, facettes matière/niveau, pagination) sur la FTS Postgres du back | Retrouver n'importe quel support |
 | **J4 — Interactif** *(livré, anticipé avant J2/J3)* | Bibliothèque de modules HTML/CSS/JS par cours (code en base, éditeur intégré) + sandbox iframe origine opaque | Intégrer un quiz dans un cours |
 | **J5 — IA** | extraction texte, vectorisation (ChromaDB, si actée), recherche sémantique / RAG | Première brique IA |
 

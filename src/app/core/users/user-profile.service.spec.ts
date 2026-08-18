@@ -65,6 +65,7 @@ describe('UserProfileService', () => {
       est_eleve: false,
       systeme_scolaire: 'fr',
       nom_public: null,
+      cherchable: false,
       enseignement: { education_level_ids: ['lvl-1'], subject_ids: ['sub-1'] },
       apprentissage: null,
     };

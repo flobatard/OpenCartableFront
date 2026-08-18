@@ -206,6 +206,10 @@ Notifications globales transverses (erreur de connexion, échec d'auth…), empi
 
 Aide contextuelle à la saisie (markdown, formules LaTeX, diagrammes Mermaid) invoquée depuis un champ markdown. Élément `<dialog>` natif (focus-trap, Escape, clic sur le backdrop → fermeture) : en-tête (titre + bouton fermer) puis corps défilant à sections, chacune une table `syntaxe → résultat` (`code` mono sur fond `bg-subtle`) ou un exemple de code. Fond `surface`, `radius-lg`, `shadow-md`, backdrop `slate-900 / 55 %`, largeur `min(640px, 100vw − 32px)`. Composant présentational `shared/markdown-help-dialog/`, ouvert par `shared/markdown-field/`.
 
+### Facettes de recherche
+
+Panneau de filtres de la page de recherche publique (`/search`) : carte `surface` + bordure `border` + `radius-lg`, **sidebar de 280 px** à gauche des résultats à partir de 900 px, **`<details>` natif repliable** en dessous (le `<summary>` — Inter 500, texte principal — disparaît sur desktop, où le panneau est permanent). Chaque facette = un `<select>` **natif** mono-valeur aux mesures des champs (§ Champs : 40 px, bordure `border-control`, radius 8), libellé au-dessus en Inter 500 / 13 px `text-secondary` ; la hiérarchie (matière, niveau) est rendue par **indentation du libellé des options** (espaces insécables, deux par niveau de profondeur). Un bouton fantôme « Réinitialiser les filtres » ferme le panneau. Les résultats reprennent la carte de cours publique (chips badge matière/niveau) et une pagination Précédent / Suivant centrée (« x–y sur total » en Inter 13 `text-secondary`). La page pose `max-width: 1200px` — exception au plafond habituel de 880 px, justifiée par la colonne latérale (précédent : l'éditeur de bloc à 1800 px).
+
 ---
 
 ## 9. Ton & voix

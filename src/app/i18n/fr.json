@@ -10,7 +10,8 @@
     "login": "Se connecter",
     "logout": "Se déconnecter",
     "profile": "Mon profil",
-    "userMenu": "Menu utilisateur"
+    "userMenu": "Menu utilisateur",
+    "search": "Rechercher"
   },
   "footer": {
     "license": "Logiciel libre sous licence GNU AGPL v3",
@@ -65,6 +66,38 @@
     },
     "multiPicker": {
       "remove": "Retirer {{ nom }}"
+    }
+  },
+  "search": {
+    "title": "Rechercher",
+    "placeholder": "Rechercher un cours, un professeur…",
+    "filters": {
+      "title": "Filtres",
+      "subject": "Matière",
+      "level": "Niveau d'étude",
+      "all": "Toutes",
+      "reset": "Réinitialiser les filtres"
+    },
+    "tabs": {
+      "label": "Résultats de recherche",
+      "courses": "Cours",
+      "teachers": "Professeurs"
+    },
+    "results": {
+      "error": "La recherche a échoué. Vérifiez votre connexion.",
+      "retry": "Réessayer",
+      "emptyCourses": "Aucun cours ne correspond à cette recherche.",
+      "emptyTeachers": "Aucun professeur ne correspond à cette recherche."
+    },
+    "teachers": {
+      "courseCount": "{{ count }} cours publics",
+      "viewCourses": "Voir les cours"
+    },
+    "pagination": {
+      "label": "Pagination des résultats",
+      "prev": "Précédent",
+      "next": "Suivant",
+      "range": "{{ start }}–{{ end }} sur {{ total }}"
     }
   },
   "courses": {
@@ -658,7 +691,11 @@
     "learningSection": "Mon apprentissage",
     "save": "Enregistrer",
     "saveSuccess": "Profil enregistré.",
-    "saveError": "L'enregistrement n'a pas abouti. Réessayez."
+    "saveError": "L'enregistrement n'a pas abouti. Réessayez.",
+    "searchable": {
+      "label": "Apparaître dans la recherche publique des professeurs",
+      "hint": "Nécessite un nom public et au moins un cours public."
+    }
   },
   "onboarding": {
     "title": "Bienvenue sur OpenCartable",

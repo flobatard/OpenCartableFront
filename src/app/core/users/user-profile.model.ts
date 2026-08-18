@@ -27,6 +27,12 @@ export interface UserProfile {
    * donnée d'identité montrée aux élèves ; `null` = catalogue anonyme.
    */
   nom_public: string | null;
+  /**
+   * Opt-in à la recherche publique de professeurs (J3). Le flag seul ne
+   * suffit pas à remonter : il faut aussi un `nom_public` et ≥1 cours public
+   * (règle portée par le back).
+   */
+  cherchable: boolean;
   /** `false` tant que l'onboarding bloquant n'a pas été soumis. */
   onboarding_complete: boolean;
   enseignement: ProfilContexte | null;
@@ -40,6 +46,8 @@ export interface OnboardingPayload {
   systeme_scolaire: string;
   /** Optionnel — blanc/absent devient `null` côté back (catalogue anonyme). */
   nom_public: string | null;
+  /** PUT = remplacement complet : un payload sans le champ « décoche ». */
+  cherchable: boolean;
   enseignement: ProfilContexte | null;
   apprentissage: ProfilContexte | null;
 }

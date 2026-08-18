@@ -1,0 +1,19 @@
+<h2 class="public-course-card__title">{{ course().titre }}</h2>
+@if (course().description) {
+  <p class="public-course-card__desc">{{ course().description }}</p>
+}
+@if (course().subjects.length || course().education_levels.length) {
+  <ul class="public-course-card__chips">
+    @for (subject of course().subjects; track subject) {
+      <li class="public-course-card__chip public-course-card__chip--subject">
+        {{ subject }}
+      </li>
+    }
+    @for (level of course().education_levels; track level) {
+      <li class="public-course-card__chip public-course-card__chip--level">{{ level }}</li>
+    }
+  </ul>
+}
+<a class="btn btn--primary public-course-card__open" [routerLink]="link()">
+  {{ 'student.catalog.open' | transloco }}
+</a>

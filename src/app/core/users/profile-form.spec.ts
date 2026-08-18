@@ -15,6 +15,7 @@ const PROFILE: UserProfile = {
   est_eleve: true,
   systeme_scolaire: 'fr',
   nom_public: 'Mme Ada',
+  cherchable: true,
   onboarding_complete: true,
   enseignement: { education_level_ids: ['college'], subject_ids: ['math'] },
   apprentissage: { education_level_ids: ['superieur'], subject_ids: ['francais'] },
@@ -31,6 +32,7 @@ describe('profile-form', () => {
         estEleve: true,
         systeme: 'fr',
         nomPublic: 'Mme Ada',
+        cherchable: true,
         enseignement: { educationLevelIds: ['college'], subjectIds: ['math'] },
         apprentissage: { educationLevelIds: ['superieur'], subjectIds: ['francais'] },
       });
@@ -100,6 +102,7 @@ describe('profile-form', () => {
         est_eleve: true,
         systeme_scolaire: 'fr',
         nom_public: 'Mme Ada',
+        cherchable: true,
         enseignement: { education_level_ids: ['college'], subject_ids: ['math'] },
         apprentissage: { education_level_ids: ['superieur'], subject_ids: ['francais'] },
       });

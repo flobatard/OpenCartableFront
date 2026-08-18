@@ -10,7 +10,8 @@
     "login": "Sign in",
     "logout": "Sign out",
     "profile": "My profile",
-    "userMenu": "User menu"
+    "userMenu": "User menu",
+    "search": "Search"
   },
   "footer": {
     "license": "Free software under the GNU AGPL v3 license",
@@ -65,6 +66,38 @@
     },
     "multiPicker": {
       "remove": "Remove {{ nom }}"
+    }
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search for a course or a teacher…",
+    "filters": {
+      "title": "Filters",
+      "subject": "Subject",
+      "level": "Education level",
+      "all": "All",
+      "reset": "Reset filters"
+    },
+    "tabs": {
+      "label": "Search results",
+      "courses": "Courses",
+      "teachers": "Teachers"
+    },
+    "results": {
+      "error": "The search failed. Check your connection.",
+      "retry": "Retry",
+      "emptyCourses": "No course matches this search.",
+      "emptyTeachers": "No teacher matches this search."
+    },
+    "teachers": {
+      "courseCount": "{{ count }} public courses",
+      "viewCourses": "View courses"
+    },
+    "pagination": {
+      "label": "Results pagination",
+      "prev": "Previous",
+      "next": "Next",
+      "range": "{{ start }}–{{ end }} of {{ total }}"
     }
   },
   "courses": {
@@ -658,7 +691,11 @@
     "learningSection": "My learning",
     "save": "Save",
     "saveSuccess": "Profile saved.",
-    "saveError": "Saving did not complete. Try again."
+    "saveError": "Saving did not complete. Try again.",
+    "searchable": {
+      "label": "Appear in the public teacher search",
+      "hint": "Requires a public name and at least one public course."
+    }
   },
   "onboarding": {
     "title": "Welcome to OpenCartable",

@@ -14,8 +14,17 @@
     />
   </a>
 
-  @if (auth.isAuthenticated()) {
-    <nav class="header__nav" [attr.aria-label]="'header.nav' | transloco">
+  <!-- Nav hors du @if d'authentification : « Rechercher » (J3) est public,
+       seul « Mes cours » reste réservé à la session ouverte. -->
+  <nav class="header__nav" [attr.aria-label]="'header.nav' | transloco">
+    <a
+      class="header__nav-link"
+      [routerLink]="['/', language.lang(), 'search']"
+      routerLinkActive="header__nav-link--active"
+    >
+      {{ 'header.search' | transloco }}
+    </a>
+    @if (auth.isAuthenticated()) {
       <a
         class="header__nav-link"
         [routerLink]="['/', language.lang(), 'courses']"
@@ -23,8 +32,8 @@
       >
         {{ 'header.myCourses' | transloco }}
       </a>
-    </nav>
-  }
+    }
+  </nav>
 
   <div class="header__actions">
     <div class="header__langs" role="group" [attr.aria-label]="'header.language' | transloco">

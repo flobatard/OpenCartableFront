@@ -1,9 +1,10 @@
 import { Component, computed, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { PublicCourseService } from '../../../core/public-courses/public-course.service';
+import { PublicCourseCard } from '../../../shared/public-course-card/public-course-card';
 import { Spinner } from '../../../shared/spinner/spinner';
 
 /**
@@ -16,7 +17,7 @@ import { Spinner } from '../../../shared/spinner/spinner';
  */
 @Component({
   selector: 'app-student-catalog',
-  imports: [TranslocoPipe, RouterLink, Spinner],
+  imports: [TranslocoPipe, PublicCourseCard, Spinner],
   templateUrl: './student-catalog.html',
   styleUrl: './student-catalog.scss',
 })
