@@ -695,6 +695,16 @@
     "searchable": {
       "label": "Apparaître dans la recherche publique des professeurs",
       "hint": "Nécessite un nom public et au moins un cours public."
+    },
+    "avatar": {
+      "legend": "Photo de profil",
+      "hint": "Affichée sur vos pages publiques (recherche, catalogue de cours). Recadrée en carré avant l'envoi.",
+      "add": "Ajouter une photo",
+      "replace": "Remplacer la photo",
+      "remove": "Supprimer la photo",
+      "uploading": "Envoi de la photo…",
+      "removing": "Suppression de la photo…",
+      "uploadError": "L'opération sur la photo a échoué. Réessayez."
     }
   },
   "onboarding": {
@@ -789,5 +799,13 @@
       "clear": "Effacer mes réponses",
       "clearConfirm": "Confirmer l'effacement"
     }
+  },
+  "avatarCrop": {
+    "title": "Recadrer la photo",
+    "dragHint": "Déplacez l'image dans le cadre et ajustez le zoom.",
+    "zoom": "Zoom",
+    "confirm": "Valider",
+    "cancel": "Annuler",
+    "badImage": "Ce fichier n'est pas une image lisible. Choisissez un autre fichier."
   }
 }

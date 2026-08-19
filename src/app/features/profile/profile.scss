@@ -172,3 +172,26 @@
   margin-top: 16px;
   cursor: pointer;
 }
+
+/* Section photo de profil : avatar + contrôles, hors formulaire. */
+.profile__avatar-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.profile__avatar-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile__avatar-controls .profile__hint {
+  margin: 0;
+}
+
+.profile__avatar-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

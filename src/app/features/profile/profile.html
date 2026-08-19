@@ -10,6 +10,64 @@
       {{ 'profile.retry' | transloco }}
     </button>
   } @else {
+    <!-- Photo de profil : flux immédiat (recadrage → upload S3), hors du
+         formulaire et de son cycle « complet ET modifié ». -->
+    <section class="profile__fieldset profile__avatar">
+      <h2 class="profile__legend">{{ 'profile.avatar.legend' | transloco }}</h2>
+      <div class="profile__avatar-row">
+        <app-user-avatar size="lg" [url]="avatarUrl()" />
+        <div class="profile__avatar-controls">
+          <p class="profile__hint">{{ 'profile.avatar.hint' | transloco }}</p>
+          <input
+            type="file"
+            hidden
+            accept="image/*"
+            #avatarInput
+            (change)="onAvatarPick($event)"
+          />
+          <div class="profile__avatar-buttons">
+            <button
+              type="button"
+              class="btn btn--secondary"
+              [disabled]="avatarState().phase !== 'idle' && avatarState().phase !== 'error'"
+              (click)="openAvatarPicker()"
+            >
+              {{ (avatarUrl() ? 'profile.avatar.replace' : 'profile.avatar.add') | transloco }}
+            </button>
+            @if (avatarUrl()) {
+              <button
+                type="button"
+                class="btn btn--ghost"
+                [disabled]="avatarState().phase !== 'idle' && avatarState().phase !== 'error'"
+                (click)="removeAvatar()"
+              >
+                {{ 'profile.avatar.remove' | transloco }}
+              </button>
+            }
+          </div>
+          @if (
+            avatarState().phase === 'presigning' ||
+            avatarState().phase === 'uploading' ||
+            avatarState().phase === 'confirming'
+          ) {
+            <p class="profile__status" aria-live="polite">
+              {{ 'profile.avatar.uploading' | transloco }}
+            </p>
+          } @else if (avatarState().phase === 'deleting') {
+            <p class="profile__status" aria-live="polite">
+              {{ 'profile.avatar.removing' | transloco }}
+            </p>
+          }
+          @if (avatarError()) {
+            <p class="profile__error" aria-live="polite">
+              {{ 'profile.avatar.uploadError' | transloco }}
+            </p>
+          }
+        </div>
+      </div>
+    </section>
+    <app-avatar-crop-dialog #cropDialog (cropped)="onAvatarCropped($event)" />
+
     <form class="profile__form" [formGroup]="form">
       <fieldset class="profile__fieldset">
         <legend class="profile__legend">{{ 'onboarding.roles.legend' | transloco }}</legend>

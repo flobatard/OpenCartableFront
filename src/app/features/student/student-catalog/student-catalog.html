@@ -6,6 +6,7 @@
   </div>
 } @else if (catalog(); as prof) {
   <header class="student-catalog__header">
+    <app-user-avatar size="md" [url]="prof.avatar_url" />
     <h1 class="student-catalog__title">
       @if (prof.nom_public; as nom) {
         {{ 'student.catalog.titleNamed' | transloco: { name: nom } }}

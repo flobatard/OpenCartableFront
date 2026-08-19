@@ -9,6 +9,7 @@
     (click)="toggle()"
     (keydown)="onTriggerKeydown($event)"
   >
+    <app-user-avatar size="sm" [url]="avatarUrl()" />
     <span class="user-menu__name text-small">{{ auth.displayName() }}</span>
     <span class="user-menu__caret" aria-hidden="true">▾</span>
   </button>

@@ -14,6 +14,7 @@ import { PublicSubjectService } from '../../core/subjects/public-subject.service
 import { allIds, visibleRows } from '../../core/subjects/subject.utils';
 import { PublicCourseCard } from '../../shared/public-course-card/public-course-card';
 import { Spinner } from '../../shared/spinner/spinner';
+import { UserAvatar } from '../../shared/user-avatar/user-avatar';
 
 /** Suffixe d'ids ARIA uniques par instance (compteur de module, jamais Date/Random). */
 let sequence = 0;
@@ -51,7 +52,7 @@ function indent(label: string, depth: number): string {
  */
 @Component({
   selector: 'app-search',
-  imports: [TranslocoPipe, ReactiveFormsModule, RouterLink, PublicCourseCard, Spinner],
+  imports: [TranslocoPipe, ReactiveFormsModule, RouterLink, PublicCourseCard, Spinner, UserAvatar],
   templateUrl: './search.html',
   styleUrl: './search.scss',
 })

@@ -1,10 +1,13 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
 import { Profile } from './profile';
 import { EducationLevelService } from '../../core/education-levels/education-level.service';
 import { SubjectService } from '../../core/subjects/subject.service';
-import { UserProfileService } from '../../core/users/user-profile.service';
+import { AvatarState, UserProfileService } from '../../core/users/user-profile.service';
+import { UserProfile } from '../../core/users/user-profile.model';
+import { AvatarCropDialog } from '../../shared/avatar-crop-dialog/avatar-crop-dialog';
 import { EDUCATION_LEVELS_MULTI_SYSTEME_FIXTURE } from '../../testing/education-levels.fixture';
 import { SUBJECTS_FIXTURE } from '../../testing/subjects.fixture';
 import { USER_PROFILE_ALIGNED_FIXTURE } from '../../testing/user-profile.fixture';
@@ -30,6 +33,10 @@ describe('Profile', () => {
 
   let ensureLoaded: ReturnType<typeof vi.fn>;
   let saveProfile: ReturnType<typeof vi.fn>;
+  let uploadAvatar: ReturnType<typeof vi.fn>;
+  let deleteAvatar: ReturnType<typeof vi.fn>;
+  let profileSignal: ReturnType<typeof signal<UserProfile | null>>;
+  let avatarState: ReturnType<typeof signal<AvatarState>>;
 
   async function createComponent(): Promise<ComponentFixture<Profile>> {
     await TestBed.configureTestingModule({
@@ -37,7 +44,17 @@ describe('Profile', () => {
       providers: [
         { provide: EducationLevelService, useValue: levelsMock },
         { provide: SubjectService, useValue: subjectsMock },
-        { provide: UserProfileService, useValue: { ensureLoaded, saveProfile } },
+        {
+          provide: UserProfileService,
+          useValue: {
+            ensureLoaded,
+            saveProfile,
+            uploadAvatar,
+            deleteAvatar,
+            profile: profileSignal.asReadonly(),
+            avatarState: avatarState.asReadonly(),
+          },
+        },
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(Profile);
@@ -79,6 +96,10 @@ describe('Profile', () => {
   beforeEach(() => {
     ensureLoaded = vi.fn().mockResolvedValue(USER_PROFILE_ALIGNED_FIXTURE);
     saveProfile = vi.fn().mockResolvedValue(USER_PROFILE_ALIGNED_FIXTURE);
+    uploadAvatar = vi.fn().mockResolvedValue(USER_PROFILE_ALIGNED_FIXTURE);
+    deleteAvatar = vi.fn().mockResolvedValue(USER_PROFILE_ALIGNED_FIXTURE);
+    profileSignal = signal<UserProfile | null>(USER_PROFILE_ALIGNED_FIXTURE);
+    avatarState = signal<AvatarState>({ phase: 'idle', progress: 0 });
     levelsMock.tree.set(EDUCATION_LEVELS_MULTI_SYSTEME_FIXTURE);
     levelsMock.error.set(false);
     vi.clearAllMocks();
@@ -211,5 +232,84 @@ describe('Profile', () => {
 
     await toggleRole(fixture, 1); // recoche élève
     expect(el(fixture).querySelector('.profile__success')).toBeNull();
+  });
+
+  describe('photo de profil', () => {
+    function avatarInput(fixture: ComponentFixture<Profile>): HTMLInputElement {
+      return el(fixture).querySelector<HTMLInputElement>('.profile__avatar input[type="file"]')!;
+    }
+
+    function pickFile(fixture: ComponentFixture<Profile>): void {
+      const input = avatarInput(fixture);
+      Object.defineProperty(input, 'files', {
+        value: [new File(['x'], 'photo.png', { type: 'image/png' })],
+        configurable: true,
+      });
+      input.dispatchEvent(new Event('change'));
+    }
+
+    it('le choix d’un fichier ouvre la modale de recadrage (jamais d’upload direct)', async () => {
+      const open = vi.spyOn(AvatarCropDialog.prototype, 'open').mockImplementation(() => {});
+      const fixture = await createComponent();
+
+      pickFile(fixture);
+
+      expect(open).toHaveBeenCalledOnce();
+      expect(uploadAvatar).not.toHaveBeenCalled();
+      expect(avatarInput(fixture).value).toBe(''); // vidé : re-choix possible
+    });
+
+    it('le blob recadré déclenche uploadAvatar', async () => {
+      const fixture = await createComponent();
+      const blob = new Blob(['jpg'], { type: 'image/jpeg' });
+
+      fixture.debugElement
+        .query(By.directive(AvatarCropDialog))
+        .componentInstance.cropped.emit(blob);
+      await fixture.whenStable();
+
+      expect(uploadAvatar).toHaveBeenCalledWith(blob);
+    });
+
+    it('« Supprimer la photo » appelle deleteAvatar (visible seulement avec avatar)', async () => {
+      profileSignal.set({ ...USER_PROFILE_ALIGNED_FIXTURE, avatar_url: 'https://s3.test/a.jpg' });
+      const fixture = await createComponent();
+
+      const remove = el(fixture).querySelector<HTMLButtonElement>('.profile__avatar .btn--ghost')!;
+      remove.click();
+      await fixture.whenStable();
+
+      expect(deleteAvatar).toHaveBeenCalledOnce();
+    });
+
+    it('sans avatar : bouton « Ajouter », pas de bouton supprimer', async () => {
+      const fixture = await createComponent();
+      expect(el(fixture).querySelector('.profile__avatar .btn--ghost')).toBeNull();
+      expect(el(fixture).querySelector('.profile__avatar app-user-avatar svg')).not.toBeNull();
+    });
+
+    it('une mutation d’avatar n’active pas le bouton Enregistrer', async () => {
+      const fixture = await createComponent();
+      expect(saveButton(fixture).disabled).toBe(true);
+
+      fixture.debugElement
+        .query(By.directive(AvatarCropDialog))
+        .componentInstance.cropped.emit(new Blob(['jpg']));
+      await fixture.whenStable();
+
+      expect(saveButton(fixture).disabled).toBe(true);
+    });
+
+    it('affiche l’erreur quand l’upload échoue', async () => {
+      uploadAvatar.mockRejectedValue(new Error('down'));
+      const fixture = await createComponent();
+
+      fixture.debugElement
+        .query(By.directive(AvatarCropDialog))
+        .componentInstance.cropped.emit(new Blob(['jpg']));
+      await fixture.whenStable();
+
+      expect(el(fixture).querySelector('.profile__avatar .profile__error')).not.toBeNull();
+    });
   });
 });

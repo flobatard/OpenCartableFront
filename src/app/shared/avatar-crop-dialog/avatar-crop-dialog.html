@@ -1,0 +1,79 @@
+<dialog
+  #dialogEl
+  class="avatar-crop"
+  aria-labelledby="avatar-crop-title"
+  (click)="onBackdropClick($event)"
+  (close)="onClosed()"
+>
+  <div class="avatar-crop__inner">
+    <header class="avatar-crop__head">
+      <h2 id="avatar-crop-title" class="avatar-crop__title">
+        {{ 'avatarCrop.title' | transloco }}
+      </h2>
+      <button
+        type="button"
+        class="avatar-crop__close"
+        [attr.aria-label]="'avatarCrop.cancel' | transloco"
+        (click)="close()"
+      >
+        ×
+      </button>
+    </header>
+
+    <div class="avatar-crop__body">
+      @if (badImage()) {
+        <p class="avatar-crop__error">{{ 'avatarCrop.badImage' | transloco }}</p>
+      } @else {
+        <p class="avatar-crop__hint">{{ 'avatarCrop.dragHint' | transloco }}</p>
+        <div
+          #frameEl
+          class="avatar-crop__frame"
+          (pointerdown)="onPointerDown($event)"
+          (pointermove)="onPointerMove($event)"
+          (pointerup)="onPointerUp($event)"
+          (pointercancel)="onPointerUp($event)"
+        >
+          @if (src(); as source) {
+            <img
+              #imageEl
+              class="avatar-crop__image"
+              [src]="source"
+              alt=""
+              draggable="false"
+              [style.width.px]="natural() ? natural()!.width * scale() : null"
+              [style.transform]="'translate(' + offset().x + 'px, ' + offset().y + 'px)'"
+              (load)="onImageLoad()"
+              (error)="onImageError()"
+            />
+          }
+        </div>
+        <label class="avatar-crop__zoom">
+          <span>{{ 'avatarCrop.zoom' | transloco }}</span>
+          <input
+            type="range"
+            [min]="zoomMin"
+            [max]="zoomMax"
+            step="0.01"
+            [value]="zoom()"
+            [disabled]="!ready()"
+            (input)="onZoomInput($event)"
+          />
+        </label>
+      }
+    </div>
+
+    <footer class="avatar-crop__actions">
+      <button type="button" class="btn btn--secondary" (click)="close()">
+        {{ 'avatarCrop.cancel' | transloco }}
+      </button>
+      <button
+        type="button"
+        class="btn btn--primary"
+        [disabled]="!ready()"
+        (click)="confirm()"
+      >
+        {{ 'avatarCrop.confirm' | transloco }}
+      </button>
+    </footer>
+  </div>
+</dialog>

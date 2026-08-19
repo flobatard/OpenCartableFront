@@ -33,6 +33,12 @@ export interface UserProfile {
    * (règle portée par le back).
    */
   cherchable: boolean;
+  /**
+   * URL présignée (TTL court) de la photo de profil, `null` si aucune.
+   * Re-mintée par le back à chaque lecture/mutation du profil — ne jamais
+   * la persister côté front (elle expire).
+   */
+  avatar_url: string | null;
   /** `false` tant que l'onboarding bloquant n'a pas été soumis. */
   onboarding_complete: boolean;
   enseignement: ProfilContexte | null;
@@ -51,3 +57,19 @@ export interface OnboardingPayload {
   enseignement: ProfilContexte | null;
   apprentissage: ProfilContexte | null;
 }
+
+/** Réponse du `POST /api/v1/users/me/avatar` (motif `ResourcePresign`, réduit). */
+export interface AvatarPresign {
+  upload_url: string;
+  expires_in: number;
+}
+
+/**
+ * Contrat d'upload de l'avatar : la modale de recadrage exporte TOUJOURS un
+ * carré `AVATAR_SIZE` en JPEG (canvas), donc le mime déclaré au presign est
+ * constant. `MAX_AVATAR_BYTES` est le miroir de `AVATAR_MAX_BYTES` du back
+ * (garde défensive : un export canvas 512×512 reste très en dessous).
+ */
+export const AVATAR_MIME = 'image/jpeg';
+export const AVATAR_SIZE = 512;
+export const MAX_AVATAR_BYTES = 5_242_880;

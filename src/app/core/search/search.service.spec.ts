@@ -97,7 +97,7 @@ describe('SearchService', () => {
     service.searchTeachers(query({ q: 'ada' }));
     const req = httpMock.expectOne((r) => r.url === TEACHERS_URL);
     req.flush(
-      page([{ id: 'u1', nom_public: 'Mme Ada', subjects: [], public_course_count: 2 }]),
+      page([{ id: 'u1', nom_public: 'Mme Ada', avatar_url: null, subjects: [], public_course_count: 2 }]),
     );
     expect(service.teachersPage()?.items[0].nom_public).toBe('Mme Ada');
     expect(service.teachersLoading()).toBe(false);

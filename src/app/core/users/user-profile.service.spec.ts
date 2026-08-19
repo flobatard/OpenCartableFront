@@ -93,4 +93,74 @@ describe('UserProfileService', () => {
 
     expect(service.profile()).toBeNull();
   });
+
+  describe('avatar', () => {
+    const blob = () => new Blob(['x'.repeat(10)], { type: 'image/jpeg' });
+
+    it('uploadAvatar enchaîne presign → PUT S3 sans Bearer implicite → confirm', async () => {
+      const updated = { ...USER_PROFILE_FIXTURE, avatar_url: 'https://s3.test/get/a.jpg' };
+      const upload = service.uploadAvatar(blob());
+
+      const presign = httpMock.expectOne(`${url}/avatar`);
+      expect(presign.request.method).toBe('POST');
+      expect(presign.request.body).toEqual({ mime: 'image/jpeg', taille: 10 });
+      presign.flush({ upload_url: 'https://s3.test/put/a.jpg', expires_in: 900 });
+      await Promise.resolve(); // laisse la promesse enchaîner sur le PUT
+
+      const put = httpMock.expectOne('https://s3.test/put/a.jpg');
+      expect(put.request.method).toBe('PUT');
+      // Content-Type strictement le mime déclaré (figé dans la signature S3).
+      expect(put.request.headers.get('Content-Type')).toBe('image/jpeg');
+      expect(service.avatarState().phase).toBe('uploading');
+      put.flush('');
+      await Promise.resolve();
+
+      const confirm = httpMock.expectOne(`${url}/avatar/confirm`);
+      expect(confirm.request.method).toBe('POST');
+      confirm.flush(updated);
+
+      expect(await upload).toEqual(updated);
+      expect(service.profile()).toEqual(updated); // la réponse remplace le signal
+      expect(service.avatarState()).toEqual({ phase: 'idle', progress: 0 });
+    });
+
+    it('rejette localement un blob au-dessus du plafond, sans requête', async () => {
+      const gros = new Blob([new ArrayBuffer(5_242_881)], { type: 'image/jpeg' });
+      await expect(service.uploadAvatar(gros)).rejects.toBeTruthy();
+      expect(service.avatarState().phase).toBe('error');
+      httpMock.verify(); // aucun appel réseau
+    });
+
+    it('passe en erreur si le presign échoue', async () => {
+      const upload = service.uploadAvatar(blob());
+      httpMock.expectOne(`${url}/avatar`).error(new ProgressEvent('network'));
+      await expect(upload).rejects.toBeTruthy();
+      expect(service.avatarState().phase).toBe('error');
+    });
+
+    it('deleteAvatar fait un DELETE et remplace le signal', async () => {
+      const updated = { ...USER_PROFILE_FIXTURE, avatar_url: null };
+      const suppression = service.deleteAvatar();
+      const req = httpMock.expectOne(`${url}/avatar`);
+      expect(req.request.method).toBe('DELETE');
+      req.flush(updated);
+
+      expect(await suppression).toEqual(updated);
+      expect(service.profile()).toEqual(updated);
+      expect(service.avatarState()).toEqual({ phase: 'idle', progress: 0 });
+    });
+
+    it("purge l'état d'avatar quand la session tombe", async () => {
+      const upload = service.uploadAvatar(blob());
+      expect(service.avatarState().phase).toBe('presigning');
+      httpMock.expectOne(`${url}/avatar`).error(new ProgressEvent('network'));
+      await expect(upload).rejects.toBeTruthy();
+      expect(service.avatarState().phase).toBe('error');
+
+      isAuthenticated.set(false);
+      TestBed.tick();
+
+      expect(service.avatarState()).toEqual({ phase: 'idle', progress: 0 });
+    });
+  });
 });

@@ -6,6 +6,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { PublicCourseService } from '../../../core/public-courses/public-course.service';
 import { PublicCourseCard } from '../../../shared/public-course-card/public-course-card';
 import { Spinner } from '../../../shared/spinner/spinner';
+import { UserAvatar } from '../../../shared/user-avatar/user-avatar';
 
 /**
  * Catalogue public d'un prof (`/:lang/p/:profId`, J2) : ses cours `public`
@@ -17,7 +18,7 @@ import { Spinner } from '../../../shared/spinner/spinner';
  */
 @Component({
   selector: 'app-student-catalog',
-  imports: [TranslocoPipe, PublicCourseCard, Spinner],
+  imports: [TranslocoPipe, PublicCourseCard, Spinner, UserAvatar],
   templateUrl: './student-catalog.html',
   styleUrl: './student-catalog.scss',
 })

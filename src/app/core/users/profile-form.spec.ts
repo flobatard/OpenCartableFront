@@ -16,6 +16,7 @@ const PROFILE: UserProfile = {
   systeme_scolaire: 'fr',
   nom_public: 'Mme Ada',
   cherchable: true,
+  avatar_url: null,
   onboarding_complete: true,
   enseignement: { education_level_ids: ['college'], subject_ids: ['math'] },
   apprentissage: { education_level_ids: ['superieur'], subject_ids: ['francais'] },

@@ -142,7 +142,10 @@
             <ul class="search__grid">
               @for (teacher of page.items; track teacher.id) {
                 <li class="search__teacher-card">
-                  <h2 class="search__teacher-name">{{ teacher.nom_public }}</h2>
+                  <div class="search__teacher-head">
+                    <app-user-avatar size="md" [url]="teacher.avatar_url" />
+                    <h2 class="search__teacher-name">{{ teacher.nom_public }}</h2>
+                  </div>
                   @if (teacher.subjects.length) {
                     <ul class="search__teacher-chips">
                       @for (subject of teacher.subjects; track subject) {

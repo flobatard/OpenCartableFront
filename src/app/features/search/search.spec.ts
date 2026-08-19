@@ -21,7 +21,13 @@ const COURSE = {
   updated_at: '2026-07-07T12:00:00Z',
 };
 
-const TEACHER = { id: 'u1', nom_public: 'Mme Ada', subjects: ['Info'], public_course_count: 2 };
+const TEACHER = {
+  id: 'u1',
+  nom_public: 'Mme Ada',
+  avatar_url: null,
+  subjects: ['Info'],
+  public_course_count: 2,
+};
 
 function page<T>(items: T[], total = items.length, offset = 0): SearchPage<T> {
   return { items, total, limit: SEARCH_PAGE_SIZE, offset };
@@ -128,6 +134,8 @@ describe('Search', () => {
       page: 1,
     });
     expect(el.textContent).toContain('Mme Ada');
+    // Avatar sur la carte prof : sans URL, le repli SVG générique s'affiche.
+    expect(el.querySelector('.search__teacher-head app-user-avatar svg')).not.toBeNull();
   });
 
   it('un changement de facette relance la recherche page 1', async () => {

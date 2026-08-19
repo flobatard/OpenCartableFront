@@ -3,6 +3,8 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { Header } from './header';
 import { AuthService } from '../../core/auth/auth.service';
+import { UserProfileService } from '../../core/users/user-profile.service';
+import { UserProfile } from '../../core/users/user-profile.model';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
 
 describe('Header', () => {
@@ -16,6 +18,11 @@ describe('Header', () => {
     login: vi.fn().mockResolvedValue(undefined),
     logout: vi.fn().mockResolvedValue(undefined),
   };
+  // Le user-menu embarqué charge le profil (avatar) : mock minimal fail-open.
+  const profilesMock = {
+    ensureLoaded: vi.fn().mockRejectedValue(new Error('offline')),
+    profile: signal<UserProfile | null>(null).asReadonly(),
+  };
 
   beforeEach(async () => {
     isAuthenticated.set(false);
@@ -26,7 +33,11 @@ describe('Header', () => {
 
     await TestBed.configureTestingModule({
       imports: [Header, provideTranslocoTesting()],
-      providers: [provideRouter([]), { provide: AuthService, useValue: authMock }],
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: authMock },
+        { provide: UserProfileService, useValue: profilesMock },
+      ],
     }).compileComponents();
   });
 

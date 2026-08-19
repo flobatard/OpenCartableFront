@@ -1,16 +1,22 @@
 import {
   afterNextRender,
   Component,
+  computed,
   ElementRef,
   inject,
   Injector,
+  OnInit,
+  PLATFORM_ID,
   signal,
   viewChild,
 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
 import { LanguageService } from '../../core/i18n/language.service';
+import { UserProfileService } from '../../core/users/user-profile.service';
+import { UserAvatar } from '../../shared/user-avatar/user-avatar';
 
 /** Compteur d'instances : id ARIA unique si plusieurs menus coexistaient. */
 let menuUid = 0;
@@ -24,13 +30,15 @@ let menuUid = 0;
  */
 @Component({
   selector: 'app-user-menu',
-  imports: [RouterLink, TranslocoPipe],
+  imports: [RouterLink, TranslocoPipe, UserAvatar],
   templateUrl: './user-menu.html',
   styleUrl: './user-menu.scss',
 })
-export class UserMenu {
+export class UserMenu implements OnInit {
   readonly #host = inject<ElementRef<HTMLElement>>(ElementRef);
   readonly #injector = inject(Injector);
+  readonly #profiles = inject(UserProfileService);
+  readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   protected readonly auth = inject(AuthService);
   protected readonly language = inject(LanguageService);
@@ -39,6 +47,18 @@ export class UserMenu {
 
   protected readonly open = signal(false);
   protected readonly menuId = `user-menu-${menuUid++}-panel`;
+
+  /** Avatar du profil applicatif (le nom, lui, vient du claim OIDC). */
+  protected readonly avatarUrl = computed(() => this.#profiles.profile()?.avatar_url ?? null);
+
+  ngOnInit(): void {
+    // Le composant n'est monté que sous `@if (auth.isAuthenticated())` :
+    // ensureLoaded est idempotent (GET partagé avec guards/callback) et
+    // fail-open — sans profil, le repli SVG de l'avatar suffit.
+    if (this.#isBrowser) {
+      this.#profiles.ensureLoaded().catch(() => {});
+    }
+  }
 
   protected toggle(): void {
     this.open() ? this.closeMenu() : this.open.set(true);

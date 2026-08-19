@@ -17,6 +17,8 @@ export type SearchCourseResult = PublicCourseSummary;
 export interface SearchTeacherResult {
   id: string;
   nom_public: string;
+  /** URL présignée (TTL court) de la photo de profil, `null` si aucune. */
+  avatar_url: string | null;
   /** Matières que le prof déclare enseigner — noms dénormalisés, triés. */
   subjects: string[];
   public_course_count: number;

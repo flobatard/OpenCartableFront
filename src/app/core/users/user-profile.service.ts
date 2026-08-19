@@ -1,9 +1,25 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpEventType, HttpHeaders } from '@angular/common/http';
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../auth/auth.service';
-import { OnboardingPayload, UserProfile } from './user-profile.model';
+import {
+  AVATAR_MIME,
+  AvatarPresign,
+  MAX_AVATAR_BYTES,
+  OnboardingPayload,
+  UserProfile,
+} from './user-profile.model';
+
+/**
+ * Phases de la mutation d'avatar en cours (une seule à la fois) : `progress`
+ * n'est significatif que pendant `uploading` (motif `UploadState` des
+ * ressources).
+ */
+export interface AvatarState {
+  phase: 'idle' | 'presigning' | 'uploading' | 'confirming' | 'deleting' | 'error';
+  progress: number;
+}
 
 /**
  * Profil de l'utilisateur courant — variante MUTABLE du patron `SubjectService` :
@@ -30,11 +46,15 @@ export class UserProfileService {
 
   readonly onboardingComplete = computed(() => this.#profile()?.onboarding_complete ?? false);
 
+  readonly #avatarState = signal<AvatarState>({ phase: 'idle', progress: 0 });
+  readonly avatarState = this.#avatarState.asReadonly();
+
   constructor() {
     effect(() => {
       if (!this.#auth.isAuthenticated()) {
         this.#profile.set(null);
         this.#inflight = undefined;
+        this.#avatarState.set({ phase: 'idle', progress: 0 });
       }
     });
   }
@@ -79,5 +99,89 @@ export class UserProfileService {
     this.#profile.set(null);
     this.#inflight = undefined;
     return this.ensureLoaded();
+  }
+
+  /**
+   * Upload de la photo de profil : presign → PUT direct navigateur→S3
+   * (hors `apiUrl`, donc SANS Bearer — voulu ; `Content-Type` strictement
+   * le mime déclaré, figé dans la signature) → confirm, dont la réponse
+   * (profil complet, `avatar_url` posée) remplace le signal — motif
+   * `saveProfile`, hors du cycle dirty du formulaire profil. Le blob vient
+   * de la modale de recadrage : toujours un carré JPEG.
+   */
+  async uploadAvatar(blob: Blob): Promise<UserProfile> {
+    if (blob.size > MAX_AVATAR_BYTES) {
+      // Garde défensive locale : aucun appel réseau pour un export hors gabarit.
+      this.#avatarState.set({ phase: 'error', progress: 0 });
+      throw new Error('avatar too large');
+    }
+    this.#avatarState.set({ phase: 'presigning', progress: 0 });
+    try {
+      const presign = await firstValueFrom(
+        this.#http.post<AvatarPresign>(`${this.#url}/avatar`, {
+          mime: AVATAR_MIME,
+          taille: blob.size,
+        }),
+      );
+
+      this.#avatarState.set({ phase: 'uploading', progress: 0 });
+      await this.#putToS3(presign.upload_url, blob);
+
+      this.#avatarState.set({ phase: 'confirming', progress: 100 });
+      const profile = await firstValueFrom(
+        this.#http.post<UserProfile>(`${this.#url}/avatar/confirm`, null),
+      );
+      this.#profile.set(profile);
+      this.#avatarState.set({ phase: 'idle', progress: 0 });
+      return profile;
+    } catch (error) {
+      this.#avatarState.set({ phase: 'error', progress: 0 });
+      throw error;
+    }
+  }
+
+  /** Supprime la photo de profil ; la réponse remplace le signal. */
+  async deleteAvatar(): Promise<UserProfile> {
+    this.#avatarState.set({ phase: 'deleting', progress: 0 });
+    try {
+      const profile = await firstValueFrom(
+        this.#http.delete<UserProfile>(`${this.#url}/avatar`),
+      );
+      this.#profile.set(profile);
+      this.#avatarState.set({ phase: 'idle', progress: 0 });
+      return profile;
+    } catch (error) {
+      this.#avatarState.set({ phase: 'error', progress: 0 });
+      throw error;
+    }
+  }
+
+  /**
+   * PUT du blob sur l'URL présignée, progression relayée dans `avatarState`.
+   * Duplication assumée du `#putToS3` de `ResourceService` : on ne couple
+   * pas les deux services pour si peu (motif `subject.utils`).
+   */
+  #putToS3(uploadUrl: string, blob: Blob): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.#http
+        .put(uploadUrl, blob, {
+          headers: new HttpHeaders({ 'Content-Type': AVATAR_MIME }),
+          reportProgress: true,
+          observe: 'events',
+          responseType: 'text',
+        })
+        .subscribe({
+          next: (event) => {
+            if (event.type === HttpEventType.UploadProgress && event.total) {
+              this.#avatarState.set({
+                phase: 'uploading',
+                progress: Math.round((event.loaded / event.total) * 100),
+              });
+            }
+          },
+          error: reject,
+          complete: () => resolve(),
+        });
+    });
   }
 }

@@ -4,6 +4,9 @@ import { provideRouter, Router } from '@angular/router';
 import { vi } from 'vitest';
 import { UserMenu } from './user-menu';
 import { AuthService } from '../../core/auth/auth.service';
+import { UserProfileService } from '../../core/users/user-profile.service';
+import { UserProfile } from '../../core/users/user-profile.model';
+import { USER_PROFILE_ONBOARDED_FIXTURE } from '../../testing/user-profile.fixture';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
 
 describe('UserMenu', () => {
@@ -13,11 +16,20 @@ describe('UserMenu', () => {
     displayName,
     logout: vi.fn().mockResolvedValue(undefined),
   };
+  const profileSignal = signal<UserProfile | null>(null);
+  let ensureLoaded: ReturnType<typeof vi.fn>;
 
   async function createComponent(): Promise<ComponentFixture<UserMenu>> {
     await TestBed.configureTestingModule({
       imports: [UserMenu, provideTranslocoTesting()],
-      providers: [provideRouter([]), { provide: AuthService, useValue: authMock }],
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: authMock },
+        {
+          provide: UserProfileService,
+          useValue: { ensureLoaded, profile: profileSignal.asReadonly() },
+        },
+      ],
     }).compileComponents();
     vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
     const fixture = TestBed.createComponent(UserMenu);
@@ -44,6 +56,8 @@ describe('UserMenu', () => {
 
   beforeEach(() => {
     displayName.set('Prof');
+    profileSignal.set(null);
+    ensureLoaded = vi.fn().mockResolvedValue(USER_PROFILE_ONBOARDED_FIXTURE);
     vi.clearAllMocks();
   });
 
@@ -53,6 +67,33 @@ describe('UserMenu', () => {
     expect(trigger(fixture).textContent).toContain('Prof');
     expect(trigger(fixture).getAttribute('aria-expanded')).toBe('false');
     expect(el(fixture).querySelector('[role="menu"]')).toBeNull();
+  });
+
+  it("charge le profil (fail-open) et affiche l'avatar dans le déclencheur", async () => {
+    const fixture = await createComponent();
+
+    // Sans profil chargé : repli SVG générique, et le GET partagé est parti.
+    expect(ensureLoaded).toHaveBeenCalledOnce();
+    expect(trigger(fixture).querySelector('app-user-avatar svg')).not.toBeNull();
+
+    profileSignal.set({
+      ...USER_PROFILE_ONBOARDED_FIXTURE,
+      avatar_url: 'https://s3.test/avatar.jpg',
+    });
+    await fixture.whenStable();
+
+    expect(
+      trigger(fixture).querySelector<HTMLImageElement>('app-user-avatar img')?.getAttribute('src'),
+    ).toBe('https://s3.test/avatar.jpg');
+  });
+
+  it("reste fonctionnel si le chargement du profil échoue", async () => {
+    ensureLoaded = vi.fn().mockRejectedValue(new Error('down'));
+    const fixture = await createComponent();
+    await openMenu(fixture);
+
+    expect(items(fixture).length).toBe(2); // le menu vit sans profil
+    expect(trigger(fixture).querySelector('app-user-avatar svg')).not.toBeNull();
   });
 
   it('le clic ouvre le menu avec « Mon profil » et « Se déconnecter »', async () => {

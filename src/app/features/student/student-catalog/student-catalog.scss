@@ -5,7 +5,11 @@
   padding: 24px;
 }
 
+/* Avatar du prof (ou icône générique) à gauche du titre. */
 .student-catalog__header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   margin-bottom: 24px;
 }
 

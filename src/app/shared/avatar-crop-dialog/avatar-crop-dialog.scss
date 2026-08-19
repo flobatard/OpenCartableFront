@@ -1,0 +1,139 @@
+/* Modale de recadrage d'avatar (élément <dialog> natif) — motif .res-picker. */
+
+.avatar-crop {
+  width: min(420px, calc(100vw - 32px));
+  max-height: calc(100dvh - 64px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.avatar-crop::backdrop {
+  background: rgb(15 23 42 / 55%);
+}
+
+.avatar-crop__inner {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 64px);
+}
+
+.avatar-crop__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.avatar-crop__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+.avatar-crop__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.avatar-crop__close:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.avatar-crop__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  overflow-y: auto;
+}
+
+.avatar-crop__hint {
+  margin: 0;
+  align-self: flex-start;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.avatar-crop__error {
+  margin: 0;
+  padding: 24px 0;
+  color: var(--text-danger);
+  text-align: center;
+}
+
+/* Cadre carré de recadrage : l'image le couvre toujours (géométrie clampée),
+   le rond n'est qu'un guide visuel — l'export reste carré. */
+.avatar-crop__frame {
+  position: relative;
+  width: min(320px, 100%);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  cursor: grab;
+  touch-action: none; /* le drag au doigt ne doit pas scroller la page */
+}
+
+.avatar-crop__frame:active {
+  cursor: grabbing;
+}
+
+/* Guide rond au-dessus de l'image, non interactif. */
+.avatar-crop__frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 0 999px rgb(15 23 42 / 35%);
+  pointer-events: none;
+}
+
+.avatar-crop__image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: none; /* la largeur vient de la géométrie, pas du conteneur */
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.avatar-crop__zoom {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(320px, 100%);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.avatar-crop__zoom input {
+  flex: 1;
+}
+
+.avatar-crop__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--border);
+}

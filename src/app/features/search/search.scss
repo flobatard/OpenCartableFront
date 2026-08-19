@@ -148,6 +148,13 @@
   border-radius: var(--radius-lg);
 }
 
+/* En-tête de carte : avatar (ou icône générique) + nom côte à côte. */
+.search__teacher-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .search__teacher-name {
   margin: 0;
   font-size: 1.1rem;

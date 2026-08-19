@@ -1,4 +1,13 @@
-import { Component, computed, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  OnInit,
+  PLATFORM_ID,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -12,8 +21,10 @@ import {
   wireProfileFormCoherence,
 } from '../../core/users/profile-form';
 import { UserProfileService } from '../../core/users/user-profile.service';
+import { AvatarCropDialog } from '../../shared/avatar-crop-dialog/avatar-crop-dialog';
 import { EducationLevelPicker } from '../../shared/education-level-picker/education-level-picker';
 import { SubjectMultiPicker } from '../../shared/subject-multi-picker/subject-multi-picker';
+import { UserAvatar } from '../../shared/user-avatar/user-avatar';
 
 /**
  * Consultation et édition du profil saisi à l'onboarding — mêmes sections,
@@ -26,7 +37,14 @@ import { SubjectMultiPicker } from '../../shared/subject-multi-picker/subject-mu
  */
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, TranslocoPipe, EducationLevelPicker, SubjectMultiPicker],
+  imports: [
+    ReactiveFormsModule,
+    TranslocoPipe,
+    AvatarCropDialog,
+    EducationLevelPicker,
+    SubjectMultiPicker,
+    UserAvatar,
+  ],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })
@@ -47,6 +65,16 @@ export class Profile implements OnInit {
   protected readonly saving = signal(false);
   protected readonly saveSuccess = signal(false);
   protected readonly saveError = signal(false);
+
+  /* Photo de profil — flux à effet IMMÉDIAT (presign/PUT S3/confirm via le
+     service), volontairement HORS du formulaire et de son cycle
+     dirty/#savedPayload : le payload du PUT profil ne porte pas l'avatar. */
+  protected readonly avatarUrl = computed(() => this.#profiles.profile()?.avatar_url ?? null);
+  protected readonly avatarState = this.#profiles.avatarState;
+  protected readonly avatarError = signal(false);
+
+  protected readonly avatarInput = viewChild<ElementRef<HTMLInputElement>>('avatarInput');
+  protected readonly cropDialog = viewChild<AvatarCropDialog>('cropDialog');
 
   /** Snapshot JSON du dernier payload persisté (chargé ou sauvegardé). */
   readonly #savedPayload = signal<string | null>(null);
@@ -105,6 +133,48 @@ export class Profile implements OnInit {
     const key = `onboarding.systems.${code}`;
     const label = this.#transloco.translate(key);
     return label === key ? code : label;
+  }
+
+  /** Ouvre le sélecteur de fichier de la photo de profil. */
+  protected openAvatarPicker(): void {
+    this.avatarInput()?.nativeElement.click();
+  }
+
+  /**
+   * Fichier choisi → modale de recadrage. L'input est vidé aussitôt pour
+   * permettre de re-choisir le même fichier (motif course-resources) ; le
+   * type est laissé au navigateur (`accept`) et au décodage de la modale
+   * (échec → message badImage) : l'export canvas re-encode en JPEG de toute
+   * façon.
+   */
+  protected onAvatarPick(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) {
+      return;
+    }
+    this.avatarError.set(false);
+    this.cropDialog()?.open(file);
+  }
+
+  /** Blob carré exporté par la modale → upload immédiat (presign/S3/confirm). */
+  protected async onAvatarCropped(blob: Blob): Promise<void> {
+    this.avatarError.set(false);
+    try {
+      await this.#profiles.uploadAvatar(blob);
+    } catch {
+      this.avatarError.set(true);
+    }
+  }
+
+  protected async removeAvatar(): Promise<void> {
+    this.avatarError.set(false);
+    try {
+      await this.#profiles.deleteAvatar();
+    } catch {
+      this.avatarError.set(true);
+    }
   }
 
   protected async save(): Promise<void> {

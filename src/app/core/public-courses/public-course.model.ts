@@ -51,5 +51,7 @@ export interface PublicCourseDetail extends PublicCourseSummary {
 /** Catalogue public d'un prof (`nom_public` null = catalogue anonyme). */
 export interface PublicProfessor {
   nom_public: string | null;
+  /** URL présignée (TTL court) de la photo de profil, `null` si aucune. */
+  avatar_url: string | null;
   courses: PublicCourseSummary[];
 }
