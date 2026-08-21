@@ -1,0 +1,32 @@
+{
+  "title": "Rechercher",
+  "placeholder": "Rechercher un cours, un professeur…",
+  "filters": {
+    "title": "Filtres",
+    "subject": "Matière",
+    "level": "Niveau d'étude",
+    "all": "Toutes",
+    "reset": "Réinitialiser les filtres"
+  },
+  "tabs": {
+    "label": "Résultats de recherche",
+    "courses": "Cours",
+    "teachers": "Professeurs"
+  },
+  "results": {
+    "error": "La recherche a échoué. Vérifiez votre connexion.",
+    "retry": "Réessayer",
+    "emptyCourses": "Aucun cours ne correspond à cette recherche.",
+    "emptyTeachers": "Aucun professeur ne correspond à cette recherche."
+  },
+  "teachers": {
+    "courseCount": "{{ count }} cours publics",
+    "viewCourses": "Voir les cours"
+  },
+  "pagination": {
+    "label": "Pagination des résultats",
+    "prev": "Précédent",
+    "next": "Suivant",
+    "range": "{{ start }}–{{ end }} sur {{ total }}"
+  }
+}

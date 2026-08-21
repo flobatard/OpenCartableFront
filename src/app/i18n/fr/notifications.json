@@ -1,0 +1,5 @@
+{
+  "dismiss": "Fermer la notification",
+  "loginError": "La connexion a échoué. Réessayez.",
+  "connectionError": "Service d'authentification injoignable. Vérifiez votre connexion."
+}

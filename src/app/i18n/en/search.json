@@ -1,0 +1,32 @@
+{
+  "title": "Search",
+  "placeholder": "Search for a course or a teacher…",
+  "filters": {
+    "title": "Filters",
+    "subject": "Subject",
+    "level": "Education level",
+    "all": "All",
+    "reset": "Reset filters"
+  },
+  "tabs": {
+    "label": "Search results",
+    "courses": "Courses",
+    "teachers": "Teachers"
+  },
+  "results": {
+    "error": "The search failed. Check your connection.",
+    "retry": "Retry",
+    "emptyCourses": "No course matches this search.",
+    "emptyTeachers": "No teacher matches this search."
+  },
+  "teachers": {
+    "courseCount": "{{ count }} public courses",
+    "viewCourses": "View courses"
+  },
+  "pagination": {
+    "label": "Results pagination",
+    "prev": "Previous",
+    "next": "Next",
+    "range": "{{ start }}–{{ end }} of {{ total }}"
+  }
+}

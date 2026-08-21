@@ -1,0 +1,55 @@
+{
+  "trigger": "Aide à la mise en forme",
+  "title": "Aide à la mise en forme",
+  "close": "Fermer",
+  "intro": "L'éditeur combine trois langages : le markdown pour le texte, LaTeX pour les formules et Mermaid pour les diagrammes.",
+  "colSyntax": "Syntaxe",
+  "colResult": "Résultat",
+  "markdown": {
+    "title": "Markdown",
+    "heading": "Titres, du plus grand au plus petit",
+    "bold": "Gras",
+    "italic": "Italique",
+    "list": "Liste à puces",
+    "orderedList": "Liste numérotée",
+    "link": "Lien",
+    "image": "Image",
+    "quote": "Citation",
+    "code": "Code en ligne",
+    "rule": "Séparateur horizontal",
+    "table": "Tableau : une ligne d'en-tête, une ligne de séparation, puis les lignes de données.",
+    "resourceNote": "Pour insérer un fichier de la bibliothèque (image, audio, vidéo, document), utilisez le bouton « Insérer une ressource » sous l'éditeur : le lien reste valide dans le temps, contrairement à une URL collée à la main."
+  },
+  "latex": {
+    "title": "Formules (LaTeX)",
+    "intro": "Rendues par KaTeX. Une formule invalide s'affiche en rouge sans bloquer le reste du bloc.",
+    "inline": "Formule en ligne, dans le fil du texte",
+    "block": "Formule centrée, sur sa propre ligne",
+    "fraction": "Fraction",
+    "power": "Exposant et indice",
+    "sqrt": "Racine",
+    "sum": "Somme et intégrale",
+    "greek": "Lettres grecques",
+    "docs": "Voir toutes les fonctions prises en charge"
+  },
+  "mermaid": {
+    "title": "Diagrammes (Mermaid)",
+    "intro": "Décris un diagramme dans un bloc de code marqué « mermaid » ; il est rendu automatiquement dans l'aperçu.",
+    "types": "Mermaid gère aussi les diagrammes de séquence, les diagrammes de Gantt, les camemberts et bien d'autres.",
+    "mathNote": "Le LaTeX (`$…$`) n'est pas rendu à l'intérieur des nœuds Mermaid : placez vos formules dans le texte, autour du diagramme.",
+    "docs": "Voir la documentation de Mermaid"
+  },
+  "fullDocs": "Documentation complète",
+  "geogebra": {
+    "title": "Activités GeoGebra",
+    "intro": "Intègre une activité publiée sur geogebra.org : indiquez son identifiant dans un bloc de code « geogebra »."
+  },
+  "jsxgraph": {
+    "title": "Figures dynamiques (JSXGraph)",
+    "intro": "Trace courbes et points interactifs à partir d'équations, dans un bloc de code « jsxgraph »."
+  },
+  "tikz": {
+    "title": "Figures (TikZ)",
+    "intro": "Dessine des schémas vectoriels précis en LaTeX/TikZ dans un bloc de code « tikz » ; la figure est compilée dans le navigateur."
+  }
+}

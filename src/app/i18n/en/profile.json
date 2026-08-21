@@ -1,0 +1,26 @@
+{
+  "title": "My profile",
+  "intro": "Your roles, school system and subjects — editable at any time.",
+  "loading": "Loading your profile…",
+  "loadError": "Could not load your profile. Check your connection.",
+  "retry": "Retry",
+  "teachingSection": "My teaching",
+  "learningSection": "My learning",
+  "save": "Save",
+  "saveSuccess": "Profile saved.",
+  "saveError": "Saving did not complete. Try again.",
+  "searchable": {
+    "label": "Appear in the public teacher search",
+    "hint": "Requires a public name and at least one public course."
+  },
+  "avatar": {
+    "legend": "Profile photo",
+    "hint": "Shown on your public pages (search, course catalog). Cropped to a square before upload.",
+    "add": "Add a photo",
+    "replace": "Replace the photo",
+    "remove": "Remove the photo",
+    "uploading": "Uploading the photo…",
+    "removing": "Removing the photo…",
+    "uploadError": "The photo operation failed. Try again."
+  }
+}

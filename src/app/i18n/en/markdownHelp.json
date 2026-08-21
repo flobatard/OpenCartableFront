@@ -1,0 +1,55 @@
+{
+  "trigger": "Formatting help",
+  "title": "Formatting help",
+  "close": "Close",
+  "intro": "The editor combines three languages: Markdown for text, LaTeX for formulas and Mermaid for diagrams.",
+  "colSyntax": "Syntax",
+  "colResult": "Result",
+  "markdown": {
+    "title": "Markdown",
+    "heading": "Headings, from largest to smallest",
+    "bold": "Bold",
+    "italic": "Italic",
+    "list": "Bulleted list",
+    "orderedList": "Numbered list",
+    "link": "Link",
+    "image": "Image",
+    "quote": "Quote",
+    "code": "Inline code",
+    "rule": "Horizontal separator",
+    "table": "Table: a header row, a separator row, then the data rows.",
+    "resourceNote": "To insert a library file (image, audio, video, document), use the “Insert a resource” button below the editor: the link stays valid over time, unlike a URL pasted by hand."
+  },
+  "latex": {
+    "title": "Formulas (LaTeX)",
+    "intro": "Rendered by KaTeX. An invalid formula shows in red without breaking the rest of the block.",
+    "inline": "Inline formula, within the text",
+    "block": "Centered formula, on its own line",
+    "fraction": "Fraction",
+    "power": "Superscript and subscript",
+    "sqrt": "Root",
+    "sum": "Sum and integral",
+    "greek": "Greek letters",
+    "docs": "See all supported functions"
+  },
+  "mermaid": {
+    "title": "Diagrams (Mermaid)",
+    "intro": "Describe a diagram in a code block tagged “mermaid”; it is rendered automatically in the preview.",
+    "types": "Mermaid also supports sequence diagrams, Gantt charts, pie charts and many more.",
+    "mathNote": "LaTeX (`$…$`) is not rendered inside Mermaid nodes: put your formulas in the text, around the diagram.",
+    "docs": "See the Mermaid documentation"
+  },
+  "fullDocs": "Full documentation",
+  "geogebra": {
+    "title": "GeoGebra activities",
+    "intro": "Embeds an activity published on geogebra.org: provide its identifier in a “geogebra” code block."
+  },
+  "jsxgraph": {
+    "title": "Dynamic figures (JSXGraph)",
+    "intro": "Plots interactive curves and points from equations, in a “jsxgraph” code block."
+  },
+  "tikz": {
+    "title": "Figures (TikZ)",
+    "intro": "Draws precise vector diagrams in LaTeX/TikZ inside a “tikz” code block; the figure is compiled in the browser."
+  }
+}

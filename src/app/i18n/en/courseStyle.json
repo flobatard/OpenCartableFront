@@ -1,0 +1,14 @@
+{
+  "trigger": "Reading style",
+  "title": "Reading style",
+  "close": "Close",
+  "reset": "Reset",
+  "fontSize": "Text size",
+  "headingSize": "Heading size",
+  "lineHeight": "Line spacing",
+  "width": "Reading width",
+  "paragraphGap": "Paragraph spacing",
+  "font": "Font",
+  "fontSans": "Sans-serif",
+  "fontSerif": "Serif"
+}

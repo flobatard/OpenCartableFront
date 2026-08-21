@@ -1,0 +1,33 @@
+{
+  "course": {
+    "notFound": "This link is no longer valid or the course is not available.",
+    "empty": "This course has no content yet.",
+    "downloadPdf": "Download the PDF",
+    "solveExercise": "Solve the exercise",
+    "backToCourse": "Back to the course"
+  },
+  "catalog": {
+    "title": "Public courses",
+    "titleNamed": "Courses by {{ name }}",
+    "open": "Open the course",
+    "empty": "No public courses yet.",
+    "error": "This catalogue is not available."
+  },
+  "resource": {
+    "opening": "Opening the resource…",
+    "notFound": "This link is no longer valid or the resource is not available.",
+    "unavailable": "This resource is not available yet."
+  },
+  "exercise": {
+    "title": "Exercise",
+    "question": "Question {{ number }}",
+    "yourAnswer": "Your answer",
+    "markDone": "Mark as done",
+    "edit": "Edit",
+    "done": "Done",
+    "savedHint": "Your answers are saved on this device.",
+    "storageUnavailable": "Your answers cannot be saved on this device (storage unavailable). You can still work, but they will be lost when you leave the page.",
+    "clear": "Clear my answers",
+    "clearConfirm": "Confirm clearing"
+  }
+}

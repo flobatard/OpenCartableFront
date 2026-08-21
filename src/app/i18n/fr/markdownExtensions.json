@@ -1,0 +1,17 @@
+{
+  "printFallback": "Contenu interactif : voir la version en ligne.",
+  "geogebra": {
+    "title": "Activité GeoGebra interactive",
+    "invalidConfig": "Configuration GeoGebra invalide : renseigner id=<identifiant du matériel>."
+  },
+  "jsxgraph": {
+    "label": "Figure mathématique interactive",
+    "loadError": "La figure n'a pas pu être tracée."
+  },
+  "tikz": {
+    "label": "Figure TikZ",
+    "loading": "Compilation de la figure…",
+    "loadError": "Le compilateur TikZ n'a pas pu être chargé.",
+    "texError": "Code TikZ invalide : la figure n'a pas pu être compilée."
+  }
+}

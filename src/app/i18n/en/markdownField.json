@@ -1,0 +1,13 @@
+{
+  "tabs": {
+    "label": "Editing modes",
+    "editor": "Editor",
+    "preview": "Preview"
+  },
+  "previewEmpty": "Nothing to show yet — write some markdown in the editor.",
+  "mermaidMathNote": "LaTeX formulas are not rendered inside Mermaid nodes; place them in the text, around the diagram.",
+  "mermaidError": "Invalid Mermaid diagram:",
+  "insertResource": "Insert a resource",
+  "insertModule": "Insert a module",
+  "resourceMissing": "Resource unavailable"
+}

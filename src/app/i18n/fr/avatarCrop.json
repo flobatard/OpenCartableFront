@@ -1,0 +1,8 @@
+{
+  "title": "Recadrer la photo",
+  "dragHint": "Déplacez l'image dans le cadre et ajustez le zoom.",
+  "zoom": "Zoom",
+  "confirm": "Valider",
+  "cancel": "Annuler",
+  "badImage": "Ce fichier n'est pas une image lisible. Choisissez un autre fichier."
+}

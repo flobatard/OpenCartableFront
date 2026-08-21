@@ -88,7 +88,7 @@ Après tout changement touchant SSR/i18n/prerender, vérifier que `dist/OpenCart
 - Le loader (`src/app/core/i18n/transloco-loader.ts`) passe par des `import()` dynamiques de JSON, **pas** par HTTP : au prerender il n'y a aucun serveur pour répondre à une URL relative.
 - Un `provideAppInitializer` dans `app.config.ts` précharge la langue active avant le premier rendu — sans lui, le HTML prerendered sort avec des chaînes vides.
 - La langue persistée de l'utilisateur est restaurée **après** l'hydratation (`afterNextRender` dans `App`) : la restaurer plus tôt fait diverger le premier rendu client du DOM serveur (erreur NG0500).
-- Traductions dans `src/app/i18n/{fr,en}.json` — garder les deux fichiers symétriques.
+- Traductions dans `src/app/i18n/{fr,en}/` — un JSON par clé racine (`courses.json`, `docs.json`…) réassemblés en objet plat par le barrel `index.ts` de chaque langue (un seul `import()` du barrel = un seul chunk lazy par langue). Garder les deux arborescences symétriques — gardé par le spec `src/app/i18n/i18n-parity.spec.ts` ; ajouter un domaine = un fichier par langue + une ligne dans chaque barrel.
 
 **Thème clair/sombre** : attribut `data-theme="dark"` sur `<html>`, posé avant le premier paint par le script inline d'`index.html` (anti-FOUC). `ThemeService` **lit** cet attribut au bootstrap au lieu de recalculer — préserver ce contrat. Les swaps visuels dépendant du thème (ex. logo) se font en CSS sur `[data-theme]`, jamais par binding (mismatch d'hydratation).
 

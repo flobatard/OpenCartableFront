@@ -2,13 +2,15 @@ import { Injectable } from '@angular/core';
 import { Translation, TranslocoLoader } from '@jsverse/transloco';
 
 /**
- * Loader par import() dynamique : les JSON sont bundlés (chunks lazy) dans les
- * builds navigateur ET serveur. Contrairement au loader HTTP, il fonctionne au
- * prerender, où aucun serveur ne peut répondre à une URL relative.
+ * Loader par import() dynamique : les traductions sont bundlées (chunks lazy)
+ * dans les builds navigateur ET serveur. Contrairement au loader HTTP, il
+ * fonctionne au prerender, où aucun serveur ne peut répondre à une URL relative.
+ * Chaque langue est un dossier de JSON par domaine réassemblés par son barrel
+ * index.ts — un seul import() donc un seul chunk par langue.
  */
 const LOADERS: Record<string, () => Promise<Translation>> = {
-  fr: () => import('../../i18n/fr.json').then((m) => m.default),
-  en: () => import('../../i18n/en.json').then((m) => m.default),
+  fr: () => import('../../i18n/fr').then((m) => m.default),
+  en: () => import('../../i18n/en').then((m) => m.default),
 };
 
 @Injectable({ providedIn: 'root' })

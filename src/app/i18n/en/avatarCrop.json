@@ -1,0 +1,8 @@
+{
+  "title": "Crop the photo",
+  "dragHint": "Drag the image inside the frame and adjust the zoom.",
+  "zoom": "Zoom",
+  "confirm": "Confirm",
+  "cancel": "Cancel",
+  "badImage": "This file is not a readable image. Pick another file."
+}

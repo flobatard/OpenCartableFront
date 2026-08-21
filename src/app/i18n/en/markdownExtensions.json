@@ -1,0 +1,17 @@
+{
+  "printFallback": "Interactive content: see the online version.",
+  "geogebra": {
+    "title": "Interactive GeoGebra activity",
+    "invalidConfig": "Invalid GeoGebra configuration: provide id=<material id>."
+  },
+  "jsxgraph": {
+    "label": "Interactive mathematical figure",
+    "loadError": "The figure could not be drawn."
+  },
+  "tikz": {
+    "label": "TikZ figure",
+    "loading": "Compiling the figure…",
+    "loadError": "The TikZ compiler could not be loaded.",
+    "texError": "Invalid TikZ code: the figure could not be compiled."
+  }
+}

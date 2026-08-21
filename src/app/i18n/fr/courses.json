@@ -1,0 +1,272 @@
+{
+  "list": {
+    "title": "Mes cours",
+    "create": "Créer un cours",
+    "import": "Importer un cours",
+    "loading": "Chargement de vos cours…",
+    "error": "Impossible de charger vos cours. Vérifiez votre connexion.",
+    "retry": "Réessayer",
+    "empty": "Compose ton premier cours",
+    "emptyHint": "Crée un cours puis ajoute-lui du texte, des exercices et des documents.",
+    "blockCount": "{{ count }} bloc(s)",
+    "updated": "Modifié le {{ date }}"
+  },
+  "import": {
+    "title": "Importer un cours",
+    "hint": "Choisissez une archive .zip produite par « Exporter » : le cours sera recréé à l'identique (blocs, ressources, modules).",
+    "choose": "Choisir une archive (.zip)",
+    "close": "Fermer",
+    "cancel": "Annuler",
+    "submit": "Importer",
+    "uploading": "Envoi de l'archive…",
+    "processing": "Traitement de l'archive…",
+    "tooBig": "L'archive dépasse la taille maximale (500 Mo).",
+    "invalid": "Cette archive n'est pas un export de cours valide.",
+    "storageError": "Le stockage est indisponible. Réessayez plus tard.",
+    "error": "L'import a échoué. Réessayez.",
+    "success": "Cours importé."
+  },
+  "create": {
+    "title": "Créer un cours",
+    "titleLabel": "Titre",
+    "titlePlaceholder": "Ex. Suites numériques",
+    "descriptionLabel": "Description",
+    "descriptionHint": "Optionnelle — courte présentation du cours.",
+    "subjectsLabel": "Matières",
+    "levelsLabel": "Niveaux",
+    "submit": "Créer le cours",
+    "cancel": "Annuler",
+    "error": "La création n'a pas abouti. Réessayez."
+  },
+  "blocks": {
+    "back": "Mes cours",
+    "loading": "Chargement du cours…",
+    "loadError": "Impossible de charger le cours. Vérifiez votre connexion.",
+    "retry": "Réessayer",
+    "empty": "Ajoute ton premier bloc",
+    "emptyHint": "Choisis un type de bloc ci-dessous pour commencer.",
+    "add": "Ajouter un bloc",
+    "types": {
+      "texte": "Texte",
+      "exercice": "Exercice",
+      "document": "Document",
+      "module": "Module interactif"
+    },
+    "edit": "Modifier",
+    "editAria": "Modifier le bloc {{ position }}",
+    "moveUp": "Monter le bloc {{ position }}",
+    "moveDown": "Descendre le bloc {{ position }}",
+    "dragHandle": "Réordonner le bloc {{ position }}",
+    "delete": "Supprimer",
+    "confirmDelete": "Confirmer la suppression",
+    "export": "Exporter",
+    "exporting": "Export…",
+    "exportError": "L'export du cours a échoué. Réessayez.",
+    "deleteCourse": "Supprimer ce cours",
+    "confirmDeleteCourse": "Confirmer la suppression du cours",
+    "untitled": "Bloc sans titre",
+    "mutationError": "L'opération n'a pas abouti. Réessayez.",
+    "createDialog": {
+      "title": "Nouveau bloc {{ type }}",
+      "submit": "Créer",
+      "cancel": "Annuler",
+      "close": "Fermer"
+    }
+  },
+  "editor": {
+    "back": "Retour au cours",
+    "loading": "Chargement du cours…",
+    "loadError": "Impossible de charger le cours. Vérifiez votre connexion.",
+    "retry": "Réessayer",
+    "notFound": "Ce bloc n'existe pas ou a été supprimé.",
+    "unsupported": "L'éditeur de contenu de ce type de bloc arrive bientôt — son titre et sa description sont déjà modifiables ci-dessus.",
+    "titreLabel": "Titre",
+    "titrePlaceholder": "Titre du bloc (facultatif)",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Courte description (facultatif)",
+    "saveMeta": "Enregistrer",
+    "metaSaved": "Enregistré",
+    "metaError": "Échec de l'enregistrement",
+    "resize": "Redimensionner l'éditeur et l'assistant",
+    "toggleChat": "Assistant",
+    "showChat": "Afficher l'assistant",
+    "save": {
+      "dirty": "Modifications non enregistrées",
+      "saving": "Enregistrement…",
+      "saved": "Enregistré",
+      "error": "Échec de l'enregistrement — nouvelle tentative à la prochaine modification"
+    },
+    "exercise": {
+      "tabsLabel": "Sections de l'exercice",
+      "sujetLabel": "Sujet",
+      "sujetHint": "Énoncé général de l'exercice, visible par les élèves.",
+      "questionsTitle": "Questions",
+      "apercuLabel": "Aperçu complet",
+      "apercuEmpty": "Rien à prévisualiser pour le moment.",
+      "question": "Question {{index}}",
+      "empty": "Aucune question pour l'instant.",
+      "add": "Ajouter une question",
+      "enonceLabel": "Énoncé",
+      "reponseLabel": "Réponse attendue",
+      "reponsePlaceholder": "Réponse de référence (facultatif)",
+      "reponseHint": "Corrigé visible uniquement par vous — jamais montré aux élèves.",
+      "moveUp": "Monter la question {{index}}",
+      "moveDown": "Descendre la question {{index}}",
+      "dragHandle": "Réordonner la question {{index}}",
+      "expand": "Déplier la question {{index}}",
+      "collapse": "Replier la question {{index}}",
+      "remove": "Supprimer la question {{index}}",
+      "removeLabel": "Supprimer",
+      "removeConfirm": "Confirmer la suppression"
+    },
+    "document": {
+      "resourceLabel": "Ressource du cours",
+      "noResource": "Aucune ressource",
+      "resourcesEmpty": "Aucune ressource disponible — ajoute d'abord un fichier dans l'onglet Ressources du cours.",
+      "resourceError": "Le choix de la ressource n'a pas pu être enregistré. Réessaie.",
+      "legendeLabel": "Légende",
+      "legendePlaceholder": "Courte légende affichée avec le document (facultatif)",
+      "affichageLabel": "Affichage",
+      "affichageInline": "Intégré au cours",
+      "affichageTelechargement": "En téléchargement",
+      "previewLabel": "Aperçu"
+    },
+    "module": {
+      "moduleLabel": "Module affiché par ce bloc",
+      "noModule": "Aucun module",
+      "modulesEmpty": "Aucun module dans ce cours : créez-en un dans l’onglet Modules.",
+      "editModule": "Modifier ce module",
+      "moduleError": "Impossible d’enregistrer le choix du module. Réessayez."
+    }
+  },
+  "tabs": {
+    "label": "Sections du cours",
+    "blocks": "Blocs",
+    "resources": "Ressources",
+    "modules": "Modules",
+    "preview": "Aperçu",
+    "share": "Partage"
+  },
+  "preview": {
+    "empty": "Ce cours ne contient encore aucun bloc.",
+    "documentMissing": "Ressource introuvable (supprimée ?).",
+    "download": "Télécharger",
+    "openInTab": "Ouvrir dans un onglet",
+    "downloadError": "Le téléchargement n'a pas abouti. Réessayez.",
+    "downloadPdf": "Télécharger en PDF",
+    "pdfMediaNote": "Média disponible en ligne :"
+  },
+  "resources": {
+    "loading": "Chargement des ressources…",
+    "loadError": "Impossible de charger les ressources. Vérifiez votre connexion.",
+    "retry": "Réessayer",
+    "empty": "Ajoute ta première ressource",
+    "emptyHint": "Les fichiers du cours (PDF, images, audio, vidéo) vivent ici, indépendamment des blocs.",
+    "upload": "Ajouter un fichier",
+    "uploading": "Envoi du fichier…",
+    "uploadError": "L'envoi n'a pas abouti. Réessayez.",
+    "rename": "Renommer",
+    "renameLabel": "Nouveau nom du fichier",
+    "renameSave": "Enregistrer",
+    "renameCancel": "Annuler",
+    "view": "Voir",
+    "download": "Télécharger",
+    "delete": "Supprimer",
+    "confirmDelete": "Confirmer la suppression",
+    "mutationError": "L'opération n'a pas abouti. Réessayez.",
+    "statut": {
+      "en_attente": "En attente d'envoi",
+      "disponible": "Disponible"
+    },
+    "types": {
+      "document": "Document",
+      "pdf": "PDF",
+      "image": "Image",
+      "audio": "Audio",
+      "video": "Vidéo"
+    }
+  },
+  "modules": {
+    "create": "Créer un module",
+    "createLabel": "Titre du nouveau module",
+    "createPlaceholder": "Titre du module (ex. Quiz sur les suites)",
+    "loading": "Chargement des modules…",
+    "loadError": "Impossible de charger les modules du cours.",
+    "retry": "Réessayer",
+    "empty": "Aucun module pour l’instant",
+    "emptyHint": "Créez un module interactif (HTML, CSS, JS) : il pourra être affiché dans un bloc module ou inséré dans un bloc texte.",
+    "badge": "interactif",
+    "edit": "Modifier",
+    "rename": "Renommer",
+    "renameLabel": "Nouveau titre du module",
+    "renameSave": "Enregistrer",
+    "renameCancel": "Annuler",
+    "delete": "Supprimer",
+    "confirmDelete": "Confirmer la suppression ?",
+    "mutationError": "L’opération a échoué. Réessayez."
+  },
+  "moduleEditor": {
+    "back": "Retour au cours",
+    "loadError": "Impossible de charger ce module.",
+    "retry": "Réessayer",
+    "preview": "Aperçu du module",
+    "tabs": {
+      "label": "Code du module",
+      "html": "HTML",
+      "css": "CSS",
+      "js": "JS"
+    },
+    "save": {
+      "dirty": "Modifications non enregistrées…",
+      "saving": "Enregistrement…",
+      "saved": "Enregistré",
+      "error": "Échec de l’enregistrement — nouvelle tentative à la prochaine modification."
+    }
+  },
+  "resourceView": {
+    "opening": "Ouverture de la ressource…",
+    "notFound": "Ressource introuvable (supprimée ?).",
+    "unavailable": "Ressource indisponible : son envoi n'a pas été finalisé.",
+    "error": "L'ouverture de la ressource n'a pas abouti. Réessayez.",
+    "backToCourse": "Retour au cours"
+  },
+  "share": {
+    "badge": {
+      "public": "Public",
+      "prive": "Partagé par lien",
+      "en_cours": "Brouillon"
+    },
+    "visibility": {
+      "legend": "Qui peut consulter ce cours ?",
+      "en_cours": "En cours de rédaction",
+      "en_coursHint": "Personne d'autre que vous. Les liens de partage existants sont suspendus.",
+      "prive": "Partagé par lien",
+      "priveHint": "Uniquement les élèves qui ont un lien de partage valide (9 mois).",
+      "public": "Public",
+      "publicHint": "Accessible à tous par son adresse et listé dans votre catalogue public.",
+      "error": "Le changement de visibilité n'a pas abouti. Réessayez."
+    },
+    "catalogHint": "Votre catalogue public :",
+    "libraryNotice": "Tous les fichiers de la bibliothèque de ce cours (onglet Ressources) deviennent consultables et téléchargeables par les élèves, y compris ceux qui ne sont utilisés dans aucun bloc.",
+    "copy": "Copier le lien",
+    "copied": "Lien copié dans le presse-papiers.",
+    "copyError": "La copie du lien n'a pas abouti.",
+    "links": {
+      "title": "Liens de partage",
+      "hint": "Créez un lien par classe ou par groupe : chacun se révoque séparément. Un lien expire au bout de 9 mois.",
+      "libellePlaceholder": "Libellé (facultatif) — ex. 6eB 2026",
+      "create": "Créer un lien",
+      "createError": "La création du lien n'a pas abouti. Réessayez.",
+      "loading": "Chargement des liens…",
+      "loadError": "Les liens n'ont pas pu être chargés.",
+      "retry": "Réessayer",
+      "empty": "Aucun lien de partage pour le moment.",
+      "expires": "Expire le {{ date }}",
+      "expired": "Expiré",
+      "revoked": "Révoqué",
+      "revoke": "Révoquer",
+      "revokeConfirm": "Confirmer la révocation",
+      "revokeError": "La révocation n'a pas abouti. Réessayez."
+    }
+  }
+}

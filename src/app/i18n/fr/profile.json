@@ -1,0 +1,26 @@
+{
+  "title": "Mon profil",
+  "intro": "Vos rôles, votre système scolaire et vos matières — modifiables à tout moment.",
+  "loading": "Chargement de votre profil…",
+  "loadError": "Impossible de charger votre profil. Vérifiez votre connexion.",
+  "retry": "Réessayer",
+  "teachingSection": "Mon enseignement",
+  "learningSection": "Mon apprentissage",
+  "save": "Enregistrer",
+  "saveSuccess": "Profil enregistré.",
+  "saveError": "L'enregistrement n'a pas abouti. Réessayez.",
+  "searchable": {
+    "label": "Apparaître dans la recherche publique des professeurs",
+    "hint": "Nécessite un nom public et au moins un cours public."
+  },
+  "avatar": {
+    "legend": "Photo de profil",
+    "hint": "Affichée sur vos pages publiques (recherche, catalogue de cours). Recadrée en carré avant l'envoi.",
+    "add": "Ajouter une photo",
+    "replace": "Remplacer la photo",
+    "remove": "Supprimer la photo",
+    "uploading": "Envoi de la photo…",
+    "removing": "Suppression de la photo…",
+    "uploadError": "L'opération sur la photo a échoué. Réessayez."
+  }
+}

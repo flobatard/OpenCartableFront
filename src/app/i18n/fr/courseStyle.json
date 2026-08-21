@@ -1,0 +1,14 @@
+{
+  "trigger": "Style de lecture",
+  "title": "Style de lecture",
+  "close": "Fermer",
+  "reset": "Réinitialiser",
+  "fontSize": "Taille du texte",
+  "headingSize": "Taille des titres",
+  "lineHeight": "Interligne",
+  "width": "Largeur de lecture",
+  "paragraphGap": "Espacement des paragraphes",
+  "font": "Police",
+  "fontSans": "Sans empattement",
+  "fontSerif": "Avec empattement"
+}

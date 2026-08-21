@@ -1,0 +1,272 @@
+{
+  "list": {
+    "title": "My courses",
+    "create": "Create a course",
+    "import": "Import a course",
+    "loading": "Loading your courses…",
+    "error": "Could not load your courses. Check your connection.",
+    "retry": "Retry",
+    "empty": "Compose your first course",
+    "emptyHint": "Create a course, then add text, exercises and documents to it.",
+    "blockCount": "{{ count }} block(s)",
+    "updated": "Updated on {{ date }}"
+  },
+  "import": {
+    "title": "Import a course",
+    "hint": "Pick a .zip archive produced by “Export”: the course will be recreated identically (blocks, resources, modules).",
+    "choose": "Choose an archive (.zip)",
+    "close": "Close",
+    "cancel": "Cancel",
+    "submit": "Import",
+    "uploading": "Uploading archive…",
+    "processing": "Processing archive…",
+    "tooBig": "The archive exceeds the maximum size (500 MB).",
+    "invalid": "This archive is not a valid course export.",
+    "storageError": "Storage is unavailable. Try again later.",
+    "error": "Import failed. Try again.",
+    "success": "Course imported."
+  },
+  "create": {
+    "title": "Create a course",
+    "titleLabel": "Title",
+    "titlePlaceholder": "E.g. Number sequences",
+    "descriptionLabel": "Description",
+    "descriptionHint": "Optional — a short introduction to the course.",
+    "subjectsLabel": "Subjects",
+    "levelsLabel": "Levels",
+    "submit": "Create the course",
+    "cancel": "Cancel",
+    "error": "Creation did not complete. Try again."
+  },
+  "blocks": {
+    "back": "My courses",
+    "loading": "Loading the course…",
+    "loadError": "Could not load the course. Check your connection.",
+    "retry": "Retry",
+    "empty": "Add your first block",
+    "emptyHint": "Pick a block type below to get started.",
+    "add": "Add a block",
+    "types": {
+      "texte": "Text",
+      "exercice": "Exercise",
+      "document": "Document",
+      "module": "Interactive module"
+    },
+    "edit": "Edit",
+    "editAria": "Edit block {{ position }}",
+    "moveUp": "Move block {{ position }} up",
+    "moveDown": "Move block {{ position }} down",
+    "dragHandle": "Reorder block {{ position }}",
+    "delete": "Delete",
+    "confirmDelete": "Confirm deletion",
+    "export": "Export",
+    "exporting": "Exporting…",
+    "exportError": "Course export failed. Try again.",
+    "deleteCourse": "Delete this course",
+    "confirmDeleteCourse": "Confirm course deletion",
+    "untitled": "Untitled block",
+    "mutationError": "The operation did not complete. Try again.",
+    "createDialog": {
+      "title": "New {{ type }} block",
+      "submit": "Create",
+      "cancel": "Cancel",
+      "close": "Close"
+    }
+  },
+  "editor": {
+    "back": "Back to course",
+    "loading": "Loading the course…",
+    "loadError": "Could not load the course. Check your connection.",
+    "retry": "Retry",
+    "notFound": "This block does not exist or has been deleted.",
+    "unsupported": "The content editor for this block type is coming soon — its title and description are already editable above.",
+    "titreLabel": "Title",
+    "titrePlaceholder": "Block title (optional)",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Short description (optional)",
+    "saveMeta": "Save",
+    "metaSaved": "Saved",
+    "metaError": "Save failed",
+    "resize": "Resize the editor and assistant",
+    "toggleChat": "Assistant",
+    "showChat": "Show assistant",
+    "save": {
+      "dirty": "Unsaved changes",
+      "saving": "Saving…",
+      "saved": "Saved",
+      "error": "Saving failed — will retry on your next change"
+    },
+    "exercise": {
+      "tabsLabel": "Exercise sections",
+      "sujetLabel": "Subject",
+      "sujetHint": "General instructions for the exercise, visible to students.",
+      "questionsTitle": "Questions",
+      "apercuLabel": "Full preview",
+      "apercuEmpty": "Nothing to preview yet.",
+      "question": "Question {{index}}",
+      "empty": "No questions yet.",
+      "add": "Add a question",
+      "enonceLabel": "Prompt",
+      "reponseLabel": "Expected answer",
+      "reponsePlaceholder": "Reference answer (optional)",
+      "reponseHint": "Answer key visible only to you — never shown to students.",
+      "moveUp": "Move question {{index}} up",
+      "moveDown": "Move question {{index}} down",
+      "dragHandle": "Reorder question {{index}}",
+      "expand": "Expand question {{index}}",
+      "collapse": "Collapse question {{index}}",
+      "remove": "Delete question {{index}}",
+      "removeLabel": "Delete",
+      "removeConfirm": "Confirm deletion"
+    },
+    "document": {
+      "resourceLabel": "Course resource",
+      "noResource": "No resource",
+      "resourcesEmpty": "No resource available — upload a file in the course's Resources tab first.",
+      "resourceError": "The resource selection could not be saved. Try again.",
+      "legendeLabel": "Caption",
+      "legendePlaceholder": "Short caption shown with the document (optional)",
+      "affichageLabel": "Display",
+      "affichageInline": "Inline in the course",
+      "affichageTelechargement": "As a download",
+      "previewLabel": "Preview"
+    },
+    "module": {
+      "moduleLabel": "Module shown by this block",
+      "noModule": "No module",
+      "modulesEmpty": "No modules in this course yet: create one in the Modules tab.",
+      "editModule": "Edit this module",
+      "moduleError": "Could not save the module choice. Try again."
+    }
+  },
+  "tabs": {
+    "label": "Course sections",
+    "blocks": "Blocks",
+    "resources": "Resources",
+    "modules": "Modules",
+    "preview": "Preview",
+    "share": "Sharing"
+  },
+  "preview": {
+    "empty": "This course has no blocks yet.",
+    "documentMissing": "Resource not found (deleted?).",
+    "download": "Download",
+    "openInTab": "Open in a new tab",
+    "downloadError": "Download failed. Try again.",
+    "downloadPdf": "Download as PDF",
+    "pdfMediaNote": "Media available online:"
+  },
+  "resources": {
+    "loading": "Loading resources…",
+    "loadError": "Could not load the resources. Check your connection.",
+    "retry": "Retry",
+    "empty": "Add your first resource",
+    "emptyHint": "The course files (PDF, images, audio, video) live here, independently of the blocks.",
+    "upload": "Add a file",
+    "uploading": "Uploading the file…",
+    "uploadError": "The upload did not complete. Try again.",
+    "rename": "Rename",
+    "renameLabel": "New file name",
+    "renameSave": "Save",
+    "renameCancel": "Cancel",
+    "view": "View",
+    "download": "Download",
+    "delete": "Delete",
+    "confirmDelete": "Confirm deletion",
+    "mutationError": "The operation did not complete. Try again.",
+    "statut": {
+      "en_attente": "Awaiting upload",
+      "disponible": "Available"
+    },
+    "types": {
+      "document": "Document",
+      "pdf": "PDF",
+      "image": "Image",
+      "audio": "Audio",
+      "video": "Video"
+    }
+  },
+  "modules": {
+    "create": "Create a module",
+    "createLabel": "Title of the new module",
+    "createPlaceholder": "Module title (e.g. Sequences quiz)",
+    "loading": "Loading modules…",
+    "loadError": "Could not load the course modules.",
+    "retry": "Retry",
+    "empty": "No modules yet",
+    "emptyHint": "Create an interactive module (HTML, CSS, JS): it can be shown in a module block or inserted into a text block.",
+    "badge": "interactive",
+    "edit": "Edit",
+    "rename": "Rename",
+    "renameLabel": "New module title",
+    "renameSave": "Save",
+    "renameCancel": "Cancel",
+    "delete": "Delete",
+    "confirmDelete": "Confirm deletion?",
+    "mutationError": "The operation failed. Try again."
+  },
+  "moduleEditor": {
+    "back": "Back to course",
+    "loadError": "Could not load this module.",
+    "retry": "Retry",
+    "preview": "Module preview",
+    "tabs": {
+      "label": "Module code",
+      "html": "HTML",
+      "css": "CSS",
+      "js": "JS"
+    },
+    "save": {
+      "dirty": "Unsaved changes…",
+      "saving": "Saving…",
+      "saved": "Saved",
+      "error": "Save failed — will retry on the next change."
+    }
+  },
+  "resourceView": {
+    "opening": "Opening the resource…",
+    "notFound": "Resource not found (deleted?).",
+    "unavailable": "Resource unavailable: its upload was never completed.",
+    "error": "Opening the resource failed. Try again.",
+    "backToCourse": "Back to the course"
+  },
+  "share": {
+    "badge": {
+      "public": "Public",
+      "prive": "Shared by link",
+      "en_cours": "Draft"
+    },
+    "visibility": {
+      "legend": "Who can view this course?",
+      "en_cours": "Draft",
+      "en_coursHint": "Nobody but you. Existing share links are suspended.",
+      "prive": "Shared by link",
+      "priveHint": "Only students with a valid share link (9 months).",
+      "public": "Public",
+      "publicHint": "Available to anyone with its address and listed in your public catalogue.",
+      "error": "The visibility change did not go through. Try again."
+    },
+    "catalogHint": "Your public catalogue:",
+    "libraryNotice": "Every file in this course's library (Resources tab) becomes viewable and downloadable by students, including files not used in any block.",
+    "copy": "Copy the link",
+    "copied": "Link copied to the clipboard.",
+    "copyError": "Copying the link did not go through.",
+    "links": {
+      "title": "Share links",
+      "hint": "Create one link per class or group: each can be revoked separately. A link expires after 9 months.",
+      "libellePlaceholder": "Label (optional) — e.g. 6B 2026",
+      "create": "Create a link",
+      "createError": "Creating the link did not go through. Try again.",
+      "loading": "Loading links…",
+      "loadError": "The links could not be loaded.",
+      "retry": "Retry",
+      "empty": "No share links yet.",
+      "expires": "Expires on {{ date }}",
+      "expired": "Expired",
+      "revoked": "Revoked",
+      "revoke": "Revoke",
+      "revokeConfirm": "Confirm revocation",
+      "revokeError": "The revocation did not go through. Try again."
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "title": "Assistant",
+  "soon": "Soon",
+  "emptyTitle": "The assistant is coming soon",
+  "emptyHint": "It will soon help you write and enrich this course.",
+  "inputPlaceholder": "Ask a question about this course…",
+  "send": "Send",
+  "collapse": "Collapse the assistant"
+}

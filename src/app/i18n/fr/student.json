@@ -1,0 +1,33 @@
+{
+  "course": {
+    "notFound": "Ce lien n'est plus valide ou le cours n'est pas disponible.",
+    "empty": "Ce cours ne contient pas encore de contenu.",
+    "downloadPdf": "Télécharger le PDF",
+    "solveExercise": "Résoudre l'exercice",
+    "backToCourse": "Retour au cours"
+  },
+  "catalog": {
+    "title": "Cours publics",
+    "titleNamed": "Les cours de {{ name }}",
+    "open": "Ouvrir le cours",
+    "empty": "Aucun cours public pour le moment.",
+    "error": "Ce catalogue n'est pas disponible."
+  },
+  "resource": {
+    "opening": "Ouverture de la ressource…",
+    "notFound": "Ce lien n'est plus valide ou la ressource n'est pas disponible.",
+    "unavailable": "Cette ressource n'est pas encore disponible."
+  },
+  "exercise": {
+    "title": "Exercice",
+    "question": "Question {{ number }}",
+    "yourAnswer": "Votre réponse",
+    "markDone": "Marquer comme terminé",
+    "edit": "Modifier",
+    "done": "Terminé",
+    "savedHint": "Vos réponses sont enregistrées sur cet appareil.",
+    "storageUnavailable": "Vos réponses ne peuvent pas être enregistrées sur cet appareil (stockage indisponible). Vous pouvez quand même travailler, mais elles seront perdues en quittant la page.",
+    "clear": "Effacer mes réponses",
+    "clearConfirm": "Confirmer l'effacement"
+  }
+}

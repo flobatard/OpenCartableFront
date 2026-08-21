@@ -1,0 +1,7 @@
+{
+  "badge": "interactive",
+  "frameTitle": "Interactive module",
+  "none": "No module selected for this block.",
+  "missing": "Module unavailable (deleted or not found).",
+  "printFallback": "Interactive module: available in the online course."
+}

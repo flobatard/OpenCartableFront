@@ -1,0 +1,5 @@
+{
+  "dismiss": "Dismiss notification",
+  "loginError": "Sign-in failed. Please try again.",
+  "connectionError": "Authentication service unreachable. Check your connection."
+}

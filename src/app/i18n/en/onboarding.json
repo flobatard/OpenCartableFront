@@ -1,0 +1,51 @@
+{
+  "title": "Welcome to OpenCartable",
+  "intro": "A few questions to build your profile — it only takes two minutes.",
+  "steps": {
+    "roles": "Your roles",
+    "systeme": "School system",
+    "levelsTaught": "Levels taught",
+    "subjectsTaught": "Subjects taught",
+    "levelsLearned": "Levels studied",
+    "subjectsLearned": "Subjects studied"
+  },
+  "roles": {
+    "legend": "What brings you here?",
+    "hint": "You can tick both answers.",
+    "prof": "I teach",
+    "profHint": "I compose courses and share them with my students.",
+    "eleve": "I learn",
+    "eleveHint": "I follow courses and browse resources."
+  },
+  "systeme": {
+    "legend": "In which school system?",
+    "loading": "Loading school systems…",
+    "error": "Could not load school systems. Check your connection."
+  },
+  "systems": {
+    "fr": "France",
+    "de": "Germany",
+    "uk": "United Kingdom",
+    "es": "Spain",
+    "it": "Italy",
+    "be": "Belgium",
+    "ch": "Switzerland",
+    "nl": "Netherlands",
+    "pt": "Portugal",
+    "us": "United States",
+    "ca": "Canada",
+    "ca-qc": "Canada (Quebec)"
+  },
+  "back": "Back",
+  "next": "Next",
+  "submit": "Finish",
+  "loading": "Loading your profile…",
+  "loadError": "Could not load your profile. Check your connection.",
+  "submitError": "Saving did not complete. Try again.",
+  "retry": "Retry",
+  "nomPublic": {
+    "label": "Public name (optional)",
+    "placeholder": "e.g. Ms. Smith",
+    "hint": "Shown to students on your public course catalogue. Leave empty to stay anonymous."
+  }
+}

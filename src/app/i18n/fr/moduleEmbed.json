@@ -1,0 +1,7 @@
+{
+  "badge": "interactif",
+  "frameTitle": "Module interactif",
+  "none": "Aucun module choisi pour ce bloc.",
+  "missing": "Module indisponible (supprimé ou introuvable).",
+  "printFallback": "Module interactif : à retrouver dans le cours en ligne."
+}
