@@ -25,10 +25,10 @@
       <a
         class="user-menu__item"
         role="menuitem"
-        [routerLink]="['/', language.lang(), 'profile']"
+        [routerLink]="['/', language.lang(), 'settings']"
         (click)="closeMenu()"
       >
-        {{ 'header.profile' | transloco }}
+        {{ 'header.settings' | transloco }}
       </a>
       <button type="button" class="user-menu__item" role="menuitem" (click)="logout()">
         {{ 'header.logout' | transloco }}

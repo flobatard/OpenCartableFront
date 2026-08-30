@@ -1,0 +1,108 @@
+<section class="ai-settings">
+  <h2 class="ai-settings__title">{{ 'settings.ai.title' | transloco }}</h2>
+  <p class="ai-settings__intro">{{ 'settings.ai.intro' | transloco }}</p>
+
+  @if (loading()) {
+    <p class="ai-settings__status" aria-live="polite">{{ 'settings.ai.loading' | transloco }}</p>
+  } @else if (loadError()) {
+    <p class="ai-settings__error">{{ 'settings.ai.loadError' | transloco }}</p>
+    <button type="button" class="btn btn--secondary" (click)="loadCredentials()">
+      {{ 'settings.ai.retry' | transloco }}
+    </button>
+  } @else {
+    <form class="ai-settings__form" [formGroup]="form">
+      <label class="ai-settings__field">
+        <span>{{ 'settings.ai.provider' | transloco }}</span>
+        <select class="ai-settings__select" [formControl]="form.controls.provider">
+          <option [ngValue]="null">{{ 'settings.ai.providerPlaceholder' | transloco }}</option>
+          @for (provider of providers; track provider) {
+            <option [ngValue]="provider">
+              {{ 'settings.ai.providers.' + provider | transloco }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label class="ai-settings__field">
+        <span>{{ 'settings.ai.model' | transloco }}</span>
+        <input
+          type="text"
+          maxlength="200"
+          [formControl]="form.controls.model"
+          [placeholder]="'settings.ai.modelPlaceholder' | transloco"
+        />
+      </label>
+
+      <label class="ai-settings__field">
+        <span>{{ 'settings.ai.apiKey' | transloco }}</span>
+        <input
+          type="password"
+          autocomplete="off"
+          [formControl]="form.controls.apiKey"
+          [placeholder]="
+            (apiKeyDefinie() ? 'settings.ai.keyStoredPlaceholder' : 'settings.ai.keyPlaceholder')
+              | transloco
+          "
+        />
+        @if (apiKeyDefinie()) {
+          <span class="ai-settings__hint">{{ 'settings.ai.keyStoredHint' | transloco }}</span>
+        } @else {
+          <span class="ai-settings__hint">{{ 'settings.ai.keyHint' | transloco }}</span>
+        }
+      </label>
+
+      @if (showBaseUrl()) {
+        <label class="ai-settings__field">
+          <span>
+            {{ 'settings.ai.baseUrl' | transloco }}
+            @if (!baseUrlIsRequired()) {
+              <span class="ai-settings__optional">{{ 'settings.ai.optional' | transloco }}</span>
+            }
+          </span>
+          <input
+            type="url"
+            maxlength="2000"
+            [formControl]="form.controls.baseUrl"
+            placeholder="http://localhost:11434"
+          />
+        </label>
+      }
+
+      <div class="ai-settings__actions">
+        @if (saveSuccess()) {
+          <p class="ai-settings__success" aria-live="polite">
+            {{ 'settings.ai.saved' | transloco }}
+          </p>
+        }
+        @if (deleteSuccess()) {
+          <p class="ai-settings__success" aria-live="polite">
+            {{ 'settings.ai.deleted' | transloco }}
+          </p>
+        }
+        @if (saveErrorKey(); as errorKey) {
+          <p class="ai-settings__error" aria-live="polite">{{ errorKey | transloco }}</p>
+        }
+        @if (hasStoredConfig()) {
+          <button
+            type="button"
+            class="btn btn--ghost ai-settings__delete"
+            [class.ai-settings__delete--armed]="deleteArmed()"
+            [disabled]="deleting() || saving()"
+            (click)="removeConfig()"
+            (blur)="disarmDelete()"
+          >
+            {{ (deleteArmed() ? 'settings.ai.deleteConfirm' : 'settings.ai.delete') | transloco }}
+          </button>
+        }
+        <button
+          type="button"
+          class="btn btn--primary"
+          [disabled]="!canSave()"
+          (click)="save()"
+        >
+          {{ 'settings.ai.save' | transloco }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

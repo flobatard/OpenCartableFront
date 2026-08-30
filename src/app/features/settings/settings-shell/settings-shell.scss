@@ -1,0 +1,60 @@
+:host {
+  display: block;
+}
+
+.settings-shell {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 24px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+}
+
+.settings-shell__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-self: start;
+}
+
+.settings-shell__title {
+  margin: 0 0 12px;
+  color: var(--text-primary);
+  font-size: 20px;
+}
+
+.settings-shell__link {
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.settings-shell__link:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.settings-shell__link--active {
+  background: var(--bg-surface);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+/* Empilement mobile : le menu passe au-dessus du contenu. */
+@media (max-width: 900px) {
+  .settings-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .settings-shell__nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .settings-shell__title {
+    width: 100%;
+  }
+}

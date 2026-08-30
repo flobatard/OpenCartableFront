@@ -96,23 +96,23 @@ describe('UserMenu', () => {
     expect(trigger(fixture).querySelector('app-user-avatar svg')).not.toBeNull();
   });
 
-  it('le clic ouvre le menu avec « Mon profil » et « Se déconnecter »', async () => {
+  it('le clic ouvre le menu avec « Paramètres » et « Se déconnecter »', async () => {
     const fixture = await createComponent();
     await openMenu(fixture);
 
     expect(trigger(fixture).getAttribute('aria-expanded')).toBe('true');
     expect(items(fixture).map((i) => i.textContent?.trim())).toEqual([
-      'Mon profil',
+      'Paramètres',
       'Se déconnecter',
     ]);
   });
 
-  it('le lien « Mon profil » pointe vers /fr/profile et ferme le menu', async () => {
+  it('le lien « Paramètres » pointe vers /fr/settings et ferme le menu', async () => {
     const fixture = await createComponent();
     await openMenu(fixture);
 
     const link = items(fixture)[0] as HTMLAnchorElement;
-    expect(link.getAttribute('href')).toBe('/fr/profile');
+    expect(link.getAttribute('href')).toBe('/fr/settings');
 
     link.click();
     await fixture.whenStable();

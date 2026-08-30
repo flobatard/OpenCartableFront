@@ -1,0 +1,45 @@
+{
+  "title": "Settings",
+  "nav": {
+    "label": "Settings sections",
+    "profile": "My profile",
+    "ai": "AI assistant"
+  },
+  "ai": {
+    "title": "AI assistant",
+    "intro": "Enter your AI provider and API key to enable the assistant. The key is encrypted on the server and never shown again.",
+    "loading": "Loading…",
+    "loadError": "Could not load your AI settings.",
+    "retry": "Retry",
+    "provider": "Provider",
+    "providerPlaceholder": "Choose a provider…",
+    "model": "Model",
+    "modelPlaceholder": "e.g. claude-sonnet-5",
+    "apiKey": "API key",
+    "keyPlaceholder": "Your API key",
+    "keyHint": "Sent once, then stored encrypted on the server.",
+    "keyStoredPlaceholder": "Key saved",
+    "keyStoredHint": "A key is already saved: leave this field empty to keep it, or type a new one to replace it.",
+    "baseUrl": "Server URL",
+    "optional": "(optional)",
+    "save": "Save",
+    "saved": "Settings saved.",
+    "delete": "Delete configuration",
+    "deleteConfirm": "Confirm deletion",
+    "deleted": "Configuration deleted.",
+    "providers": {
+      "anthropic": "Anthropic (Claude)",
+      "openai": "OpenAI",
+      "google": "Google (Gemini)",
+      "mistral": "Mistral",
+      "ollama": "Ollama",
+      "openai_compatible": "OpenAI-compatible (Groq, vLLM…)",
+      "huggingface": "Hugging Face"
+    },
+    "errors": {
+      "invalid": "Settings rejected by the server: check the provider, key and URL.",
+      "unavailable": "The server cannot store a key right now (encryption not configured).",
+      "generic": "Could not save: please try again later."
+    }
+  }
+}

@@ -152,10 +152,33 @@ export const routes: Routes = [
         loadComponent: () => import('./features/onboarding/onboarding').then((m) => m.Onboarding),
       },
       {
-        // Consultation/édition du profil — suppose l'onboarding terminé.
-        path: 'profile',
+        // Hub « Paramètres » : coquille à menu latéral, sous-pages enfants
+        // (profil, réglages IA). Guards sur le parent — dans cet ordre.
+        path: 'settings',
         canActivate: [authGuard, onboardingGuard],
-        loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
+        loadComponent: () =>
+          import('./features/settings/settings-shell/settings-shell').then(
+            (m) => m.SettingsShell,
+          ),
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'profile' },
+          {
+            // Consultation/édition du profil — composant historique inchangé.
+            path: 'profile',
+            loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
+          },
+          {
+            // Credential IA de l'utilisateur (provider/modèle/clé chiffrée).
+            path: 'ai',
+            loadComponent: () =>
+              import('./features/settings/ai-settings/ai-settings').then((m) => m.AiSettings),
+          },
+        ],
+      },
+      {
+        // Ancienne URL du profil (favoris) : redirection vers le hub.
+        path: 'profile',
+        redirectTo: 'settings/profile',
       },
       {
         // Espace prof « Mes cours » : liste des cours, entrée vers création et blocs.

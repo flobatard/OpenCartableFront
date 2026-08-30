@@ -1,0 +1,95 @@
+import {
+  baseUrlRequired,
+  baseUrlVisible,
+  buildAiCredentialsForm,
+  isFormComplete,
+  keyRequired,
+  patchFormFromCredentials,
+  payloadFromForm,
+} from './ai-credentials-form';
+import { AiCredentials } from './ai-credentials.model';
+
+const STORED: AiCredentials = {
+  provider: 'anthropic',
+  model: 'claude-sonnet-5',
+  base_url: null,
+  api_key_definie: true,
+};
+
+describe('ai-credentials-form', () => {
+  it('patchFormFromCredentials remplit tout sauf la clé (jamais relue)', () => {
+    const form = buildAiCredentialsForm();
+    form.controls.apiKey.setValue('résidu');
+    patchFormFromCredentials(form, STORED);
+
+    expect(form.controls.provider.value).toBe('anthropic');
+    expect(form.controls.model.value).toBe('claude-sonnet-5');
+    expect(form.controls.apiKey.value).toBe('');
+  });
+
+  it('payloadFromForm OMET api_key quand le champ est vide (conserver la clé)', () => {
+    const form = buildAiCredentialsForm();
+    patchFormFromCredentials(form, STORED);
+    form.controls.model.setValue('claude-opus-5');
+
+    const payload = payloadFromForm(form);
+    expect(payload).toEqual({ provider: 'anthropic', model: 'claude-opus-5', base_url: null });
+    expect('api_key' in payload).toBe(false);
+  });
+
+  it('payloadFromForm porte la clé saisie et vide base_url hors ollama/openai_compatible', () => {
+    const form = buildAiCredentialsForm();
+    form.setValue({
+      provider: 'anthropic',
+      model: 'claude-sonnet-5',
+      apiKey: '  sk-nouvelle  ',
+      baseUrl: 'https://oubliee.example', // résidu d'un provider précédent
+    });
+
+    expect(payloadFromForm(form)).toEqual({
+      provider: 'anthropic',
+      model: 'claude-sonnet-5',
+      base_url: null,
+      api_key: 'sk-nouvelle',
+    });
+  });
+
+  it('payloadFromForm conserve base_url pour ollama', () => {
+    const form = buildAiCredentialsForm();
+    form.setValue({ provider: 'ollama', model: 'llama3.2', apiKey: '', baseUrl: 'http://pi:11434' });
+    expect(payloadFromForm(form).base_url).toBe('http://pi:11434');
+  });
+
+  it('baseUrlVisible / baseUrlRequired suivent le provider', () => {
+    expect(baseUrlVisible('ollama')).toBe(true);
+    expect(baseUrlVisible('openai_compatible')).toBe(true);
+    expect(baseUrlVisible('anthropic')).toBe(false);
+    expect(baseUrlVisible(null)).toBe(false);
+    expect(baseUrlRequired('openai_compatible')).toBe(true);
+    expect(baseUrlRequired('ollama')).toBe(false);
+  });
+
+  it('keyRequired : provider cloud sans clé enregistrée uniquement', () => {
+    expect(keyRequired('anthropic', false)).toBe(true);
+    expect(keyRequired('anthropic', true)).toBe(false);
+    expect(keyRequired('ollama', false)).toBe(false);
+    expect(keyRequired(null, false)).toBe(false);
+  });
+
+  it('isFormComplete applique les règles par provider', () => {
+    const form = buildAiCredentialsForm();
+    expect(isFormComplete(form.value, false)).toBe(false);
+
+    form.setValue({ provider: 'anthropic', model: 'm', apiKey: '', baseUrl: '' });
+    expect(isFormComplete(form.value, false)).toBe(false); // clé requise
+    expect(isFormComplete(form.value, true)).toBe(true); // clé déjà enregistrée
+
+    form.controls.apiKey.setValue('sk-x');
+    expect(isFormComplete(form.value, false)).toBe(true);
+
+    form.setValue({ provider: 'openai_compatible', model: 'm', apiKey: '', baseUrl: '' });
+    expect(isFormComplete(form.value, false)).toBe(false); // base_url requise
+    form.controls.baseUrl.setValue('https://groq.example/v1');
+    expect(isFormComplete(form.value, false)).toBe(true); // clé optionnelle ici
+  });
+});

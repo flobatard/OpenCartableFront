@@ -21,6 +21,7 @@ import moduleEmbed from './moduleEmbed.json';
 import markdownHelp from './markdownHelp.json';
 import courseChat from './courseChat.json';
 import profile from './profile.json';
+import settings from './settings.json';
 import onboarding from './onboarding.json';
 import educationLevels from './educationLevels.json';
 import student from './student.json';
@@ -51,6 +52,7 @@ export default {
   markdownHelp,
   courseChat,
   profile,
+  settings,
   onboarding,
   educationLevels,
   student,

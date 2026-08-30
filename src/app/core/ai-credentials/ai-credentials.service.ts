@@ -1,0 +1,83 @@
+import { HttpClient } from '@angular/common/http';
+import { effect, inject, Injectable, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { AuthService } from '../auth/auth.service';
+import {
+  AiCredentials,
+  AiCredentialsPayload,
+  EMPTY_AI_CREDENTIALS,
+} from './ai-credentials.model';
+
+/**
+ * Credential IA de l'utilisateur courant — variante MUTABLE mono-ressource du
+ * patron (motif `UserProfileService` réduit) : signal source de vérité,
+ * promesse en vol partagée (`ensureLoaded()`, invalidée sur erreur pour le
+ * retry), mutations qui remplacent le signal depuis la réponse (pas de
+ * refetch), purge quand la session OIDC tombe.
+ *
+ * Le Bearer est attaché automatiquement par l'intercepteur OIDC (URL sous
+ * `environment.apiUrl`). La clé API saisie ne fait que TRANSITER dans le
+ * payload du PUT : l'API ne la renvoie jamais (`api_key_definie` seul).
+ */
+@Injectable({ providedIn: 'root' })
+export class AiCredentialsService {
+  readonly #http = inject(HttpClient);
+  readonly #auth = inject(AuthService);
+  readonly #url = `${environment.apiUrl}/v1/users/me/ai-credentials`;
+
+  #inflight: Promise<AiCredentials> | undefined;
+
+  readonly #credentials = signal<AiCredentials | null>(null);
+  /** Credential chargé (`null` tant qu'aucun GET n'a abouti ou après logout). */
+  readonly credentials = this.#credentials.asReadonly();
+
+  constructor() {
+    effect(() => {
+      if (!this.#auth.isAuthenticated()) {
+        this.#credentials.set(null);
+        this.#inflight = undefined;
+      }
+    });
+  }
+
+  /**
+   * Retourne le credential (le GET répond 200 même sans configuration —
+   * champs `null` + `api_key_definie: false`). Appels concurrents partagés.
+   */
+  ensureLoaded(): Promise<AiCredentials> {
+    const cached = this.#credentials();
+    if (cached) {
+      return Promise.resolve(cached);
+    }
+    this.#inflight ??= firstValueFrom(this.#http.get<AiCredentials>(this.#url)).then(
+      (credentials) => {
+        this.#credentials.set(credentials);
+        return credentials;
+      },
+      (error: unknown) => {
+        this.#inflight = undefined;
+        throw error;
+      },
+    );
+    return this.#inflight;
+  }
+
+  /**
+   * Enregistre le credential ; un payload SANS `api_key` conserve la clé déjà
+   * enregistrée côté serveur. La réponse remplace le signal.
+   */
+  async save(payload: AiCredentialsPayload): Promise<AiCredentials> {
+    const credentials = await firstValueFrom(
+      this.#http.put<AiCredentials>(this.#url, payload),
+    );
+    this.#credentials.set(credentials);
+    return credentials;
+  }
+
+  /** Supprime toute la configuration (204) ; le signal repasse à l'état vide. */
+  async remove(): Promise<void> {
+    await firstValueFrom(this.#http.delete<void>(this.#url));
+    this.#credentials.set(EMPTY_AI_CREDENTIALS);
+  }
+}

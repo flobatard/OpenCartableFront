@@ -142,7 +142,7 @@ describe('Header', () => {
 
     trigger?.click();
     await fixture.whenStable();
-    expect(el.textContent).toContain('Mon profil');
+    expect(el.textContent).toContain('Paramètres');
     expect(el.textContent).toContain('Se déconnecter');
   });
 });

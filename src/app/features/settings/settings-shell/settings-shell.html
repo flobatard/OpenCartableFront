@@ -1,0 +1,24 @@
+<div class="settings-shell">
+  <nav class="settings-shell__nav" [attr.aria-label]="'settings.nav.label' | transloco">
+    <h1 class="settings-shell__title">{{ 'settings.title' | transloco }}</h1>
+    <a
+      class="settings-shell__link"
+      routerLink="profile"
+      routerLinkActive="settings-shell__link--active"
+      ariaCurrentWhenActive="page"
+    >
+      {{ 'settings.nav.profile' | transloco }}
+    </a>
+    <a
+      class="settings-shell__link"
+      routerLink="ai"
+      routerLinkActive="settings-shell__link--active"
+      ariaCurrentWhenActive="page"
+    >
+      {{ 'settings.nav.ai' | transloco }}
+    </a>
+  </nav>
+  <div class="settings-shell__content">
+    <router-outlet />
+  </div>
+</div>

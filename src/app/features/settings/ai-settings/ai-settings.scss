@@ -1,0 +1,81 @@
+:host {
+  display: block;
+}
+
+.ai-settings__title {
+  margin: 0 0 4px;
+  color: var(--text-primary);
+  font-size: 20px;
+}
+
+.ai-settings__intro {
+  margin: 0 0 24px;
+  color: var(--text-secondary);
+}
+
+.ai-settings__status {
+  color: var(--text-secondary);
+}
+
+.ai-settings__error {
+  color: var(--text-danger);
+  margin: 12px 0;
+}
+
+.ai-settings__success {
+  color: var(--text-secondary);
+  margin: 12px 0;
+}
+
+.ai-settings__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 420px;
+}
+
+/* Champs natifs stylés localement (motif profile__nom-public, DS §8). */
+.ai-settings__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-primary);
+}
+
+.ai-settings__field input,
+.ai-settings__select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.ai-settings__hint {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.ai-settings__optional {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.ai-settings__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.ai-settings__actions .ai-settings__success,
+.ai-settings__actions .ai-settings__error {
+  margin: 0;
+}
+
+.ai-settings__delete--armed {
+  color: var(--text-danger);
+}

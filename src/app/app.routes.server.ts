@@ -73,8 +73,23 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client,
   },
   {
-    // Route protégée (authGuard) + appels API profil : navigateur uniquement.
+    // Ancienne URL du profil : simple redirection, décidée côté navigateur.
     path: ':lang/profile',
+    renderMode: RenderMode.Client,
+  },
+  {
+    // Hub « Paramètres » et ses sous-pages : routes protégées (authGuard) +
+    // appels API profil/credential — navigateur uniquement. Explicites pour
+    // ne jamais retomber dans le catch-all Server.
+    path: ':lang/settings',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: ':lang/settings/profile',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: ':lang/settings/ai',
     renderMode: RenderMode.Client,
   },
   {
