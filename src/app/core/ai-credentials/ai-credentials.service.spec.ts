@@ -12,6 +12,9 @@ const CREDENTIALS: AiCredentials = {
   model: 'claude-sonnet-5',
   base_url: null,
   api_key_definie: true,
+  ia_defaut_disponible: true,
+  quota_quotidien: 30,
+  appels_aujourdhui: 0,
 };
 
 describe('AiCredentialsService', () => {
@@ -71,11 +74,32 @@ describe('AiCredentialsService', () => {
     expect(service.credentials()).toEqual(CREDENTIALS);
   });
 
-  it('remove fait un DELETE et repasse le signal à l’état vide', async () => {
+  it('remove fait un DELETE puis RELIT le credential (quota de l’IA par défaut frais)', async () => {
     const removal = service.remove();
     const req = httpMock.expectOne(url);
     expect(req.request.method).toBe('DELETE');
     req.flush(null, { status: 204, statusText: 'No Content' });
+    await new Promise((resolve) => setTimeout(resolve));
+
+    const fresh: AiCredentials = {
+      ...EMPTY_AI_CREDENTIALS,
+      ia_defaut_disponible: true,
+      quota_quotidien: 30,
+      appels_aujourdhui: 12,
+    };
+    const reread = httpMock.expectOne(url);
+    expect(reread.request.method).toBe('GET');
+    reread.flush(fresh);
+
+    await removal;
+    expect(service.credentials()).toEqual(fresh);
+  });
+
+  it('remove replie sur l’état vide si la relecture échoue (la suppression a réussi)', async () => {
+    const removal = service.remove();
+    httpMock.expectOne(url).flush(null, { status: 204, statusText: 'No Content' });
+    await new Promise((resolve) => setTimeout(resolve));
+    httpMock.expectOne(url).error(new ProgressEvent('network'));
 
     await removal;
     expect(service.credentials()).toEqual(EMPTY_AI_CREDENTIALS);

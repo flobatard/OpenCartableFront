@@ -7,7 +7,21 @@
   },
   "ai": {
     "title": "Assistant IA",
-    "intro": "Renseignez votre fournisseur d'IA et votre clé API pour activer l'assistant. La clé est chiffrée sur le serveur et jamais réaffichée.",
+    "intro": "Choisissez l'IA utilisée par l'assistant : l'IA par défaut de la plateforme (avec un quota quotidien de messages) ou votre propre fournisseur avec votre clé API, chiffrée sur le serveur et jamais réaffichée.",
+    "mode": {
+      "legend": "Choix de l'IA",
+      "default": "IA par défaut de la plateforme",
+      "custom": "Ma propre clé API",
+      "customHint": "Votre fournisseur et votre clé, sans quota.",
+      "usage": "{{used}} / {{total}} messages utilisés aujourd'hui",
+      "unlimited": "Messages illimités",
+      "unavailableShort": "Non proposée sur ce serveur",
+      "unavailable": "Ce serveur ne propose pas d'IA par défaut : utilisez votre propre clé API.",
+      "active": "Vous utilisez l'IA par défaut.",
+      "switchHint": "Passer à l'IA par défaut supprimera votre configuration personnelle (fournisseur et clé).",
+      "useDefault": "Utiliser l'IA par défaut",
+      "useDefaultConfirm": "Confirmer (supprime ma configuration)"
+    },
     "loading": "Chargement…",
     "loadError": "Impossible de charger vos réglages IA.",
     "retry": "Réessayer",

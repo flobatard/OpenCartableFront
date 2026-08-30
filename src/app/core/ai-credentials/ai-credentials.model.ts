@@ -30,14 +30,26 @@ export interface AiCredentials {
   model: string | null;
   base_url: string | null;
   api_key_definie: boolean;
+  /** L'IA par défaut (fallback serveur) est proposée par ce serveur. */
+  ia_defaut_disponible: boolean;
+  /** Plafond quotidien effectif de l'IA par défaut ; 0 = illimité. */
+  quota_quotidien: number;
+  /** Appels déjà servis par l'IA par défaut aujourd'hui (jour UTC). */
+  appels_aujourdhui: number;
 }
 
-/** État « rien de configuré », aussi posé après un DELETE réussi. */
+/**
+ * État « rien de configuré » — repli seulement (les infos de quota y sont
+ * inconnues) : après un DELETE réussi le service RELIT le serveur.
+ */
 export const EMPTY_AI_CREDENTIALS: AiCredentials = {
   provider: null,
   model: null,
   base_url: null,
   api_key_definie: false,
+  ia_defaut_disponible: false,
+  quota_quotidien: 0,
+  appels_aujourdhui: 0,
 };
 
 export interface AiCredentialsPayload {

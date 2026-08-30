@@ -75,9 +75,19 @@ export class AiCredentialsService {
     return credentials;
   }
 
-  /** Supprime toute la configuration (204) ; le signal repasse à l'état vide. */
+  /**
+   * Supprime toute la configuration (204) puis RELIT le credential : la
+   * suppression bascule l'utilisateur sur l'IA par défaut, dont l'état
+   * (disponibilité, quota du jour) doit être frais — l'état vide local ne le
+   * connaît pas. Si la relecture échoue, repli sur l'état vide (la
+   * suppression, elle, a réussi).
+   */
   async remove(): Promise<void> {
     await firstValueFrom(this.#http.delete<void>(this.#url));
-    this.#credentials.set(EMPTY_AI_CREDENTIALS);
+    try {
+      this.#credentials.set(await firstValueFrom(this.#http.get<AiCredentials>(this.#url)));
+    } catch {
+      this.#credentials.set(EMPTY_AI_CREDENTIALS);
+    }
   }
 }

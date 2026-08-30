@@ -7,7 +7,21 @@
   },
   "ai": {
     "title": "AI assistant",
-    "intro": "Enter your AI provider and API key to enable the assistant. The key is encrypted on the server and never shown again.",
+    "intro": "Choose the AI powering the assistant: the platform's default AI (with a daily message quota) or your own provider with your API key, encrypted on the server and never shown again.",
+    "mode": {
+      "legend": "AI choice",
+      "default": "Platform default AI",
+      "custom": "My own API key",
+      "customHint": "Your provider and your key, without quota.",
+      "usage": "{{used}} / {{total}} messages used today",
+      "unlimited": "Unlimited messages",
+      "unavailableShort": "Not offered on this server",
+      "unavailable": "This server does not offer a default AI: use your own API key.",
+      "active": "You are using the default AI.",
+      "switchHint": "Switching to the default AI will delete your personal configuration (provider and key).",
+      "useDefault": "Use the default AI",
+      "useDefaultConfirm": "Confirm (deletes my configuration)"
+    },
     "loading": "Loading…",
     "loadError": "Could not load your AI settings.",
     "retry": "Retry",

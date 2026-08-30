@@ -16,9 +16,16 @@ import { AI_PROVIDERS } from '../../../core/ai-credentials/ai-credentials.model'
 import { AiCredentialsService } from '../../../core/ai-credentials/ai-credentials.service';
 
 /**
- * Réglages de l'assistant IA (sous-page du hub « Paramètres ») : provider,
- * modèle, clé API (chiffrée côté serveur, jamais ré-affichée) et base_url
- * pour ollama/openai_compatible.
+ * Réglages de l'assistant IA (sous-page du hub « Paramètres ») : choix
+ * DÉLIBÉRÉ entre l'IA par défaut de la plateforme (fallback serveur, quota
+ * quotidien affiché « utilisés / autorisés », 0 = illimité) et sa propre
+ * config — provider, modèle, clé API (chiffrée côté serveur, jamais
+ * ré-affichée), base_url pour ollama/openai_compatible.
+ *
+ * Le mode est DÉRIVÉ du serveur (config enregistrée = « ma clé », sinon
+ * « IA par défaut ») ; les radios ne changent que la vue — revenir à l'IA
+ * par défaut passe par le bouton en deux temps qui SUPPRIME la config
+ * (même `removeConfig` que le bouton Supprimer du formulaire).
  *
  * Contrat clé API : le champ est TOUJOURS vide à l'affichage ; quand une clé
  * est déjà enregistrée, le laisser vide la conserve (le payload omet
@@ -65,6 +72,21 @@ export class AiSettings implements OnInit {
     () => this.#credentials.credentials()?.provider != null,
   );
 
+  /** Mode affiché — posé au chargement depuis l'état serveur, puis par les radios. */
+  protected readonly mode = signal<'default' | 'custom'>('custom');
+
+  protected readonly defaultAvailable = computed(
+    () => this.#credentials.credentials()?.ia_defaut_disponible ?? false,
+  );
+  protected readonly quotaTotal = computed(
+    () => this.#credentials.credentials()?.quota_quotidien ?? 0,
+  );
+  protected readonly quotaUsed = computed(
+    () => this.#credentials.credentials()?.appels_aujourdhui ?? 0,
+  );
+  /** Quota quotidien 0 = illimité (contrat back). */
+  protected readonly quotaUnlimited = computed(() => this.quotaTotal() === 0);
+
   protected readonly providerValue = computed(() => this.#formValue().provider ?? null);
   protected readonly showBaseUrl = computed(() => baseUrlVisible(this.providerValue()));
   protected readonly baseUrlIsRequired = computed(() => baseUrlRequired(this.providerValue()));
@@ -104,6 +126,7 @@ export class AiSettings implements OnInit {
       const creds = await this.#credentials.ensureLoaded();
       patchFormFromCredentials(this.form, creds);
       this.#savedPayload.set(JSON.stringify(payloadFromForm(this.form)));
+      this.mode.set(creds.provider ? 'custom' : 'default');
     } catch {
       this.loadError.set(true);
     } finally {
@@ -131,7 +154,20 @@ export class AiSettings implements OnInit {
     }
   }
 
-  /** Suppression en deux temps sans modale, désarmée au blur (motif ressources). */
+  /** Bascule de vue par les radios ; efface les messages de l'action précédente. */
+  protected selectMode(mode: 'default' | 'custom'): void {
+    this.mode.set(mode);
+    this.deleteArmed.set(false);
+    this.saveSuccess.set(false);
+    this.deleteSuccess.set(false);
+    this.saveErrorKey.set(null);
+  }
+
+  /**
+   * Suppression en deux temps sans modale, désarmée au blur (motif
+   * ressources). Sert aussi de « Utiliser l'IA par défaut » : sans config
+   * enregistrée, l'IA par défaut s'applique — la vue reste donc sur ce mode.
+   */
   protected async removeConfig(): Promise<void> {
     if (!this.deleteArmed()) {
       this.deleteArmed.set(true);
@@ -145,6 +181,7 @@ export class AiSettings implements OnInit {
       this.form.reset({ provider: null, model: '', apiKey: '', baseUrl: '' });
       this.#savedPayload.set(JSON.stringify(payloadFromForm(this.form)));
       this.deleteSuccess.set(true);
+      this.mode.set('default');
     } catch (error) {
       this.saveErrorKey.set(this.#errorKey(error));
     } finally {

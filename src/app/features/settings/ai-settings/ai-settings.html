@@ -10,7 +10,83 @@
       {{ 'settings.ai.retry' | transloco }}
     </button>
   } @else {
-    <form class="ai-settings__form" [formGroup]="form">
+    <fieldset class="ai-settings__modes">
+      <legend class="sr-only">{{ 'settings.ai.mode.legend' | transloco }}</legend>
+
+      <label class="ai-settings__mode" [class.ai-settings__mode--active]="mode() === 'default'">
+        <input
+          type="radio"
+          name="ai-mode"
+          value="default"
+          [checked]="mode() === 'default'"
+          (change)="selectMode('default')"
+        />
+        <span class="ai-settings__mode-body">
+          <span class="ai-settings__mode-title">{{ 'settings.ai.mode.default' | transloco }}</span>
+          <span class="ai-settings__mode-hint">
+            @if (!defaultAvailable()) {
+              {{ 'settings.ai.mode.unavailableShort' | transloco }}
+            } @else if (quotaUnlimited()) {
+              {{ 'settings.ai.mode.unlimited' | transloco }}
+            } @else {
+              {{
+                'settings.ai.mode.usage' | transloco: { used: quotaUsed(), total: quotaTotal() }
+              }}
+            }
+          </span>
+        </span>
+      </label>
+
+      <label class="ai-settings__mode" [class.ai-settings__mode--active]="mode() === 'custom'">
+        <input
+          type="radio"
+          name="ai-mode"
+          value="custom"
+          [checked]="mode() === 'custom'"
+          (change)="selectMode('custom')"
+        />
+        <span class="ai-settings__mode-body">
+          <span class="ai-settings__mode-title">{{ 'settings.ai.mode.custom' | transloco }}</span>
+          <span class="ai-settings__mode-hint">{{ 'settings.ai.mode.customHint' | transloco }}</span>
+        </span>
+      </label>
+    </fieldset>
+
+    @if (mode() === 'default') {
+      <div class="ai-settings__default">
+        @if (!defaultAvailable()) {
+          <p class="ai-settings__error">{{ 'settings.ai.mode.unavailable' | transloco }}</p>
+        }
+        @if (deleteSuccess()) {
+          <p class="ai-settings__success" aria-live="polite">
+            {{ 'settings.ai.deleted' | transloco }}
+          </p>
+        }
+        @if (saveErrorKey(); as errorKey) {
+          <p class="ai-settings__error" aria-live="polite">{{ errorKey | transloco }}</p>
+        }
+        @if (hasStoredConfig()) {
+          <p class="ai-settings__hint">{{ 'settings.ai.mode.switchHint' | transloco }}</p>
+          <button
+            type="button"
+            class="btn btn--primary ai-settings__use-default"
+            [disabled]="deleting()"
+            (click)="removeConfig()"
+            (blur)="disarmDelete()"
+          >
+            {{
+              (deleteArmed() ? 'settings.ai.mode.useDefaultConfirm' : 'settings.ai.mode.useDefault')
+                | transloco
+            }}
+          </button>
+        } @else if (defaultAvailable()) {
+          <p class="ai-settings__hint" aria-live="polite">
+            {{ 'settings.ai.mode.active' | transloco }}
+          </p>
+        }
+      </div>
+    } @else {
+      <form class="ai-settings__form" [formGroup]="form">
       <label class="ai-settings__field">
         <span>{{ 'settings.ai.provider' | transloco }}</span>
         <select class="ai-settings__select" [formControl]="form.controls.provider">
@@ -102,7 +178,8 @@
         >
           {{ 'settings.ai.save' | transloco }}
         </button>
-      </div>
-    </form>
+        </div>
+      </form>
+    }
   }
 </section>

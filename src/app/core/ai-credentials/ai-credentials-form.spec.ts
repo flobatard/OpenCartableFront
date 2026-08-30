@@ -14,6 +14,9 @@ const STORED: AiCredentials = {
   model: 'claude-sonnet-5',
   base_url: null,
   api_key_definie: true,
+  ia_defaut_disponible: false,
+  quota_quotidien: 30,
+  appels_aujourdhui: 0,
 };
 
 describe('ai-credentials-form', () => {
