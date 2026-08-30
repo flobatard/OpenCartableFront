@@ -62,7 +62,7 @@
 }
 
 /* Le partage expose TOUTE la bibliothèque du cours, blocs ou pas : note
-   atténuée (motif ressource en_attente), jamais slate-400 en texte. */
+   atténuée (motif ressource pending), jamais slate-400 en texte. */
 .course-share__library-note {
   margin: 12px 0 0;
   padding: 8px 12px;
@@ -127,13 +127,13 @@
   border-radius: var(--radius-lg);
 }
 
-/* Révoqué/expiré : atténué (motif ressource en_attente), jamais slate-400 en texte. */
+/* Révoqué/expiré : atténué (motif ressource pending), jamais slate-400 en texte. */
 .course-share__row--inactive {
   border-style: dashed;
 }
 
 .course-share__row--inactive .course-share__url,
-.course-share__row--inactive .course-share__row-libelle {
+.course-share__row--inactive .course-share__row-label {
   color: var(--text-secondary);
 }
 
@@ -144,7 +144,7 @@
   min-width: 0;
 }
 
-.course-share__row-libelle {
+.course-share__row-label {
   font-weight: 600;
 }
 

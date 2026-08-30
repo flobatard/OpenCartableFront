@@ -79,13 +79,13 @@ export class Profile implements OnInit {
   /** Snapshot JSON du dernier payload persisté (chargé ou sauvegardé). */
   readonly #savedPayload = signal<string | null>(null);
 
-  protected readonly systemes = computed(() => [
-    ...new Set(this.levels.tree().map((root) => root.systeme)),
+  protected readonly systems = computed(() => [
+    ...new Set(this.levels.tree().map((root) => root.system)),
   ]);
 
-  protected readonly systemeValue = computed(() => this.#formValue().systeme ?? null);
-  protected readonly estProf = computed(() => !!this.#formValue().estProf);
-  protected readonly estEleve = computed(() => !!this.#formValue().estEleve);
+  protected readonly systemValue = computed(() => this.#formValue().system ?? null);
+  protected readonly isTeacher = computed(() => !!this.#formValue().isTeacher);
+  protected readonly isStudent = computed(() => !!this.#formValue().isStudent);
 
   protected readonly dirty = computed(() => {
     this.#formValue(); // dépendance : réévalué à chaque modification du formulaire
@@ -124,12 +124,12 @@ export class Profile implements OnInit {
     }
   }
 
-  protected selectSysteme(code: string): void {
-    this.form.controls.systeme.setValue(code);
+  protected selectSystem(code: string): void {
+    this.form.controls.system.setValue(code);
   }
 
   /** Libellé i18n du système, repli sur le code brut (13e système seedé). */
-  protected systemeLabel(code: string): string {
+  protected systemLabel(code: string): string {
     const key = `onboarding.systems.${code}`;
     const label = this.#transloco.translate(key);
     return label === key ? code : label;

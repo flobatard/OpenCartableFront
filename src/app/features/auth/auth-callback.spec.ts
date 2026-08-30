@@ -39,14 +39,14 @@ describe('AuthCallback', () => {
     ensureLoaded = vi.fn();
   });
 
-  it('navigue vers la cible quand le profil est onboardé', async () => {
+  it('navigates to the target when the profile is onboarded', async () => {
     ensureLoaded.mockResolvedValue(USER_PROFILE_ONBOARDED_FIXTURE);
     await createComponent();
 
     expect(navigateByUrl).toHaveBeenCalledWith('/fr/subjects', { replaceUrl: true });
   });
 
-  it('redirige vers l’onboarding (avec next) quand le profil est incomplet', async () => {
+  it('redirects to onboarding (with next) when the profile is incomplete', async () => {
     ensureLoaded.mockResolvedValue(USER_PROFILE_FIXTURE);
     completeLogin.mockResolvedValue('/en/subjects');
     await createComponent();
@@ -57,14 +57,14 @@ describe('AuthCallback', () => {
     expect((url as UrlTree).queryParams['next']).toBe('/en/subjects');
   });
 
-  it('fail-open : navigue vers la cible si le profil est injoignable', async () => {
+  it('fail-open: navigates to the target when the profile is unreachable', async () => {
     ensureLoaded.mockRejectedValue(new Error('down'));
     await createComponent();
 
     expect(navigateByUrl).toHaveBeenCalledWith('/fr/subjects', { replaceUrl: true });
   });
 
-  it('affiche l’erreur si l’échange du code échoue', async () => {
+  it('shows the error when the code exchange fails', async () => {
     completeLogin.mockRejectedValue(new Error('bad code'));
     const fixture = await createComponent();
 

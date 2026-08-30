@@ -54,12 +54,12 @@ describe('CourseResources', () => {
     resourcesMock.getDownloadUrl.mockResolvedValue('https://s3.test/get/x');
   });
 
-  it('charge la bibliothèque du cours à l’affichage', async () => {
+  it('loads the course library on display', async () => {
     await createComponent();
     expect(resourcesMock.loadList).toHaveBeenCalledWith('course-1');
   });
 
-  it('rend nom, type, taille et statut de chaque ressource', async () => {
+  it('renders each resource’s name, type, size and status', async () => {
     const fixture = await createComponent();
 
     const names = rows(fixture).map((r) =>
@@ -79,7 +79,7 @@ describe('CourseResources', () => {
     expect(rows(fixture)[2].classList.contains('course-resources__row--pending')).toBe(true);
   });
 
-  it('le bouton d’upload délègue au service avec le fichier choisi', async () => {
+  it('the upload button delegates to the service with the chosen file', async () => {
     const fixture = await createComponent();
     const input = el(fixture).querySelector<HTMLInputElement>('input[type="file"]')!;
     const file = new File(['x'], 'notes.pdf', { type: 'application/pdf' });
@@ -92,7 +92,7 @@ describe('CourseResources', () => {
     expect(input.value).toBe(''); // vidé pour permettre de re-choisir le même fichier
   });
 
-  it('affiche la progression pendant l’upload et l’erreur en échec', async () => {
+  it('shows progress during upload and the error on failure', async () => {
     const fixture = await createComponent();
 
     uploadState.set({ phase: 'uploading', progress: 42 });
@@ -110,7 +110,7 @@ describe('CourseResources', () => {
     ).toBe(false);
   });
 
-  it('renommage inline : Enregistrer PATCHe, Annuler restaure la ligne', async () => {
+  it('inline rename: Save PATCHes, Cancel restores the row', async () => {
     const fixture = await createComponent();
     const renameBtn = rows(fixture)[0].querySelectorAll<HTMLButtonElement>('.btn')[0];
     renameBtn.click();
@@ -133,7 +133,7 @@ describe('CourseResources', () => {
     expect(el(fixture).querySelector('.course-resources__rename')).toBeNull(); // refermé
   });
 
-  it('téléchargement : ouvre l’URL présignée ; désactivé sur une ressource en attente', async () => {
+  it('download: opens the presigned URL; disabled on a pending resource', async () => {
     const fixture = await createComponent();
     const open = vi.spyOn(window, 'open').mockReturnValue(null);
 
@@ -142,7 +142,7 @@ describe('CourseResources', () => {
       Array.from(row.querySelectorAll<HTMLButtonElement>('.btn')).find(
         (b) => b.textContent?.trim() === 'Télécharger',
       )!;
-    expect(downloadBtn(rows(fixture)[2]).disabled).toBe(true); // en_attente → 409 côté back
+    expect(downloadBtn(rows(fixture)[2]).disabled).toBe(true); // pending → 409 côté back
 
     downloadBtn(rows(fixture)[0]).click();
     await fixture.whenStable();
@@ -152,19 +152,19 @@ describe('CourseResources', () => {
     open.mockRestore();
   });
 
-  it('bouton « Voir » : présent sur PDF et image disponibles, absent sinon', async () => {
+  it('“View” button: present on available PDFs and images, absent otherwise', async () => {
     const fixture = await createComponent();
     const viewBtn = (row: HTMLElement) =>
       Array.from(row.querySelectorAll<HTMLButtonElement>('.btn')).find(
         (b) => b.textContent?.trim() === 'Voir',
       );
 
-    expect(viewBtn(rows(fixture)[0])).toBeTruthy(); // pdf disponible
-    expect(viewBtn(rows(fixture)[1])).toBeTruthy(); // image disponible
-    expect(viewBtn(rows(fixture)[2])).toBeUndefined(); // vidéo en_attente
+    expect(viewBtn(rows(fixture)[0])).toBeTruthy(); // pdf available
+    expect(viewBtn(rows(fixture)[1])).toBeTruthy(); // image available
+    expect(viewBtn(rows(fixture)[2])).toBeUndefined(); // vidéo pending
   });
 
-  it('« Voir » ouvre la modale d’aperçu, la fermer démonte l’embed', async () => {
+  it('“Voir” opens the preview dialog, closing it unmounts the embed', async () => {
     const fixture = await createComponent();
     const dialogEl = el(fixture).querySelector<HTMLDialogElement>(
       'app-resource-preview-dialog dialog',
@@ -189,7 +189,7 @@ describe('CourseResources', () => {
     expect(dialogEl.querySelector('app-course-preview-document')).toBeNull();
   });
 
-  it('suppression en deux temps, désarmée au blur, puis émet deleted', async () => {
+  it('two-step deletion, disarmed on blur, then emits deleted', async () => {
     const fixture = await createComponent();
     const deleteBtn = () =>
       rows(fixture)[0].querySelector<HTMLButtonElement>('.course-resources__delete')!;
@@ -215,7 +215,7 @@ describe('CourseResources', () => {
     expect(deletedEmitted).toBe(true);
   });
 
-  it('affiche l’état vide et l’erreur de chargement avec Réessayer', async () => {
+  it('shows the empty state and the load error with retry', async () => {
     list.set([]);
     const fixture = await createComponent();
     expect(el(fixture).querySelector('.course-resources__empty')).toBeTruthy();

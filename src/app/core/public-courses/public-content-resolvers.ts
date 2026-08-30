@@ -23,7 +23,7 @@ export class PublicResourceResolver implements CourseResourceResolver {
 
   /**
    * Les ressources publiques arrivent avec le détail du cours, toutes
-   * `disponible` par contrat — on les présente sous la forme `CourseResource`
+   * `available` par contrat — on les présente sous la forme `CourseResource`
    * attendue par les composants de rendu (timestamps absents du contrat
    * public, sans consommateur côté rendu).
    */
@@ -31,7 +31,7 @@ export class PublicResourceResolver implements CourseResourceResolver {
     () =>
       this.#courses.detail()?.resources.map((r) => ({
         ...r,
-        statut: 'disponible' as const,
+        status: 'available' as const,
         created_at: '',
         updated_at: '',
       })) ?? [],

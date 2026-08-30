@@ -23,18 +23,18 @@ describe('Snackbar', () => {
     fixture.detectChanges();
   });
 
-  it('ne rend aucun toast quand la file est vide', () => {
+  it('renders no toast when the queue is empty', () => {
     expect(fixture.nativeElement.querySelectorAll('.snackbar__toast')).toHaveLength(0);
   });
 
-  it('rend un toast et son message', () => {
+  it('renders a toast and its message', () => {
     toasts.set([{ id: 1, message: 'Connexion impossible', severity: 'error' }]);
     fixture.detectChanges();
     const toast = fixture.nativeElement.querySelector('.snackbar__toast');
     expect(toast.textContent).toContain('Connexion impossible');
   });
 
-  it('donne role="alert" à une erreur et role="status" au reste', () => {
+  it('gives role="alert" to an error and role="status" to the rest', () => {
     toasts.set([
       { id: 1, message: 'Err', severity: 'error' },
       { id: 2, message: 'Ok', severity: 'success' },
@@ -45,7 +45,7 @@ describe('Snackbar', () => {
     expect(els[1].getAttribute('role')).toBe('status');
   });
 
-  it('délègue la fermeture au service au clic', () => {
+  it('delegates closing to the service on click', () => {
     toasts.set([{ id: 42, message: 'X', severity: 'info' }]);
     fixture.detectChanges();
     fixture.nativeElement.querySelector('.snackbar__close').click();

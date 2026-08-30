@@ -3,8 +3,8 @@
     <article class="course-preview__block">
       @if (block.type === 'document' || block.type === 'module')
       {
-        @if (block.titre) {
-          <h2 class="course-preview__title">{{ block.titre }}</h2>
+        @if (block.title) {
+          <h2 class="course-preview__title">{{ block.title }}</h2>
         }
         @if (block.description) {
           <p class="course-preview__desc">{{ block.description }}</p>
@@ -12,14 +12,14 @@
       }
 
       @switch (block.type) {
-        @case ('texte') {
+        @case ('text') {
           <app-markdown-view
             [markdown]="textMarkdown(block)"
             [courseId]="courseId()"
             [showSettings]="false"
           />
         }
-        @case ('exercice') {
+        @case ('exercise') {
           <app-markdown-view
             [markdown]="exerciseMarkdown(block)"
             [courseId]="courseId()"
@@ -37,8 +37,8 @@
           <app-course-preview-document
             [courseId]="courseId()"
             [resource]="resourceFor(block.resource_id)"
-            [legende]="documentLegende(block)"
-            [affichage]="documentAffichage(block)"
+            [caption]="documentCaption(block)"
+            [display]="documentDisplay(block)"
           />
         }
         @case ('module') {

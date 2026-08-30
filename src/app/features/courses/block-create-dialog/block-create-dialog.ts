@@ -33,7 +33,7 @@ export class BlockCreateDialog {
 
   open(type: BlockType): void {
     this.type.set(type);
-    this.form.reset({ titre: '', description: '' });
+    this.form.reset({ title: '', description: '' });
     this.dialog()?.nativeElement.showModal();
   }
 

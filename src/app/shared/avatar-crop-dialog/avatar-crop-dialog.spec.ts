@@ -35,7 +35,7 @@ describe('AvatarCropDialog', () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  it("open() montre la modale sur l'object URL du fichier", () => {
+  it("open() shows the dialog on the file's object URL", () => {
     const showModal = (dialogEl.showModal = vi.fn());
     component.open(fakeFile());
     fixture.detectChanges();
@@ -45,7 +45,7 @@ describe('AvatarCropDialog', () => {
     expect(host.querySelector('img')?.getAttribute('src')).toBe('blob:avatar');
   });
 
-  it('le bouton Valider reste désactivé tant que l’image n’est pas chargée', () => {
+  it('the Confirm button stays disabled until the image is loaded', () => {
     component.open(fakeFile());
     fixture.detectChanges();
 
@@ -53,7 +53,7 @@ describe('AvatarCropDialog', () => {
     expect(confirm?.disabled).toBe(true);
   });
 
-  it('affiche l’erreur badImage quand le décodage échoue', () => {
+  it('shows the badImage error when decoding fails', () => {
     component.open(fakeFile());
     fixture.detectChanges();
 
@@ -64,7 +64,7 @@ describe('AvatarCropDialog', () => {
     expect(host.querySelector('.avatar-crop__frame')).toBeNull();
   });
 
-  it('la fermeture native révoque l’object URL et purge l’état', () => {
+  it('native close revokes the object URL and purges the state', () => {
     component.open(fakeFile());
     fixture.detectChanges();
 
@@ -75,7 +75,7 @@ describe('AvatarCropDialog', () => {
     expect(host.querySelector('img')).toBeNull();
   });
 
-  it('confirm exporte un carré 512 JPEG, ferme PUIS émet (cropped)', async () => {
+  it('confirm exports a 512 JPEG square, closes THEN emits (cropped)', async () => {
     const emitted: Blob[] = [];
     component.cropped.subscribe((blob) => emitted.push(blob));
     component.open(fakeFile());
@@ -112,7 +112,7 @@ describe('AvatarCropDialog', () => {
     expect(emitted).toEqual([jpeg]);
   });
 
-  it('Annuler ferme sans émettre', () => {
+  it('Cancel closes without emitting', () => {
     const emitted: Blob[] = [];
     component.cropped.subscribe((blob) => emitted.push(blob));
     component.open(fakeFile());

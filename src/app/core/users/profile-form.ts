@@ -9,7 +9,7 @@ import { OnboardingPayload, UserProfile } from './user-profile.model';
  */
 
 /** Un bloc de sélections par contexte (enseigne / apprend). */
-function blocGroup() {
+function blockGroup() {
   return new FormGroup({
     educationLevelIds: new FormControl<string[]>([], { nonNullable: true }),
     subjectIds: new FormControl<string[]>([], { nonNullable: true }),
@@ -18,16 +18,16 @@ function blocGroup() {
 
 export function buildProfileForm() {
   return new FormGroup({
-    estProf: new FormControl(false, { nonNullable: true }),
-    estEleve: new FormControl(false, { nonNullable: true }),
-    systeme: new FormControl<string | null>(null),
+    isTeacher: new FormControl(false, { nonNullable: true }),
+    isStudent: new FormControl(false, { nonNullable: true }),
+    system: new FormControl<string | null>(null),
     // Nom affiché sur les pages publiques (catalogue J2) — optionnel.
-    nomPublic: new FormControl('', { nonNullable: true }),
+    publicName: new FormControl('', { nonNullable: true }),
     // Opt-in recherche publique de profs (J3) — l'onboarding ne l'affiche
     // pas (défaut false, opt-in réfléchi depuis la page profil).
-    cherchable: new FormControl(false, { nonNullable: true }),
-    enseignement: blocGroup(),
-    apprentissage: blocGroup(),
+    searchable: new FormControl(false, { nonNullable: true }),
+    teaching: blockGroup(),
+    learning: blockGroup(),
   });
 }
 
@@ -40,42 +40,42 @@ export type ProfileForm = ReturnType<typeof buildProfileForm>;
  *   (ils appartiennent au système), les matières sont conservées.
  */
 export function wireProfileFormCoherence(form: ProfileForm): void {
-  form.controls.estProf.valueChanges.subscribe((estProf) => {
-    if (!estProf) {
-      form.controls.enseignement.reset();
+  form.controls.isTeacher.valueChanges.subscribe((isTeacher) => {
+    if (!isTeacher) {
+      form.controls.teaching.reset();
     }
   });
-  form.controls.estEleve.valueChanges.subscribe((estEleve) => {
-    if (!estEleve) {
-      form.controls.apprentissage.reset();
+  form.controls.isStudent.valueChanges.subscribe((isStudent) => {
+    if (!isStudent) {
+      form.controls.learning.reset();
     }
   });
-  form.controls.systeme.valueChanges.subscribe(() => {
-    form.controls.enseignement.controls.educationLevelIds.setValue([]);
-    form.controls.apprentissage.controls.educationLevelIds.setValue([]);
+  form.controls.system.valueChanges.subscribe(() => {
+    form.controls.teaching.controls.educationLevelIds.setValue([]);
+    form.controls.learning.controls.educationLevelIds.setValue([]);
   });
 }
 
 /**
  * Pré-remplit le formulaire depuis le profil API.
  *
- * Contrat d'ordre : `systeme` est posé AVANT les blocs — la cohérence câblée
+ * Contrat d'ordre : `system` est posé AVANT les blocs — la cohérence câblée
  * ({@link wireProfileFormCoherence}) vide les niveaux à chaque changement de
  * système et écraserait sinon les valeurs patchées.
  */
 export function patchFormFromProfile(form: ProfileForm, profile: UserProfile): void {
-  form.controls.estProf.setValue(profile.est_prof);
-  form.controls.estEleve.setValue(profile.est_eleve);
-  form.controls.systeme.setValue(profile.systeme_scolaire);
-  form.controls.nomPublic.setValue(profile.nom_public ?? '');
-  form.controls.cherchable.setValue(profile.cherchable);
-  form.controls.enseignement.setValue({
-    educationLevelIds: [...(profile.enseignement?.education_level_ids ?? [])],
-    subjectIds: [...(profile.enseignement?.subject_ids ?? [])],
+  form.controls.isTeacher.setValue(profile.is_teacher);
+  form.controls.isStudent.setValue(profile.is_student);
+  form.controls.system.setValue(profile.school_system);
+  form.controls.publicName.setValue(profile.public_name ?? '');
+  form.controls.searchable.setValue(profile.searchable);
+  form.controls.teaching.setValue({
+    educationLevelIds: [...(profile.teaching?.education_level_ids ?? [])],
+    subjectIds: [...(profile.teaching?.subject_ids ?? [])],
   });
-  form.controls.apprentissage.setValue({
-    educationLevelIds: [...(profile.apprentissage?.education_level_ids ?? [])],
-    subjectIds: [...(profile.apprentissage?.subject_ids ?? [])],
+  form.controls.learning.setValue({
+    educationLevelIds: [...(profile.learning?.education_level_ids ?? [])],
+    subjectIds: [...(profile.learning?.subject_ids ?? [])],
   });
 }
 
@@ -83,21 +83,21 @@ export function patchFormFromProfile(form: ProfileForm, profile: UserProfile): v
 export function payloadFromForm(form: ProfileForm): OnboardingPayload {
   const v = form.getRawValue();
   return {
-    est_prof: v.estProf,
-    est_eleve: v.estEleve,
-    systeme_scolaire: v.systeme ?? '',
-    nom_public: v.nomPublic.trim() || null,
-    cherchable: v.cherchable,
-    enseignement: v.estProf
+    is_teacher: v.isTeacher,
+    is_student: v.isStudent,
+    school_system: v.system ?? '',
+    public_name: v.publicName.trim() || null,
+    searchable: v.searchable,
+    teaching: v.isTeacher
       ? {
-          education_level_ids: v.enseignement.educationLevelIds,
-          subject_ids: v.enseignement.subjectIds,
+          education_level_ids: v.teaching.educationLevelIds,
+          subject_ids: v.teaching.subjectIds,
         }
       : null,
-    apprentissage: v.estEleve
+    learning: v.isStudent
       ? {
-          education_level_ids: v.apprentissage.educationLevelIds,
-          subject_ids: v.apprentissage.subjectIds,
+          education_level_ids: v.learning.educationLevelIds,
+          subject_ids: v.learning.subjectIds,
         }
       : null,
   };
@@ -108,23 +108,21 @@ export function payloadFromForm(form: ProfileForm): OnboardingPayload {
  * un système choisi, et ≥1 niveau + ≥1 matière pour chaque rôle coché.
  */
 export function isProfileComplete(v: ProfileForm['value']): boolean {
-  if (!v.estProf && !v.estEleve) {
+  if (!v.isTeacher && !v.isStudent) {
     return false;
   }
-  if (!v.systeme) {
+  if (!v.system) {
     return false;
   }
   if (
-    v.estProf &&
-    (!(v.enseignement?.educationLevelIds?.length ?? 0) ||
-      !(v.enseignement?.subjectIds?.length ?? 0))
+    v.isTeacher &&
+    (!(v.teaching?.educationLevelIds?.length ?? 0) || !(v.teaching?.subjectIds?.length ?? 0))
   ) {
     return false;
   }
   if (
-    v.estEleve &&
-    (!(v.apprentissage?.educationLevelIds?.length ?? 0) ||
-      !(v.apprentissage?.subjectIds?.length ?? 0))
+    v.isStudent &&
+    (!(v.learning?.educationLevelIds?.length ?? 0) || !(v.learning?.subjectIds?.length ?? 0))
   ) {
     return false;
   }

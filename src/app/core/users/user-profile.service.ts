@@ -120,7 +120,7 @@ export class UserProfileService {
       const presign = await firstValueFrom(
         this.#http.post<AvatarPresign>(`${this.#url}/avatar`, {
           mime: AVATAR_MIME,
-          taille: blob.size,
+          size: blob.size,
         }),
       );
 

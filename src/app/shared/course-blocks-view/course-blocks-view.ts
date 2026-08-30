@@ -54,14 +54,14 @@ export class CourseBlocksView {
     return exerciseMarkdownFromContent(block.content);
   }
 
-  /** Légende éditoriale d'un bloc document (`content.legende`, gardé string). */
-  protected documentLegende(block: CourseBlock): string | null {
-    return typeof block.content['legende'] === 'string' ? block.content['legende'] : null;
+  /** Légende éditoriale d'un bloc document (`content.caption`, gardé string). */
+  protected documentCaption(block: CourseBlock): string | null {
+    return typeof block.content['caption'] === 'string' ? block.content['caption'] : null;
   }
 
   /** Mode d'affichage éditorial d'un bloc document (repli `inline`). */
-  protected documentAffichage(block: CourseBlock): 'inline' | 'telechargement' {
-    return payloadFromDocumentContent(block.content).affichage;
+  protected documentDisplay(block: CourseBlock): 'inline' | 'download' {
+    return payloadFromDocumentContent(block.content).display;
   }
 
   /** Ressource pointée par un bloc document (id inconnu/supprimé → `undefined`). */

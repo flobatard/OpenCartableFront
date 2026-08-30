@@ -9,9 +9,9 @@ import { Spinner } from '../../../shared/spinner/spinner';
 import { UserAvatar } from '../../../shared/user-avatar/user-avatar';
 
 /**
- * Catalogue public d'un prof (`/:lang/p/:profId`, J2) : ses cours `public`
+ * Catalogue public d'un prof (`/:lang/p/:teacherId`, J2) : ses cours `public`
  * uniquement, en cartes « Ouvrir le cours » vers `/p/courses/:id`. Page
- * anonyme sans compte : la seule identité affichée est le `nom_public`
+ * anonyme sans compte : la seule identité affichée est le `public_name`
  * choisi par le prof (absent → titre générique). Un prof inconnu répond la
  * même chose qu'un prof sans cours public (pas d'oracle d'existence).
  * Client-only (`RenderMode.Client`).
@@ -30,17 +30,17 @@ export class StudentCatalog {
   protected readonly language = inject(LanguageService);
 
   // Param en snapshot (convention repo) : cible de lien externe.
-  readonly #profId = this.#route.snapshot.paramMap.get('profId') ?? '';
+  readonly #teacherId = this.#route.snapshot.paramMap.get('teacherId') ?? '';
 
   protected readonly catalog = this.#courses.catalog;
   protected readonly loading = this.#courses.catalogLoading;
   protected readonly error = computed(
-    () => this.#profId === '' || this.#courses.catalogError(),
+    () => this.#teacherId === '' || this.#courses.catalogError(),
   );
 
   constructor() {
-    if (this.#isBrowser && this.#profId !== '') {
-      this.#courses.loadCatalog(this.#profId);
+    if (this.#isBrowser && this.#teacherId !== '') {
+      this.#courses.loadCatalog(this.#teacherId);
     }
   }
 

@@ -41,7 +41,7 @@ describe('Header', () => {
     }).compileComponents();
   });
 
-  it('affiche le logo et le bouton de connexion', async () => {
+  it('shows the logo and the login button', async () => {
     const fixture = TestBed.createComponent(Header);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
@@ -50,7 +50,7 @@ describe('Header', () => {
     expect(el.textContent).toContain('Se connecter');
   });
 
-  it('affiche un spinner et désactive le bouton pendant la connexion', async () => {
+  it('shows a spinner and disables the button while logging in', async () => {
     const fixture = TestBed.createComponent(Header);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
@@ -65,7 +65,7 @@ describe('Header', () => {
     expect(button?.querySelector('app-spinner')).toBeTruthy();
   });
 
-  it('bascule le thème au clic', async () => {
+  it('toggles the theme on click', async () => {
     const fixture = TestBed.createComponent(Header);
     await fixture.whenStable();
 
@@ -77,7 +77,7 @@ describe('Header', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
   });
 
-  it('navigue vers la même page dans l’autre langue au clic et mémorise le choix', async () => {
+  it('navigates to the same page in the other language on click and remembers the choice', async () => {
     const router = TestBed.inject(Router);
     const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     vi.spyOn(router, 'url', 'get').mockReturnValue('/fr/home');
@@ -95,7 +95,7 @@ describe('Header', () => {
     expect(localStorage.getItem('oc-lang')).toBe('en');
   });
 
-  it('montre « Rechercher » aux visiteurs mais pas « Mes cours »', async () => {
+  it('shows “Rechercher” to visitors but not “Mes cours”', async () => {
     const fixture = TestBed.createComponent(Header);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
@@ -107,7 +107,7 @@ describe('Header', () => {
     expect(el.textContent).not.toContain('Mes cours');
   });
 
-  it('affiche le lien « Mes cours » une fois authentifié', async () => {
+  it('shows the “Mes cours” link once authenticated', async () => {
     isAuthenticated.set(true);
     displayName.set('Prof');
 
@@ -126,7 +126,7 @@ describe('Header', () => {
     expect(links[1].textContent).toContain('Mes cours');
   });
 
-  it('affiche le menu utilisateur une fois authentifié', async () => {
+  it('shows the user menu once authenticated', async () => {
     isAuthenticated.set(true);
     displayName.set('Prof');
 

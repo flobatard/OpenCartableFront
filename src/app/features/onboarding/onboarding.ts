@@ -18,7 +18,7 @@ import { SubjectMultiPicker } from '../../shared/subject-multi-picker/subject-mu
 /** Étapes possibles ; la liste effective dérive des rôles cochés. */
 type OnboardingStep =
   | 'roles'
-  | 'systeme'
+  | 'system'
   | 'levelsTaught'
   | 'subjectsTaught'
   | 'levelsLearned'
@@ -66,9 +66,9 @@ export class Onboarding implements OnInit {
     const v = this.#formValue();
     return [
       'roles' as const,
-      'systeme' as const,
-      ...(v.estProf ? (['levelsTaught', 'subjectsTaught'] as const) : []),
-      ...(v.estEleve ? (['levelsLearned', 'subjectsLearned'] as const) : []),
+      'system' as const,
+      ...(v.isTeacher ? (['levelsTaught', 'subjectsTaught'] as const) : []),
+      ...(v.isStudent ? (['levelsLearned', 'subjectsLearned'] as const) : []),
     ];
   });
 
@@ -82,27 +82,27 @@ export class Onboarding implements OnInit {
   protected readonly isLast = computed(() => this.currentIndex() === this.steps().length - 1);
 
   /** Systèmes scolaires dérivés des racines de l'arbre (pas de liste en dur). */
-  protected readonly systemes = computed(() => [
-    ...new Set(this.levels.tree().map((root) => root.systeme)),
+  protected readonly systems = computed(() => [
+    ...new Set(this.levels.tree().map((root) => root.system)),
   ]);
 
-  protected readonly systemeValue = computed(() => this.#formValue().systeme ?? null);
+  protected readonly systemValue = computed(() => this.#formValue().system ?? null);
 
   protected readonly canProceed = computed(() => {
     const v = this.#formValue();
     switch (this.currentStep()) {
       case 'roles':
-        return !!(v.estProf || v.estEleve);
-      case 'systeme':
-        return !!v.systeme;
+        return !!(v.isTeacher || v.isStudent);
+      case 'system':
+        return !!v.system;
       case 'levelsTaught':
-        return (v.enseignement?.educationLevelIds?.length ?? 0) > 0;
+        return (v.teaching?.educationLevelIds?.length ?? 0) > 0;
       case 'subjectsTaught':
-        return (v.enseignement?.subjectIds?.length ?? 0) > 0;
+        return (v.teaching?.subjectIds?.length ?? 0) > 0;
       case 'levelsLearned':
-        return (v.apprentissage?.educationLevelIds?.length ?? 0) > 0;
+        return (v.learning?.educationLevelIds?.length ?? 0) > 0;
       case 'subjectsLearned':
-        return (v.apprentissage?.subjectIds?.length ?? 0) > 0;
+        return (v.learning?.subjectIds?.length ?? 0) > 0;
     }
   });
 
@@ -135,12 +135,12 @@ export class Onboarding implements OnInit {
     }
   }
 
-  protected selectSysteme(code: string): void {
-    this.form.controls.systeme.setValue(code);
+  protected selectSystem(code: string): void {
+    this.form.controls.system.setValue(code);
   }
 
   /** Libellé i18n du système, repli sur le code brut (13e système seedé). */
-  protected systemeLabel(code: string): string {
+  protected systemLabel(code: string): string {
     const key = `onboarding.systems.${code}`;
     const label = this.#transloco.translate(key);
     return label === key ? code : label;

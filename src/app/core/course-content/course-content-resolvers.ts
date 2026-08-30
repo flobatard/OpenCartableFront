@@ -24,7 +24,7 @@ import { resourceContentUrl } from '../resources/resource.utils';
 
 /** Résolution des ressources S3 d'un cours (bibliothèque + URL présignées). */
 export interface CourseResourceResolver {
-  /** Ressources connues du cours courant (statut `disponible` requis pour résoudre). */
+  /** Ressources connues du cours courant (`status` `available` requis pour résoudre). */
   readonly list: Signal<readonly CourseResource[]>;
   /** Vrai pendant le chargement de la bibliothèque (le rendu attend la fin). */
   readonly listLoading: Signal<boolean>;

@@ -28,7 +28,7 @@ describe('MarkdownPlayground', () => {
     });
   });
 
-  it('pose l’exemple initial dans le contrôle ET l’aperçu, sans attendre le debounce', async () => {
+  it('seeds the initial example in the control AND the preview, without waiting for the debounce', async () => {
     const fixture = createPlayground('## Bonjour');
     await fixture.whenStable();
     const component = fixture.componentInstance;
@@ -36,7 +36,7 @@ describe('MarkdownPlayground', () => {
     expect(fixture.nativeElement.querySelector('.course-content')?.innerHTML).toContain('<h2>');
   });
 
-  it('répercute la frappe sur l’aperçu après debounce (jsdom pilote le contrôle)', async () => {
+  it('reflects typing in the preview after the debounce (jsdom drives the control)', async () => {
     vi.useFakeTimers();
     try {
       const fixture = createPlayground('avant');
@@ -51,7 +51,7 @@ describe('MarkdownPlayground', () => {
     }
   });
 
-  it('ne réinitialise pas la saisie si l’input initial change (lu une seule fois)', async () => {
+  it('does not reset the input when the initial input changes (read once)', async () => {
     const fixture = createPlayground('premier');
     fixture.componentInstance.control.setValue('saisie en cours');
     fixture.componentRef.setInput('initial', 'second');

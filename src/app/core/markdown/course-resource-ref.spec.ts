@@ -9,35 +9,35 @@ import {
 
 describe('course-resource-ref', () => {
   describe('resourceRefHref', () => {
-    it('préfixe l’id du schéma oc-resource', () => {
+    it('prefixes the id with the oc-resource scheme', () => {
       expect(resourceRefHref('abc-123')).toBe(`${RESOURCE_REF_SCHEME}abc-123`);
       expect(resourceRefHref('abc-123')).toBe('oc-resource:abc-123');
     });
   });
 
   describe('parseResourceRef', () => {
-    it('extrait l’id d’un href oc-resource', () => {
+    it('extracts the id from an oc-resource href', () => {
       expect(parseResourceRef('oc-resource:abc-123')).toBe('abc-123');
     });
 
-    it('renvoie null pour un href étranger', () => {
+    it('returns null for a foreign href', () => {
       expect(parseResourceRef('https://example.com/img.png')).toBeNull();
       expect(parseResourceRef('mailto:a@b.c')).toBeNull();
       expect(parseResourceRef('/relatif')).toBeNull();
     });
 
-    it('renvoie null pour un id vide', () => {
+    it('returns null for an empty id', () => {
       expect(parseResourceRef('oc-resource:')).toBeNull();
       expect(parseResourceRef('oc-resource:   ')).toBeNull();
     });
 
-    it('rogne les espaces autour de l’id', () => {
+    it('trims the whitespace around the id', () => {
       expect(parseResourceRef('oc-resource: abc ')).toBe('abc');
     });
   });
 
   describe('resourceKind', () => {
-    it('mappe image/audio/vidéo sur eux-mêmes, tout le reste sur un lien', () => {
+    it('maps image/audio/video onto themselves, everything else onto a link', () => {
       expect(resourceKind('image')).toBe('image');
       expect(resourceKind('audio')).toBe('audio');
       expect(resourceKind('video')).toBe('video');
@@ -46,26 +46,26 @@ describe('course-resource-ref', () => {
   });
 
   describe('buildResourceMarkdown', () => {
-    it('produit une syntaxe image pour une image', () => {
-      expect(buildResourceMarkdown({ id: 'abc', nom_original: 'Photo', type: 'image' })).toBe(
+    it('produces an image syntax for an image', () => {
+      expect(buildResourceMarkdown({ id: 'abc', original_name: 'Photo', type: 'image' })).toBe(
         '![Photo](oc-resource:abc)',
       );
     });
 
-    it('produit un lien pour les autres types', () => {
-      expect(buildResourceMarkdown({ id: 'def', nom_original: 'Cours.pdf', type: 'document' })).toBe(
+    it('produces a link for the other types', () => {
+      expect(buildResourceMarkdown({ id: 'def', original_name: 'Cours.pdf', type: 'document' })).toBe(
         '[Cours.pdf](oc-resource:def)',
       );
-      expect(buildResourceMarkdown({ id: 'ghi', nom_original: 'Extrait.mp3', type: 'audio' })).toBe(
+      expect(buildResourceMarkdown({ id: 'ghi', original_name: 'Extrait.mp3', type: 'audio' })).toBe(
         '[Extrait.mp3](oc-resource:ghi)',
       );
     });
 
-    it('échappe les crochets et aplatit les retours ligne du nom', () => {
-      expect(buildResourceMarkdown({ id: 'x', nom_original: 'a [b] c', type: 'image' })).toBe(
+    it('escapes brackets and flattens newlines in the name', () => {
+      expect(buildResourceMarkdown({ id: 'x', original_name: 'a [b] c', type: 'image' })).toBe(
         '![a \\[b\\] c](oc-resource:x)',
       );
-      expect(buildResourceMarkdown({ id: 'x', nom_original: 'ligne1\nligne2', type: 'document' })).toBe(
+      expect(buildResourceMarkdown({ id: 'x', original_name: 'ligne1\nligne2', type: 'document' })).toBe(
         '[ligne1 ligne2](oc-resource:x)',
       );
     });

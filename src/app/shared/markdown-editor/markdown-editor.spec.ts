@@ -39,14 +39,14 @@ describe('MarkdownEditor', () => {
     return (editor as unknown as MarkdownEditorInternals).inner;
   }
 
-  it('rend le wrapper monaco sans erreur (inerte en jsdom)', async () => {
+  it('renders the monaco wrapper without error (inert in jsdom)', async () => {
     const fixture = await createHost();
     expect(
       (fixture.nativeElement as HTMLElement).querySelector('ngx-monaco-editor'),
     ).toBeTruthy();
   });
 
-  it('writeValue alimente le contrôle interne sans marquer le contrôle hôte', async () => {
+  it('writeValue feeds the inner control without marking the host control', async () => {
     const fixture = await createHost();
     fixture.componentInstance.control.setValue('# Titre');
 
@@ -55,7 +55,7 @@ describe('MarkdownEditor', () => {
     expect(fixture.componentInstance.control.touched).toBe(false);
   });
 
-  it('l’écho du wrapper (même valeur) n’est pas propagé au contrôle hôte', async () => {
+  it('the wrapper’s echo (same value) is not propagated to the host control', async () => {
     const fixture = await createHost();
     fixture.componentInstance.control.setValue('# Titre');
 
@@ -66,7 +66,7 @@ describe('MarkdownEditor', () => {
     expect(fixture.componentInstance.control.touched).toBe(false);
   });
 
-  it('une frappe (valeur différente) est propagée au contrôle hôte', async () => {
+  it('a keystroke (different value) is propagated to the host control', async () => {
     const fixture = await createHost();
     inner(fixture).setValue('## Section');
 
@@ -74,7 +74,7 @@ describe('MarkdownEditor', () => {
     expect(fixture.componentInstance.control.touched).toBe(true);
   });
 
-  it('disable() du contrôle hôte désactive le contrôle interne', async () => {
+  it('disable() on the host control disables the inner control', async () => {
     const fixture = await createHost();
     fixture.componentInstance.control.disable();
 
@@ -88,14 +88,14 @@ describe('MarkdownEditor', () => {
     return fixture.debugElement.query(By.directive(MarkdownEditor)).componentInstance as MarkdownEditor;
   }
 
-  it('insertAtCursor est sans effet tant que monaco n’est pas initialisé', async () => {
+  it('insertAtCursor is a no-op until monaco is initialized', async () => {
     const fixture = await createHost();
 
     expect(() => editorOf(fixture).insertAtCursor('![x](oc-resource:1)')).not.toThrow();
     expect(fixture.componentInstance.control.value).toBe('');
   });
 
-  it('insertAtCursor délègue à executeEdits de l’instance monaco puis refocus', async () => {
+  it('insertAtCursor delegates to the monaco instance’s executeEdits then refocuses', async () => {
     const fixture = await createHost();
     const editor = editorOf(fixture);
     const executeEdits = vi.fn();

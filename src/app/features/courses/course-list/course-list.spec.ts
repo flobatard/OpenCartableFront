@@ -65,14 +65,14 @@ describe('CourseList', () => {
     vi.clearAllMocks();
   });
 
-  it('refetch la liste et charge les arbres de référence au démarrage', async () => {
+  it('refetches the list and loads the reference trees on startup', async () => {
     await createComponent();
     expect(coursesMock.loadList).toHaveBeenCalled();
     expect(subjectsMock.load).toHaveBeenCalled();
     expect(levelsMock.load).toHaveBeenCalled();
   });
 
-  it('affiche les cartes : titres, badges résolus, compteur de blocs', async () => {
+  it('shows the cards: titles, resolved badges, block count', async () => {
     const fixture = await createComponent();
 
     // Le h2 embarque le badge de visibilité : on ne lit que le nœud texte du titre.
@@ -96,7 +96,7 @@ describe('CourseList', () => {
     expect(cards[0].querySelector('.course-list__meta')?.textContent).toContain('3 bloc(s)');
   });
 
-  it('chaque carte mène à l’espace blocs et l’en-tête à la création', async () => {
+  it('each card leads to the blocks workspace and the header to creation', async () => {
     const fixture = await createComponent();
     const links = Array.from(el(fixture).querySelectorAll<HTMLAnchorElement>('a'));
 
@@ -104,14 +104,14 @@ describe('CourseList', () => {
     expect(links.some((a) => a.getAttribute('href') === '/fr/courses/course-1')).toBe(true);
   });
 
-  it('affiche un skeleton pendant le chargement', async () => {
+  it('shows a skeleton while loading', async () => {
     listLoading.set(true);
     const fixture = await createComponent();
     expect(el(fixture).querySelector('.course-list__skeleton')).toBeTruthy();
     expect(el(fixture).querySelector('.course-list__cards')).toBeNull();
   });
 
-  it('affiche l’erreur et relance le fetch via Réessayer', async () => {
+  it('shows the error and refetches via the retry button', async () => {
     listError.set(true);
     const fixture = await createComponent();
     const retry = el(fixture).querySelector<HTMLButtonElement>('.course-list__error .btn');
@@ -122,7 +122,7 @@ describe('CourseList', () => {
     expect(coursesMock.loadList).toHaveBeenCalled();
   });
 
-  it('sans cours, invite à composer le premier', async () => {
+  it('without courses, invites to compose the first one', async () => {
     list.set([]);
     const fixture = await createComponent();
     const empty = el(fixture).querySelector('.course-list__empty');

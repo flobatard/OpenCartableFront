@@ -21,91 +21,91 @@ import {
 
 describe('subject.utils', () => {
   describe('findById', () => {
-    it('trouve un nœud imbriqué', () => {
-      expect(findById(SUBJECTS_FIXTURE, 'math-algebre-ev')?.nom).toBe('Espaces vectoriels');
+    it('finds a nested node', () => {
+      expect(findById(SUBJECTS_FIXTURE, 'math-algebre-ev')?.name).toBe('Espaces vectoriels');
     });
 
-    it('renvoie undefined pour un id inconnu', () => {
+    it('returns undefined for an unknown id', () => {
       expect(findById(SUBJECTS_FIXTURE, 'nope')).toBeUndefined();
     });
   });
 
   describe('findByCode', () => {
-    it('trouve un nœud par code', () => {
+    it('finds a node by code', () => {
       expect(findByCode(SUBJECTS_FIXTURE, 'francais.grammaire')?.id).toBe('francais-grammaire');
     });
 
-    it('renvoie undefined pour un code inconnu', () => {
+    it('returns undefined for an unknown code', () => {
       expect(findByCode(SUBJECTS_FIXTURE, 'x.y')).toBeUndefined();
     });
   });
 
   describe('ancestorPath', () => {
-    it('renvoie la racine pour une discipline', () => {
-      expect(ancestorPath(SUBJECTS_FIXTURE, 'math').map((n) => n.nom)).toEqual(['Mathématiques']);
+    it('returns the root for a discipline', () => {
+      expect(ancestorPath(SUBJECTS_FIXTURE, 'math').map((n) => n.name)).toEqual(['Mathématiques']);
     });
 
-    it('renvoie le chemin complet racine→feuille', () => {
-      expect(ancestorPath(SUBJECTS_FIXTURE, 'math-algebre-ev').map((n) => n.nom)).toEqual([
+    it('returns the full root→leaf path', () => {
+      expect(ancestorPath(SUBJECTS_FIXTURE, 'math-algebre-ev').map((n) => n.name)).toEqual([
         'Mathématiques',
         'Algèbre',
         'Espaces vectoriels',
       ]);
     });
 
-    it('renvoie un tableau vide pour un id inconnu', () => {
+    it('returns an empty array for an unknown id', () => {
       expect(ancestorPath(SUBJECTS_FIXTURE, 'nope')).toEqual([]);
     });
   });
 
   describe('flattenFiltered', () => {
-    it('filtre sans tenir compte de la casse ni des accents', () => {
+    it('filters ignoring case and accents', () => {
       const matches = flattenFiltered(SUBJECTS_FIXTURE, 'algebre');
-      expect(matches.map((m) => m.node.nom)).toEqual(['Algèbre']);
+      expect(matches.map((m) => m.node.name)).toEqual(['Algèbre']);
     });
 
-    it('correspond à tous les niveaux et renvoie le chemin d’ancêtres', () => {
+    it('matches at every level and returns the ancestor path', () => {
       const matches = flattenFiltered(SUBJECTS_FIXTURE, 'a');
       const ev = matches.find((m) => m.node.id === 'math-algebre-ev');
-      expect(ev?.path.map((n) => n.nom)).toEqual([
+      expect(ev?.path.map((n) => n.name)).toEqual([
         'Mathématiques',
         'Algèbre',
         'Espaces vectoriels',
       ]);
     });
 
-    it('renvoie un tableau vide pour un terme vide', () => {
+    it('returns an empty array for a blank term', () => {
       expect(flattenFiltered(SUBJECTS_FIXTURE, '   ')).toEqual([]);
     });
   });
 
   describe('formatPath', () => {
-    it('joint les noms par le séparateur d’affichage', () => {
+    it('joins the names with the display separator', () => {
       const path = ancestorPath(SUBJECTS_FIXTURE, 'math-algebre-ev');
       expect(formatPath(path)).toBe('Mathématiques › Algèbre › Espaces vectoriels');
     });
   });
 
   describe('normalize', () => {
-    it('retire accents et casse', () => {
+    it('strips accents and case', () => {
       expect(normalize('Élève')).toBe('eleve');
     });
   });
 
   describe('allIds', () => {
-    it('liste tous les ids de l’arbre', () => {
+    it('lists every id of the tree', () => {
       expect(allIds(SUBJECTS_FIXTURE)).toHaveLength(6);
     });
   });
 
   describe('visibleRows', () => {
-    it('ne montre que les racines quand rien n’est déplié', () => {
+    it('shows only the roots when nothing is expanded', () => {
       const rows = visibleRows(SUBJECTS_FIXTURE, new Set());
       expect(rows.map((r) => r.node.id)).toEqual(['math', 'francais']);
       expect(rows[0]).toMatchObject({ depth: 0, hasChildren: true, expanded: false });
     });
 
-    it('descend dans les enfants d’un nœud déplié', () => {
+    it('descends into the children of an expanded node', () => {
       const rows = visibleRows(SUBJECTS_FIXTURE, new Set(['math']));
       expect(rows.map((r) => r.node.id)).toEqual([
         'math',
@@ -118,7 +118,7 @@ describe('subject.utils', () => {
   });
 
   describe('filteredRows', () => {
-    it('élague aux branches contenant un résultat et les déplie', () => {
+    it('prunes to branches containing a match and expands them', () => {
       const rows = filteredRows(SUBJECTS_FIXTURE, 'espaces');
       expect(rows.map((r) => r.node.id)).toEqual([
         'math',
@@ -128,7 +128,7 @@ describe('subject.utils', () => {
       expect(rows.every((r) => r.expanded || !r.hasChildren)).toBe(true);
     });
 
-    it('renvoie [] sans résultat', () => {
+    it('returns [] without any match', () => {
       expect(filteredRows(SUBJECTS_FIXTURE, 'zzz')).toEqual([]);
     });
   });
@@ -149,7 +149,7 @@ describe('SubjectService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('récupère l’arbre et le pousse dans le signal', () => {
+  it('fetches the tree and pushes it into the signal', () => {
     service.load();
     httpMock.expectOne(url).flush(SUBJECTS_FIXTURE);
 
@@ -157,14 +157,14 @@ describe('SubjectService', () => {
     expect(service.tree()).toEqual(SUBJECTS_FIXTURE);
   });
 
-  it('ne fait qu’un seul appel réseau pour plusieurs abonnés (cache shareReplay)', () => {
+  it('issues a single network call for several subscribers (shareReplay cache)', () => {
     service.tree$().subscribe();
     service.tree$().subscribe();
     httpMock.expectOne(url).flush(SUBJECTS_FIXTURE);
     httpMock.verify(); // échouerait s'il y avait une seconde requête
   });
 
-  it('signale une erreur réseau et se recharge via reload()', () => {
+  it('reports a network error and reloads via reload()', () => {
     service.load();
     httpMock.expectOne(url).error(new ProgressEvent('network'));
     expect(service.error()).toBe(true);

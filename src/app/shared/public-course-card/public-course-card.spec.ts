@@ -6,7 +6,7 @@ import { PublicCourseCard } from './public-course-card';
 
 const COURSE: PublicCourseSummary = {
   id: 'c1',
-  titre: 'Fractions',
+  title: 'Fractions',
   description: 'Les bases',
   subjects: ['Mathématiques'],
   education_levels: ['6e'],
@@ -28,7 +28,7 @@ async function mount(course: PublicCourseSummary) {
 }
 
 describe('PublicCourseCard', () => {
-  it('affiche titre, description et chips (noms déjà dénormalisés)', async () => {
+  it('shows title, description and chips (names already denormalized)', async () => {
     const fixture = await mount(COURSE);
     const el = fixture.nativeElement as HTMLElement;
 
@@ -40,7 +40,7 @@ describe('PublicCourseCard', () => {
     expect(chips).toEqual(['Mathématiques', '6e']);
   });
 
-  it('pointe le lien fourni par l’hôte et masque les sections vides', async () => {
+  it('points to the host-provided link and hides empty sections', async () => {
     const fixture = await mount({
       ...COURSE,
       description: null,

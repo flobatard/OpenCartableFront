@@ -33,7 +33,7 @@ describe('JsxgraphView', () => {
     TestBed.configureTestingModule({ imports: [provideTranslocoTesting()] });
   });
 
-  it('initialise le board avec la bbox et trace équations et points', async () => {
+  it('initializes the board with the bbox and draws equations and points', async () => {
     const fixture = createView('equation="x^2"\npoint="2,2"\nbbox="-1,1,1,-1"');
     await flushDraw(fixture);
 
@@ -49,7 +49,7 @@ describe('JsxgraphView', () => {
     expect(fixture.nativeElement.querySelector('.jsxgraph-view__error')).toBeNull();
   });
 
-  it('affiche la notice quand le tracé échoue', async () => {
+  it('shows the notice when drawing fails', async () => {
     initBoard.mockImplementation(() => {
       throw new Error('boom');
     });
@@ -58,7 +58,7 @@ describe('JsxgraphView', () => {
     expect(fixture.nativeElement.querySelector('.jsxgraph-view__error')).not.toBeNull();
   });
 
-  it('libère le board précédent au re-tracé et à la destruction', async () => {
+  it('frees the previous board on redraw and on destroy', async () => {
     const fixture = createView('equation=x');
     await flushDraw(fixture);
     expect(freeBoard).not.toHaveBeenCalled();

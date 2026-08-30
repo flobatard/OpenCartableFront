@@ -57,7 +57,7 @@ describe('CourseCreate', () => {
   }
 
   async function setTitre(fixture: ComponentFixture<CourseCreate>, value: string): Promise<void> {
-    const input = el(fixture).querySelector<HTMLInputElement>('#course-titre')!;
+    const input = el(fixture).querySelector<HTMLInputElement>('#course-title')!;
     input.value = value;
     input.dispatchEvent(new Event('input'));
     await fixture.whenStable();
@@ -74,7 +74,7 @@ describe('CourseCreate', () => {
     profilesMock.ensureLoaded.mockResolvedValue(USER_PROFILE_ONBOARDED_FIXTURE);
   });
 
-  it('désactive la création tant que le titre est blanc', async () => {
+  it('disables creation while the title is blank', async () => {
     const fixture = await createComponent();
     expect(submitButton(fixture).disabled).toBe(true);
 
@@ -85,16 +85,16 @@ describe('CourseCreate', () => {
     expect(submitButton(fixture).disabled).toBe(false);
   });
 
-  it('filtre le picker de niveaux par le système scolaire du profil', async () => {
+  it('filters the level picker by the profile’s school system', async () => {
     const fixture = await createComponent();
     const picker = fixture.debugElement.query(By.directive(EducationLevelPicker))
       .componentInstance as EducationLevelPicker;
 
     expect(profilesMock.ensureLoaded).toHaveBeenCalled();
-    expect(picker.systeme()).toBe(USER_PROFILE_ONBOARDED_FIXTURE.systeme_scolaire);
+    expect(picker.system()).toBe(USER_PROFILE_ONBOARDED_FIXTURE.school_system);
   });
 
-  it('crée le cours puis file vers son espace blocs', async () => {
+  it('creates the course then goes to its blocks workspace', async () => {
     const fixture = await createComponent();
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
@@ -102,7 +102,7 @@ describe('CourseCreate', () => {
     await submit(fixture);
 
     expect(coursesMock.createCourse).toHaveBeenCalledWith({
-      titre: 'Suites numériques',
+      title: 'Suites numériques',
       description: null,
       subject_ids: [],
       education_level_ids: [],
@@ -110,7 +110,7 @@ describe('CourseCreate', () => {
     expect(navigate).toHaveBeenCalledWith(['/', 'fr', 'courses', COURSES_FIXTURE[0].id]);
   });
 
-  it('affiche l’erreur et reste sur place si la création échoue', async () => {
+  it('shows the error and stays put when creation fails', async () => {
     coursesMock.createCourse.mockRejectedValue(new Error('boom'));
     const fixture = await createComponent();
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);

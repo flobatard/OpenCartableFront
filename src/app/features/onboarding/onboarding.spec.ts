@@ -7,7 +7,7 @@ import { Onboarding } from './onboarding';
 import { EducationLevelService } from '../../core/education-levels/education-level.service';
 import { SubjectService } from '../../core/subjects/subject.service';
 import { UserProfileService } from '../../core/users/user-profile.service';
-import { EDUCATION_LEVELS_MULTI_SYSTEME_FIXTURE } from '../../testing/education-levels.fixture';
+import { EDUCATION_LEVELS_MULTI_SYSTEM_FIXTURE } from '../../testing/education-levels.fixture';
 import { SUBJECTS_FIXTURE } from '../../testing/subjects.fixture';
 import {
   USER_PROFILE_FIXTURE,
@@ -17,7 +17,7 @@ import { provideTranslocoTesting } from '../../testing/transloco-testing';
 
 describe('Onboarding', () => {
   const levelsMock = {
-    tree: signal(EDUCATION_LEVELS_MULTI_SYSTEME_FIXTURE),
+    tree: signal(EDUCATION_LEVELS_MULTI_SYSTEM_FIXTURE),
     loading: signal(false),
     error: signal(false),
     load: vi.fn(),
@@ -122,12 +122,12 @@ describe('Onboarding', () => {
   beforeEach(() => {
     ensureLoaded = vi.fn().mockResolvedValue(USER_PROFILE_FIXTURE);
     saveProfile = vi.fn().mockResolvedValue(USER_PROFILE_ONBOARDED_FIXTURE);
-    levelsMock.tree.set(EDUCATION_LEVELS_MULTI_SYSTEME_FIXTURE);
+    levelsMock.tree.set(EDUCATION_LEVELS_MULTI_SYSTEM_FIXTURE);
     levelsMock.error.set(false);
     vi.clearAllMocks();
   });
 
-  it('redirige immédiatement vers next si le profil est déjà onboardé', async () => {
+  it('redirects immediately to next when the profile is already onboarded', async () => {
     ensureLoaded.mockResolvedValue(USER_PROFILE_ONBOARDED_FIXTURE);
     const fixture = await createComponent('/fr/subjects');
 
@@ -135,14 +135,14 @@ describe('Onboarding', () => {
     expect(el(fixture).querySelector('.onboarding__form')).toBeNull();
   });
 
-  it('rejette un next externe et retombe sur la page matières', async () => {
+  it('rejects an external next and falls back to the subjects page', async () => {
     ensureLoaded.mockResolvedValue(USER_PROFILE_ONBOARDED_FIXTURE);
     await createComponent('//evil.example');
 
     expect(navigateByUrl).toHaveBeenCalledWith('/fr/subjects', { replaceUrl: true });
   });
 
-  it('la liste d’étapes dérive des rôles cochés (2 → 4 → 6)', async () => {
+  it('the step list derives from the checked roles (2 → 4 → 6)', async () => {
     const fixture = await createComponent();
     expect(stepLabels(fixture)).toHaveLength(2);
 
@@ -153,7 +153,7 @@ describe('Onboarding', () => {
     expect(stepLabels(fixture)).toHaveLength(6);
   });
 
-  it('Suivant est désactivé tant qu’aucun rôle n’est coché', async () => {
+  it('Next is disabled while no role is checked', async () => {
     const fixture = await createComponent();
     expect(primaryButton(fixture).disabled).toBe(true);
 
@@ -161,39 +161,39 @@ describe('Onboarding', () => {
     expect(primaryButton(fixture).disabled).toBe(false);
   });
 
-  it('décocher un rôle vide les sélections de son bloc', async () => {
+  it('unchecking a role clears its block’s selections', async () => {
     const fixture = await createComponent();
     await checkRole(fixture, 0);
-    form(fixture).get('enseignement')!.setValue({
+    form(fixture).get('teaching')!.setValue({
       educationLevelIds: ['college'],
       subjectIds: ['math'],
     });
 
     await checkRole(fixture, 0); // décoche
 
-    expect(form(fixture).get('enseignement')!.value).toEqual({
+    expect(form(fixture).get('teaching')!.value).toEqual({
       educationLevelIds: [],
       subjectIds: [],
     });
   });
 
-  it('changer de système vide les niveaux des deux blocs (pas les matières)', async () => {
+  it('changing system clears the levels of both blocks (not the subjects)', async () => {
     const fixture = await createComponent();
-    form(fixture).get('enseignement')!.setValue({
+    form(fixture).get('teaching')!.setValue({
       educationLevelIds: ['college'],
       subjectIds: ['math'],
     });
-    form(fixture).get('apprentissage.educationLevelIds')!.setValue(['superieur']);
+    form(fixture).get('learning.educationLevelIds')!.setValue(['superieur']);
 
-    form(fixture).get('systeme')!.setValue('uk');
+    form(fixture).get('system')!.setValue('uk');
     await fixture.whenStable();
 
-    expect(form(fixture).get('enseignement.educationLevelIds')!.value).toEqual([]);
-    expect(form(fixture).get('apprentissage.educationLevelIds')!.value).toEqual([]);
-    expect(form(fixture).get('enseignement.subjectIds')!.value).toEqual(['math']);
+    expect(form(fixture).get('teaching.educationLevelIds')!.value).toEqual([]);
+    expect(form(fixture).get('learning.educationLevelIds')!.value).toEqual([]);
+    expect(form(fixture).get('teaching.subjectIds')!.value).toEqual(['math']);
   });
 
-  it('parcours complet double rôle : 6 étapes, payload exact, navigation vers next', async () => {
+  it('full dual-role flow: 6 steps, exact payload, navigation to next', async () => {
     const fixture = await createComponent('/fr/subjects');
 
     await checkRole(fixture, 0);
@@ -217,16 +217,16 @@ describe('Onboarding', () => {
     await fixture.whenStable();
 
     expect(saveProfile).toHaveBeenCalledWith({
-      est_prof: true,
-      est_eleve: true,
-      systeme_scolaire: 'fr',
-      nom_public: null,
-      cherchable: false,
-      enseignement: {
+      is_teacher: true,
+      is_student: true,
+      school_system: 'fr',
+      public_name: null,
+      searchable: false,
+      teaching: {
         education_level_ids: ['college'],
         subject_ids: ['math-algebre-ev'],
       },
-      apprentissage: {
+      learning: {
         education_level_ids: ['college'],
         subject_ids: ['francais-grammaire'],
       },
@@ -234,7 +234,7 @@ describe('Onboarding', () => {
     expect(navigateByUrl).toHaveBeenCalledWith('/fr/subjects', { replaceUrl: true });
   });
 
-  it('le filtrage par système est passé au picker de niveaux', async () => {
+  it('the system filter is passed to the level picker', async () => {
     const fixture = await createComponent();
     await checkRole(fixture, 0);
     await clickNext(fixture);
@@ -249,7 +249,7 @@ describe('Onboarding', () => {
     expect(labels).toEqual(['Secondary school', 'Year 7']);
   });
 
-  it('affiche l’erreur de soumission et reste sur la page', async () => {
+  it('shows the submit error and stays on the page', async () => {
     saveProfile.mockRejectedValue(new Error('down'));
     const fixture = await createComponent();
 
@@ -267,7 +267,7 @@ describe('Onboarding', () => {
     expect(navigateByUrl).not.toHaveBeenCalled();
   });
 
-  it('affiche l’erreur de chargement du profil avec un bouton réessayer', async () => {
+  it('shows the profile load error with a retry button', async () => {
     ensureLoaded.mockRejectedValue(new Error('down'));
     const fixture = await createComponent();
 

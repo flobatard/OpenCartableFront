@@ -28,7 +28,7 @@ describe('langGuard', () => {
     });
   });
 
-  it('active la langue valide et autorise la route', async () => {
+  it('activates the valid language and allows the route', async () => {
     const result = runGuard('en');
     expect(isObservable(result)).toBe(true);
     const allowed = await firstValueFrom(result as Observable<boolean>);
@@ -37,7 +37,7 @@ describe('langGuard', () => {
     expect(TestBed.inject(TranslocoService).getActiveLang()).toBe('en');
   });
 
-  it('redirige une langue inconnue vers /fr/home', () => {
+  it('redirects an unknown language to /fr/home', () => {
     const result = runGuard('de');
     expect(result instanceof UrlTree).toBe(true);
     expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe('/fr/home');

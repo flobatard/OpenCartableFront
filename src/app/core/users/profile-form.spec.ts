@@ -11,53 +11,53 @@ const PROFILE: UserProfile = {
   id: 'user-1',
   sub: 'prof-123',
   email: null,
-  est_prof: true,
-  est_eleve: true,
-  systeme_scolaire: 'fr',
-  nom_public: 'Mme Ada',
-  cherchable: true,
+  is_teacher: true,
+  is_student: true,
+  school_system: 'fr',
+  public_name: 'Mme Ada',
+  searchable: true,
   avatar_url: null,
   onboarding_complete: true,
-  enseignement: { education_level_ids: ['college'], subject_ids: ['math'] },
-  apprentissage: { education_level_ids: ['superieur'], subject_ids: ['francais'] },
+  teaching: { education_level_ids: ['college'], subject_ids: ['math'] },
+  learning: { education_level_ids: ['superieur'], subject_ids: ['francais'] },
 };
 
 describe('profile-form', () => {
   describe('patchFormFromProfile', () => {
-    it('pré-remplit toutes les sections', () => {
+    it('prefills every section', () => {
       const form = buildProfileForm();
       patchFormFromProfile(form, PROFILE);
 
       expect(form.getRawValue()).toEqual({
-        estProf: true,
-        estEleve: true,
-        systeme: 'fr',
-        nomPublic: 'Mme Ada',
-        cherchable: true,
-        enseignement: { educationLevelIds: ['college'], subjectIds: ['math'] },
-        apprentissage: { educationLevelIds: ['superieur'], subjectIds: ['francais'] },
+        isTeacher: true,
+        isStudent: true,
+        system: 'fr',
+        publicName: 'Mme Ada',
+        searchable: true,
+        teaching: { educationLevelIds: ['college'], subjectIds: ['math'] },
+        learning: { educationLevelIds: ['superieur'], subjectIds: ['francais'] },
       });
     });
 
-    it('ne perd pas les niveaux malgré la cohérence câblée (systeme posé avant les blocs)', () => {
+    it('keeps the levels despite the wired coherence (system set before the blocks)', () => {
       const form = buildProfileForm();
       wireProfileFormCoherence(form);
       patchFormFromProfile(form, PROFILE);
 
-      expect(form.controls.enseignement.controls.educationLevelIds.value).toEqual(['college']);
-      expect(form.controls.apprentissage.controls.educationLevelIds.value).toEqual(['superieur']);
+      expect(form.controls.teaching.controls.educationLevelIds.value).toEqual(['college']);
+      expect(form.controls.learning.controls.educationLevelIds.value).toEqual(['superieur']);
     });
 
-    it('vide les blocs des rôles absents', () => {
+    it('empties the blocks of absent roles', () => {
       const form = buildProfileForm();
       patchFormFromProfile(form, PROFILE);
       patchFormFromProfile(form, {
         ...PROFILE,
-        est_eleve: false,
-        apprentissage: null,
+        is_student: false,
+        learning: null,
       });
 
-      expect(form.controls.apprentissage.getRawValue()).toEqual({
+      expect(form.controls.learning.getRawValue()).toEqual({
         educationLevelIds: [],
         subjectIds: [],
       });
@@ -65,57 +65,57 @@ describe('profile-form', () => {
   });
 
   describe('wireProfileFormCoherence', () => {
-    it('décocher un rôle vide son bloc', () => {
+    it('unchecking a role empties its block', () => {
       const form = buildProfileForm();
       wireProfileFormCoherence(form);
       patchFormFromProfile(form, PROFILE);
 
-      form.controls.estProf.setValue(false);
+      form.controls.isTeacher.setValue(false);
 
-      expect(form.controls.enseignement.getRawValue()).toEqual({
+      expect(form.controls.teaching.getRawValue()).toEqual({
         educationLevelIds: [],
         subjectIds: [],
       });
       // L'autre bloc n'est pas touché.
-      expect(form.controls.apprentissage.controls.subjectIds.value).toEqual(['francais']);
+      expect(form.controls.learning.controls.subjectIds.value).toEqual(['francais']);
     });
 
-    it('changer de système vide les niveaux des deux blocs, pas les matières', () => {
+    it('changing the system empties the levels of both blocks, not the subjects', () => {
       const form = buildProfileForm();
       wireProfileFormCoherence(form);
       patchFormFromProfile(form, PROFILE);
 
-      form.controls.systeme.setValue('uk');
+      form.controls.system.setValue('uk');
 
-      expect(form.controls.enseignement.controls.educationLevelIds.value).toEqual([]);
-      expect(form.controls.apprentissage.controls.educationLevelIds.value).toEqual([]);
-      expect(form.controls.enseignement.controls.subjectIds.value).toEqual(['math']);
+      expect(form.controls.teaching.controls.educationLevelIds.value).toEqual([]);
+      expect(form.controls.learning.controls.educationLevelIds.value).toEqual([]);
+      expect(form.controls.teaching.controls.subjectIds.value).toEqual(['math']);
     });
   });
 
   describe('payloadFromForm', () => {
-    it('reconstruit le payload complet (aller-retour avec le profil)', () => {
+    it('rebuilds the full payload (round-trip with the profile)', () => {
       const form = buildProfileForm();
       patchFormFromProfile(form, PROFILE);
 
       expect(payloadFromForm(form)).toEqual({
-        est_prof: true,
-        est_eleve: true,
-        systeme_scolaire: 'fr',
-        nom_public: 'Mme Ada',
-        cherchable: true,
-        enseignement: { education_level_ids: ['college'], subject_ids: ['math'] },
-        apprentissage: { education_level_ids: ['superieur'], subject_ids: ['francais'] },
+        is_teacher: true,
+        is_student: true,
+        school_system: 'fr',
+        public_name: 'Mme Ada',
+        searchable: true,
+        teaching: { education_level_ids: ['college'], subject_ids: ['math'] },
+        learning: { education_level_ids: ['superieur'], subject_ids: ['francais'] },
       });
     });
 
-    it('émet null pour le bloc d’un rôle décoché', () => {
+    it('emits null for the block of an unchecked role', () => {
       const form = buildProfileForm();
       wireProfileFormCoherence(form);
       patchFormFromProfile(form, PROFILE);
-      form.controls.estEleve.setValue(false);
+      form.controls.isStudent.setValue(false);
 
-      expect(payloadFromForm(form).apprentissage).toBeNull();
+      expect(payloadFromForm(form).learning).toBeNull();
     });
   });
 
@@ -126,35 +126,35 @@ describe('profile-form', () => {
       return { ...form.getRawValue(), ...overrides };
     }
 
-    it('vrai pour un profil double rôle complet', () => {
+    it('true for a complete dual-role profile', () => {
       expect(isProfileComplete(value({}))).toBe(true);
     });
 
-    it('faux sans aucun rôle', () => {
-      expect(isProfileComplete(value({ estProf: false, estEleve: false }))).toBe(false);
+    it('false without any role', () => {
+      expect(isProfileComplete(value({ isTeacher: false, isStudent: false }))).toBe(false);
     });
 
-    it('faux sans système', () => {
-      expect(isProfileComplete(value({ systeme: null }))).toBe(false);
+    it('false without a system', () => {
+      expect(isProfileComplete(value({ system: null }))).toBe(false);
     });
 
-    it('faux si un rôle coché n’a pas de niveau ou pas de matière', () => {
+    it('false when a checked role has no level or no subject', () => {
       expect(
-        isProfileComplete(value({ enseignement: { educationLevelIds: [], subjectIds: ['math'] } })),
+        isProfileComplete(value({ teaching: { educationLevelIds: [], subjectIds: ['math'] } })),
       ).toBe(false);
       expect(
         isProfileComplete(
-          value({ apprentissage: { educationLevelIds: ['superieur'], subjectIds: [] } }),
+          value({ learning: { educationLevelIds: ['superieur'], subjectIds: [] } }),
         ),
       ).toBe(false);
     });
 
-    it('ignore le bloc d’un rôle décoché', () => {
+    it('ignores the block of an unchecked role', () => {
       expect(
         isProfileComplete(
           value({
-            estEleve: false,
-            apprentissage: { educationLevelIds: [], subjectIds: [] },
+            isStudent: false,
+            learning: { educationLevelIds: [], subjectIds: [] },
           }),
         ),
       ).toBe(true);

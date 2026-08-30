@@ -16,10 +16,10 @@ import { provideTranslocoTesting } from '../../../testing/transloco-testing';
  */
 describe('ExerciseEditor', () => {
   const CONTENT = {
-    enonce: 'Résoudre les équations suivantes.',
+    statement: 'Résoudre les équations suivantes.',
     questions: [
-      { id: 'q-1', enonce: 'Résoudre $x^2 = 4$.', type: 'texte_libre', reponse_attendue: 'x = ±2' },
-      { id: 'q-2', enonce: 'Résoudre $x^3 = 8$.', type: 'texte_libre', reponse_attendue: 'x = 2' },
+      { id: 'q-1', statement: 'Résoudre $x^2 = 4$.', type: 'free_text', expected_answer: 'x = ±2' },
+      { id: 'q-2', statement: 'Résoudre $x^3 = 8$.', type: 'free_text', expected_answer: 'x = 2' },
     ],
   };
 
@@ -67,62 +67,62 @@ describe('ExerciseEditor', () => {
     return seen;
   }
 
-  it('initialise le formulaire une seule fois depuis initial', async () => {
+  it('initializes the form only once from initial', async () => {
     const fixture = await createComponent();
     const form = fixture.componentInstance.form;
 
-    expect(form.controls.enonce.value).toBe('Résoudre les équations suivantes.');
+    expect(form.controls.statement.value).toBe('Résoudre les équations suivantes.');
     expect(form.controls.questions.length).toBe(2);
     expect(form.controls.questions.at(0).getRawValue()).toEqual({
       id: 'q-1',
-      enonce: 'Résoudre $x^2 = 4$.',
-      reponseAttendue: 'x = ±2',
+      statement: 'Résoudre $x^2 = 4$.',
+      expectedAnswer: 'x = ±2',
     });
 
     // Un changement de référence de l'input (patch du détail post-save) ne
     // re-patche pas : la frappe en cours serait écrasée.
-    form.controls.enonce.setValue('Frappe en cours');
-    fixture.componentRef.setInput('initial', { enonce: 'Écrasé côté serveur', questions: [] });
+    form.controls.statement.setValue('Frappe en cours');
+    fixture.componentRef.setInput('initial', { statement: 'Écrasé côté serveur', questions: [] });
     fixture.detectChanges();
 
-    expect(form.controls.enonce.value).toBe('Frappe en cours');
+    expect(form.controls.statement.value).toBe('Frappe en cours');
     expect(form.controls.questions.length).toBe(2);
   });
 
-  it('émet le payload complet à chaque frappe', async () => {
+  it('emits the full payload on every keystroke', async () => {
     const fixture = await createComponent();
     const seen = emissions(fixture);
 
     fixture.componentInstance.form.controls.questions
       .at(0)
-      .controls.reponseAttendue.setValue('x ∈ {−2, 2}');
+      .controls.expectedAnswer.setValue('x ∈ {−2, 2}');
 
     expect(seen.length).toBe(1);
     expect(seen[0]).toEqual({
-      enonce: 'Résoudre les équations suivantes.',
+      statement: 'Résoudre les équations suivantes.',
       questions: [
         {
           id: 'q-1',
-          enonce: 'Résoudre $x^2 = 4$.',
-          type: 'texte_libre',
-          reponse_attendue: 'x ∈ {−2, 2}',
+          statement: 'Résoudre $x^2 = 4$.',
+          type: 'free_text',
+          expected_answer: 'x ∈ {−2, 2}',
         },
-        { id: 'q-2', enonce: 'Résoudre $x^3 = 8$.', type: 'texte_libre', reponse_attendue: 'x = 2' },
+        { id: 'q-2', statement: 'Résoudre $x^3 = 8$.', type: 'free_text', expected_answer: 'x = 2' },
       ],
     });
   });
 
-  it('onglets Sujet/Questions : bascule par [hidden], panneaux jamais détruits', async () => {
+  it('Statement/Questions tabs: switched via [hidden], panels never destroyed', async () => {
     const fixture = await createComponent();
     const panels = el(fixture).querySelectorAll<HTMLElement>('.exercise-editor__panel');
     const tabs = el(fixture).querySelectorAll<HTMLButtonElement>('.exercise-editor__tabbar .tab');
     const [sujetPanel, questionsPanel] = Array.from(panels);
-    const [sujetTab, questionsTab] = Array.from(tabs);
+    const [statementTab, questionsTab] = Array.from(tabs);
 
     // Sujet actif par défaut ; le compteur de questions est porté par l'onglet.
     expect(sujetPanel.hidden).toBe(false);
     expect(questionsPanel.hidden).toBe(true);
-    expect(sujetTab.getAttribute('aria-selected')).toBe('true');
+    expect(statementTab.getAttribute('aria-selected')).toBe('true');
     expect(questionsTab.textContent).toContain('2');
 
     questionsTab.click();
@@ -138,23 +138,23 @@ describe('ExerciseEditor', () => {
     questionsTab.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
     fixture.detectChanges();
     expect(sujetPanel.hidden).toBe(false);
-    expect(sujetTab.getAttribute('aria-selected')).toBe('true');
+    expect(statementTab.getAttribute('aria-selected')).toBe('true');
   });
 
-  it('aperçu complet : concatène sujet + énoncés, rendu sur onglet actif', async () => {
+  it('full preview: concatenates statement + question statements, rendered on the active tab', async () => {
     const fixture = await createComponent();
     const tabs = el(fixture).querySelectorAll<HTMLButtonElement>('.exercise-editor__tabbar .tab');
-    const apercuTab = Array.from(tabs)[2];
+    const previewTab = Array.from(tabs)[2];
 
     // Panneau aperçu absent (@if) tant que l'onglet n'est pas actif.
     expect(el(fixture).querySelector('.exercise-editor__preview')).toBeNull();
 
-    apercuTab.click();
+    previewTab.click();
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(apercuTab.getAttribute('aria-selected')).toBe('true');
+    expect(previewTab.getAttribute('aria-selected')).toBe('true');
     const preview = el(fixture).querySelector<HTMLElement>('.exercise-editor__preview');
     expect(preview).toBeTruthy();
     // Sujet + les deux énoncés rendus d'un seul tenant.
@@ -163,20 +163,20 @@ describe('ExerciseEditor', () => {
     expect(preview!.querySelectorAll('p').length).toBe(3);
   });
 
-  it('aperçu complet : état vide quand rien à prévisualiser', async () => {
-    const fixture = await createComponent({ enonce: '', questions: [] });
+  it('full preview: empty state when there is nothing to preview', async () => {
+    const fixture = await createComponent({ statement: '', questions: [] });
     const tabs = el(fixture).querySelectorAll<HTMLButtonElement>('.exercise-editor__tabbar .tab');
     Array.from(tabs)[2].click();
     fixture.detectChanges();
 
-    const panel = el(fixture).querySelector<HTMLElement>('.exercise-editor__panel--apercu');
+    const panel = el(fixture).querySelector<HTMLElement>('.exercise-editor__panel--preview');
     expect(panel).toBeTruthy();
     expect(panel!.querySelector('.exercise-editor__preview')).toBeNull();
     expect(panel!.querySelector('.exercise-editor__empty')).toBeTruthy();
   });
 
-  it('état vide : message affiché, ajouter crée une question et émet', async () => {
-    const fixture = await createComponent({ enonce: '', questions: [] });
+  it('empty state: message shown, add creates a question and emits', async () => {
+    const fixture = await createComponent({ statement: '', questions: [] });
     const seen = emissions(fixture);
 
     expect(el(fixture).querySelector('.exercise-editor__empty')).toBeTruthy();
@@ -188,11 +188,11 @@ describe('ExerciseEditor', () => {
     expect(el(fixture).querySelectorAll('.exercise-editor__question').length).toBe(1);
     expect(seen.length).toBe(1);
     expect(seen[0].questions).toEqual([
-      { id: null, enonce: '', type: 'texte_libre', reponse_attendue: '' },
+      { id: null, statement: '', type: 'free_text', expected_answer: '' },
     ]);
   });
 
-  it('supprime en deux temps, désarmé au blur', async () => {
+  it('deletes in two steps, disarmed on blur', async () => {
     const fixture = await createComponent();
     const seen = emissions(fixture);
     const deleteBtn = (): HTMLButtonElement =>
@@ -215,7 +215,7 @@ describe('ExerciseEditor', () => {
     expect(seen.at(-1)!.questions.map((q) => q.id)).toEqual(['q-2']);
   });
 
-  it('déplace une question (bornes désactivées) et émet le nouvel ordre', async () => {
+  it('moves a question (bounds disabled) and emits the new order', async () => {
     const fixture = await createComponent();
     const seen = emissions(fixture);
     const moveButtons = el(fixture).querySelectorAll<HTMLButtonElement>('.exercise-editor__move');
@@ -232,7 +232,7 @@ describe('ExerciseEditor', () => {
     expect(titles.length).toBe(2);
   });
 
-  it('le glisser-déposer réordonne les questions et émet une seule fois (Monaco préservé)', async () => {
+  it('drag-and-drop reorders the questions and emits once (Monaco preserved)', async () => {
     const fixture = await createComponent();
     const seen = emissions(fixture);
 
@@ -253,7 +253,7 @@ describe('ExerciseEditor', () => {
     ).toBe(2);
   });
 
-  it('la poignée réordonne les questions au clavier', async () => {
+  it('the handle reorders questions via keyboard', async () => {
     const fixture = await createComponent();
     const seen = emissions(fixture);
     const grip = el(fixture).querySelector<HTMLElement>('.drag-handle')!;
@@ -264,7 +264,7 @@ describe('ExerciseEditor', () => {
     expect(seen.at(-1)!.questions.map((q) => q.id)).toEqual(['q-2', 'q-1']);
   });
 
-  it('accordéon : une seule question dépliée, corps montés (Monaco préservé)', async () => {
+  it('accordion: a single question expanded, bodies stay mounted (Monaco preserved)', async () => {
     const fixture = await createComponent();
     const toggles = el(fixture).querySelectorAll<HTMLButtonElement>(
       '.exercise-editor__question-toggle',
@@ -302,7 +302,7 @@ describe('ExerciseEditor', () => {
     expect(bodies[1].hidden).toBe(true);
   });
 
-  it('ajouter déplie la nouvelle question', async () => {
+  it('adding expands the new question', async () => {
     const fixture = await createComponent();
 
     el(fixture).querySelector<HTMLButtonElement>('.exercise-editor__add')!.click();

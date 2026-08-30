@@ -7,9 +7,9 @@ import { allIds, filteredRows, visibleRows } from '../../core/subjects/subject.u
 
 const LEVEL_KEYS: Record<SubjectLevel, string> = {
   0: 'subjects.level.discipline',
-  1: 'subjects.level.domaine',
-  2: 'subjects.level.sousDomaine',
-  3: 'subjects.level.sujet',
+  1: 'subjects.level.domain',
+  2: 'subjects.level.subdomain',
+  3: 'subjects.level.topic',
 };
 
 /**
@@ -59,8 +59,8 @@ export class Subjects {
     this.#subjects.reload();
   }
 
-  protected levelKey(profondeur: SubjectLevel): string {
-    return LEVEL_KEYS[profondeur];
+  protected levelKey(depth: SubjectLevel): string {
+    return LEVEL_KEYS[depth];
   }
 
   // --- Expansion --------------------------------------------------------------

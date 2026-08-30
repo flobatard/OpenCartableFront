@@ -6,7 +6,7 @@
     <select class="document-editor__select" [formControl]="resourceControl">
       <option value="">{{ 'courses.editor.document.noResource' | transloco }}</option>
       @for (resource of resources(); track resource.id) {
-        <option [value]="resource.id">{{ resource.nom_original }}</option>
+        <option [value]="resource.id">{{ resource.original_name }}</option>
       }
     </select>
   </label>
@@ -24,8 +24,8 @@
       <app-course-preview-document
         [courseId]="courseId()"
         [resource]="selected"
-        [legende]="editorial().legende"
-        [affichage]="editorial().affichage"
+        [caption]="editorial().caption"
+        [display]="editorial().display"
       />
     </div>
   }
@@ -33,28 +33,28 @@
   <form [formGroup]="form" class="document-editor__form">
     <label class="document-editor__field">
       <span class="document-editor__label">
-        {{ 'courses.editor.document.legendeLabel' | transloco }}
+        {{ 'courses.editor.document.captionLabel' | transloco }}
       </span>
       <textarea
         class="document-editor__input document-editor__textarea"
-        formControlName="legende"
+        formControlName="caption"
         maxlength="500"
         rows="2"
-        [placeholder]="'courses.editor.document.legendePlaceholder' | transloco"
+        [placeholder]="'courses.editor.document.captionPlaceholder' | transloco"
       ></textarea>
     </label>
 
     <fieldset class="document-editor__fieldset">
       <legend class="document-editor__label">
-        {{ 'courses.editor.document.affichageLabel' | transloco }}
+        {{ 'courses.editor.document.displayLabel' | transloco }}
       </legend>
       <label class="document-editor__radio">
-        <input type="radio" formControlName="affichage" value="inline" />
-        <span>{{ 'courses.editor.document.affichageInline' | transloco }}</span>
+        <input type="radio" formControlName="display" value="inline" />
+        <span>{{ 'courses.editor.document.displayInline' | transloco }}</span>
       </label>
       <label class="document-editor__radio">
-        <input type="radio" formControlName="affichage" value="telechargement" />
-        <span>{{ 'courses.editor.document.affichageTelechargement' | transloco }}</span>
+        <input type="radio" formControlName="display" value="download" />
+        <span>{{ 'courses.editor.document.displayDownload' | transloco }}</span>
       </label>
     </fieldset>
   </form>

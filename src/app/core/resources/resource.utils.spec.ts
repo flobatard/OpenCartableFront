@@ -8,13 +8,13 @@ import {
 } from './resource.utils';
 
 describe('resourceTypeFromMime', () => {
-  it('mappe les familles média évidentes', () => {
+  it('maps the obvious media families', () => {
     expect(resourceTypeFromMime('image/png')).toBe('image');
     expect(resourceTypeFromMime('audio/mpeg')).toBe('audio');
     expect(resourceTypeFromMime('video/mp4')).toBe('video');
   });
 
-  it('replie tout le reste sur document', () => {
+  it('falls back to document for everything else', () => {
     expect(resourceTypeFromMime('application/pdf')).toBe('document');
     expect(resourceTypeFromMime('application/zip')).toBe('document');
     expect(resourceTypeFromMime('text/plain')).toBe('document');
@@ -24,11 +24,11 @@ describe('resourceTypeFromMime', () => {
 });
 
 describe('isPdfResource', () => {
-  it('reconnaît le mime exact application/pdf', () => {
+  it('recognizes the exact application/pdf mime', () => {
     expect(isPdfResource({ mime: 'application/pdf' })).toBe(true);
   });
 
-  it('rejette tout autre mime (égalité stricte)', () => {
+  it('rejects any other mime (strict equality)', () => {
     expect(isPdfResource({ mime: 'image/png' })).toBe(false);
     expect(isPdfResource({ mime: 'application/zip' })).toBe(false);
     expect(isPdfResource({ mime: '' })).toBe(false);
@@ -36,13 +36,13 @@ describe('isPdfResource', () => {
 });
 
 describe('resourceTypeLabelKey', () => {
-  it('donne une clé dédiée aux documents PDF', () => {
+  it('gives PDF documents a dedicated key', () => {
     expect(resourceTypeLabelKey({ type: 'document', mime: 'application/pdf' })).toBe(
       'courses.resources.types.pdf',
     );
   });
 
-  it('garde la clé du type pour le reste', () => {
+  it('keeps the type key for the rest', () => {
     expect(resourceTypeLabelKey({ type: 'document', mime: 'application/zip' })).toBe(
       'courses.resources.types.document',
     );
@@ -53,12 +53,12 @@ describe('resourceTypeLabelKey', () => {
 });
 
 describe('formatBytes', () => {
-  it('affiche les octets tels quels sous 1000', () => {
+  it('shows bytes as-is under 1000', () => {
     expect(formatBytes(0)).toBe('0 o');
     expect(formatBytes(999)).toBe('999 o');
   });
 
-  it('convertit en ko/Mo/Go avec une décimale et la virgule française', () => {
+  it('converts to ko/Mo/Go with one decimal and the French comma', () => {
     expect(formatBytes(1000)).toBe('1,0 ko');
     expect(formatBytes(245_000)).toBe('245,0 ko');
     expect(formatBytes(1_800_000)).toBe('1,8 Mo');
@@ -66,19 +66,19 @@ describe('formatBytes', () => {
     expect(formatBytes(3_400_000_000)).toBe('3,4 Go');
   });
 
-  it('plafonne l’unité au Go (pas de To)', () => {
+  it('caps the unit at Go (no To)', () => {
     expect(formatBytes(2_000_000_000_000)).toBe('2000,0 Go');
   });
 });
 
 describe('resourceContentUrl', () => {
-  it('construit l’URL front stable et absolue de la route de redirection', () => {
+  it('builds the stable, absolute front URL of the redirect route', () => {
     expect(resourceContentUrl('fr', 'course-1', 'resource-2')).toBe(
       `${environment.siteUrl}/fr/courses/course-1/resources/resource-2`,
     );
   });
 
-  it('porte la langue demandée', () => {
+  it('carries the requested language', () => {
     expect(resourceContentUrl('en', 'c', 'r')).toBe(`${environment.siteUrl}/en/courses/c/resources/r`);
   });
 });

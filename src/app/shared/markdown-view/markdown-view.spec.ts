@@ -68,30 +68,30 @@ describe('MarkdownView', () => {
     return (fixture.nativeElement as HTMLElement).querySelector('.markdown-view__content');
   }
 
-  it('rend le markdown en HTML dans .course-content', async () => {
+  it('renders the markdown as HTML inside .course-content', async () => {
     const fixture = await createComponent('## Section');
     expect(content(fixture)?.innerHTML).toContain('<h2>');
     expect(content(fixture)?.classList.contains('course-content')).toBe(true);
   });
 
-  it('rend les formules LaTeX via KaTeX', async () => {
+  it('renders LaTeX formulas via KaTeX', async () => {
     const fixture = await createComponent('Soit $x^2$ un carré.');
     expect(content(fixture)?.querySelector('.katex')).toBeTruthy();
   });
 
-  it('un markdown vide ne rend aucun contenu', async () => {
+  it('an empty markdown renders no content', async () => {
     const fixture = await createComponent('');
     expect(content(fixture)?.innerHTML.trim()).toBe('');
   });
 
-  it('sans courseId, une référence oc-resource reste un placeholder non résolu', async () => {
+  it('without a courseId, an oc-resource reference stays an unresolved placeholder', async () => {
     const fixture = await createComponent('![illus](oc-resource:resource-2)');
     await fixture.whenStable();
     expect(resourcesMock.getDownloadUrl).not.toHaveBeenCalled();
     expect(content(fixture)?.querySelector('[data-oc-resource-id]')).toBeTruthy();
   });
 
-  it('avec un courseId, résout une image oc-resource via getDownloadUrl', async () => {
+  it('with a courseId, resolves an oc-resource image via getDownloadUrl', async () => {
     const fixture = await createComponent('![illus](oc-resource:resource-2)', 'course-1');
     await fixture.whenStable();
     // laisse la chaîne async (présignature + passe DOM) se dérouler.
@@ -107,7 +107,7 @@ describe('MarkdownView', () => {
     expect(img?.getAttribute('data-oc-resource-id')).toBe('resource-2');
   });
 
-  it('monte le composant d’extension sur le placeholder d’un fence enregistré', async () => {
+  it('mounts the extension component on a registered fence’s placeholder', async () => {
     const fixture = await createComponent('```fake\nid=abc\nwidth=600\n```');
     await new Promise((resolve) => setTimeout(resolve));
     fixture.detectChanges();
@@ -120,7 +120,7 @@ describe('MarkdownView', () => {
     expect(host?.classList.contains('course-extension--pending')).toBe(false);
   });
 
-  it('re-monte sans orphelin quand le markdown change', async () => {
+  it('remounts without orphans when the markdown changes', async () => {
     const fixture = await createComponent('```fake\na=1\n```');
     await new Promise((resolve) => setTimeout(resolve));
     fixture.detectChanges();
@@ -135,7 +135,7 @@ describe('MarkdownView', () => {
     expect(mounted?.[0].textContent).toBe('a=2\n');
   });
 
-  it('laisse un fence de langage non enregistré en bloc de code normal', async () => {
+  it('leaves a fence of an unregistered language as a normal code block', async () => {
     const fixture = await createComponent('```python\nprint(1)\n```');
     await new Promise((resolve) => setTimeout(resolve));
     fixture.detectChanges();
@@ -144,7 +144,7 @@ describe('MarkdownView', () => {
     expect(content(fixture)?.querySelector('[data-oc-extension]')).toBeNull();
   });
 
-  it('une référence en_attente n’est pas présignée (note indisponible)', async () => {
+  it('a pending reference is not presigned (unavailable note)', async () => {
     const fixture = await createComponent('[capsule](oc-resource:resource-3)', 'course-1');
     await fixture.whenStable();
     await new Promise((resolve) => setTimeout(resolve));
@@ -154,7 +154,7 @@ describe('MarkdownView', () => {
     expect(content(fixture)?.querySelector('.course-resource--missing')).toBeTruthy();
   });
 
-  it('affiche le bouton « style de lecture » et monte la modale en contexte cours', async () => {
+  it('shows the “reading style” button and mounts the dialog in course context', async () => {
     const fixture = await createComponent('## Titre', 'course-1');
     const host = fixture.nativeElement as HTMLElement;
     // aria-label résolu par Transloco (langue par défaut fr).
@@ -162,14 +162,14 @@ describe('MarkdownView', () => {
     expect(host.querySelector('app-course-style-dialog')).toBeTruthy();
   });
 
-  it('masque le bouton et la modale de style hors contexte cours', async () => {
+  it('hides the style button and dialog outside course context', async () => {
     const fixture = await createComponent('## Titre');
     const host = fixture.nativeElement as HTMLElement;
     expect(host.querySelector('button[aria-label="Style de lecture"]')).toBeNull();
     expect(host.querySelector('app-course-style-dialog')).toBeNull();
   });
 
-  it('applique les variables de style au conteneur en contexte cours', async () => {
+  it('applies the style variables to the container in course context', async () => {
     const fixture = await createComponent('## Titre', 'course-1');
     // Facteurs neutres par défaut, posés en inline sur .course-content.
     expect(content(fixture)?.style.getPropertyValue('--course-font-scale')).toBe('1');

@@ -7,15 +7,15 @@
  * pas au contrat CORS pour un nom de fichier).
  */
 
-/** Nom de l'archive d'export : `cours-<slug-du-titre>.zip` (accents aplatis). */
-export function courseExportFilename(titre: string): string {
-  const slug = titre
+/** Nom de l'archive d'export : `course-<slug-du-titre>.zip` (accents aplatis). */
+export function courseExportFilename(title: string): string {
+  const slug = title
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^A-Za-z0-9._-]+/g, '-')
     .replace(/^[-._]+|[-._]+$/g, '')
     .toLowerCase();
-  return `cours-${slug || 'export'}.zip`;
+  return `course-${slug || 'export'}.zip`;
 }
 
 /**

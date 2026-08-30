@@ -7,8 +7,8 @@ import { provideTranslocoTesting } from '../../../testing/transloco-testing';
 import { CourseModules } from './course-modules';
 
 const MODULES: ModuleSummary[] = [
-  { id: 'module-1', titre: 'Quiz interactif', created_at: '2026-07-01', updated_at: '2026-07-01' },
-  { id: 'module-2', titre: 'Simulation', created_at: '2026-06-01', updated_at: '2026-06-01' },
+  { id: 'module-1', title: 'Quiz interactif', created_at: '2026-07-01', updated_at: '2026-07-01' },
+  { id: 'module-2', title: 'Simulation', created_at: '2026-06-01', updated_at: '2026-06-01' },
 ];
 
 describe('CourseModules', () => {
@@ -47,7 +47,7 @@ describe('CourseModules', () => {
     vi.clearAllMocks();
   });
 
-  it('charge la bibliothèque au montage et liste les modules', async () => {
+  it('loads the library on mount and lists the modules', async () => {
     const fixture = await createComponent();
     expect(modulesMock.loadList).toHaveBeenCalledWith('course-1');
     const names = Array.from(el(fixture).querySelectorAll('.course-modules__name')).map(
@@ -59,16 +59,16 @@ describe('CourseModules', () => {
     expect(edit?.getAttribute('href')).toContain('/courses/course-1/modules/module-1');
   });
 
-  it('état vide : invite à créer un module', async () => {
+  it('empty state: invites to create a module', async () => {
     list.set([]);
     const fixture = await createComponent();
     expect(el(fixture).querySelector('.course-modules__empty')).toBeTruthy();
   });
 
-  it('crée un module (titre trimé) puis navigue vers son éditeur', async () => {
+  it('creates a module (trimmed title) then navigates to its editor', async () => {
     const fixture = await createComponent();
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
-    modulesMock.createModule.mockResolvedValue({ id: 'module-9', titre: 'Nouveau' });
+    modulesMock.createModule.mockResolvedValue({ id: 'module-9', title: 'Nouveau' });
 
     fixture.componentInstance.createControl.setValue('  Nouveau  ');
     el(fixture)
@@ -76,7 +76,7 @@ describe('CourseModules', () => {
       .dispatchEvent(new Event('submit'));
     await fixture.whenStable();
 
-    expect(modulesMock.createModule).toHaveBeenCalledWith('course-1', { titre: 'Nouveau' });
+    expect(modulesMock.createModule).toHaveBeenCalledWith('course-1', { title: 'Nouveau' });
     expect(navigate).toHaveBeenCalledWith([
       '/',
       'fr',
@@ -87,7 +87,7 @@ describe('CourseModules', () => {
     ]);
   });
 
-  it('titre vide : pas de création', async () => {
+  it('blank title: no creation', async () => {
     const fixture = await createComponent();
     fixture.componentInstance.createControl.setValue('   ');
     el(fixture)
@@ -97,9 +97,9 @@ describe('CourseModules', () => {
     expect(modulesMock.createModule).not.toHaveBeenCalled();
   });
 
-  it('renomme inline (Échap annule)', async () => {
+  it('renames inline (Escape cancels)', async () => {
     const fixture = await createComponent();
-    modulesMock.renameModule.mockResolvedValue({ ...MODULES[0], titre: 'Quiz v2' });
+    modulesMock.renameModule.mockResolvedValue({ ...MODULES[0], title: 'Quiz v2' });
 
     // Le 2e bouton d'action de la 1re rangée = « Renommer » (après le lien Modifier).
     el(fixture)
@@ -127,7 +127,7 @@ describe('CourseModules', () => {
     expect(modulesMock.renameModule).toHaveBeenCalledWith('course-1', 'module-1', 'Quiz v2');
   });
 
-  it('supprime en deux temps et émet (deleted)', async () => {
+  it('deletes in two steps and emits (deleted)', async () => {
     const fixture = await createComponent();
     modulesMock.deleteModule.mockResolvedValue(undefined);
     const deleted = vi.fn();
@@ -146,7 +146,7 @@ describe('CourseModules', () => {
     expect(deleted).toHaveBeenCalled();
   });
 
-  it('quitter le bouton armé (blur) désarme la suppression', async () => {
+  it('leaving the armed button (blur) disarms the deletion', async () => {
     const fixture = await createComponent();
     const deleteBtn = () =>
       el(fixture).querySelectorAll<HTMLButtonElement>('.course-modules__delete')[0];

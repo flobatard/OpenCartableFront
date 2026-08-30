@@ -58,7 +58,7 @@ export function ancestorPath(roots: readonly SubjectNode[], id: string): Subject
 }
 
 /**
- * Aplatit l'arbre en ne gardant que les nœuds dont le `nom` contient `term`
+ * Aplatit l'arbre en ne gardant que les nœuds dont le `name` contient `term`
  * (insensible casse/accents), à tous les niveaux ; chaque résultat porte son chemin
  * d'ancêtres. Un terme vide renvoie `[]`.
  */
@@ -72,7 +72,7 @@ export function flattenFiltered(roots: readonly SubjectNode[], term: string): Su
   const walk = (nodes: readonly SubjectNode[]): void => {
     for (const node of nodes) {
       path.push(node);
-      if (normalize(node.nom).includes(needle)) {
+      if (normalize(node.name).includes(needle)) {
         matches.push({ node, path: [...path] });
       }
       walk(node.children);
@@ -83,9 +83,9 @@ export function flattenFiltered(roots: readonly SubjectNode[], term: string): Su
   return matches;
 }
 
-/** Joint les `nom` d'un chemin par le séparateur d'affichage. */
+/** Joint les `name` d'un chemin par le séparateur d'affichage. */
 export function formatPath(path: readonly SubjectNode[]): string {
-  return path.map((node) => node.nom).join(PATH_SEPARATOR);
+  return path.map((node) => node.name).join(PATH_SEPARATOR);
 }
 
 /** Une ligne aplatie de treeview : le nœud + sa profondeur d'indentation et son état. */

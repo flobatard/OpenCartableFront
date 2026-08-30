@@ -8,14 +8,14 @@ import { SubjectService } from '../../core/subjects/subject.service';
 import { AvatarState, UserProfileService } from '../../core/users/user-profile.service';
 import { UserProfile } from '../../core/users/user-profile.model';
 import { AvatarCropDialog } from '../../shared/avatar-crop-dialog/avatar-crop-dialog';
-import { EDUCATION_LEVELS_MULTI_SYSTEME_FIXTURE } from '../../testing/education-levels.fixture';
+import { EDUCATION_LEVELS_MULTI_SYSTEM_FIXTURE } from '../../testing/education-levels.fixture';
 import { SUBJECTS_FIXTURE } from '../../testing/subjects.fixture';
 import { USER_PROFILE_ALIGNED_FIXTURE } from '../../testing/user-profile.fixture';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
 
 describe('Profile', () => {
   const levelsMock = {
-    tree: signal(EDUCATION_LEVELS_MULTI_SYSTEME_FIXTURE),
+    tree: signal(EDUCATION_LEVELS_MULTI_SYSTEM_FIXTURE),
     loading: signal(false),
     error: signal(false),
     load: vi.fn(),
@@ -100,33 +100,33 @@ describe('Profile', () => {
     deleteAvatar = vi.fn().mockResolvedValue(USER_PROFILE_ALIGNED_FIXTURE);
     profileSignal = signal<UserProfile | null>(USER_PROFILE_ALIGNED_FIXTURE);
     avatarState = signal<AvatarState>({ phase: 'idle', progress: 0 });
-    levelsMock.tree.set(EDUCATION_LEVELS_MULTI_SYSTEME_FIXTURE);
+    levelsMock.tree.set(EDUCATION_LEVELS_MULTI_SYSTEM_FIXTURE);
     levelsMock.error.set(false);
     vi.clearAllMocks();
   });
 
-  it('pré-remplit rôles, système, niveaux et matières depuis le profil', async () => {
+  it('prefills roles, system, levels and subjects from the profile', async () => {
     const fixture = await createComponent();
 
     expect(roleCheckboxes(fixture).map((c) => c.checked)).toEqual([true, true]);
     expect(checkedRadioLabel(fixture)).toBe('France');
 
-    const levelChips = [...el(fixture).querySelectorAll('.education-level-picker__chip-nom')].map(
+    const levelChips = [...el(fixture).querySelectorAll('.education-level-picker__chip-name')].map(
       (c) => c.textContent?.trim(),
     );
     expect(levelChips).toEqual(['Collège', 'Supérieur']);
 
-    const subjectChips = [...el(fixture).querySelectorAll('.subject-multi-picker__chip-nom')].map(
+    const subjectChips = [...el(fixture).querySelectorAll('.subject-multi-picker__chip-name')].map(
       (c) => c.textContent?.trim(),
     );
     expect(subjectChips).toEqual(['Mathématiques', 'Français']);
   });
 
-  it('n’affiche pas la section apprentissage pour un prof seul', async () => {
+  it('does not show the learning section for a teacher-only profile', async () => {
     ensureLoaded.mockResolvedValue({
       ...USER_PROFILE_ALIGNED_FIXTURE,
-      est_eleve: false,
-      apprentissage: null,
+      is_student: false,
+      learning: null,
     });
     const fixture = await createComponent();
 
@@ -134,7 +134,7 @@ describe('Profile', () => {
     expect(el(fixture).textContent).not.toContain('Mon apprentissage');
   });
 
-  it('affiche l’erreur de chargement et recharge via réessayer', async () => {
+  it('shows the load error and reloads via retry', async () => {
     ensureLoaded.mockRejectedValue(new Error('down'));
     const fixture = await createComponent();
 
@@ -147,7 +147,7 @@ describe('Profile', () => {
     expect(el(fixture).querySelector('.profile__form')).not.toBeNull();
   });
 
-  it('Enregistrer est désactivé sans modification, activé après une modification', async () => {
+  it('Save is disabled without changes, enabled after a change', async () => {
     const fixture = await createComponent();
     expect(saveButton(fixture).disabled).toBe(true);
 
@@ -155,7 +155,7 @@ describe('Profile', () => {
     expect(saveButton(fixture).disabled).toBe(false);
   });
 
-  it('Enregistrer est désactivé si le profil devient incomplet', async () => {
+  it('Save is disabled when the profile becomes incomplete', async () => {
     const fixture = await createComponent();
 
     await toggleRole(fixture, 0);
@@ -164,7 +164,7 @@ describe('Profile', () => {
     expect(saveButton(fixture).disabled).toBe(true);
   });
 
-  it('décocher un rôle masque sa section et vide son bloc', async () => {
+  it('unchecking a role hides its section and clears its block', async () => {
     const fixture = await createComponent();
 
     await toggleRole(fixture, 1);
@@ -172,25 +172,25 @@ describe('Profile', () => {
     expect(el(fixture).textContent).not.toContain('Mon apprentissage');
     // Recocher : le bloc repart vide (sélections perdues, comportement voulu).
     await toggleRole(fixture, 1);
-    const chips = [...el(fixture).querySelectorAll('.subject-multi-picker__chip-nom')].map(
+    const chips = [...el(fixture).querySelectorAll('.subject-multi-picker__chip-name')].map(
       (c) => c.textContent?.trim(),
     );
     expect(chips).toEqual(['Mathématiques']); // seul le bloc enseignement en a encore
   });
 
-  it('changer de système vide les niveaux, conserve les matières', async () => {
+  it('changing system clears the levels, keeps the subjects', async () => {
     const fixture = await createComponent();
 
     await pickRadio(fixture, 'Royaume-Uni');
 
-    expect(el(fixture).querySelectorAll('.education-level-picker__chip-nom')).toHaveLength(0);
-    const subjectChips = [...el(fixture).querySelectorAll('.subject-multi-picker__chip-nom')].map(
+    expect(el(fixture).querySelectorAll('.education-level-picker__chip-name')).toHaveLength(0);
+    const subjectChips = [...el(fixture).querySelectorAll('.subject-multi-picker__chip-name')].map(
       (c) => c.textContent?.trim(),
     );
     expect(subjectChips).toEqual(['Mathématiques', 'Français']);
   });
 
-  it('enregistre le payload exact, affiche le succès et re-désactive le bouton', async () => {
+  it('saves the exact payload, shows success and re-disables the button', async () => {
     const fixture = await createComponent();
 
     await toggleRole(fixture, 1); // prof seul désormais
@@ -198,19 +198,19 @@ describe('Profile', () => {
     await fixture.whenStable();
 
     expect(saveProfile).toHaveBeenCalledWith({
-      est_prof: true,
-      est_eleve: false,
-      systeme_scolaire: 'fr',
-      nom_public: null,
-      cherchable: false,
-      enseignement: { education_level_ids: ['college'], subject_ids: ['math'] },
-      apprentissage: null,
+      is_teacher: true,
+      is_student: false,
+      school_system: 'fr',
+      public_name: null,
+      searchable: false,
+      teaching: { education_level_ids: ['college'], subject_ids: ['math'] },
+      learning: null,
     });
     expect(el(fixture).querySelector('.profile__success')).not.toBeNull();
     expect(saveButton(fixture).disabled).toBe(true); // plus de modification en attente
   });
 
-  it('affiche l’erreur d’enregistrement et permet de réessayer', async () => {
+  it('shows the save error and allows retrying', async () => {
     saveProfile.mockRejectedValue(new Error('down'));
     const fixture = await createComponent();
 
@@ -222,7 +222,7 @@ describe('Profile', () => {
     expect(saveButton(fixture).disabled).toBe(false); // toujours modifié → retry possible
   });
 
-  it('une modification efface le message de succès', async () => {
+  it('a change clears the success message', async () => {
     const fixture = await createComponent();
 
     await toggleRole(fixture, 1);
@@ -234,7 +234,7 @@ describe('Profile', () => {
     expect(el(fixture).querySelector('.profile__success')).toBeNull();
   });
 
-  describe('photo de profil', () => {
+  describe('profile photo', () => {
     function avatarInput(fixture: ComponentFixture<Profile>): HTMLInputElement {
       return el(fixture).querySelector<HTMLInputElement>('.profile__avatar input[type="file"]')!;
     }
@@ -248,7 +248,7 @@ describe('Profile', () => {
       input.dispatchEvent(new Event('change'));
     }
 
-    it('le choix d’un fichier ouvre la modale de recadrage (jamais d’upload direct)', async () => {
+    it('choosing a file opens the crop dialog (never a direct upload)', async () => {
       const open = vi.spyOn(AvatarCropDialog.prototype, 'open').mockImplementation(() => {});
       const fixture = await createComponent();
 
@@ -259,7 +259,7 @@ describe('Profile', () => {
       expect(avatarInput(fixture).value).toBe(''); // vidé : re-choix possible
     });
 
-    it('le blob recadré déclenche uploadAvatar', async () => {
+    it('the cropped blob triggers uploadAvatar', async () => {
       const fixture = await createComponent();
       const blob = new Blob(['jpg'], { type: 'image/jpeg' });
 
@@ -271,7 +271,7 @@ describe('Profile', () => {
       expect(uploadAvatar).toHaveBeenCalledWith(blob);
     });
 
-    it('« Supprimer la photo » appelle deleteAvatar (visible seulement avec avatar)', async () => {
+    it('“Supprimer la photo” calls deleteAvatar (visible only with an avatar)', async () => {
       profileSignal.set({ ...USER_PROFILE_ALIGNED_FIXTURE, avatar_url: 'https://s3.test/a.jpg' });
       const fixture = await createComponent();
 
@@ -282,13 +282,13 @@ describe('Profile', () => {
       expect(deleteAvatar).toHaveBeenCalledOnce();
     });
 
-    it('sans avatar : bouton « Ajouter », pas de bouton supprimer', async () => {
+    it('without an avatar: “Ajouter” button, no delete button', async () => {
       const fixture = await createComponent();
       expect(el(fixture).querySelector('.profile__avatar .btn--ghost')).toBeNull();
       expect(el(fixture).querySelector('.profile__avatar app-user-avatar svg')).not.toBeNull();
     });
 
-    it('une mutation d’avatar n’active pas le bouton Enregistrer', async () => {
+    it('an avatar mutation does not enable the Save button', async () => {
       const fixture = await createComponent();
       expect(saveButton(fixture).disabled).toBe(true);
 
@@ -300,7 +300,7 @@ describe('Profile', () => {
       expect(saveButton(fixture).disabled).toBe(true);
     });
 
-    it('affiche l’erreur quand l’upload échoue', async () => {
+    it('shows the error when the upload fails', async () => {
       uploadAvatar.mockRejectedValue(new Error('down'));
       const fixture = await createComponent();
 

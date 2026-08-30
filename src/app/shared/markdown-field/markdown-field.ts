@@ -96,10 +96,10 @@ export class MarkdownField implements ControlValueAccessor {
   /** Bouton d'insertion + picker proposés uniquement en contexte cours (id non vide). */
   protected readonly canInsert = computed(() => !!this.courseId());
 
-  /** Ressources insérables : celles `disponible` de la bibliothèque (chargée
+  /** Ressources insérables : celles `available` de la bibliothèque (chargée
       par la page hôte : block-editor / course-preview). */
   protected readonly availableResources = computed(() =>
-    this.#resources.list().filter((r) => r.statut === 'disponible'),
+    this.#resources.list().filter((r) => r.status === 'available'),
   );
 
   /** Modules insérables (bibliothèque chargée par la page hôte : block-editor). */
@@ -184,7 +184,7 @@ export class MarkdownField implements ControlValueAccessor {
     this.modulePicker()?.open();
   }
 
-  /** Module choisi : insère `[titre](oc-module:<id>)` au curseur de l'éditeur. */
+  /** Module choisi : insère `[title](oc-module:<id>)` au curseur de l'éditeur. */
   protected onModulePick(module: ModuleSummary): void {
     this.editorRef()?.insertAtCursor(buildModuleMarkdown(module));
   }

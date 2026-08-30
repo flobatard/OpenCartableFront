@@ -12,7 +12,7 @@
       </a>
     }
     <h1 class="student-exercise__title">
-      {{ exercise.titre || ('student.exercise.title' | transloco) }}
+      {{ exercise.title || ('student.exercise.title' | transloco) }}
     </h1>
     @if (exercise.description) {
       <p class="student-exercise__desc">{{ exercise.description }}</p>
@@ -25,10 +25,10 @@
     </p>
   }
 
-  @if (enonce()) {
+  @if (statement()) {
     <section class="student-exercise__subject course-content">
       <app-markdown-view
-        [markdown]="enonce()"
+        [markdown]="statement()"
         [courseId]="detail()!.id"
         [showPrint]="false"
         [showSettings]="false"
@@ -47,10 +47,10 @@
             </span>
           }
         </h2>
-        @if (question.enonce) {
+        @if (question.statement) {
           <div class="course-content">
             <app-markdown-view
-              [markdown]="question.enonce"
+              [markdown]="question.statement"
               [courseId]="detail()!.id"
               [showPrint]="false"
               [showSettings]="false"

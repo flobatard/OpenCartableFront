@@ -296,19 +296,19 @@ export class CourseService {
 
   /**
    * Change le régime d'accès élève du cours (J2) et patche localement les
-   * signaux `detail` et `list` — passer en `en_cours` suspend les liens de
+   * signaux `detail` et `list` — passer en `draft` suspend les liens de
    * partage côté back, rien d'autre à rafraîchir ici.
    */
-  async updateVisibility(courseId: string, visibilite: CourseVisibility): Promise<void> {
+  async updateVisibility(courseId: string, visibility: CourseVisibility): Promise<void> {
     await firstValueFrom(
-      this.#http.put<{ visibilite: CourseVisibility }>(
+      this.#http.put<{ visibility: CourseVisibility }>(
         `${this.#url}/${courseId}/visibility`,
-        { visibilite },
+        { visibility },
       ),
     );
-    this.#patchDetail(courseId, (detail) => ({ ...detail, visibilite }));
+    this.#patchDetail(courseId, (detail) => ({ ...detail, visibility }));
     this.#list.update((courses) =>
-      courses.map((course) => (course.id === courseId ? { ...course, visibilite } : course)),
+      courses.map((course) => (course.id === courseId ? { ...course, visibility } : course)),
     );
   }
 

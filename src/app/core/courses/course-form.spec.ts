@@ -1,49 +1,49 @@
 import { buildCourseForm, isCourseFormComplete, payloadFromCourseForm } from './course-form';
 
 describe('course-form', () => {
-  it('mappe le formulaire vers le payload snake_case en trimant le titre', () => {
+  it('maps the form to the snake_case payload, trimming the title', () => {
     const form = buildCourseForm();
     form.setValue({
-      titre: '  Suites numériques  ',
+      title: '  Suites numériques  ',
       description: '  Premier chapitre.  ',
       subjectIds: ['math'],
       educationLevelIds: ['college-6e'],
     });
 
     expect(payloadFromCourseForm(form)).toEqual({
-      titre: 'Suites numériques',
+      title: 'Suites numériques',
       description: 'Premier chapitre.',
       subject_ids: ['math'],
       education_level_ids: ['college-6e'],
     });
   });
 
-  it('une description vide ou blanche devient null', () => {
+  it('turns an empty or blank description into null', () => {
     const form = buildCourseForm();
-    form.controls.titre.setValue('Un cours');
+    form.controls.title.setValue('Un cours');
     form.controls.description.setValue('   ');
 
     expect(payloadFromCourseForm(form).description).toBeNull();
   });
 
-  it('la complétude exige un titre non blanc', () => {
+  it('completeness requires a non-blank title', () => {
     const form = buildCourseForm();
     expect(isCourseFormComplete(form.value)).toBe(false);
 
-    form.controls.titre.setValue('   ');
+    form.controls.title.setValue('   ');
     expect(isCourseFormComplete(form.value)).toBe(false);
 
-    form.controls.titre.setValue('Un cours');
+    form.controls.title.setValue('Un cours');
     expect(isCourseFormComplete(form.value)).toBe(true);
   });
 
-  it('matières et niveaux sont optionnels (classement possible après coup)', () => {
+  it('subjects and levels are optional (classification can come later)', () => {
     const form = buildCourseForm();
-    form.controls.titre.setValue('Un cours');
+    form.controls.title.setValue('Un cours');
 
     expect(isCourseFormComplete(form.value)).toBe(true);
     expect(payloadFromCourseForm(form)).toEqual({
-      titre: 'Un cours',
+      title: 'Un cours',
       description: null,
       subject_ids: [],
       education_level_ids: [],

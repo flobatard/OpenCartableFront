@@ -6,7 +6,7 @@
     <select class="module-block-editor__select" [formControl]="moduleControl">
       <option value="">{{ 'courses.editor.module.noModule' | transloco }}</option>
       @for (module of modules(); track module.id) {
-        <option [value]="module.id">{{ module.titre }}</option>
+        <option [value]="module.id">{{ module.title }}</option>
       }
     </select>
   </label>

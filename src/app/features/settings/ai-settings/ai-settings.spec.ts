@@ -10,20 +10,20 @@ const STORED: AiCredentials = {
   provider: 'anthropic',
   model: 'claude-sonnet-5',
   base_url: null,
-  api_key_definie: true,
-  ia_defaut_disponible: true,
-  quota_quotidien: 30,
-  appels_aujourdhui: 12,
+  api_key_set: true,
+  default_ai_available: true,
+  daily_quota: 30,
+  calls_today: 12,
 };
 
 const NO_CONFIG: AiCredentials = {
   provider: null,
   model: null,
   base_url: null,
-  api_key_definie: false,
-  ia_defaut_disponible: true,
-  quota_quotidien: 30,
-  appels_aujourdhui: 12,
+  api_key_set: false,
+  default_ai_available: true,
+  daily_quota: 30,
+  calls_today: 12,
 };
 
 describe('AiSettings', () => {
@@ -51,7 +51,7 @@ describe('AiSettings', () => {
     return fixture;
   }
 
-  it('pré-remplit provider/modèle, jamais la clé', async () => {
+  it('prefills provider/model, never the key', async () => {
     const fixture = setup(STORED);
     await fixture.whenStable();
 
@@ -65,7 +65,7 @@ describe('AiSettings', () => {
     expect(keyInput.value).toBe('');
   });
 
-  it('clé enregistrée + champ vide : le payload du save OMET api_key', async () => {
+  it('stored key + empty field: the save payload OMITS api_key', async () => {
     const fixture = setup(STORED);
     await fixture.whenStable();
     const component = fixture.componentInstance;
@@ -88,7 +88,7 @@ describe('AiSettings', () => {
     });
   });
 
-  it('clé saisie : le payload la porte, puis le champ est vidé après save', async () => {
+  it('key typed: the payload carries it, then the field is cleared after save', async () => {
     const fixture = setup(STORED);
     await fixture.whenStable();
     const component = fixture.componentInstance;
@@ -105,7 +105,7 @@ describe('AiSettings', () => {
     expect(component.form.controls.apiKey.value).toBe('');
   });
 
-  it('affiche base_url pour ollama seulement', async () => {
+  it('shows base_url for ollama only', async () => {
     const fixture = setup(STORED);
     await fixture.whenStable();
     fixture.detectChanges();
@@ -117,7 +117,7 @@ describe('AiSettings', () => {
     expect(fixture.nativeElement.querySelector('input[type="url"]')).toBeTruthy();
   });
 
-  it('supprime en deux temps (armé puis confirmé)', async () => {
+  it('deletes in two steps (armed then confirmed)', async () => {
     const fixture = setup(STORED);
     await fixture.whenStable();
     fixture.detectChanges();
@@ -135,7 +135,7 @@ describe('AiSettings', () => {
     expect(fixture.componentInstance.form.controls.provider.value).toBeNull();
   });
 
-  it('sans configuration : pas de bouton supprimer, save inactif tant qu’incomplet', async () => {
+  it('without a configuration: no delete button, save inactive while incomplete', async () => {
     const fixture = setup(NO_CONFIG);
     await fixture.whenStable();
     fixture.detectChanges();
@@ -163,7 +163,7 @@ describe('AiSettings', () => {
     expect(saveButton.disabled).toBe(false);
   });
 
-  it('sans configuration : le mode IA par défaut est présélectionné avec l’usage du quota', async () => {
+  it('without a configuration: the default AI mode is preselected with the quota usage', async () => {
     const fixture = setup(NO_CONFIG);
     await fixture.whenStable();
     fixture.detectChanges();
@@ -181,8 +181,8 @@ describe('AiSettings', () => {
     expect(hint.textContent).toContain('12 / 30');
   });
 
-  it('quota 0 : messages illimités, jamais « 0 / 0 »', async () => {
-    const fixture = setup({ ...NO_CONFIG, quota_quotidien: 0, appels_aujourdhui: 4 });
+  it('quota 0: unlimited messages, never “0 / 0”', async () => {
+    const fixture = setup({ ...NO_CONFIG, daily_quota: 0, calls_today: 4 });
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -192,7 +192,7 @@ describe('AiSettings', () => {
     expect(hint.textContent).not.toContain('/');
   });
 
-  it('config enregistrée : « utiliser l’IA par défaut » supprime en deux temps', async () => {
+  it('stored config: “use the default AI” deletes in two steps', async () => {
     const fixture = setup(STORED);
     // Le vrai service relit le serveur après le DELETE : le mock fait pareil.
     service.remove.mockImplementation(async () => credentials.set(NO_CONFIG));

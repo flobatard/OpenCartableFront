@@ -7,10 +7,10 @@ function resource(over: Partial<CourseResource> = {}): CourseResource {
   return {
     id: 'r-1',
     type: 'image',
-    nom_original: 'Photo.png',
-    taille: 1000,
+    original_name: 'Photo.png',
+    size: 1000,
     mime: 'image/png',
-    statut: 'disponible',
+    status: 'available',
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
     ...over,
@@ -35,11 +35,11 @@ describe('ResourcePickerDialog', () => {
     return (fixture.nativeElement as HTMLElement).querySelector('dialog')!;
   }
 
-  it('liste les ressources fournies (nom + type)', async () => {
+  it('lists the provided resources (name + type)', async () => {
     const fixture = await createComponent([
-      resource({ id: 'a', nom_original: 'Schéma.png', type: 'image' }),
-      resource({ id: 'b', nom_original: 'Énoncé.pdf', type: 'document', mime: 'application/pdf' }),
-      resource({ id: 'c', nom_original: 'Archive.zip', type: 'document', mime: 'application/zip' }),
+      resource({ id: 'a', original_name: 'Schéma.png', type: 'image' }),
+      resource({ id: 'b', original_name: 'Énoncé.pdf', type: 'document', mime: 'application/pdf' }),
+      resource({ id: 'c', original_name: 'Archive.zip', type: 'document', mime: 'application/zip' }),
     ]);
     const items = (fixture.nativeElement as HTMLElement).querySelectorAll('.res-picker__item');
     expect(items).toHaveLength(3);
@@ -52,14 +52,14 @@ describe('ResourcePickerDialog', () => {
     expect(items[2].textContent).toContain('Document');
   });
 
-  it('état vide quand aucune ressource', async () => {
+  it('empty state when there are no resources', async () => {
     const fixture = await createComponent([]);
     expect((fixture.nativeElement as HTMLElement).querySelector('.res-picker__item')).toBeNull();
     expect((fixture.nativeElement as HTMLElement).querySelector('.res-picker__empty')).toBeTruthy();
   });
 
-  it('un clic sur une ressource émet (pick) puis ferme la modale', async () => {
-    const chosen = resource({ id: 'pick-me', nom_original: 'Choix.png' });
+  it('clicking a resource emits (pick) then closes the dialog', async () => {
+    const chosen = resource({ id: 'pick-me', original_name: 'Choix.png' });
     const fixture = await createComponent([chosen]);
     const close = (dialog(fixture).close = vi.fn());
     let picked: CourseResource | undefined;
@@ -73,7 +73,7 @@ describe('ResourcePickerDialog', () => {
     expect(close).toHaveBeenCalledOnce();
   });
 
-  it('open() / close() pilotent le <dialog>', async () => {
+  it('open() / close() drive the <dialog>', async () => {
     const fixture = await createComponent([]);
     const showModal = (dialog(fixture).showModal = vi.fn());
     const close = (dialog(fixture).close = vi.fn());
@@ -85,7 +85,7 @@ describe('ResourcePickerDialog', () => {
     expect(close).toHaveBeenCalledOnce();
   });
 
-  it('un clic sur le fond (la <dialog> elle-même) ferme', async () => {
+  it('a backdrop click (the <dialog> itself) closes', async () => {
     const fixture = await createComponent([]);
     const close = (dialog(fixture).close = vi.fn());
 

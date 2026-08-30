@@ -7,15 +7,15 @@ import { BlockMetaPayload, CourseBlock } from './course.model';
  * l'éditeur de bloc. Les deux champs sont facultatifs (chaîne vide → `null`).
  */
 
-/** Longueurs miroir du back (`titre` ≤ 300, `description` ≤ 500). */
-const TITRE_MAX = 300;
+/** Longueurs miroir du back (`title` ≤ 300, `description` ≤ 500). */
+const TITLE_MAX = 300;
 const DESCRIPTION_MAX = 500;
 
 export function buildBlockMetaForm() {
   return new FormGroup({
-    titre: new FormControl('', {
+    title: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.maxLength(TITRE_MAX)],
+      validators: [Validators.maxLength(TITLE_MAX)],
     }),
     description: new FormControl('', {
       nonNullable: true,
@@ -30,7 +30,7 @@ export type BlockMetaForm = ReturnType<typeof buildBlockMetaForm>;
 export function payloadFromBlockMetaForm(form: BlockMetaForm): BlockMetaPayload {
   const v = form.getRawValue();
   return {
-    titre: v.titre.trim() || null,
+    title: v.title.trim() || null,
     description: v.description.trim() || null,
   };
 }
@@ -38,7 +38,7 @@ export function payloadFromBlockMetaForm(form: BlockMetaForm): BlockMetaPayload 
 /** Pré-remplit le formulaire depuis un bloc (`null` → chaîne vide), sans émettre. */
 export function patchBlockMetaForm(form: BlockMetaForm, block: CourseBlock): void {
   form.setValue(
-    { titre: block.titre ?? '', description: block.description ?? '' },
+    { title: block.title ?? '', description: block.description ?? '' },
     { emitEvent: false },
   );
 }

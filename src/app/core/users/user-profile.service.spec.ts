@@ -30,7 +30,7 @@ describe('UserProfileService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('ne fait qu’un seul GET pour deux ensureLoaded() concurrents', async () => {
+  it('issues a single GET for two concurrent ensureLoaded() calls', async () => {
     const first = service.ensureLoaded();
     const second = service.ensureLoaded();
     httpMock.expectOne(url).flush(USER_PROFILE_FIXTURE);
@@ -40,7 +40,7 @@ describe('UserProfileService', () => {
     expect(service.profile()).toEqual(USER_PROFILE_FIXTURE);
   });
 
-  it('resert le profil déjà chargé sans nouvel appel réseau', async () => {
+  it('serves the already loaded profile again without a new network call', async () => {
     const first = service.ensureLoaded();
     httpMock.expectOne(url).flush(USER_PROFILE_FIXTURE);
     await first;
@@ -49,7 +49,7 @@ describe('UserProfileService', () => {
     httpMock.verify(); // échouerait s'il y avait une seconde requête
   });
 
-  it('invalide la requête en vol sur erreur : le retry refait un GET', async () => {
+  it('invalidates the in-flight request on error: the retry issues a new GET', async () => {
     const first = service.ensureLoaded();
     httpMock.expectOne(url).error(new ProgressEvent('network'));
     await expect(first).rejects.toBeTruthy();
@@ -59,15 +59,15 @@ describe('UserProfileService', () => {
     expect(await retry).toEqual(USER_PROFILE_FIXTURE);
   });
 
-  it('saveProfile fait un PUT et remplace le signal', async () => {
+  it('saveProfile PUTs and replaces the signal', async () => {
     const payload: OnboardingPayload = {
-      est_prof: true,
-      est_eleve: false,
-      systeme_scolaire: 'fr',
-      nom_public: null,
-      cherchable: false,
-      enseignement: { education_level_ids: ['lvl-1'], subject_ids: ['sub-1'] },
-      apprentissage: null,
+      is_teacher: true,
+      is_student: false,
+      school_system: 'fr',
+      public_name: null,
+      searchable: false,
+      teaching: { education_level_ids: ['lvl-1'], subject_ids: ['sub-1'] },
+      learning: null,
     };
     const updated = { ...USER_PROFILE_FIXTURE, onboarding_complete: true };
 
@@ -82,7 +82,7 @@ describe('UserProfileService', () => {
     expect(service.onboardingComplete()).toBe(true);
   });
 
-  it('purge le profil quand la session tombe', async () => {
+  it('clears the profile when the session drops', async () => {
     const first = service.ensureLoaded();
     httpMock.expectOne(url).flush(USER_PROFILE_FIXTURE);
     await first;
@@ -97,13 +97,13 @@ describe('UserProfileService', () => {
   describe('avatar', () => {
     const blob = () => new Blob(['x'.repeat(10)], { type: 'image/jpeg' });
 
-    it('uploadAvatar enchaîne presign → PUT S3 sans Bearer implicite → confirm', async () => {
+    it('uploadAvatar chains presign → S3 PUT without implicit Bearer → confirm', async () => {
       const updated = { ...USER_PROFILE_FIXTURE, avatar_url: 'https://s3.test/get/a.jpg' };
       const upload = service.uploadAvatar(blob());
 
       const presign = httpMock.expectOne(`${url}/avatar`);
       expect(presign.request.method).toBe('POST');
-      expect(presign.request.body).toEqual({ mime: 'image/jpeg', taille: 10 });
+      expect(presign.request.body).toEqual({ mime: 'image/jpeg', size: 10 });
       presign.flush({ upload_url: 'https://s3.test/put/a.jpg', expires_in: 900 });
       await Promise.resolve(); // laisse la promesse enchaîner sur le PUT
 
@@ -124,33 +124,33 @@ describe('UserProfileService', () => {
       expect(service.avatarState()).toEqual({ phase: 'idle', progress: 0 });
     });
 
-    it('rejette localement un blob au-dessus du plafond, sans requête', async () => {
-      const gros = new Blob([new ArrayBuffer(5_242_881)], { type: 'image/jpeg' });
-      await expect(service.uploadAvatar(gros)).rejects.toBeTruthy();
+    it('locally rejects a blob above the cap, without any request', async () => {
+      const oversized = new Blob([new ArrayBuffer(5_242_881)], { type: 'image/jpeg' });
+      await expect(service.uploadAvatar(oversized)).rejects.toBeTruthy();
       expect(service.avatarState().phase).toBe('error');
       httpMock.verify(); // aucun appel réseau
     });
 
-    it('passe en erreur si le presign échoue', async () => {
+    it('switches to error when the presign fails', async () => {
       const upload = service.uploadAvatar(blob());
       httpMock.expectOne(`${url}/avatar`).error(new ProgressEvent('network'));
       await expect(upload).rejects.toBeTruthy();
       expect(service.avatarState().phase).toBe('error');
     });
 
-    it('deleteAvatar fait un DELETE et remplace le signal', async () => {
+    it('deleteAvatar DELETEs and replaces the signal', async () => {
       const updated = { ...USER_PROFILE_FIXTURE, avatar_url: null };
-      const suppression = service.deleteAvatar();
+      const removal = service.deleteAvatar();
       const req = httpMock.expectOne(`${url}/avatar`);
       expect(req.request.method).toBe('DELETE');
       req.flush(updated);
 
-      expect(await suppression).toEqual(updated);
+      expect(await removal).toEqual(updated);
       expect(service.profile()).toEqual(updated);
       expect(service.avatarState()).toEqual({ phase: 'idle', progress: 0 });
     });
 
-    it("purge l'état d'avatar quand la session tombe", async () => {
+    it('clears the avatar state when the session drops', async () => {
       const upload = service.uploadAvatar(blob());
       expect(service.avatarState().phase).toBe('presigning');
       httpMock.expectOne(`${url}/avatar`).error(new ProgressEvent('network'));

@@ -17,7 +17,7 @@
     @if (detail(); as course) {
       @if (block(); as block) {
         <header class="block-editor__head">
-          <h1 class="block-editor__title">{{ course.titre }}</h1>
+          <h1 class="block-editor__title">{{ course.title }}</h1>
           <p class="block-editor__subtitle">
             {{ 'courses.blocks.types.' + block.type | transloco }}
           </p>
@@ -25,13 +25,13 @@
 
         <form class="block-editor__meta" [formGroup]="metaForm" (ngSubmit)="saveMeta()">
           <label class="block-editor__field">
-            <span class="block-editor__label">{{ 'courses.editor.titreLabel' | transloco }}</span>
+            <span class="block-editor__label">{{ 'courses.editor.titleLabel' | transloco }}</span>
             <input
               type="text"
               class="block-editor__input"
-              formControlName="titre"
+              formControlName="title"
               maxlength="300"
-              [placeholder]="'courses.editor.titrePlaceholder' | transloco"
+              [placeholder]="'courses.editor.titlePlaceholder' | transloco"
             />
           </label>
           <label class="block-editor__field">
@@ -62,7 +62,7 @@
           </div>
         </form>
 
-        @if (block.type === 'texte' || block.type === 'exercice') {
+        @if (block.type === 'text' || block.type === 'exercise') {
           <div class="block-editor__toolbar">
             <div class="block-editor__toolbar-end">
               @if (saveState() === 'error') {
@@ -116,7 +116,7 @@
             [class.block-editor__workspace--solo]="chatCollapsed()"
           >
             <div class="block-editor__editor-col" [style.--editor-basis]="editorPct() + '%'">
-              @if (block.type === 'texte') {
+              @if (block.type === 'text') {
                 <app-markdown-field [formControl]="content" [courseId]="courseId" />
               } @else {
                 <app-exercise-editor

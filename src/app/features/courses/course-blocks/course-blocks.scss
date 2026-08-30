@@ -99,8 +99,8 @@
   color: var(--slate-100);
 }
 
-/* Badge d'état de partage (DS §8) : « brouillon » ambre pour en_cours,
-   « partagé » émeraude pour public/prive. L'ambre n'est jamais du texte :
+/* Badge d'état de partage (DS §8) : « brouillon » ambre pour draft,
+   « partagé » émeraude pour public/private. L'ambre n'est jamais du texte :
    fond amber-100 + texte amber-800. */
 .course-blocks__visibility-badge {
   align-self: center;

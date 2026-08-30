@@ -144,14 +144,14 @@ export class PublicCourseService {
   }
 
   /** (Re)charge le catalogue public d'un prof. */
-  loadCatalog(profId: string): void {
+  loadCatalog(teacherId: string): void {
     if (!this.#isBrowser) {
       return;
     }
     this.#catalog.set(null);
     this.#catalogError.set(false);
     this.#catalogLoading.set(true);
-    this.#http.get<PublicProfessor>(`${this.#url}/professors/${profId}/courses`).subscribe({
+    this.#http.get<PublicProfessor>(`${this.#url}/professors/${teacherId}/courses`).subscribe({
       next: (catalog) => {
         this.#catalog.set(catalog);
         this.#catalogLoading.set(false);

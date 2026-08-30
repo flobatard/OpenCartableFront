@@ -70,9 +70,9 @@
             <span class="subjects__twistie subjects__twistie--leaf" aria-hidden="true"></span>
           }
 
-          <span class="subjects__name">{{ row.node.nom }}</span>
+          <span class="subjects__name">{{ row.node.name }}</span>
 
-          <span class="subjects__level">{{ levelKey(row.node.profondeur) | transloco }}</span>
+          <span class="subjects__level">{{ levelKey(row.node.depth) | transloco }}</span>
 
           @if (row.node.children.length) {
             <span

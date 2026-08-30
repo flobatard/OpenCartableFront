@@ -4,23 +4,23 @@
   <div class="student-catalog__loading">
     <app-spinner size="lg" />
   </div>
-} @else if (catalog(); as prof) {
+} @else if (catalog(); as teacher) {
   <header class="student-catalog__header">
-    <app-user-avatar size="md" [url]="prof.avatar_url" />
+    <app-user-avatar size="md" [url]="teacher.avatar_url" />
     <h1 class="student-catalog__title">
-      @if (prof.nom_public; as nom) {
-        {{ 'student.catalog.titleNamed' | transloco: { name: nom } }}
+      @if (teacher.public_name; as name) {
+        {{ 'student.catalog.titleNamed' | transloco: { name: name } }}
       } @else {
         {{ 'student.catalog.title' | transloco }}
       }
     </h1>
   </header>
 
-  @if (!prof.courses.length) {
+  @if (!teacher.courses.length) {
     <p class="student-catalog__notice">{{ 'student.catalog.empty' | transloco }}</p>
   } @else {
     <ul class="student-catalog__grid">
-      @for (course of prof.courses; track course.id) {
+      @for (course of teacher.courses; track course.id) {
         <li class="student-catalog__cell">
           <app-public-course-card [course]="course" [link]="courseLink(course.id)" />
         </li>

@@ -43,7 +43,7 @@ export class DocumentEditor implements OnInit {
   readonly initial = input.required<Record<string, unknown>>();
   /** Ressource pointée par le bloc (source de vérité : le signal `detail`). */
   readonly resourceId = input.required<string | null>();
-  /** Ressources `disponible` du cours, proposées par le picker. */
+  /** Ressources `available` du cours, proposées par le picker. */
   readonly resources = input.required<CourseResource[]>();
 
   /** Éditorial (légende/affichage) — chaque frappe, pour l'autosave du parent. */
@@ -66,7 +66,7 @@ export class DocumentEditor implements OnInit {
   });
 
   /** Éditorial courant (légende/affichage) — aperçu WYSIWYG en direct. */
-  readonly #editorial = signal<DocumentContentPayload>({ legende: null, affichage: 'inline' });
+  readonly #editorial = signal<DocumentContentPayload>({ caption: null, display: 'inline' });
   protected readonly editorial = this.#editorial.asReadonly();
 
   constructor() {

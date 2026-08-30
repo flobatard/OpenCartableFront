@@ -17,18 +17,18 @@ function fenceHtml(lang: string, escapedSource: string): string {
 }
 
 describe('hasMarkdownExtensions', () => {
-  it('détecte un fence d’un langage enregistré', () => {
+  it('detects a fence of a registered language', () => {
     expect(hasMarkdownExtensions(fenceHtml('geogebra', 'id=a'), DEFS)).toBe(true);
   });
 
-  it('ignore un HTML sans fence enregistré', () => {
+  it('ignores HTML without a registered fence', () => {
     expect(hasMarkdownExtensions('<p>texte</p>', DEFS)).toBe(false);
     expect(hasMarkdownExtensions(fenceHtml('mermaid', 'graph TD'), DEFS)).toBe(false);
   });
 });
 
 describe('applyExtensionPlaceholders', () => {
-  it('remplace le fence par un hôte portant langage, imprimabilité et source', () => {
+  it('replaces the fence with a host carrying language, printability and source', () => {
     const html = applyExtensionPlaceholders(fenceHtml('geogebra', 'id=abc123\nwidth=600'), DEFS);
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const host = doc.querySelector(`[${EXTENSION_ATTR}]`);
@@ -41,7 +41,7 @@ describe('applyExtensionPlaceholders', () => {
     expect(doc.querySelector('pre')).toBeNull();
   });
 
-  it('pose data-oc-printable="true" pour un langage imprimable', () => {
+  it('sets data-oc-printable="true" for a printable language', () => {
     const html = applyExtensionPlaceholders(fenceHtml('jsxgraph', 'point=2,2'), DEFS);
     const doc = new DOMParser().parseFromString(html, 'text/html');
     expect(doc.querySelector(`[${EXTENSION_ATTR}]`)?.getAttribute(EXTENSION_PRINTABLE_ATTR)).toBe(
@@ -49,7 +49,7 @@ describe('applyExtensionPlaceholders', () => {
     );
   });
 
-  it('préserve la source aller-retour, y compris caractères HTML échappés', () => {
+  it('preserves the source round-trip, including escaped HTML characters', () => {
     // marked/DOMPurify échappent < et & dans le code ; textContent les décode,
     // la sérialisation les ré-échappe — la source lue au montage est intacte.
     const html = applyExtensionPlaceholders(
@@ -62,19 +62,19 @@ describe('applyExtensionPlaceholders', () => {
     );
   });
 
-  it('ne touche ni un langage non enregistré ni mermaid', () => {
+  it('touches neither an unregistered language nor mermaid', () => {
     const python = fenceHtml('python', 'print(1)');
     const mermaid = fenceHtml('mermaid', 'graph TD');
     expect(applyExtensionPlaceholders(python, DEFS)).toBe(python);
     expect(applyExtensionPlaceholders(mermaid, DEFS)).toBe(mermaid);
   });
 
-  it('rend le HTML inchangé quand aucun fence ne matche', () => {
+  it('returns the HTML unchanged when no fence matches', () => {
     const html = '<p>du texte</p>';
     expect(applyExtensionPlaceholders(html, DEFS)).toBe(html);
   });
 
-  it('traite plusieurs fences, y compris de langages différents', () => {
+  it('handles several fences, including of different languages', () => {
     const html = applyExtensionPlaceholders(
       fenceHtml('geogebra', 'id=a') + '<p>entre</p>' + fenceHtml('jsxgraph', 'point=1,1'),
       DEFS,

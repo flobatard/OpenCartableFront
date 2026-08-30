@@ -5,26 +5,26 @@ export const USER_PROFILE_FIXTURE: UserProfile = {
   id: 'user-1',
   sub: 'prof-123',
   email: 'prof@example.org',
-  est_prof: false,
-  est_eleve: false,
-  systeme_scolaire: null,
-  nom_public: null,
-  cherchable: false,
+  is_teacher: false,
+  is_student: false,
+  school_system: null,
+  public_name: null,
+  searchable: false,
   avatar_url: null,
   onboarding_complete: false,
-  enseignement: null,
-  apprentissage: null,
+  teaching: null,
+  learning: null,
 };
 
 /** Profil complet : prof + élève, onboarding terminé. */
 export const USER_PROFILE_ONBOARDED_FIXTURE: UserProfile = {
   ...USER_PROFILE_FIXTURE,
-  est_prof: true,
-  est_eleve: true,
-  systeme_scolaire: 'fr',
+  is_teacher: true,
+  is_student: true,
+  school_system: 'fr',
   onboarding_complete: true,
-  enseignement: { education_level_ids: ['fr-college-6e'], subject_ids: ['math'] },
-  apprentissage: { education_level_ids: ['fr-superieur-licence'], subject_ids: ['francais'] },
+  teaching: { education_level_ids: ['fr-college-6e'], subject_ids: ['math'] },
+  learning: { education_level_ids: ['fr-superieur-licence'], subject_ids: ['francais'] },
 };
 
 /**
@@ -33,6 +33,6 @@ export const USER_PROFILE_ONBOARDED_FIXTURE: UserProfile = {
  */
 export const USER_PROFILE_ALIGNED_FIXTURE: UserProfile = {
   ...USER_PROFILE_ONBOARDED_FIXTURE,
-  enseignement: { education_level_ids: ['college'], subject_ids: ['math'] },
-  apprentissage: { education_level_ids: ['superieur'], subject_ids: ['francais'] },
+  teaching: { education_level_ids: ['college'], subject_ids: ['math'] },
+  learning: { education_level_ids: ['superieur'], subject_ids: ['francais'] },
 };

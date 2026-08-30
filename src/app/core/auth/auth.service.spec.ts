@@ -47,7 +47,7 @@ describe('AuthService', () => {
     });
   });
 
-  it('configure le code flow PKCE au démarrage navigateur', () => {
+  it('configures the PKCE code flow at browser startup', () => {
     TestBed.inject(AuthService);
     expect(oauth.configure).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -57,20 +57,20 @@ describe('AuthService', () => {
     );
   });
 
-  it('démarre non authentifié sans appel réseau quand aucun token n’est stocké', () => {
+  it('starts unauthenticated without any network call when no token is stored', () => {
     const service = TestBed.inject(AuthService);
     expect(service.isAuthenticated()).toBe(false);
     expect(oauth.loadDiscoveryDocument).not.toHaveBeenCalled();
   });
 
-  it('login charge la discovery puis démarre le code flow avec l’URL cible', async () => {
+  it('login loads the discovery then starts the code flow with the target URL', async () => {
     const service = TestBed.inject(AuthService);
     await service.login('/cours/42');
     expect(oauth.loadDiscoveryDocument).toHaveBeenCalledTimes(1);
     expect(oauth.initCodeFlow).toHaveBeenCalledWith('/cours/42');
   });
 
-  it('login expose loggingIn pendant la discovery puis le laisse actif jusqu’à la redirection', async () => {
+  it('login exposes loggingIn during the discovery and keeps it active until the redirect', async () => {
     const service = TestBed.inject(AuthService);
     let resolveDiscovery!: () => void;
     oauth.loadDiscoveryDocument.mockReturnValue(
@@ -89,7 +89,7 @@ describe('AuthService', () => {
     expect(service.loggingIn()).toBe(true);
   });
 
-  it('login notifie une erreur quand la discovery échoue et réinitialise loggingIn', async () => {
+  it('login notifies an error when the discovery fails and resets loggingIn', async () => {
     const service = TestBed.inject(AuthService);
     oauth.loadDiscoveryDocument.mockRejectedValue(new Error('IdP injoignable'));
 
@@ -100,7 +100,7 @@ describe('AuthService', () => {
     expect(service.loggingIn()).toBe(false);
   });
 
-  it('completeLogin échange le code et restaure l’URL interne', async () => {
+  it('completeLogin exchanges the code and restores the internal URL', async () => {
     const service = TestBed.inject(AuthService);
     oauth.state = encodeURIComponent('/cours/42');
     oauth.hasValidAccessToken.mockReturnValue(true);
@@ -114,7 +114,7 @@ describe('AuthService', () => {
     expect(service.displayName()).toBe('Prof');
   });
 
-  it('completeLogin refuse un state qui ne pointe pas vers un chemin interne', async () => {
+  it('completeLogin refuses a state that does not point to an internal path', async () => {
     const service = TestBed.inject(AuthService);
     oauth.state = encodeURIComponent('https://evil.example/phishing');
     expect(await service.completeLogin()).toBe('/');
@@ -123,7 +123,7 @@ describe('AuthService', () => {
     expect(await service.completeLogin()).toBe('/');
   });
 
-  it('resynchronise les signaux sur les événements OAuth', () => {
+  it('resyncs the signals on OAuth events', () => {
     const service = TestBed.inject(AuthService);
     oauth.hasValidAccessToken.mockReturnValue(true);
     oauth.getIdentityClaims.mockReturnValue({ email: 'prof@example.org' });
@@ -134,7 +134,7 @@ describe('AuthService', () => {
     expect(service.displayName()).toBe('prof@example.org');
   });
 
-  it('logout purge la session même si la discovery échoue', async () => {
+  it('logout clears the session even when the discovery fails', async () => {
     const service = TestBed.inject(AuthService);
     oauth.loadDiscoveryDocument.mockRejectedValue(new Error('IdP injoignable'));
     await service.logout();

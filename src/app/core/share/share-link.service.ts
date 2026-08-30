@@ -62,8 +62,8 @@ export class ShareLinkService {
   }
 
   /** Crée un lien (expiration à 9 mois côté back) et l'insère en tête. */
-  async createLink(courseId: string, libelle?: string): Promise<ShareLink> {
-    const payload: ShareLinkCreatePayload = { libelle: libelle?.trim() || null };
+  async createLink(courseId: string, label?: string): Promise<ShareLink> {
+    const payload: ShareLinkCreatePayload = { label: label?.trim() || null };
     const link = await firstValueFrom(
       this.#http.post<ShareLink>(`${this.#url}/${courseId}/share-links`, payload),
     );

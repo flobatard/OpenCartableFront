@@ -4,7 +4,7 @@ import { EducationLevelPicker } from './education-level-picker';
 import { EducationLevelService } from '../../core/education-levels/education-level.service';
 import {
   EDUCATION_LEVELS_FIXTURE,
-  EDUCATION_LEVELS_MULTI_SYSTEME_FIXTURE,
+  EDUCATION_LEVELS_MULTI_SYSTEM_FIXTURE,
 } from '../../testing/education-levels.fixture';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
 
@@ -43,7 +43,7 @@ describe('EducationLevelPicker', () => {
   }
 
   function chipNames(fixture: ComponentFixture<EducationLevelPicker>): string[] {
-    return [...el(fixture).querySelectorAll('.education-level-picker__chip-nom')].map(
+    return [...el(fixture).querySelectorAll('.education-level-picker__chip-name')].map(
       (c) => c.textContent?.trim() ?? '',
     );
   }
@@ -53,12 +53,12 @@ describe('EducationLevelPicker', () => {
     vi.clearAllMocks();
   });
 
-  it('charge l’arbre au démarrage', async () => {
+  it('loads the tree on startup', async () => {
     await createComponent();
     expect(levelsMock.load).toHaveBeenCalled();
   });
 
-  it('writeValue affiche les chips en ordre d’arbre et le résumé, sans émettre', async () => {
+  it('writeValue shows the chips in tree order and the summary, without emitting', async () => {
     const fixture = await createComponent();
     const changes: string[][] = [];
     fixture.componentInstance.registerOnChange((v) => changes.push(v));
@@ -71,7 +71,7 @@ describe('EducationLevelPicker', () => {
     expect(changes).toEqual([]);
   });
 
-  it('cocher une case émet un tableau ordonné selon l’arbre', async () => {
+  it('checking a box emits an array ordered by the tree', async () => {
     const fixture = await createComponent();
     const changes: string[][] = [];
     fixture.componentInstance.registerOnChange((v) => changes.push(v));
@@ -86,7 +86,7 @@ describe('EducationLevelPicker', () => {
     expect(changes).toEqual([['college-6e'], ['college', 'college-6e']]);
   });
 
-  it('cocher un cycle ne cascade pas sur ses classes', async () => {
+  it('checking a cycle does not cascade to its grades', async () => {
     const fixture = await createComponent();
     const changes: string[][] = [];
     fixture.componentInstance.registerOnChange((v) => changes.push(v));
@@ -100,7 +100,7 @@ describe('EducationLevelPicker', () => {
     expect(checkboxes(fixture)[2].checked).toBe(false); // 5e
   });
 
-  it('décocher une case retire l’id de la valeur', async () => {
+  it('unchecking a box removes the id from the value', async () => {
     const fixture = await createComponent();
     fixture.componentInstance.writeValue(['college-6e']);
     const changes: string[][] = [];
@@ -116,7 +116,7 @@ describe('EducationLevelPicker', () => {
     expect(chipNames(fixture)).toEqual([]);
   });
 
-  it('le bouton d’une chip retire la sélection', async () => {
+  it('a chip’s button removes the selection', async () => {
     const fixture = await createComponent();
     fixture.componentInstance.writeValue(['college-6e']);
     const changes: string[][] = [];
@@ -130,7 +130,7 @@ describe('EducationLevelPicker', () => {
     expect(chipNames(fixture)).toEqual([]);
   });
 
-  it('setDisabledState désactive le champ et les chips, et ferme le panneau', async () => {
+  it('setDisabledState disables the field and the chips, and closes the panel', async () => {
     const fixture = await createComponent();
     fixture.componentInstance.writeValue(['college-6e']);
     await openPanel(fixture);
@@ -147,7 +147,7 @@ describe('EducationLevelPicker', () => {
     ).toBe(true);
   });
 
-  it('writeValue(null) vide la sélection', async () => {
+  it('writeValue(null) clears the selection', async () => {
     const fixture = await createComponent();
     fixture.componentInstance.writeValue(['college-6e']);
     await fixture.whenStable();
@@ -158,7 +158,7 @@ describe('EducationLevelPicker', () => {
     expect(chipNames(fixture)).toEqual([]);
   });
 
-  it('un id inconnu n’a pas de chip mais est préservé dans l’émission suivante', async () => {
+  it('an unknown id has no chip but is preserved in the next emission', async () => {
     const fixture = await createComponent();
     fixture.componentInstance.writeValue(['fantome']);
     const changes: string[][] = [];
@@ -175,7 +175,7 @@ describe('EducationLevelPicker', () => {
     expect(changes).toEqual([['college-6e', 'fantome']]);
   });
 
-  it('Escape ferme le panneau', async () => {
+  it('Escape closes the panel', async () => {
     const fixture = await createComponent();
     await openPanel(fixture);
     expect(el(fixture).querySelector('.education-level-picker__panel')).not.toBeNull();
@@ -188,10 +188,10 @@ describe('EducationLevelPicker', () => {
     expect(el(fixture).querySelector('.education-level-picker__panel')).toBeNull();
   });
 
-  it('filtre les racines par système scolaire via l’input systeme', async () => {
-    tree.set(EDUCATION_LEVELS_MULTI_SYSTEME_FIXTURE);
+  it('filters roots by school system via the system input', async () => {
+    tree.set(EDUCATION_LEVELS_MULTI_SYSTEM_FIXTURE);
     const fixture = await createComponent();
-    fixture.componentRef.setInput('systeme', 'uk');
+    fixture.componentRef.setInput('system', 'uk');
     await openPanel(fixture);
 
     const labels = [
@@ -200,15 +200,15 @@ describe('EducationLevelPicker', () => {
     expect(labels).toEqual(['Secondary school', 'Year 7']);
   });
 
-  it('sans input systeme, tous les systèmes sont affichés', async () => {
-    tree.set(EDUCATION_LEVELS_MULTI_SYSTEME_FIXTURE);
+  it('without a system input, all systems are shown', async () => {
+    tree.set(EDUCATION_LEVELS_MULTI_SYSTEM_FIXTURE);
     const fixture = await createComponent();
     await openPanel(fixture);
 
     expect(checkboxes(fixture)).toHaveLength(7); // 5 fr + 2 uk
   });
 
-  it('affiche l’état vide quand l’arbre est vide', async () => {
+  it('shows the empty state when the tree is empty', async () => {
     tree.set([]);
     const fixture = await createComponent();
     await openPanel(fixture);

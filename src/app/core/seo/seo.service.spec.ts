@@ -17,7 +17,7 @@ describe('SeoService', () => {
     });
   });
 
-  it('pose title, description, canonical et hreflang pour la langue active', () => {
+  it('sets title, description, canonical and hreflang for the active language', () => {
     TestBed.inject(LanguageService).activate('en');
     TestBed.inject(SeoService).applyHome();
 
@@ -34,7 +34,7 @@ describe('SeoService', () => {
     expect(xDefault?.getAttribute('href')).toBe('http://localhost:4200/fr/home');
   });
 
-  it('pose une carte sociale matricielle (og:image PNG + twitter)', () => {
+  it('sets a raster social card (PNG og:image + twitter)', () => {
     TestBed.inject(SeoService).applyHome();
     const meta = TestBed.inject(Meta);
 
@@ -50,14 +50,14 @@ describe('SeoService', () => {
     );
   });
 
-  it('n’ajoute pas de doublon de canonical au réappel', () => {
+  it('does not add a duplicate canonical when called again', () => {
     const seo = TestBed.inject(SeoService);
     seo.applyHome();
     seo.applyHome();
     expect(document.head.querySelectorAll('link[rel="canonical"]').length).toBe(1);
   });
 
-  it('apply() générique pose canonical et hreflang sur le chemin donné', () => {
+  it('generic apply() sets canonical and hreflang on the given path', () => {
     TestBed.inject(SeoService).apply({
       titleKey: 'docs.pages.katex.title',
       descriptionKey: 'docs.pages.katex.summary',

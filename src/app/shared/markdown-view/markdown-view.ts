@@ -342,11 +342,11 @@ export class MarkdownView {
     id: string,
   ): Promise<ResolvedResource | null> {
     const resource = list.find((r) => r.id === id);
-    if (!resource || resource.statut !== 'disponible') {
+    if (!resource || resource.status !== 'available') {
       return null;
     }
     const url = await this.#resources.getDownloadUrl(courseId, id);
-    return { url, kind: resourceKind(resource.type), label: resource.nom_original };
+    return { url, kind: resourceKind(resource.type), label: resource.original_name };
   }
 
   /**

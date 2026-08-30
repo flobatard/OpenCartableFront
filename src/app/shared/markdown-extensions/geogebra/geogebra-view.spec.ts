@@ -15,7 +15,7 @@ describe('GeogebraView', () => {
     TestBed.configureTestingModule({ imports: [provideTranslocoTesting()] });
   });
 
-  it('rend une iframe sandboxée vers le matériel pour un id valide', () => {
+  it('renders a sandboxed iframe to the material for a valid id', () => {
     const fixture = createView('id=RHYH3UQ8\nwidth=700');
     const iframe = fixture.nativeElement.querySelector('iframe') as HTMLIFrameElement;
     expect(iframe).not.toBeNull();
@@ -28,13 +28,13 @@ describe('GeogebraView', () => {
     expect(iframe.getAttribute('title')).toBeTruthy();
   });
 
-  it('affiche la notice sans iframe pour un id invalide', () => {
+  it('shows the notice without an iframe for an invalid id', () => {
     const fixture = createView('id=../evil');
     expect(fixture.nativeElement.querySelector('iframe')).toBeNull();
     expect(fixture.nativeElement.querySelector('.geogebra-view__error')).not.toBeNull();
   });
 
-  it('réagit au changement de source', () => {
+  it('reacts to a source change', () => {
     const fixture = createView('width=600');
     expect(fixture.nativeElement.querySelector('iframe')).toBeNull();
     fixture.componentRef.setInput('source', 'id=abc123');

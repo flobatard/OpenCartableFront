@@ -11,7 +11,7 @@ import { ShareLinkService } from '../../../core/share/share-link.service';
 import { UserProfileService } from '../../../core/users/user-profile.service';
 
 /** Ordre d'affichage des trois régimes (cartes radio). */
-const VISIBILITIES: readonly CourseVisibility[] = ['en_cours', 'prive', 'public'];
+const VISIBILITIES: readonly CourseVisibility[] = ['draft', 'private', 'public'];
 
 /**
  * Onglet « Partage » de la page cours (J2) : régime d'accès élève du cours
@@ -47,7 +47,7 @@ export class CourseShare {
 
   /** Régime courant — dérivé du détail (source de vérité, pas d'état local). */
   protected readonly visibility = computed<CourseVisibility>(
-    () => this.#courses.detail()?.visibilite ?? 'en_cours',
+    () => this.#courses.detail()?.visibility ?? 'draft',
   );
   protected readonly visibilityBusy = signal(false);
   protected readonly visibilityError = signal(false);
@@ -57,7 +57,7 @@ export class CourseShare {
   protected readonly linksError = this.#links.listError;
 
   /** Libellé du prochain lien (saisie libre, optionnelle). */
-  protected readonly libelle = signal('');
+  protected readonly label = signal('');
   protected readonly creating = signal(false);
   protected readonly createError = signal(false);
 
@@ -92,14 +92,14 @@ export class CourseShare {
   }
 
   /** Change le régime d'accès (PUT immédiat ; l'affichage suit le signal). */
-  protected async setVisibility(visibilite: CourseVisibility): Promise<void> {
-    if (this.visibilityBusy() || this.visibility() === visibilite) {
+  protected async setVisibility(visibility: CourseVisibility): Promise<void> {
+    if (this.visibilityBusy() || this.visibility() === visibility) {
       return;
     }
     this.visibilityBusy.set(true);
     this.visibilityError.set(false);
     try {
-      await this.#courses.updateVisibility(this.courseId(), visibilite);
+      await this.#courses.updateVisibility(this.courseId(), visibility);
     } catch {
       this.visibilityError.set(true);
     } finally {
@@ -130,8 +130,8 @@ export class CourseShare {
     this.creating.set(true);
     this.createError.set(false);
     try {
-      await this.#links.createLink(this.courseId(), this.libelle());
-      this.libelle.set('');
+      await this.#links.createLink(this.courseId(), this.label());
+      this.label.set('');
     } catch {
       this.createError.set(true);
     } finally {

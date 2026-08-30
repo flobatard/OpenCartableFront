@@ -7,7 +7,7 @@ import { resourceTypeLabelKey } from '../../core/resources/resource.utils';
  * Modale de choix d'une ressource de la bibliothèque du cours à insérer dans le
  * markdown. Présentational (élément `<dialog>` natif : focus-trap, Escape et
  * backdrop gérés par la plateforme) — patron `MarkdownHelpDialog`. Le parent
- * fournit la liste (ressources `disponible`) et reçoit le choix via `(pick)`.
+ * fournit la liste (ressources `available`) et reçoit le choix via `(pick)`.
  */
 @Component({
   selector: 'app-resource-picker-dialog',
@@ -16,7 +16,7 @@ import { resourceTypeLabelKey } from '../../core/resources/resource.utils';
   styleUrl: './resource-picker-dialog.scss',
 })
 export class ResourcePickerDialog {
-  /** Ressources proposées (déjà filtrées `disponible` par le parent). */
+  /** Ressources proposées (déjà filtrées `available` par le parent). */
   readonly resources = input.required<CourseResource[]>();
 
   /** Ressource choisie par l'utilisateur. */

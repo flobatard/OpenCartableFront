@@ -63,8 +63,8 @@ export class AiSettings implements OnInit {
   /** Snapshot JSON du dernier payload persisté (chargé ou sauvegardé). */
   readonly #savedPayload = signal<string | null>(null);
 
-  protected readonly apiKeyDefinie = computed(
-    () => this.#credentials.credentials()?.api_key_definie ?? false,
+  protected readonly apiKeySet = computed(
+    () => this.#credentials.credentials()?.api_key_set ?? false,
   );
 
   /** Une configuration existe côté serveur (le bouton Supprimer a un objet). */
@@ -76,13 +76,13 @@ export class AiSettings implements OnInit {
   protected readonly mode = signal<'default' | 'custom'>('custom');
 
   protected readonly defaultAvailable = computed(
-    () => this.#credentials.credentials()?.ia_defaut_disponible ?? false,
+    () => this.#credentials.credentials()?.default_ai_available ?? false,
   );
   protected readonly quotaTotal = computed(
-    () => this.#credentials.credentials()?.quota_quotidien ?? 0,
+    () => this.#credentials.credentials()?.daily_quota ?? 0,
   );
   protected readonly quotaUsed = computed(
-    () => this.#credentials.credentials()?.appels_aujourdhui ?? 0,
+    () => this.#credentials.credentials()?.calls_today ?? 0,
   );
   /** Quota quotidien 0 = illimité (contrat back). */
   protected readonly quotaUnlimited = computed(() => this.quotaTotal() === 0);
@@ -101,7 +101,7 @@ export class AiSettings implements OnInit {
       this.dirty() &&
       !this.saving() &&
       !this.deleting() &&
-      isFormComplete(this.#formValue(), this.apiKeyDefinie()),
+      isFormComplete(this.#formValue(), this.apiKeySet()),
   );
 
   constructor() {

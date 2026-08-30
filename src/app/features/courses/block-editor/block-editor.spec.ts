@@ -70,9 +70,9 @@ describe('BlockEditor', () => {
   const EXERCISE_SUJET = 'Étudier la convergence des suites suivantes.';
   const Q1 = {
     id: 'q-1',
-    enonce: 'Soit $u_n = 1/n$. Montrer que $(u_n)$ converge.',
-    type: 'texte_libre',
-    reponse_attendue: 'Décroissante et minorée par 0 ; limite 0.',
+    statement: 'Soit $u_n = 1/n$. Montrer que $(u_n)$ converge.',
+    type: 'free_text',
+    expected_answer: 'Décroissante et minorée par 0 ; limite 0.',
   };
 
   function updatedExerciseBlock(content: Record<string, unknown>): CourseBlock {
@@ -151,7 +151,7 @@ describe('BlockEditor', () => {
     vi.useRealTimers();
   });
 
-  it('charge le cours et initialise le contrôle une seule fois', async () => {
+  it('loads the course and initializes the control only once', async () => {
     const fixture = await createComponent();
 
     expect(coursesMock.loadDetail).toHaveBeenCalledWith('course-1');
@@ -168,7 +168,7 @@ describe('BlockEditor', () => {
     expect(fixture.componentInstance.content.value).toBe(INITIAL);
   });
 
-  it('autosave : rien avant 1,5 s, puis un PATCH avec la valeur courante', async () => {
+  it('autosave: nothing before 1.5 s, then one PATCH with the current value', async () => {
     await configure();
     vi.useFakeTimers();
     const fixture = createComponentSync();
@@ -187,7 +187,7 @@ describe('BlockEditor', () => {
     expect(el(fixture).textContent).toContain('Enregistré');
   });
 
-  it('des frappes rapprochées ne déclenchent qu’un seul PATCH', async () => {
+  it('rapid keystrokes trigger only one PATCH', async () => {
     await configure();
     vi.useFakeTimers();
     const fixture = createComponentSync();
@@ -205,7 +205,7 @@ describe('BlockEditor', () => {
     });
   });
 
-  it('sérialise un second PATCH si on tape pendant un save en vol', async () => {
+  it('serializes a second PATCH when typing during an in-flight save', async () => {
     await configure();
     let resolveFirst!: (block: CourseBlock) => void;
     coursesMock.updateBlockContent
@@ -230,7 +230,7 @@ describe('BlockEditor', () => {
     });
   });
 
-  it('revenir à la valeur enregistrée n’émet aucun PATCH', async () => {
+  it('returning to the saved value emits no PATCH', async () => {
     await configure();
     vi.useFakeTimers();
     const fixture = createComponentSync();
@@ -242,7 +242,7 @@ describe('BlockEditor', () => {
     expect(coursesMock.updateBlockContent).not.toHaveBeenCalled();
   });
 
-  it('échec du save : état erreur, puis le flux survit à la frappe suivante', async () => {
+  it('save failure: error state, then the flow survives the next keystroke', async () => {
     await configure();
     coursesMock.updateBlockContent
       .mockRejectedValueOnce(new Error('boom'))
@@ -260,7 +260,7 @@ describe('BlockEditor', () => {
     expect(coursesMock.updateBlockContent).toHaveBeenCalledTimes(2);
   });
 
-  it('flush la valeur non débouncée à la destruction', async () => {
+  it('flushes the undebounced value on destroy', async () => {
     await configure();
     vi.useFakeTimers();
     const fixture = createComponentSync();
@@ -274,7 +274,7 @@ describe('BlockEditor', () => {
     });
   });
 
-  it('bloc texte : monte le champ markdown et initialise son contrôle', async () => {
+  it('text block: mounts the markdown field and initializes its control', async () => {
     const fixture = await createComponent();
 
     // Le contenu (éditeur/onglets/aperçu/aide) est délégué à app-markdown-field.
@@ -282,7 +282,7 @@ describe('BlockEditor', () => {
     expect(fixture.componentInstance.content.value).toBe(INITIAL);
   });
 
-  it('bloc exercice : monte l’éditeur d’exercice, la barre d’autosave et l’assistant', async () => {
+  it('exercise block: mounts the exercise editor, the autosave bar and the assistant', async () => {
     const fixture = await createComponent('block-3');
     fixture.detectChanges();
 
@@ -291,23 +291,23 @@ describe('BlockEditor', () => {
     expect(el(fixture).querySelector('app-course-chat')).toBeTruthy();
 
     const form = exerciseForm(fixture);
-    expect(form.controls.enonce.value).toBe(EXERCISE_SUJET);
+    expect(form.controls.statement.value).toBe(EXERCISE_SUJET);
     expect(form.controls.questions.length).toBe(1);
     expect(form.controls.questions.at(0).controls.id.value).toBe('q-1');
   });
 
-  it('autosave exercice : frappe dans le formulaire → un PATCH débouncé avec le payload complet', async () => {
+  it('exercise autosave: typing in the form → one debounced PATCH with the full payload', async () => {
     await configure('block-3');
     coursesMock.updateBlockContent.mockResolvedValue(
       updatedExerciseBlock({
-        enonce: EXERCISE_SUJET,
-        questions: [{ ...Q1, reponse_attendue: 'Autre corrigé.' }],
+        statement: EXERCISE_SUJET,
+        questions: [{ ...Q1, expected_answer: 'Autre corrigé.' }],
       }),
     );
     vi.useFakeTimers();
     const fixture = createComponentSync();
 
-    exerciseForm(fixture).controls.questions.at(0).controls.reponseAttendue.setValue(
+    exerciseForm(fixture).controls.questions.at(0).controls.expectedAnswer.setValue(
       'Autre corrigé.',
     );
     await vi.advanceTimersByTimeAsync(1499);
@@ -316,20 +316,20 @@ describe('BlockEditor', () => {
     await vi.advanceTimersByTimeAsync(1);
     expect(coursesMock.updateBlockContent).toHaveBeenCalledTimes(1);
     expect(coursesMock.updateBlockContent).toHaveBeenCalledWith('course-1', 'block-3', {
-      enonce: EXERCISE_SUJET,
-      questions: [{ ...Q1, reponse_attendue: 'Autre corrigé.' }],
+      statement: EXERCISE_SUJET,
+      questions: [{ ...Q1, expected_answer: 'Autre corrigé.' }],
     });
 
     fixture.detectChanges();
     expect(el(fixture).textContent).toContain('Enregistré');
   });
 
-  it('écrit dans le formulaire les ids générés par le back après le save', async () => {
+  it('writes the backend-generated ids into the form after save', async () => {
     await configure('block-3');
     coursesMock.updateBlockContent.mockResolvedValue(
       updatedExerciseBlock({
-        enonce: EXERCISE_SUJET,
-        questions: [Q1, { id: 'q-généré', enonce: '', type: 'texte_libre', reponse_attendue: '' }],
+        statement: EXERCISE_SUJET,
+        questions: [Q1, { id: 'q-généré', statement: '', type: 'free_text', expected_answer: '' }],
       }),
     );
     vi.useFakeTimers();
@@ -350,13 +350,13 @@ describe('BlockEditor', () => {
     expect(el(fixture).textContent).toContain('Enregistré');
   });
 
-  it('frappe pendant un save exercice en vol : le second PATCH part avec les ids réécrits', async () => {
+  it('typing during an in-flight exercise save: the second PATCH leaves with the rewritten ids', async () => {
     await configure('block-3');
     let resolveFirst!: (block: CourseBlock) => void;
-    const withNewId = (enonce: string): CourseBlock =>
+    const withNewId = (statement: string): CourseBlock =>
       updatedExerciseBlock({
-        enonce: EXERCISE_SUJET,
-        questions: [Q1, { id: 'q-généré', enonce, type: 'texte_libre', reponse_attendue: '' }],
+        statement: EXERCISE_SUJET,
+        questions: [Q1, { id: 'q-généré', statement, type: 'free_text', expected_answer: '' }],
       });
     coursesMock.updateBlockContent
       .mockImplementationOnce(() => new Promise<CourseBlock>((resolve) => (resolveFirst = resolve)))
@@ -369,7 +369,7 @@ describe('BlockEditor', () => {
     await vi.advanceTimersByTimeAsync(1500); // premier PATCH en vol (id null)
     expect(coursesMock.updateBlockContent).toHaveBeenCalledTimes(1);
 
-    form.controls.questions.at(1).controls.enonce.setValue('Question ajoutée');
+    form.controls.questions.at(1).controls.statement.setValue('Question ajoutée');
     await vi.advanceTimersByTimeAsync(1500); // débouncé, en file derrière concatMap
     expect(coursesMock.updateBlockContent).toHaveBeenCalledTimes(1);
 
@@ -380,40 +380,40 @@ describe('BlockEditor', () => {
     // Payload construit à l'ENVOI : l'id réécrit part avec, le back ne
     // régénérera pas un id censé être stable à vie.
     const second = coursesMock.updateBlockContent.mock.calls[1][2] as {
-      questions: { id: string | null; enonce: string }[];
+      questions: { id: string | null; statement: string }[];
     };
     expect(second.questions[1]).toEqual({
       id: 'q-généré',
-      enonce: 'Question ajoutée',
-      type: 'texte_libre',
-      reponse_attendue: '',
+      statement: 'Question ajoutée',
+      type: 'free_text',
+      expected_answer: '',
     });
   });
 
-  it('flush le payload exercice non débouncé à la destruction', async () => {
+  it('flushes the undebounced exercise payload on destroy', async () => {
     await configure('block-3');
     vi.useFakeTimers();
     const fixture = createComponentSync();
 
-    exerciseForm(fixture).controls.enonce.setValue('Sortie rapide');
+    exerciseForm(fixture).controls.statement.setValue('Sortie rapide');
     fixture.destroy();
 
     expect(coursesMock.updateBlockContent).toHaveBeenCalledTimes(1);
     expect(coursesMock.updateBlockContent).toHaveBeenCalledWith(
       'course-1',
       'block-3',
-      expect.objectContaining({ enonce: 'Sortie rapide' }),
+      expect.objectContaining({ statement: 'Sortie rapide' }),
     );
   });
 
-  it('bloc introuvable : message + pas de champ', async () => {
+  it('block not found: message + no field', async () => {
     const fixture = await createComponent('inconnu');
 
     expect(el(fixture).textContent).toContain('existe pas ou a été supprimé');
     expect(el(fixture).querySelector('app-markdown-field')).toBeNull();
   });
 
-  it('bloc module : méta éditable + picker de module (bibliothèque chargée)', async () => {
+  it('module block: editable meta + module picker (library loaded)', async () => {
     detail.set({
       ...COURSE_DETAIL_FIXTURE,
       blocks: [
@@ -422,7 +422,7 @@ describe('BlockEditor', () => {
           id: 'block-4',
           position: 3,
           type: 'module',
-          titre: null,
+          title: null,
           description: null,
           content: {},
           resource_id: null,
@@ -433,7 +433,7 @@ describe('BlockEditor', () => {
     const fixture = await createComponent('block-4');
 
     // Le formulaire titre/description est présent (méta éditable sur tous types)…
-    expect(metaField(fixture, 'titre')).toBeTruthy();
+    expect(metaField(fixture, 'title')).toBeTruthy();
     // …et le contenu est le picker de module (pas de Monaco ni de document).
     expect(el(fixture).querySelector('app-markdown-field')).toBeNull();
     expect(el(fixture).querySelector('app-document-editor')).toBeNull();
@@ -442,7 +442,7 @@ describe('BlockEditor', () => {
     expect(modulesMock.loadList).toHaveBeenCalledWith('course-1');
   });
 
-  it('bloc document : monte l’éditeur, charge la bibliothèque et pré-remplit', async () => {
+  it('document block: mounts the editor, loads the library and prefills', async () => {
     const fixture = await createComponent('block-2');
     fixture.detectChanges();
 
@@ -452,8 +452,8 @@ describe('BlockEditor', () => {
 
     const editor = fixture.debugElement.query(By.directive(DocumentEditor))
       .componentInstance as DocumentEditor;
-    expect(editor.form.controls.legende.value).toBe('Schéma récapitulatif');
-    expect(editor.form.controls.affichage.value).toBe('inline');
+    expect(editor.form.controls.caption.value).toBe('Schéma récapitulatif');
+    expect(editor.form.controls.display.value).toBe('inline');
     expect(editor.resourceControl.value).toBe('resource-1');
 
     // Le picker ne propose que les ressources « disponible » (+ option vide).
@@ -465,11 +465,11 @@ describe('BlockEditor', () => {
     ]);
   });
 
-  it('autosave document : frappe sur la légende → PATCH débouncé du content', async () => {
+  it('document autosave: typing in the caption → debounced PATCH of the content', async () => {
     await configure('block-2');
     coursesMock.updateBlockContent.mockResolvedValue({
       ...COURSE_DETAIL_FIXTURE.blocks[1],
-      content: { legende: 'Nouvelle légende', affichage: 'inline' },
+      content: { caption: 'Nouvelle légende', display: 'inline' },
     });
     vi.useFakeTimers();
     const fixture = createComponentSync();
@@ -477,7 +477,7 @@ describe('BlockEditor', () => {
 
     const editor = fixture.debugElement.query(By.directive(DocumentEditor))
       .componentInstance as DocumentEditor;
-    editor.form.controls.legende.setValue('Nouvelle légende');
+    editor.form.controls.caption.setValue('Nouvelle légende');
     await vi.advanceTimersByTimeAsync(1499);
     expect(coursesMock.updateBlockContent).not.toHaveBeenCalled();
 
@@ -485,11 +485,11 @@ describe('BlockEditor', () => {
     expect(coursesMock.updateBlockContent).toHaveBeenCalledExactlyOnceWith(
       'course-1',
       'block-2',
-      { legende: 'Nouvelle légende', affichage: 'inline' },
+      { caption: 'Nouvelle légende', display: 'inline' },
     );
   });
 
-  it('choix de ressource : PATCH immédiat, sans debounce ni content', async () => {
+  it('resource choice: immediate PATCH, no debounce, no content', async () => {
     const fixture = await createComponent('block-2');
     fixture.detectChanges();
     const editor = fixture.debugElement.query(By.directive(DocumentEditor))
@@ -515,7 +515,7 @@ describe('BlockEditor', () => {
     );
   });
 
-  it('échec du PATCH de ressource : message dédié et select rétabli', async () => {
+  it('resource PATCH failure: dedicated message and select restored', async () => {
     coursesMock.updateBlockResource.mockRejectedValue(new Error('boom'));
     const fixture = await createComponent('block-2');
     fixture.detectChanges();
@@ -531,20 +531,20 @@ describe('BlockEditor', () => {
     expect(editor.resourceControl.value).toBe('resource-1');
   });
 
-  it('formulaire méta : initialise titre/description depuis le bloc et désactive le bouton', async () => {
+  it('meta form: initializes title/description from the block and disables the button', async () => {
     const fixture = await createComponent();
     fixture.detectChanges();
 
-    expect(metaField(fixture, 'titre').value).toBe('Le concept de suite');
+    expect(metaField(fixture, 'title').value).toBe('Le concept de suite');
     expect(metaField(fixture, 'description').value).toBe('Définitions et premiers exemples.');
     expect(metaSaveButton(fixture).disabled).toBe(true); // rien modifié
   });
 
-  it('formulaire méta : enregistre titre/description modifiés via le bouton', async () => {
+  it('meta form: saves modified title/description via the button', async () => {
     const fixture = await createComponent();
     fixture.detectChanges();
 
-    type(metaField(fixture, 'titre'), 'Titre modifié');
+    type(metaField(fixture, 'title'), 'Titre modifié');
     fixture.detectChanges();
     expect(metaSaveButton(fixture).disabled).toBe(false); // modifié → actif
 
@@ -553,7 +553,7 @@ describe('BlockEditor', () => {
 
     // Envoie le méta complet (jamais le contenu) ; la description inchangée suit.
     expect(coursesMock.updateBlockMeta).toHaveBeenCalledWith('course-1', 'block-1', {
-      titre: 'Titre modifié',
+      title: 'Titre modifié',
       description: 'Définitions et premiers exemples.',
     });
     expect(coursesMock.updateBlockContent).not.toHaveBeenCalled();
@@ -561,23 +561,23 @@ describe('BlockEditor', () => {
     expect(el(fixture).textContent).toContain('Enregistré');
   });
 
-  it('formulaire méta : effacer le titre envoie titre null', async () => {
+  it('meta form: clearing the title sends title null', async () => {
     const fixture = await createComponent();
     fixture.detectChanges();
 
-    type(metaField(fixture, 'titre'), '');
+    type(metaField(fixture, 'title'), '');
     fixture.detectChanges();
 
     metaSaveButton(fixture).click();
     await fixture.whenStable();
 
     expect(coursesMock.updateBlockMeta).toHaveBeenCalledWith('course-1', 'block-1', {
-      titre: null,
+      title: null,
       description: 'Définitions et premiers exemples.',
     });
   });
 
-  it('affiche l’erreur de chargement et relance via Réessayer', async () => {
+  it('shows the load error and retries via the retry button', async () => {
     detail.set(null);
     detailError.set(true);
     const fixture = await createComponent();
@@ -590,7 +590,7 @@ describe('BlockEditor', () => {
     expect(coursesMock.loadDetail).toHaveBeenCalledWith('course-1');
   });
 
-  it('replie et déploie le panneau chat via le bouton de la barre d’outils', async () => {
+  it('collapses and expands the chat panel via the toolbar button', async () => {
     const fixture = await createComponent();
     const toggle = el(fixture).querySelector<HTMLButtonElement>('.block-editor__chat-toggle')!;
     const chat = el(fixture).querySelector<HTMLElement>('app-course-chat')!;
@@ -616,7 +616,7 @@ describe('BlockEditor', () => {
     expect(el(fixture).querySelector('.block-editor__chat-reopen')).toBeNull();
   });
 
-  it('redimensionne au clavier via la poignée (aria-valuenow borné)', async () => {
+  it('resizes via keyboard through the handle (aria-valuenow clamped)', async () => {
     const fixture = await createComponent();
     const divider = el(fixture).querySelector<HTMLElement>('.block-editor__divider')!;
 

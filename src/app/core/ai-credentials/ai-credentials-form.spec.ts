@@ -13,14 +13,14 @@ const STORED: AiCredentials = {
   provider: 'anthropic',
   model: 'claude-sonnet-5',
   base_url: null,
-  api_key_definie: true,
-  ia_defaut_disponible: false,
-  quota_quotidien: 30,
-  appels_aujourdhui: 0,
+  api_key_set: true,
+  default_ai_available: false,
+  daily_quota: 30,
+  calls_today: 0,
 };
 
 describe('ai-credentials-form', () => {
-  it('patchFormFromCredentials remplit tout sauf la clé (jamais relue)', () => {
+  it('patchFormFromCredentials fills everything except the key (never read back)', () => {
     const form = buildAiCredentialsForm();
     form.controls.apiKey.setValue('résidu');
     patchFormFromCredentials(form, STORED);
@@ -30,7 +30,7 @@ describe('ai-credentials-form', () => {
     expect(form.controls.apiKey.value).toBe('');
   });
 
-  it('payloadFromForm OMET api_key quand le champ est vide (conserver la clé)', () => {
+  it('payloadFromForm OMITS api_key when the field is empty (keep the stored key)', () => {
     const form = buildAiCredentialsForm();
     patchFormFromCredentials(form, STORED);
     form.controls.model.setValue('claude-opus-5');
@@ -40,7 +40,7 @@ describe('ai-credentials-form', () => {
     expect('api_key' in payload).toBe(false);
   });
 
-  it('payloadFromForm porte la clé saisie et vide base_url hors ollama/openai_compatible', () => {
+  it('payloadFromForm carries the entered key and clears base_url outside ollama/openai_compatible', () => {
     const form = buildAiCredentialsForm();
     form.setValue({
       provider: 'anthropic',
@@ -57,13 +57,13 @@ describe('ai-credentials-form', () => {
     });
   });
 
-  it('payloadFromForm conserve base_url pour ollama', () => {
+  it('payloadFromForm keeps base_url for ollama', () => {
     const form = buildAiCredentialsForm();
     form.setValue({ provider: 'ollama', model: 'llama3.2', apiKey: '', baseUrl: 'http://pi:11434' });
     expect(payloadFromForm(form).base_url).toBe('http://pi:11434');
   });
 
-  it('baseUrlVisible / baseUrlRequired suivent le provider', () => {
+  it('baseUrlVisible / baseUrlRequired follow the provider', () => {
     expect(baseUrlVisible('ollama')).toBe(true);
     expect(baseUrlVisible('openai_compatible')).toBe(true);
     expect(baseUrlVisible('anthropic')).toBe(false);
@@ -72,14 +72,14 @@ describe('ai-credentials-form', () => {
     expect(baseUrlRequired('ollama')).toBe(false);
   });
 
-  it('keyRequired : provider cloud sans clé enregistrée uniquement', () => {
+  it('keyRequired: cloud provider without a stored key only', () => {
     expect(keyRequired('anthropic', false)).toBe(true);
     expect(keyRequired('anthropic', true)).toBe(false);
     expect(keyRequired('ollama', false)).toBe(false);
     expect(keyRequired(null, false)).toBe(false);
   });
 
-  it('isFormComplete applique les règles par provider', () => {
+  it('isFormComplete applies the per-provider rules', () => {
     const form = buildAiCredentialsForm();
     expect(isFormComplete(form.value, false)).toBe(false);
 

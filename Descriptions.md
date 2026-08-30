@@ -22,7 +22,7 @@ Un enseignant produit beaucoup de supports hétérogènes (PDF, images, schémas
 | **Prof** (toi) | OIDC / Zitadel | Créer / organiser / éditer cours, ressources et modules ; gérer les liens de partage |
 | **Élève** | Optionnelle : aucune (lien public) ou compte OIDC / Zitadel | Consulter un cours partagé, télécharger les documents, lancer les modules interactifs — sans compte ; un compte (facultatif) porte un profil (système scolaire, niveaux, matières apprises) |
 
-Les rôles applicatifs sont **cumulables** : un même compte peut être prof *et* élève (ex. enseignant en reprise d'études). Tout compte passe par un **onboarding bloquant** à la première connexion (rôles → système scolaire → niveaux → matières, par contexte « enseigne »/« apprend »). L'accès par lien public reste le mode par défaut pour les élèves : le compte élève est une commodité de profil, jamais une condition d'accès aux cours partagés.
+Les rôles applicatifs sont **cumulables** : un même compte peut être prof *et* élève (ex. enseignant en reprise d'études). Tout compte passe par un **onboarding bloquant** à la première connexion (rôles → système scolaire → niveaux → matières, par contexte « teaching »/« learning »). L'accès par lien public reste le mode par défaut pour les élèves : le compte élève est une commodité de profil, jamais une condition d'accès aux cours partagés.
 
 ### Cas d'usage clés (user stories)
 - *En tant que prof*, je crée un cours « Suites numériques » et j'y agence un texte d'introduction, deux PDF, trois images et un quiz interactif, dans l'ordre que je veux.
@@ -109,7 +109,7 @@ Le point structurant : **deux populations, deux modèles d'accès** sur la même
 - **Prof** : flow OIDC *Authorization Code + PKCE* entièrement géré **côté front** (client public Angular, pas de secret). Le back ne reçoit que le token : il ne fait **pas** de session, il valide le JWT Zitadel à chaque requête (signature via JWKS découvert depuis l'issuer, vérif `issuer` / `audience` / expiration) et lit les rôles dans les claims. Seuls deux réglages côté API : `OIDC_ISSUER` et `OIDC_AUDIENCE`.
 - **Élève** : **non authentifié** pour la consultation. L'accès aux cours partagés est porté par un *token de partage* opaque (cf. 5.6), pas par une identité. Un élève *peut* toutefois créer un compte OIDC pour disposer d'un profil — cela ne change rien au régime d'accès aux liens publics.
 - Conséquence : des routes « admin » (JWT requis) et des routes « publiques » (token de partage requis) bien séparées, avec deux dépendances d'autorisation distinctes côté FastAPI.
-- **Comptes & profil** : le back auto-provisionne la ligne `users` (clé : `sub` OIDC) au premier `GET /api/v1/users/me` ; le front lit le flag `onboarding_complete` au retour du callback OIDC et redirige vers l'onboarding bloquant tant qu'il est faux (guard `onboardingGuard` sur les routes protégées). Les rôles applicatifs (`est_prof`/`est_eleve`, cumulables) vivent en base, indépendants des rôles Zitadel des claims.
+- **Comptes & profil** : le back auto-provisionne la ligne `users` (clé : `sub` OIDC) au premier `GET /api/v1/users/me` ; le front lit le flag `onboarding_complete` au retour du callback OIDC et redirige vers l'onboarding bloquant tant qu'il est faux (guard `onboardingGuard` sur les routes protégées). Les rôles applicatifs (`is_teacher`/`is_student`, cumulables) vivent en base, indépendants des rôles Zitadel des claims.
 
 ### 5.2 Stockage & gestion des fichiers (S3)
 - **Bucket privé**, jamais exposé directement. L'API mint des **URL présignées** : `PUT` pour l'upload, `GET` (TTL court) pour la lecture/téléchargement.
@@ -119,16 +119,16 @@ Le point structurant : **deux populations, deux modèles d'accès** sur la même
 
 ### 5.3 Modélisation du contenu : blocs (progression) et ressources (bibliothèque), découplés
 Pour « agencer texte de cours + documents + images », le modèle gagnant est un **contenu par blocs ordonnés** (façon éditeur type Notion, en plus simple), avec une séparation stricte : les **blocs** portent la progression pédagogique, les **ressources** (fichiers S3) forment une **bibliothèque par cours**, indépendante des blocs.
-- Un cours = une liste ordonnée de blocs de quatre types : `texte`, `exercice`, `document`, `module`.
-- Le **texte de cours** (bloc `texte`) est du **markdown simple stocké en JSONB**, pas de HTML brut → plus sûr, réindexable, exploitable par l'IA ; titres, paragraphes, encadrés **et liens externes** sont couverts par le markdown (pas de types de blocs dédiés — l'ancien type `lien` a été supprimé).
-- Les blocs `document` sont un **pont nullable** vers une ressource de la bibliothèque (colonne `resource_id`, FK `CASCADE` : supprimer la ressource supprime les blocs qui la pointent — un document sans son fichier n'a pas de sens) ; leur JSONB ne porte que l'éditorial (`legende`, `affichage`). Une ressource peut exister sans bloc, ou être pointée par plusieurs.
+- Un cours = une liste ordonnée de blocs de quatre types : `text`, `exercise`, `document`, `module`.
+- Le **texte de cours** (bloc `text`) est du **markdown simple stocké en JSONB**, pas de HTML brut → plus sûr, réindexable, exploitable par l'IA ; titres, paragraphes, encadrés **et liens externes** sont couverts par le markdown (pas de types de blocs dédiés — l'ancien type `lien` a été supprimé).
+- Les blocs `document` sont un **pont nullable** vers une ressource de la bibliothèque (colonne `resource_id`, FK `CASCADE` : supprimer la ressource supprime les blocs qui la pointent — un document sans son fichier n'a pas de sens) ; leur JSONB ne porte que l'éditorial (`caption`, `display`). Une ressource peut exister sans bloc, ou être pointée par plusieurs.
 - Les blocs `module` (modules interactifs HTML/CSS/JS, cf. 5.5) suivent le même motif que les blocs `document` : un **pont nullable** vers un module de la **bibliothèque de modules du cours** (colonne `module_id`, FK `CASCADE` : supprimer le module supprime ses blocs pointeurs).
 - UX côté Angular : page de cours à **quatre onglets Blocs / Ressources / Modules / Aperçu**, éditeur d'ordre des blocs (drag & drop), picker de ressources dans l'éditeur du bloc document, picker de module dans l'éditeur du bloc module, upload direct navigateur→S3 avec progression.
 
 ### 5.4 Recherche (J3 — livré)
-- Côté back : **FTS Postgres** en config `french_unaccent` (stemming français + insensibilité aux accents), vecteurs stockés sur cours et blocs maintenus par triggers, **jamais les corrigés d'exercice** (`reponse_attendue`) — détail dans le `Descriptions.md` du back. Endpoints publics sans JWT : `GET /api/v1/public/search/courses` et `/teachers` (enveloppe paginée `{items, total, limit, offset}`), plus les arbres de taxonomie en lecture publique (`/v1/public/subjects/tree`, `/v1/public/education-levels/tree`).
-- Côté front : **page publique `/:lang/search`** (`RenderMode.Client`, sans guard) — barre de recherche débouncée, onglets **Cours | Professeurs** (tablist APG, total affiché), **facettes** matière/niveau en `<select>` natifs alimentés par les arbres publics (sidebar ≥900px, `<details>` repliable en dessous), pagination Précédent/Suivant. Tout l'état (`q`, `tab`, `subject`, `level`, `page`) vit dans les **query params** → URL partageable. Les cartes de cours réutilisent la **carte publique partagée** (`shared/public-course-card`, extraite du catalogue élève) ; une carte prof mène à son catalogue `/p/:profId`.
-- **Règle d'or** : seuls les cours `public` remontent ; un prof ne remonte que s'il a coché l'**opt-in « cherchable »** dans sa page profil ET renseigné un nom public ET publié au moins un cours. Le lien « Rechercher » du header est public (seul « Mes cours » reste conditionné à la session).
+- Côté back : **FTS Postgres** en config `french_unaccent` (stemming français + insensibilité aux accents), vecteurs stockés sur cours et blocs maintenus par triggers, **jamais les corrigés d'exercice** (`expected_answer`) — détail dans le `Descriptions.md` du back. Endpoints publics sans JWT : `GET /api/v1/public/search/courses` et `/teachers` (enveloppe paginée `{items, total, limit, offset}`), plus les arbres de taxonomie en lecture publique (`/v1/public/subjects/tree`, `/v1/public/education-levels/tree`).
+- Côté front : **page publique `/:lang/search`** (`RenderMode.Client`, sans guard) — barre de recherche débouncée, onglets **Cours | Professeurs** (tablist APG, total affiché), **facettes** matière/niveau en `<select>` natifs alimentés par les arbres publics (sidebar ≥900px, `<details>` repliable en dessous), pagination Précédent/Suivant. Tout l'état (`q`, `tab`, `subject`, `level`, `page`) vit dans les **query params** → URL partageable. Les cartes de cours réutilisent la **carte publique partagée** (`shared/public-course-card`, extraite du catalogue élève) ; une carte prof mène à son catalogue `/p/:teacherId`.
+- **Règle d'or** : seuls les cours `public` remontent ; un prof ne remonte que s'il a coché l'**opt-in « searchable »** dans sa page profil ET renseigné un nom public ET publié au moins un cours. Le lien « Rechercher » du header est public (seul « Mes cours » reste conditionné à la session).
 - Évolution : recherche **sémantique** via ChromaDB si la vectorisation est actée (cf. 5.7), combinable avec la FTS (recherche hybride).
 
 ### 5.5 Modules interactifs HTML/CSS/JS (J4 — livré, anticipé)
@@ -171,19 +171,19 @@ erDiagram
 
     SUBJECT {
       uuid id
-      string nom
+      string name
     }
     EDUCATION_LEVEL {
       uuid id
       uuid parent_id
-      string nom
+      string name
       string code
-      string systeme
+      string system
       int cite
     }
     COURSE {
       uuid id
-      string titre
+      string title
       tsvector search_vector
       timestamptz updated_at
     }
@@ -199,10 +199,10 @@ erDiagram
       uuid id
       string type
       string s3_key
-      string nom_original
-      bigint taille
+      string original_name
+      bigint size
       string mime
-      string statut
+      string status
     }
     SHARE_LINK {
       uuid id
@@ -212,7 +212,7 @@ erDiagram
     }
 ```
 
-`EDUCATION_LEVEL` : classification hiérarchique des niveaux d'étude (cycle → classe, un arbre par système scolaire `systeme` ; pivots internationaux `cite` CITE/ISCED 2011 et âges). Servie par `GET /api/v1/education-levels/tree`, consommée côté front par `EducationLevelService` et le composant multi-sélection `EducationLevelPicker`. Le lien cours ↔ niveaux (M2M, remplace l'ancien champ texte `niveau` de COURSE) n'est pas encore implémenté.
+`EDUCATION_LEVEL` : classification hiérarchique des niveaux d'étude (cycle → classe, un arbre par système scolaire `system` ; pivots internationaux `cite` CITE/ISCED 2011 et âges). Servie par `GET /api/v1/education-levels/tree`, consommée côté front par `EducationLevelService` et le composant multi-sélection `EducationLevelPicker`. Le lien cours ↔ niveaux (M2M, remplace l'ancien champ texte `niveau` de COURSE) n'est pas encore implémenté.
 
 ---
 

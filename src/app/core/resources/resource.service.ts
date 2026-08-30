@@ -97,9 +97,9 @@ export class ResourceService {
     this.#uploadState.set({ phase: 'presigning', progress: 0 });
     try {
       const payload: ResourceCreatePayload = {
-        nom_original: file.name,
+        original_name: file.name,
         mime,
-        taille: file.size,
+        size: file.size,
         type: resourceTypeFromMime(mime),
       };
       const presign = await firstValueFrom(
@@ -129,10 +129,10 @@ export class ResourceService {
   }
 
   /** Renomme une ressource (nom affiché seulement) et remplace son entrée. */
-  async rename(courseId: string, resourceId: string, nomOriginal: string): Promise<CourseResource> {
+  async rename(courseId: string, resourceId: string, originalName: string): Promise<CourseResource> {
     const resource = await firstValueFrom(
       this.#http.patch<CourseResource>(`${this.#url}/${courseId}/resources/${resourceId}`, {
-        nom_original: nomOriginal,
+        original_name: originalName,
       }),
     );
     if (this.#courseId === courseId) {

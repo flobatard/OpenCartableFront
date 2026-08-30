@@ -3,7 +3,7 @@
     "placeholder": "Choose levels",
     "selectedCount": "{{ count }} level(s) selected",
     "listLabel": "Education levels",
-    "remove": "Remove {{ nom }}",
+    "remove": "Remove {{ name }}",
     "empty": "No levels to display."
   }
 }

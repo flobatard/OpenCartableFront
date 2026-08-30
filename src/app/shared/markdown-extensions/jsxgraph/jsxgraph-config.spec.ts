@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { parseJsxgraphConfig } from './jsxgraph-config';
 
 describe('parseJsxgraphConfig', () => {
-  it('parse équations (répétables), points et bbox', () => {
+  it('parses equations (repeatable), points and bbox', () => {
     const config = parseJsxgraphConfig(
       'equation="x^2 + 2*x - 3"\nequation="sin(x)"\npoint="2,2"\npoint=-1,0.5\nbbox="-10,10,10,-10"',
     );
@@ -14,19 +14,19 @@ describe('parseJsxgraphConfig', () => {
     expect(config.boundingBox).toEqual([-10, 10, 10, -10]);
   });
 
-  it('applique la bbox par défaut sans bbox ou avec une bbox malformée', () => {
+  it('applies the default bbox when missing or malformed', () => {
     expect(parseJsxgraphConfig('equation=x').boundingBox).toEqual([-5, 5, 5, -5]);
     expect(parseJsxgraphConfig('bbox=1,2,3').boundingBox).toEqual([-5, 5, 5, -5]);
     expect(parseJsxgraphConfig('bbox=a,b,c,d').boundingBox).toEqual([-5, 5, 5, -5]);
   });
 
-  it('ignore les points malformés et les équations vides', () => {
+  it('ignores malformed points and empty equations', () => {
     const config = parseJsxgraphConfig('point=abc\npoint=1\npoint=1,2,3\nequation=""\npoint=3,4');
     expect(config.points).toEqual([[3, 4]]);
     expect(config.equations).toEqual([]);
   });
 
-  it('rend une config vide pour une source vide', () => {
+  it('returns an empty config for an empty source', () => {
     expect(parseJsxgraphConfig('')).toEqual({
       equations: [],
       points: [],

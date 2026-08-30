@@ -7,18 +7,18 @@ describe('ThemeService', () => {
     document.documentElement.removeAttribute('data-theme');
   });
 
-  it('lit le thème posé par le script inline anti-FOUC', () => {
+  it('reads the theme set by the anti-FOUC inline script', () => {
     document.documentElement.setAttribute('data-theme', 'dark');
     const service = TestBed.inject(ThemeService);
     expect(service.theme()).toBe('dark');
   });
 
-  it('démarre en clair quand aucun attribut n’est posé', () => {
+  it('starts in light mode when no attribute is set', () => {
     const service = TestBed.inject(ThemeService);
     expect(service.theme()).toBe('light');
   });
 
-  it('bascule le thème, pose l’attribut et persiste le choix', () => {
+  it('toggles the theme, sets the attribute and persists the choice', () => {
     const service = TestBed.inject(ThemeService);
 
     service.toggle();

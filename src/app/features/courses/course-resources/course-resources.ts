@@ -16,7 +16,7 @@ import { ResourcePreviewDialog } from '../../../shared/resource-preview-dialog/r
  * cours, indépendante des blocs. Upload en trois temps orchestré par
  * `ResourceService` (presign → PUT direct S3 → confirm, avec progression),
  * renommage inline (pas de modale — testable en jsdom), aperçu en modale
- * (bouton « Voir », images et PDF `disponible` — `ResourcePreviewDialog`),
+ * (bouton « Voir », images et PDF `available` — `ResourcePreviewDialog`),
  * téléchargement par URL présignée et suppression en deux temps désarmée au
  * blur (motif des blocs). Après une suppression, l'output `deleted` prévient
  * la page : les blocs `document` pointeurs ont été supprimés PAR LE SERVEUR
@@ -67,8 +67,8 @@ export class CourseResources implements OnInit {
     this.#resources.loadList(this.courseId());
   }
 
-  protected formatSize(taille: number): string {
-    return formatBytes(taille);
+  protected formatSize(size: number): string {
+    return formatBytes(size);
   }
 
   /** Clé i18n du badge de type (badge « PDF » dédié parmi les documents). */
@@ -76,9 +76,9 @@ export class CourseResources implements OnInit {
     return resourceTypeLabelKey(resource);
   }
 
-  /** Prévisualisable en modale : images et PDF, une fois `disponible`. */
+  /** Prévisualisable en modale : images et PDF, une fois `available`. */
   protected canPreview(resource: CourseResource): boolean {
-    return resource.statut === 'disponible' && (resource.type === 'image' || isPdfResource(resource));
+    return resource.status === 'available' && (resource.type === 'image' || isPdfResource(resource));
   }
 
   protected preview(resource: CourseResource): void {
@@ -111,7 +111,7 @@ export class CourseResources implements OnInit {
 
   protected startRename(resource: CourseResource): void {
     this.renamingId.set(resource.id);
-    this.renameControl.setValue(resource.nom_original);
+    this.renameControl.setValue(resource.original_name);
     this.mutationError.set(false);
   }
 
@@ -120,13 +120,13 @@ export class CourseResources implements OnInit {
   }
 
   protected async saveRename(resource: CourseResource): Promise<void> {
-    const nom = this.renameControl.value.trim();
-    if (!nom || this.mutating()) {
+    const name = this.renameControl.value.trim();
+    if (!name || this.mutating()) {
       return;
     }
     this.#startMutation();
     try {
-      await this.#resources.rename(this.courseId(), resource.id, nom);
+      await this.#resources.rename(this.courseId(), resource.id, name);
       this.renamingId.set(null);
     } catch {
       this.mutationError.set(true);

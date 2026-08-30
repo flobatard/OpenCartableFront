@@ -10,7 +10,7 @@ import { CourseCreatePayload } from './course.model';
 
 export function buildCourseForm() {
   return new FormGroup({
-    titre: new FormControl('', {
+    title: new FormControl('', {
       nonNullable: true,
       validators: [Validators.required, Validators.maxLength(300)],
     }),
@@ -30,7 +30,7 @@ export function payloadFromCourseForm(form: CourseForm): CourseCreatePayload {
   const v = form.getRawValue();
   const description = v.description.trim();
   return {
-    titre: v.titre.trim(),
+    title: v.title.trim(),
     description: description || null,
     subject_ids: v.subjectIds,
     education_level_ids: v.educationLevelIds,
@@ -39,5 +39,5 @@ export function payloadFromCourseForm(form: CourseForm): CourseCreatePayload {
 
 /** Complétude minimale (même règle que le back) : un titre non blanc. */
 export function isCourseFormComplete(v: CourseForm['value']): boolean {
-  return !!v.titre?.trim();
+  return !!v.title?.trim();
 }

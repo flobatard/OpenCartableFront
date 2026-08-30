@@ -62,7 +62,7 @@ describe('CourseBlocks', () => {
   };
   const modulesMock = {
     list: signal<ModuleSummary[]>([
-      { id: 'module-1', titre: 'Quiz interactif', created_at: '2026-07-01', updated_at: '2026-07-01' },
+      { id: 'module-1', title: 'Quiz interactif', created_at: '2026-07-01', updated_at: '2026-07-01' },
     ]),
     listLoading: signal(false),
     listError: signal(false),
@@ -137,7 +137,7 @@ describe('CourseBlocks', () => {
     coursesMock.deleteCourse.mockResolvedValue(undefined);
   });
 
-  it('charge le cours du paramètre de route et l’affiche avec ses badges', async () => {
+  it('loads the course from the route param and shows it with its badges', async () => {
     const fixture = await createComponent();
 
     expect(coursesMock.loadDetail).toHaveBeenCalledWith('course-1');
@@ -150,7 +150,7 @@ describe('CourseBlocks', () => {
     expect(badges).toEqual(['Mathématiques', '6e']);
   });
 
-  it('rend les blocs dans l’ordre avec leur type, titre et description', async () => {
+  it('renders the blocks in order with their type, title and description', async () => {
     const fixture = await createComponent();
     const types = rows(fixture).map((r) =>
       r.querySelector('.course-blocks__type')?.textContent?.trim(),
@@ -168,7 +168,7 @@ describe('CourseBlocks', () => {
     expect(descs).toEqual(['Définitions et premiers exemples.', null, null]);
   });
 
-  it('propose « Modifier » sur tous les blocs (tous types éditables)', async () => {
+  it('offers “Modifier” on every block (all types editable)', async () => {
     const fixture = await createComponent();
     const [texteRow, documentRow] = rows(fixture);
 
@@ -180,7 +180,7 @@ describe('CourseBlocks', () => {
     ).toBe('/fr/courses/course-1/blocks/block-2');
   });
 
-  it('désactive monter en tête de liste et descendre en queue', async () => {
+  it('disables move-up at the head of the list and move-down at the tail', async () => {
     const fixture = await createComponent();
     const firstRow = rows(fixture)[0];
     const lastRow = rows(fixture).at(-1)!;
@@ -197,7 +197,7 @@ describe('CourseBlocks', () => {
     expect(downLast.disabled).toBe(true);
   });
 
-  it('descendre un bloc envoie l’ordre complet réécrit', async () => {
+  it('moving a block down sends the full rewritten order', async () => {
     const fixture = await createComponent();
     const [, down] = Array.from(
       rows(fixture)[0].querySelectorAll<HTMLButtonElement>('.course-blocks__move'),
@@ -212,7 +212,7 @@ describe('CourseBlocks', () => {
     ]);
   });
 
-  it('le glisser-déposer réordonne via previousIndex/currentIndex', async () => {
+  it('drag-and-drop reorders via previousIndex/currentIndex', async () => {
     const fixture = await createComponent();
     // jsdom ne peut pas simuler un vrai drag pointeur CDK : on appelle le handler
     // du drop avec un événement factice (previousIndex/currentIndex seulement).
@@ -228,7 +228,7 @@ describe('CourseBlocks', () => {
     ]);
   });
 
-  it('la poignée réordonne au clavier (Fin envoie le bloc en dernier)', async () => {
+  it('the handle reorders via keyboard (End sends the block last)', async () => {
     const fixture = await createComponent();
     const grip = rows(fixture)[0].querySelector<HTMLElement>('.drag-handle')!;
     grip.dispatchEvent(new KeyboardEvent('keydown', { key: 'End' }));
@@ -241,7 +241,7 @@ describe('CourseBlocks', () => {
     ]);
   });
 
-  it('la poignée ne réordonne pas hors bornes (première rangée vers le haut)', async () => {
+  it('the handle does not reorder out of bounds (first row moved up)', async () => {
     const fixture = await createComponent();
     const grip = rows(fixture)[0].querySelector<HTMLElement>('.drag-handle')!;
     grip.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp' }));
@@ -250,14 +250,14 @@ describe('CourseBlocks', () => {
     expect(coursesMock.reorderBlocks).not.toHaveBeenCalled();
   });
 
-  it('rend une poignée de glisser-déposer étiquetée par rangée', async () => {
+  it('renders a labelled drag-and-drop handle per row', async () => {
     const fixture = await createComponent();
     const grips = Array.from(el(fixture).querySelectorAll('.drag-handle'));
     expect(grips.length).toBe(3);
     expect(grips[0].getAttribute('aria-label')).toBe('Réordonner le bloc 1');
   });
 
-  it('la suppression demande une confirmation au premier clic', async () => {
+  it('deletion asks for confirmation on the first click', async () => {
     const fixture = await createComponent();
     const button = deleteButton(rows(fixture)[0]);
 
@@ -273,7 +273,7 @@ describe('CourseBlocks', () => {
     expect(coursesMock.deleteBlock).toHaveBeenCalledWith('course-1', 'block-1');
   });
 
-  it('quitter le bouton armé annule la suppression', async () => {
+  it('leaving the armed button cancels the deletion', async () => {
     const fixture = await createComponent();
     const button = deleteButton(rows(fixture)[0]);
     button.click();
@@ -286,7 +286,7 @@ describe('CourseBlocks', () => {
     expect(coursesMock.deleteBlock).not.toHaveBeenCalled();
   });
 
-  it('supprimer le cours demande confirmation puis supprime et revient à la liste', async () => {
+  it('deleting the course asks for confirmation then deletes and returns to the list', async () => {
     const fixture = await createComponent();
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     const button = () =>
@@ -306,7 +306,7 @@ describe('CourseBlocks', () => {
     expect(navigate).toHaveBeenCalledWith(['/', 'fr', 'courses']);
   });
 
-  it('quitter le bouton armé annule la suppression du cours', async () => {
+  it('leaving the armed button cancels the course deletion', async () => {
     const fixture = await createComponent();
     const button = el(fixture).querySelector<HTMLButtonElement>('.course-blocks__delete-course')!;
     button.click();
@@ -321,7 +321,7 @@ describe('CourseBlocks', () => {
     expect(coursesMock.deleteCourse).not.toHaveBeenCalled();
   });
 
-  it('propose les quatre types de bloc, tous actifs, et ouvre la modale', async () => {
+  it('offers the four block types, all enabled, and opens the dialog', async () => {
     const fixture = await createComponent();
     const addButtons = Array.from(
       el(fixture).querySelectorAll<HTMLButtonElement>('.course-blocks__add-buttons .btn'),
@@ -343,7 +343,7 @@ describe('CourseBlocks', () => {
     expect(coursesMock.addBlock).not.toHaveBeenCalled();
   });
 
-  it('valider la modale crée le bloc avec son méta puis redirige vers l’éditeur', async () => {
+  it('confirming the dialog creates the block with its meta then redirects to the editor', async () => {
     const fixture = await createComponent();
     coursesMock.addBlock.mockResolvedValue({ ...COURSE_DETAIL_FIXTURE.blocks[0], id: 'block-9' });
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
@@ -356,22 +356,22 @@ describe('CourseBlocks', () => {
     fixture.detectChanges();
 
     // Saisit un titre puis valide.
-    const titre = el(fixture).querySelector<HTMLInputElement>(
-      '.block-dialog [formControlName="titre"]',
+    const title = el(fixture).querySelector<HTMLInputElement>(
+      '.block-dialog [formControlName="title"]',
     )!;
-    titre.value = 'Le schéma';
-    titre.dispatchEvent(new Event('input'));
+    title.value = 'Le schéma';
+    title.dispatchEvent(new Event('input'));
     el(fixture).querySelector<HTMLButtonElement>('.block-dialog button[type="submit"]')!.click();
     await fixture.whenStable();
 
     expect(coursesMock.addBlock).toHaveBeenCalledWith('course-1', 'document', {
-      titre: 'Le schéma',
+      title: 'Le schéma',
       description: null,
     });
     expect(navigate).toHaveBeenCalledWith(['/', 'fr', 'courses', 'course-1', 'blocks', 'block-9']);
   });
 
-  it('affiche l’onglet Blocs par défaut et bascule vers Ressources', async () => {
+  it('shows the Blocks tab by default and switches to Resources', async () => {
     const fixture = await createComponent();
     const tabs = Array.from(el(fixture).querySelectorAll<HTMLButtonElement>('[role="tab"]'));
     expect(tabs.map((t) => t.textContent?.trim())).toEqual([
@@ -395,7 +395,7 @@ describe('CourseBlocks', () => {
     expect(el(fixture).querySelector('.course-blocks__list')).toBeNull();
   });
 
-  it('?tab=resources ouvre directement l’onglet Ressources (deep-link)', async () => {
+  it('?tab=resources opens the Resources tab directly (deep-link)', async () => {
     const fixture = await createComponent('resources');
     expect(el(fixture).querySelector('app-course-resources')).toBeTruthy();
     expect(
@@ -405,7 +405,7 @@ describe('CourseBlocks', () => {
     ).toBe('true');
   });
 
-  it('bascule vers Aperçu : monte app-course-preview et sérialise ?tab=preview', async () => {
+  it('switching to Preview: mounts app-course-preview and serializes ?tab=preview', async () => {
     const fixture = await createComponent();
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     const tabs = Array.from(el(fixture).querySelectorAll<HTMLButtonElement>('[role="tab"]'));
@@ -423,14 +423,14 @@ describe('CourseBlocks', () => {
     });
   });
 
-  it('?tab=preview ouvre directement l’onglet Aperçu (deep-link)', async () => {
+  it('?tab=preview opens the Preview tab directly (deep-link)', async () => {
     const fixture = await createComponent('preview');
     expect(el(fixture).querySelector('app-course-preview')).toBeTruthy();
     const tabs = Array.from(el(fixture).querySelectorAll<HTMLButtonElement>('[role="tab"]'));
     expect(tabs[3].getAttribute('aria-selected')).toBe('true');
   });
 
-  it('?tab=modules ouvre directement l’onglet Modules (deep-link)', async () => {
+  it('?tab=modules opens the Modules tab directly (deep-link)', async () => {
     const fixture = await createComponent('modules');
     expect(el(fixture).querySelector('app-course-modules')).toBeTruthy();
     expect(modulesMock.loadList).toHaveBeenCalledWith('course-1');
@@ -438,7 +438,7 @@ describe('CourseBlocks', () => {
     expect(tabs[2].getAttribute('aria-selected')).toBe('true');
   });
 
-  it('les flèches cyclent entre les cinq onglets (APG tabs)', async () => {
+  it('arrow keys cycle through the five tabs (APG tabs)', async () => {
     const fixture = await createComponent();
     const tablist = el(fixture).querySelector('[role="tablist"]')!;
     const tabs = () => Array.from(el(fixture).querySelectorAll<HTMLButtonElement>('[role="tab"]'));
@@ -465,7 +465,7 @@ describe('CourseBlocks', () => {
     expect(tabs()[0].getAttribute('aria-selected')).toBe('true');
   });
 
-  it('une suppression de module recharge le détail du cours (blocs module supprimés en cascade)', async () => {
+  it('a module deletion reloads the course detail (module blocks cascade-deleted)', async () => {
     const fixture = await createComponent('modules');
     coursesMock.loadDetail.mockClear();
 
@@ -479,7 +479,7 @@ describe('CourseBlocks', () => {
     expect(coursesMock.loadDetail).toHaveBeenCalledWith('course-1');
   });
 
-  it('une suppression de ressource recharge le détail du cours (blocs document supprimés en cascade)', async () => {
+  it('a resource deletion reloads the course detail (document blocks cascade-deleted)', async () => {
     const fixture = await createComponent('resources');
     coursesMock.loadDetail.mockClear();
 
@@ -495,7 +495,7 @@ describe('CourseBlocks', () => {
     expect(coursesMock.loadDetail).toHaveBeenCalledWith('course-1');
   });
 
-  it('sans bloc, invite à ajouter le premier', async () => {
+  it('without blocks, invites to add the first one', async () => {
     detail.set({ ...COURSE_DETAIL_FIXTURE, blocks: [] });
     const fixture = await createComponent();
     expect(el(fixture).querySelector('.course-blocks__empty')?.textContent).toContain(
@@ -503,7 +503,7 @@ describe('CourseBlocks', () => {
     );
   });
 
-  it('affiche l’erreur de chargement et relance via Réessayer', async () => {
+  it('shows the load error and retries via the retry button', async () => {
     detail.set(null);
     detailError.set(true);
     const fixture = await createComponent();

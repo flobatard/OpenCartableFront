@@ -3,7 +3,7 @@
   "intro": "A few questions to build your profile — it only takes two minutes.",
   "steps": {
     "roles": "Your roles",
-    "systeme": "School system",
+    "system": "School system",
     "levelsTaught": "Levels taught",
     "subjectsTaught": "Subjects taught",
     "levelsLearned": "Levels studied",
@@ -12,12 +12,12 @@
   "roles": {
     "legend": "What brings you here?",
     "hint": "You can tick both answers.",
-    "prof": "I teach",
-    "profHint": "I compose courses and share them with my students.",
-    "eleve": "I learn",
-    "eleveHint": "I follow courses and browse resources."
+    "teacher": "I teach",
+    "teacherHint": "I compose courses and share them with my students.",
+    "student": "I learn",
+    "studentHint": "I follow courses and browse resources."
   },
-  "systeme": {
+  "system": {
     "legend": "In which school system?",
     "loading": "Loading school systems…",
     "error": "Could not load school systems. Check your connection."
@@ -43,7 +43,7 @@
   "loadError": "Could not load your profile. Check your connection.",
   "submitError": "Saving did not complete. Try again.",
   "retry": "Retry",
-  "nomPublic": {
+  "publicName": {
     "label": "Public name (optional)",
     "placeholder": "e.g. Ms. Smith",
     "hint": "Shown to students on your public course catalogue. Leave empty to stay anonymous."

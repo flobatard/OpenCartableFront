@@ -34,7 +34,7 @@ describe('TikzView', () => {
     });
   });
 
-  it('insère le script text/tikz (source enveloppée) et reste en chargement', async () => {
+  it('inserts the text/tikz script (wrapped source) and stays loading', async () => {
     const fixture = createView('\\draw (0,0) -- (1,1);');
     await flush(fixture);
 
@@ -46,7 +46,7 @@ describe('TikzView', () => {
     expect(fixture.nativeElement.querySelector('.tikz-view__error')).toBeNull();
   });
 
-  it('affiche le SVG re-sanitisé à la réception de tikzjax-load-finished', async () => {
+  it('shows the re-sanitized SVG on tikzjax-load-finished', async () => {
     const fixture = createView('\\draw (0,0) -- (1,1);');
     await flush(fixture);
 
@@ -63,7 +63,7 @@ describe('TikzView', () => {
     expect(container.querySelector('[onclick]')).toBeNull();
   });
 
-  it("signale un code TeX invalide quand TikZJax pose son image d'erreur", async () => {
+  it("flags invalid TeX code when TikZJax drops its error image", async () => {
     const fixture = createView('\\draw oups');
     await flush(fixture);
 
@@ -78,7 +78,7 @@ describe('TikzView', () => {
     expect(fixture.nativeElement.querySelector('.tikz-view__loading')).toBeNull();
   });
 
-  it("affiche l'erreur de chargement quand TikZJax ne peut pas être chargé", async () => {
+  it("shows the load error when TikZJax cannot be loaded", async () => {
     load.mockRejectedValueOnce(new Error('réseau'));
     const fixture = createView('\\draw (0,0) -- (1,1);');
     await flush(fixture);

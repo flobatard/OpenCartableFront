@@ -48,9 +48,9 @@ export function resourceKind(type: ResourceType): ResourceRefKind {
  * ligne du nom sont neutralisés pour ne pas casser la syntaxe.
  */
 export function buildResourceMarkdown(
-  resource: Pick<CourseResource, 'id' | 'nom_original' | 'type'>,
+  resource: Pick<CourseResource, 'id' | 'original_name' | 'type'>,
 ): string {
-  const label = escapeLinkText(resource.nom_original);
+  const label = escapeLinkText(resource.original_name);
   const ref = resourceRefHref(resource.id);
   return resource.type === 'image' ? `![${label}](${ref})` : `[${label}](${ref})`;
 }

@@ -8,7 +8,7 @@ import {
 } from './module-document';
 
 describe('composeModuleDocument', () => {
-  it('compose CSS en tête, HTML dans le body, bridge AVANT le JS du prof', () => {
+  it('composes CSS in the head, HTML in the body, bridge BEFORE the teacher’s JS', () => {
     const doc = composeModuleDocument('<p>Salut</p>', 'p { color: red; }', "console.log('go')");
     const cssIdx = doc.indexOf('p { color: red; }');
     const htmlIdx = doc.indexOf('<p>Salut</p>');
@@ -22,7 +22,7 @@ describe('composeModuleDocument', () => {
     expect(bridgeIdx).toBeLessThan(jsIdx);
   });
 
-  it('embarque la CSP anti-réseau-sortant en tête du head', () => {
+  it('embeds the outbound-network-blocking CSP at the top of the head', () => {
     const doc = composeModuleDocument('<p>x</p>', 'p {}', 'let a = 1');
     expect(doc).toContain(`<meta http-equiv="Content-Security-Policy" content="${MODULE_CSP}">`);
     // Tous les canaux réseau silencieux sont coupés ; vivent le code inline
@@ -37,14 +37,14 @@ describe('composeModuleDocument', () => {
     expect(doc.indexOf('Content-Security-Policy')).toBeLessThan(doc.indexOf('<style>'));
   });
 
-  it('expose l’API ocModule.emit dans le bridge', () => {
+  it('exposes the ocModule.emit API in the bridge', () => {
     const doc = composeModuleDocument('', '', '');
     expect(doc).toContain('window.ocModule');
     expect(doc).toContain('oc-module:resize');
     expect(doc).toContain('oc-module:event');
   });
 
-  it('neutralise </script> dans le JS (la composition ne casse pas)', () => {
+  it('neutralizes </script> in the JS (composition does not break)', () => {
     const doc = composeModuleDocument('', '', "const s = '</script><img src=x onerror=alert(1)>';");
     // Le </script> littéral du code du prof ne ferme pas la balise composée :
     // il n'apparaît plus que sous forme échappée <\/script>.
@@ -52,7 +52,7 @@ describe('composeModuleDocument', () => {
     expect(doc).toContain('<\\/script>');
   });
 
-  it('neutralise </style> dans le CSS', () => {
+  it('neutralizes </style> in the CSS', () => {
     const doc = composeModuleDocument('', 'p::after { content: "</style>" }', '');
     expect(doc).not.toContain('content: "</style>"');
     expect(doc).toContain('<\\/style>');
@@ -60,7 +60,7 @@ describe('composeModuleDocument', () => {
 });
 
 describe('clampFrameHeight', () => {
-  it('borne la hauteur dans [min, max] et arrondit', () => {
+  it('clamps the height within [min, max] and rounds', () => {
     expect(clampFrameHeight(0)).toBe(MODULE_FRAME_MIN_HEIGHT);
     expect(clampFrameHeight(-50)).toBe(MODULE_FRAME_MIN_HEIGHT);
     expect(clampFrameHeight(500.6)).toBe(501);
@@ -69,13 +69,13 @@ describe('clampFrameHeight', () => {
 });
 
 describe('parseModuleMessage', () => {
-  it('accepte un resize bien formé', () => {
+  it('accepts a well-formed resize', () => {
     expect(
       parseModuleMessage({ source: 'oc-module', type: 'oc-module:resize', payload: { height: 320 } }),
     ).toEqual({ type: 'resize', height: 320 });
   });
 
-  it('accepte un événement applicatif nommé', () => {
+  it('accepts a named application event', () => {
     expect(
       parseModuleMessage({
         source: 'oc-module',
@@ -85,7 +85,7 @@ describe('parseModuleMessage', () => {
     ).toEqual({ type: 'event', name: 'score', data: 42 });
   });
 
-  it('rejette tout message étranger ou malformé', () => {
+  it('rejects any foreign or malformed message', () => {
     expect(parseModuleMessage(null)).toBeNull();
     expect(parseModuleMessage('oc-module:resize')).toBeNull();
     expect(parseModuleMessage({ type: 'oc-module:resize', payload: { height: 10 } })).toBeNull();

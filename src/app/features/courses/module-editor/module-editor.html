@@ -18,7 +18,7 @@
     </div>
   } @else {
     <header class="module-editor__header">
-      <h1 class="module-editor__title">{{ titre() }}</h1>
+      <h1 class="module-editor__title">{{ title() }}</h1>
       <div class="module-editor__header-end">
         <p class="module-editor__save" role="status">
           @switch (saveState()) {
@@ -132,7 +132,7 @@
               [html]="previewHtml()"
               [css]="previewCss()"
               [js]="previewJs()"
-              [title]="titre()"
+              [title]="title()"
             />
           }
         </div>

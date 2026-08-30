@@ -39,7 +39,7 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client,
   },
   {
-    path: ':lang/p/:profId',
+    path: ':lang/p/:teacherId',
     renderMode: RenderMode.Client,
   },
   {

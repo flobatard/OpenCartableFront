@@ -30,7 +30,7 @@ import {
   moveQuestionTo,
   patchExerciseFormFromContent,
   payloadFromExerciseForm,
-  questionEnoncePreview,
+  questionStatementPreview,
   QUESTIONS_MAX,
   removeQuestion,
 } from '../../../core/courses/exercise-form';
@@ -41,10 +41,10 @@ import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
     Compteur de module, jamais Date/Random. */
 let sequence = 0;
 
-type ExerciseTab = 'sujet' | 'questions' | 'apercu';
+type ExerciseTab = 'statement' | 'questions' | 'preview';
 
 /** Ordre des onglets pour la navigation clavier ←/→ (APG tabs). */
-const TAB_ORDER: readonly ExerciseTab[] = ['sujet', 'questions', 'apercu'];
+const TAB_ORDER: readonly ExerciseTab[] = ['statement', 'questions', 'preview'];
 
 /**
  * Éditeur du contenu d'un bloc exercice, en trois onglets (tablist APG, motif
@@ -101,10 +101,10 @@ export class ExerciseEditor {
   /** Préfixe d'ids ARIA propre à l'instance. */
   protected readonly uid = `exercise-editor-${sequence++}`;
 
-  protected readonly activeTab = signal<ExerciseTab>('sujet');
-  protected readonly sujetTabRef = viewChild<ElementRef<HTMLButtonElement>>('sujetTab');
+  protected readonly activeTab = signal<ExerciseTab>('statement');
+  protected readonly statementTabRef = viewChild<ElementRef<HTMLButtonElement>>('statementTab');
   protected readonly questionsTabRef = viewChild<ElementRef<HTMLButtonElement>>('questionsTab');
-  protected readonly apercuTabRef = viewChild<ElementRef<HTMLButtonElement>>('apercuTab');
+  protected readonly previewTabRef = viewChild<ElementRef<HTMLButtonElement>>('previewTab');
 
   /** Markdown concaténé (sujet + énoncés) alimentant l'aperçu complet ; dérivé
       du formulaire (frappe en cours), pas du `content` initial du bloc. Rendu
@@ -164,11 +164,11 @@ export class ExerciseEditor {
     const next = TAB_ORDER[(current + delta + TAB_ORDER.length) % TAB_ORDER.length];
     this.activeTab.set(next);
     const ref =
-      next === 'sujet'
-        ? this.sujetTabRef()
+      next === 'statement'
+        ? this.statementTabRef()
         : next === 'questions'
           ? this.questionsTabRef()
-          : this.apercuTabRef();
+          : this.previewTabRef();
     ref?.nativeElement.focus();
   }
 
@@ -180,7 +180,7 @@ export class ExerciseEditor {
   /** Aperçu de l'énoncé affiché dans l'en-tête d'une question repliée. Lu au
       rendu (déclenché par `openGroup`/`questionGroups`) : à jour au repli. */
   protected preview(group: ExerciseQuestionGroup): string {
-    return questionEnoncePreview(group.controls.enonce.value);
+    return questionStatementPreview(group.controls.statement.value);
   }
 
   protected add(): void {

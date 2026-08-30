@@ -14,7 +14,7 @@ const MODULE_BLOCK: CourseBlock = {
   id: 'block-module',
   position: 3,
   type: 'module',
-  titre: 'Module interactif',
+  title: 'Module interactif',
   description: null,
   content: {},
   resource_id: null,
@@ -41,7 +41,7 @@ describe('CoursePreview', () => {
     loadList: vi.fn(),
     getModule: vi.fn().mockResolvedValue({
       id: 'module-1',
-      titre: 'Quiz interactif',
+      title: 'Quiz interactif',
       html: '<p>Salut</p>',
       css: '',
       js: '',
@@ -78,12 +78,12 @@ describe('CoursePreview', () => {
     resourcesMock.loadList.mockClear();
   });
 
-  it('charge la bibliothèque de ressources au montage', async () => {
+  it('loads the resource library on mount', async () => {
     await createComponent();
     expect(resourcesMock.loadList).toHaveBeenCalledWith('course-1');
   });
 
-  it('rend tous les blocs dans l’ordre, module inclus (app-module-embed)', async () => {
+  it('renders all blocks in order, module included (app-module-embed)', async () => {
     const fixture = await createComponent();
     const rendered = blocks(fixture);
     // texte + document + exercice + module = 4.
@@ -106,12 +106,12 @@ describe('CoursePreview', () => {
     );
   });
 
-  it('masque entièrement un bloc module encore vide (vue élève)', async () => {
+  it('fully hides a still-empty module block (student view)', async () => {
     detail.set({
       ...DETAIL_WITH_MODULE,
       blocks: [
         ...DETAIL_WITH_MODULE.blocks,
-        { ...MODULE_BLOCK, id: 'block-module-vide', position: 4, titre: 'Brouillon', module_id: null },
+        { ...MODULE_BLOCK, id: 'block-module-vide', position: 4, title: 'Brouillon', module_id: null },
       ],
     });
     const fixture = await createComponent();
@@ -126,26 +126,26 @@ describe('CoursePreview', () => {
     expect(text).not.toContain('moduleEmbed.none');
   });
 
-  it('rend le markdown du bloc texte', async () => {
+  it('renders the text block’s markdown', async () => {
     const fixture = await createComponent();
     expect(el(fixture).querySelector('app-markdown-view')?.innerHTML).toContain(
       'Introduction aux suites',
     );
   });
 
-  it('rend le sujet et l’énoncé de l’exercice sans la réponse attendue', async () => {
+  it('renders the exercise statement and question statement without the expected answer', async () => {
     const fixture = await createComponent();
     const text = el(fixture).textContent ?? '';
     expect(text).toContain('Étudier la convergence des suites suivantes.');
     expect(text).not.toContain('Décroissante et minorée');
   });
 
-  it('délègue le bloc document à app-course-preview-document', async () => {
+  it('delegates the document block to app-course-preview-document', async () => {
     const fixture = await createComponent();
     expect(el(fixture).querySelector('app-course-preview-document')).toBeTruthy();
   });
 
-  it('affiche l’état vide quand le cours n’a aucun bloc', async () => {
+  it('shows the empty state when the course has no blocks', async () => {
     detail.set({ ...COURSE_DETAIL_FIXTURE, blocks: [] });
     const fixture = await createComponent();
     expect(el(fixture).querySelector('.course-preview__empty')).toBeTruthy();

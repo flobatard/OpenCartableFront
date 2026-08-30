@@ -114,8 +114,8 @@ export class ModuleService {
   }
 
   /** Renomme un module et remplace son entrée dans le signal. */
-  async renameModule(courseId: string, moduleId: string, titre: string): Promise<ModuleDetail> {
-    return this.updateModule(courseId, moduleId, { titre });
+  async renameModule(courseId: string, moduleId: string, title: string): Promise<ModuleDetail> {
+    return this.updateModule(courseId, moduleId, { title });
   }
 
   /**
@@ -155,7 +155,7 @@ export class ModuleService {
   #summaryOf(module: ModuleDetail): ModuleSummary {
     return {
       id: module.id,
-      titre: module.titre,
+      title: module.title,
       created_at: module.created_at,
       updated_at: module.updated_at,
     };

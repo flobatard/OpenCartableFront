@@ -15,16 +15,16 @@ function fakeDef(language: string): MarkdownExtensionDef {
 }
 
 describe('allDocPages', () => {
-  it('fusionne intégrés (katex, mermaid) puis extensions, dans l’ordre', () => {
+  it('merges built-ins (katex, mermaid) then extensions, in order', () => {
     const pages = allDocPages([fakeDef('geogebra'), fakeDef('jsxgraph')]);
     expect(pages.map((p) => p.slug)).toEqual(['katex', 'mermaid', 'geogebra', 'jsxgraph']);
   });
 
-  it('sans extension, ne liste que les intégrés', () => {
+  it('without extensions, lists only the built-ins', () => {
     expect(allDocPages([])).toEqual(BUILTIN_DOC_PAGES);
   });
 
-  it('relaie le loadComponent de la doc de l’extension', async () => {
+  it('relays the extension doc’s loadComponent', async () => {
     const pages = allDocPages([fakeDef('geogebra')]);
     await expect(pages[2].loadComponent()).resolves.toBe(FAKE_COMPONENT);
   });
@@ -33,12 +33,12 @@ describe('allDocPages', () => {
 describe('docPageBySlug', () => {
   const pages = allDocPages([fakeDef('geogebra')]);
 
-  it('trouve une page par slug', () => {
+  it('finds a page by slug', () => {
     expect(docPageBySlug(pages, 'mermaid')?.slug).toBe('mermaid');
     expect(docPageBySlug(pages, 'geogebra')?.slug).toBe('geogebra');
   });
 
-  it('rend undefined pour un slug inconnu', () => {
+  it('returns undefined for an unknown slug', () => {
     expect(docPageBySlug(pages, 'inconnu')).toBeUndefined();
   });
 });

@@ -48,7 +48,7 @@ let pickerUid = 0;
 export class SubjectPicker implements ControlValueAccessor {
   /** Restreint la sélection aux feuilles (les nœuds avec enfants restent affichés, grisés). */
   readonly leavesOnly = input(false);
-  /** Restreint la sélection aux nœuds de `profondeur <= maxDepth` (null = sans limite). */
+  /** Restreint la sélection aux nœuds de `depth <= maxDepth` (null = sans limite). */
   readonly maxDepth = input<number | null>(null);
 
   readonly #subjects = inject(SubjectService);
@@ -147,7 +147,7 @@ export class SubjectPicker implements ControlValueAccessor {
       return false;
     }
     const max = this.maxDepth();
-    if (max !== null && node.profondeur > max) {
+    if (max !== null && node.depth > max) {
       return false;
     }
     return true;

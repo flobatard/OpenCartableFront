@@ -49,7 +49,7 @@ export function parseModuleRef(href: string): string | null {
   return isModuleId(id) ? id : null;
 }
 
-/** Snippet markdown insérant un module : `[titre](oc-module:<id>)`. */
-export function buildModuleMarkdown(module: Pick<ModuleSummary, 'id' | 'titre'>): string {
-  return `[${escapeLinkText(module.titre)}](${moduleRefHref(module.id)})`;
+/** Snippet markdown insérant un module : `[title](oc-module:<id>)`. */
+export function buildModuleMarkdown(module: Pick<ModuleSummary, 'id' | 'title'>): string {
+  return `[${escapeLinkText(module.title)}](${moduleRefHref(module.id)})`;
 }

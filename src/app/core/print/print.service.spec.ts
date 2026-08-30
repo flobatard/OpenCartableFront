@@ -27,7 +27,7 @@ function labels(mediaNote = ''): PrintLabels {
 }
 
 describe('transformForPrint', () => {
-  it('remplace un audio par une note renvoyant vers l’URL stable', () => {
+  it('replaces an audio with a note pointing to the stable URL', () => {
     const root = fragment(
       '<audio data-oc-resource-id="r1" aria-label="Podcast" src="https://s3/presigned" controls></audio>',
     );
@@ -41,14 +41,14 @@ describe('transformForPrint', () => {
     );
   });
 
-  it('retire aussi les vidéos', () => {
+  it('removes videos too', () => {
     const root = fragment('<video data-oc-resource-id="r5" aria-label="Clip" controls></video>');
     transformForPrint(root, 'course-1', 'fr', labels('Média :'));
     expect(root.querySelector('video')).toBeNull();
     expect(root.querySelector('p.oc-print__media-note')).toBeTruthy();
   });
 
-  it('réécrit le href d’un lien ressource vers l’URL stable', () => {
+  it('rewrites a resource link href to the stable URL', () => {
     const root = fragment('<a data-oc-resource-id="r2" href="https://s3/presigned">Doc</a>');
     transformForPrint(root, 'course-1', 'fr', labels());
     expect(root.querySelector('a')?.getAttribute('href')).toBe(
@@ -56,7 +56,7 @@ describe('transformForPrint', () => {
     );
   });
 
-  it('carte document : nom cliquable souligné + URL en clair copiable', () => {
+  it('document card: clickable underlined name + copyable plain URL', () => {
     const root = fragment(
       '<div class="course-preview-document__card">' +
         '<span class="course-preview-document__name">Resume.pdf</span>' +
@@ -76,7 +76,7 @@ describe('transformForPrint', () => {
     expect(root.querySelector('.oc-print__doc-url')?.textContent).toBe(url);
   });
 
-  it('bouton document sans nom : repli sur un lien copiable portant l’URL', () => {
+  it('document button without a name: falls back to a copyable link carrying the URL', () => {
     const root = fragment('<button data-oc-resource-id="r3">Télécharger</button>');
     transformForPrint(root, 'course-1', 'fr', labels());
     expect(root.querySelector('button')).toBeNull();
@@ -85,13 +85,13 @@ describe('transformForPrint', () => {
     );
   });
 
-  it('conserve les images (URL présignée valide au moment de l’impression)', () => {
+  it('keeps images (presigned URL still valid at print time)', () => {
     const root = fragment('<img data-oc-resource-id="r4" src="https://s3/presigned" alt="x">');
     transformForPrint(root, 'course-1', 'fr', labels());
     expect(root.querySelector('img')?.getAttribute('src')).toBe('https://s3/presigned');
   });
 
-  it('remplace l’iframe d’un PDF embarqué par une note renvoyant vers l’URL stable', () => {
+  it('replaces the iframe of an embedded PDF with a note pointing to the stable URL', () => {
     const root = fragment(
       '<iframe class="course-preview-document__pdf" data-oc-resource-id="r6" title="Notes.pdf" src="https://s3/presigned"></iframe>',
     );
@@ -105,7 +105,7 @@ describe('transformForPrint', () => {
     );
   });
 
-  it('iframe PDF sans cours (courseId null) : note sans lien', () => {
+  it('PDF iframe without a course (null courseId): note without a link', () => {
     const root = fragment('<iframe data-oc-resource-id="r6" title="Notes.pdf"></iframe>');
     transformForPrint(root, null, 'fr', labels('Média en ligne :'));
     expect(root.querySelector('iframe')).toBeNull();
@@ -113,7 +113,7 @@ describe('transformForPrint', () => {
     expect(root.querySelector('p.oc-print__media-note a')).toBeNull();
   });
 
-  it('remplace une extension non imprimable par la note « contenu interactif »', () => {
+  it('replaces a non-printable extension with the interactive-content note', () => {
     const root = fragment(
       '<div class="course-extension" data-oc-extension="geogebra" data-oc-printable="false">' +
         '<iframe src="https://www.geogebra.org/material/iframe/id/abc"></iframe>' +
@@ -127,7 +127,7 @@ describe('transformForPrint', () => {
     expect(note?.textContent).toBe('Contenu interactif : voir la version en ligne.');
   });
 
-  it('substitue aussi un placeholder d’extension non encore monté (source visible)', () => {
+  it('also substitutes a not-yet-mounted extension placeholder (visible source)', () => {
     const root = fragment(
       '<div class="course-extension" data-oc-extension="geogebra" data-oc-printable="false">id=abc</div>',
     );
@@ -135,7 +135,7 @@ describe('transformForPrint', () => {
     expect(root.querySelector('p.oc-print__extension-note')).not.toBeNull();
   });
 
-  it('remplace un embed de module par la note dédiée + lien vers le cours', () => {
+  it('replaces a module embed with the dedicated note + link to the course', () => {
     // Couvre les deux hôtes : span oc-module du markdown et hôte ModuleEmbed
     // d'un bloc module de l'aperçu — tous deux portent data-oc-module-id.
     const root = fragment(
@@ -158,7 +158,7 @@ describe('transformForPrint', () => {
     );
   });
 
-  it('module hors contexte cours : note textuelle sans lien', () => {
+  it('module outside a course context: textual note without a link', () => {
     const root = fragment('<span data-oc-module-id="m-1"></span>');
     transformForPrint(root, null, 'fr', labels());
     const note = root.querySelector('p.oc-print__extension-note');
@@ -166,7 +166,7 @@ describe('transformForPrint', () => {
     expect(note?.querySelector('a')).toBeNull();
   });
 
-  it('conserve telle quelle une extension imprimable (SVG cloné)', () => {
+  it('keeps a printable extension as-is (cloned SVG)', () => {
     const root = fragment(
       '<div class="course-extension" data-oc-extension="jsxgraph" data-oc-printable="true">' +
         '<svg><circle r="1"></circle></svg>' +
@@ -177,7 +177,7 @@ describe('transformForPrint', () => {
     expect(root.querySelector('.oc-print__extension-note')).toBeNull();
   });
 
-  it('sans courseId : média retiré (note sans lien), liens laissés tels quels', () => {
+  it('without courseId: media removed (note without link), links left untouched', () => {
     const root = fragment(
       '<audio data-oc-resource-id="r1" aria-label="Podcast" controls></audio>' +
         '<a data-oc-resource-id="r2" href="https://s3/presigned">Doc</a>',
@@ -192,7 +192,7 @@ describe('transformForPrint', () => {
 });
 
 describe('keepHeadingsWithContent', () => {
-  it('regroupe un titre avec les blocs qui le suivent (keep-with-next)', () => {
+  it('groups a heading with the blocks that follow it (keep-with-next)', () => {
     const root = fragment(
       '<div class="course-content">' +
         '<h3>Cas où |a| < 1</h3><p>On sait que</p><p>Formule</p>' +
@@ -208,7 +208,7 @@ describe('keepHeadingsWithContent', () => {
     expect(sections[0].querySelectorAll('p').length).toBe(2);
   });
 
-  it('borne le regroupement au cap (3 blocs suivants)', () => {
+  it('bounds the grouping to the cap (3 following blocks)', () => {
     const root = fragment(
       '<div class="course-content"><h3>T</h3><p>1</p><p>2</p><p>3</p><p>4</p><p>5</p></div>',
     );
@@ -219,7 +219,7 @@ describe('keepHeadingsWithContent', () => {
     expect(root.querySelectorAll('.course-content > p').length).toBe(2);
   });
 
-  it('n’enveloppe pas un titre sans contenu à sa suite', () => {
+  it('does not wrap a heading with no content after it', () => {
     const root = fragment('<div class="course-content"><h3>Seul</h3></div>');
     keepHeadingsWithContent(root);
     expect(root.querySelector('.oc-print__keep')).toBeNull();
@@ -227,7 +227,7 @@ describe('keepHeadingsWithContent', () => {
 });
 
 describe('PrintService', () => {
-  it('monte le contenu, imprime, puis nettoie le conteneur (navigateur)', async () => {
+  it('mounts the content, prints, then cleans up the container (browser)', async () => {
     TestBed.configureTestingModule({ imports: [provideTranslocoTesting()] });
     const service = TestBed.inject(PrintService);
 
@@ -249,7 +249,7 @@ describe('PrintService', () => {
     printSpy.mockRestore();
   });
 
-  it('ne fait rien au SSR (pas d’impression)', async () => {
+  it('does nothing during SSR (no printing)', async () => {
     TestBed.configureTestingModule({
       imports: [provideTranslocoTesting()],
       providers: [{ provide: PLATFORM_ID, useValue: 'server' }],

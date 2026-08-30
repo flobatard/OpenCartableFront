@@ -116,11 +116,11 @@
           autocomplete="off"
           [formControl]="form.controls.apiKey"
           [placeholder]="
-            (apiKeyDefinie() ? 'settings.ai.keyStoredPlaceholder' : 'settings.ai.keyPlaceholder')
+            (apiKeySet() ? 'settings.ai.keyStoredPlaceholder' : 'settings.ai.keyPlaceholder')
               | transloco
           "
         />
-        @if (apiKeyDefinie()) {
+        @if (apiKeySet()) {
           <span class="ai-settings__hint">{{ 'settings.ai.keyStoredHint' | transloco }}</span>
         } @else {
           <span class="ai-settings__hint">{{ 'settings.ai.keyHint' | transloco }}</span>

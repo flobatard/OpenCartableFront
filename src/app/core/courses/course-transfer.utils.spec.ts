@@ -1,23 +1,23 @@
 import { courseExportFilename, downloadBlob } from './course-transfer.utils';
 
 describe('courseExportFilename', () => {
-  it('slugifie le titre (accents aplatis, caractères sûrs, minuscules)', () => {
+  it('slugifies the title (accents flattened, safe characters, lowercase)', () => {
     expect(courseExportFilename('Éléments de Géométrie !')).toBe(
-      'cours-elements-de-geometrie.zip',
+      'course-elements-de-geometrie.zip',
     );
   });
 
-  it('préserve chiffres, points, tirets et underscores', () => {
-    expect(courseExportFilename('Chap. 2 — suites_v1')).toBe('cours-chap.-2-suites_v1.zip');
+  it('preserves digits, dots, dashes and underscores', () => {
+    expect(courseExportFilename('Chap. 2 — suites_v1')).toBe('course-chap.-2-suites_v1.zip');
   });
 
-  it('replie sur « export » un titre sans caractère exploitable', () => {
-    expect(courseExportFilename('« ??? »')).toBe('cours-export.zip');
+  it('falls back to "export" when no usable character remains', () => {
+    expect(courseExportFilename('« ??? »')).toBe('course-export.zip');
   });
 });
 
 describe('downloadBlob', () => {
-  it('crée un <a download>, clique et révoque l’URL objet', () => {
+  it('creates an <a download>, clicks it and revokes the object URL', () => {
     // jsdom n'implémente pas createObjectURL : stub explicite.
     const createObjectURL = vi.fn(() => 'blob:test-url');
     const revokeObjectURL = vi.fn();
@@ -27,7 +27,7 @@ describe('downloadBlob', () => {
       .mockImplementation(() => undefined);
 
     const blob = new Blob(['zip'], { type: 'application/zip' });
-    downloadBlob(blob, 'cours-fractions.zip');
+    downloadBlob(blob, 'course-fractions.zip');
 
     expect(createObjectURL).toHaveBeenCalledWith(blob);
     expect(click).toHaveBeenCalledOnce();

@@ -9,8 +9,8 @@ function block(over: Partial<CourseBlock> = {}): CourseBlock {
   return {
     id: 'block-1',
     position: 0,
-    type: 'texte',
-    titre: null,
+    type: 'text',
+    title: null,
     description: null,
     content: {},
     resource_id: null,
@@ -20,29 +20,29 @@ function block(over: Partial<CourseBlock> = {}): CourseBlock {
 }
 
 describe('block-meta-form', () => {
-  it('mappe le formulaire vers le méta en trimant titre et description', () => {
+  it('maps the form to the meta payload, trimming title and description', () => {
     const form = buildBlockMetaForm();
-    form.setValue({ titre: '  Mon titre  ', description: '  Ma description.  ' });
+    form.setValue({ title: '  Mon titre  ', description: '  Ma description.  ' });
 
     expect(payloadFromBlockMetaForm(form)).toEqual({
-      titre: 'Mon titre',
+      title: 'Mon titre',
       description: 'Ma description.',
     });
   });
 
-  it('un titre ou une description vide/blanc devient null', () => {
+  it('turns an empty or blank title or description into null', () => {
     const form = buildBlockMetaForm();
-    form.setValue({ titre: '   ', description: '' });
+    form.setValue({ title: '   ', description: '' });
 
-    expect(payloadFromBlockMetaForm(form)).toEqual({ titre: null, description: null });
+    expect(payloadFromBlockMetaForm(form)).toEqual({ title: null, description: null });
   });
 
-  it('patchBlockMetaForm pré-remplit depuis un bloc (null → chaîne vide)', () => {
+  it('patchBlockMetaForm prefills from a block (null becomes empty string)', () => {
     const form = buildBlockMetaForm();
 
-    patchBlockMetaForm(form, block({ titre: 'Titre A', description: null }));
-    expect(form.getRawValue()).toEqual({ titre: 'Titre A', description: '' });
+    patchBlockMetaForm(form, block({ title: 'Titre A', description: null }));
+    expect(form.getRawValue()).toEqual({ title: 'Titre A', description: '' });
     // Le méta reflète le bloc : description absente → null.
-    expect(payloadFromBlockMetaForm(form)).toEqual({ titre: 'Titre A', description: null });
+    expect(payloadFromBlockMetaForm(form)).toEqual({ title: 'Titre A', description: null });
   });
 });

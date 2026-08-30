@@ -134,9 +134,9 @@ export class BlockEditor implements OnInit, OnDestroy {
   protected readonly saveState = signal<SaveState>('idle');
 
   readonly #resources = inject(ResourceService);
-  /** Ressources `disponible` du cours, proposées au picker du bloc document. */
+  /** Ressources `available` du cours, proposées au picker du bloc document. */
   protected readonly availableResources = computed(() =>
-    this.#resources.list().filter((r) => r.statut === 'disponible'),
+    this.#resources.list().filter((r) => r.status === 'available'),
   );
   /** Échec du PATCH de ressource (canal distinct de l'autosave du contenu). */
   protected readonly resourceSaveError = signal(false);
@@ -158,7 +158,7 @@ export class BlockEditor implements OnInit, OnDestroy {
   readonly #metaValue = toSignal(this.metaForm.valueChanges, {
     initialValue: this.metaForm.getRawValue(),
   });
-  readonly #savedPayload = signal<BlockMetaPayload>({ titre: null, description: null });
+  readonly #savedPayload = signal<BlockMetaPayload>({ title: null, description: null });
   protected readonly metaSaveState = signal<MetaSaveState>('idle');
 
   /** Actif quand le formulaire méta diffère du dernier enregistré (et pas en vol). */
@@ -198,13 +198,13 @@ export class BlockEditor implements OnInit, OnDestroy {
       if (this.#initialized || block === null) {
         return;
       }
-      if (block.type === 'texte') {
+      if (block.type === 'text') {
         const markdown = block.content['markdown'];
         const initial = typeof markdown === 'string' ? markdown : '';
         this.#initialized = true;
         this.#lastSaved = JSON.stringify({ markdown: initial });
         this.content.setValue(initial, { emitEvent: false });
-      } else if (block.type === 'exercice') {
+      } else if (block.type === 'exercise') {
         this.#initialized = true;
         this.#lastSaved = JSON.stringify(payloadFromBlockContent(block.content));
       } else if (block.type === 'document') {
@@ -218,7 +218,7 @@ export class BlockEditor implements OnInit, OnDestroy {
     // résolution de l'aperçu des blocs texte/exercice (markdown-field).
     effect(() => {
       const type = this.block()?.type;
-      const needsResources = type === 'texte' || type === 'exercice' || type === 'document';
+      const needsResources = type === 'text' || type === 'exercise' || type === 'document';
       if (needsResources && !this.#resourcesRequested) {
         this.#resourcesRequested = true;
         this.#resources.loadList(this.courseId);
@@ -230,7 +230,7 @@ export class BlockEditor implements OnInit, OnDestroy {
     // (markdown-field) et résolution de leur aperçu.
     effect(() => {
       const type = this.block()?.type;
-      const needsModules = type === 'texte' || type === 'exercice' || type === 'module';
+      const needsModules = type === 'text' || type === 'exercise' || type === 'module';
       if (needsModules && !this.#modulesRequested) {
         this.#modulesRequested = true;
         this.#modules.loadList(this.courseId);
@@ -445,10 +445,10 @@ export class BlockEditor implements OnInit, OnDestroy {
   /** Payload de contenu courant selon le type du bloc (`null` = pas d'éditeur). */
   #currentPayload(): Record<string, unknown> | null {
     const block = this.block();
-    if (block?.type === 'texte') {
+    if (block?.type === 'text') {
       return { markdown: this.content.value };
     }
-    if (block?.type === 'exercice') {
+    if (block?.type === 'exercise') {
       const editor = this.exerciseEditor();
       return editor ? payloadFromExerciseForm(editor.form) : null;
     }
@@ -460,7 +460,7 @@ export class BlockEditor implements OnInit, OnDestroy {
   }
 
   async #save(): Promise<void> {
-    const isExercise = this.block()?.type === 'exercice';
+    const isExercise = this.block()?.type === 'exercise';
     const editor = this.exerciseEditor();
     const payload = this.#currentPayload();
     if (payload === null) {

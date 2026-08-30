@@ -12,9 +12,9 @@
   "childCount": "{{ count }} sous-matière(s)",
   "level": {
     "discipline": "Discipline",
-    "domaine": "Domaine",
-    "sousDomaine": "Sous-domaine",
-    "sujet": "Sujet"
+    "domain": "Domaine",
+    "subdomain": "Sous-domaine",
+    "topic": "Sujet"
   },
   "picker": {
     "placeholder": "Choisir une matière",
@@ -22,6 +22,6 @@
     "noResults": "Aucune matière trouvée."
   },
   "multiPicker": {
-    "remove": "Retirer {{ nom }}"
+    "remove": "Retirer {{ name }}"
   }
 }

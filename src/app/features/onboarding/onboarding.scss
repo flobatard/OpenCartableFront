@@ -175,7 +175,7 @@
 }
 
 /* Champ « nom public » (catalogue J2) — sous les cartes de rôle. */
-.onboarding__nom-public {
+.onboarding__public-name {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -183,7 +183,7 @@
   max-width: 420px;
 }
 
-.onboarding__nom-public input {
+.onboarding__public-name input {
   padding: 8px 12px;
   border: 1px solid var(--border-control);
   border-radius: var(--radius);

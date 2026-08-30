@@ -51,7 +51,7 @@ export class EducationLevelPicker implements ControlValueAccessor {
    * valeur d'un autre système reste préservée (contrat « ids inconnus ») —
    * c'est au parent de la vider quand le système change.
    */
-  readonly systeme = input<string | null>(null);
+  readonly system = input<string | null>(null);
 
   readonly #levels = inject(EducationLevelService);
   readonly #host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -69,8 +69,8 @@ export class EducationLevelPicker implements ControlValueAccessor {
 
   /** Racines visibles : tout l'arbre, ou celles du système demandé. */
   readonly #filteredRoots = computed(() => {
-    const systeme = this.systeme();
-    return systeme ? this.tree().filter((root) => root.systeme === systeme) : this.tree();
+    const system = this.system();
+    return system ? this.tree().filter((root) => root.system === system) : this.tree();
   });
 
   /** Lignes de l'arbre, toujours entièrement déplié (~22 nœuds par système). */

@@ -56,7 +56,7 @@
 
 /* Sujet : le champ markdown remplit le panneau (grand éditeur, hauteur héritée
    de la colonne du workspace — même confort que le bloc texte). */
-.exercise-editor__panel--sujet > app-markdown-field {
+.exercise-editor__panel--statement > app-markdown-field {
   flex: 1;
   min-height: 0;
 }
@@ -262,7 +262,7 @@
 
 /* Énoncé : hauteur fixe (le markdown-field se dimensionne en height:100%, il a
    besoin d'une hauteur résolue) — indépendante du nombre de questions. */
-.exercise-editor__field--enonce app-markdown-field {
+.exercise-editor__field--statement app-markdown-field {
   height: var(--exercise-question-editor-height);
   flex: 0 0 auto;
 }
@@ -281,7 +281,7 @@
 
 /* Réponse attendue : texte simple (décision produit), champ natif — bordure
    porteuse et placeholder slate-500, jamais slate-400 (DESIGN_SYSTEM §8). */
-.exercise-editor__reponse {
+.exercise-editor__answer {
   width: 100%;
   padding: 10px 12px;
   background: var(--bg-surface);
@@ -292,7 +292,7 @@
   resize: vertical;
 }
 
-.exercise-editor__reponse::placeholder {
+.exercise-editor__answer::placeholder {
   color: var(--text-secondary);
 }
 

@@ -12,7 +12,7 @@ import { Search } from './search';
 
 const COURSE = {
   id: 'c1',
-  titre: 'Théorème de Pythagore',
+  title: 'Théorème de Pythagore',
   description: null,
   subjects: ['Mathématiques'],
   education_levels: ['4e'],
@@ -23,7 +23,7 @@ const COURSE = {
 
 const TEACHER = {
   id: 'u1',
-  nom_public: 'Mme Ada',
+  public_name: 'Mme Ada',
   avatar_url: null,
   subjects: ['Info'],
   public_course_count: 2,
@@ -88,7 +88,7 @@ describe('Search', () => {
     return fixture;
   }
 
-  it('lance une recherche de cours au montage et charge les arbres publics', async () => {
+  it('runs a course search on mount and loads the public trees', async () => {
     await mount();
     expect(subjectsMock.load).toHaveBeenCalled();
     expect(levelsMock.load).toHaveBeenCalled();
@@ -101,7 +101,7 @@ describe('Search', () => {
     expect(searchMock.searchTeachers).not.toHaveBeenCalled();
   });
 
-  it('seed l’état depuis les query params (URL partageable)', async () => {
+  it('seeds the state from the query params (shareable URL)', async () => {
     await mount({ tab: 'teachers', q: 'ada', subject: 's1', page: '3' });
     expect(searchMock.searchTeachers).toHaveBeenCalledWith({
       q: 'ada',
@@ -111,7 +111,7 @@ describe('Search', () => {
     });
   });
 
-  it('affiche les cartes de résultats cours (carte publique partagée)', async () => {
+  it('shows course result cards (shared public card)', async () => {
     searchMock.coursesPage.set(page([COURSE]));
     const fixture = await mount();
     const el = fixture.nativeElement as HTMLElement;
@@ -119,7 +119,7 @@ describe('Search', () => {
     expect(el.textContent).toContain('Théorème de Pythagore');
   });
 
-  it('bascule d’onglet : recherche les profs et remet la page à 1', async () => {
+  it('tab switch: searches teachers and resets the page to 1', async () => {
     searchMock.teachersPage.set(page([TEACHER]));
     const fixture = await mount({ page: '2' });
     const el = fixture.nativeElement as HTMLElement;
@@ -138,7 +138,7 @@ describe('Search', () => {
     expect(el.querySelector('.search__teacher-head app-user-avatar svg')).not.toBeNull();
   });
 
-  it('un changement de facette relance la recherche page 1', async () => {
+  it('a facet change re-runs the search at page 1', async () => {
     const fixture = await mount({ q: 'x', page: '4' });
     const el = fixture.nativeElement as HTMLElement;
     const select = el.querySelectorAll<HTMLSelectElement>('.search__select')[0];
@@ -155,7 +155,7 @@ describe('Search', () => {
     });
   });
 
-  it('la frappe débouncée relance la recherche', async () => {
+  it('debounced typing re-runs the search', async () => {
     // Le montage se fait en vrais timers (whenStable) ; seuls la frappe et
     // le debounce rxjs (350 ms) passent en timers factices.
     const fixture = await mount();
@@ -175,7 +175,7 @@ describe('Search', () => {
     }
   });
 
-  it('pagination : état vide distinct, bornes et navigation', async () => {
+  it('pagination: distinct empty state, bounds and navigation', async () => {
     searchMock.coursesPage.set(page([COURSE], 45, SEARCH_PAGE_SIZE));
     const fixture = await mount({ page: '2' });
     const el = fixture.nativeElement as HTMLElement;
@@ -193,7 +193,7 @@ describe('Search', () => {
     });
   });
 
-  it('affiche l’état vide et l’état d’erreur avec réessai', async () => {
+  it('shows the empty state and the error state with retry', async () => {
     searchMock.coursesPage.set(page([]));
     const fixture = await mount();
     const el = fixture.nativeElement as HTMLElement;

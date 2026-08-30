@@ -6,18 +6,18 @@
     (keydown)="onTablistKeydown($event)"
   >
     <button
-      #sujetTab
+      #statementTab
       type="button"
       role="tab"
       class="tab"
-      [id]="uid + '-tab-sujet'"
-      [class.tab--active]="activeTab() === 'sujet'"
-      [attr.aria-selected]="activeTab() === 'sujet'"
-      [attr.aria-controls]="uid + '-panel-sujet'"
-      [tabindex]="activeTab() === 'sujet' ? 0 : -1"
-      (click)="selectTab('sujet')"
+      [id]="uid + '-tab-statement'"
+      [class.tab--active]="activeTab() === 'statement'"
+      [attr.aria-selected]="activeTab() === 'statement'"
+      [attr.aria-controls]="uid + '-panel-statement'"
+      [tabindex]="activeTab() === 'statement' ? 0 : -1"
+      (click)="selectTab('statement')"
     >
-      {{ 'courses.editor.exercise.sujetLabel' | transloco }}
+      {{ 'courses.editor.exercise.statementLabel' | transloco }}
     </button>
     <button
       #questionsTab
@@ -35,18 +35,18 @@
       <span class="exercise-editor__tab-count">{{ questionGroups().length }}</span>
     </button>
     <button
-      #apercuTab
+      #previewTab
       type="button"
       role="tab"
       class="tab"
-      [id]="uid + '-tab-apercu'"
-      [class.tab--active]="activeTab() === 'apercu'"
-      [attr.aria-selected]="activeTab() === 'apercu'"
-      [attr.aria-controls]="uid + '-panel-apercu'"
-      [tabindex]="activeTab() === 'apercu' ? 0 : -1"
-      (click)="selectTab('apercu')"
+      [id]="uid + '-tab-preview'"
+      [class.tab--active]="activeTab() === 'preview'"
+      [attr.aria-selected]="activeTab() === 'preview'"
+      [attr.aria-controls]="uid + '-panel-preview'"
+      [tabindex]="activeTab() === 'preview' ? 0 : -1"
+      (click)="selectTab('preview')"
     >
-      {{ 'courses.editor.exercise.apercuLabel' | transloco }}
+      {{ 'courses.editor.exercise.previewLabel' | transloco }}
     </button>
   </div>
 
@@ -54,13 +54,13 @@
        un @if le détruirait et rechargerait à chaque bascule d'onglet. -->
   <section
     role="tabpanel"
-    class="exercise-editor__panel exercise-editor__panel--sujet"
-    [id]="uid + '-panel-sujet'"
-    [attr.aria-labelledby]="uid + '-tab-sujet'"
-    [hidden]="activeTab() !== 'sujet'"
+    class="exercise-editor__panel exercise-editor__panel--statement"
+    [id]="uid + '-panel-statement'"
+    [attr.aria-labelledby]="uid + '-tab-statement'"
+    [hidden]="activeTab() !== 'statement'"
   >
-    <p class="exercise-editor__hint">{{ 'courses.editor.exercise.sujetHint' | transloco }}</p>
-    <app-markdown-field [formControl]="form.controls.enonce" [courseId]="courseId()" />
+    <p class="exercise-editor__hint">{{ 'courses.editor.exercise.statementHint' | transloco }}</p>
+    <app-markdown-field [formControl]="form.controls.statement" [courseId]="courseId()" />
   </section>
 
   <section
@@ -185,26 +185,26 @@
               [attr.aria-labelledby]="uid + '-q' + i + '-head'"
               [hidden]="openGroup() !== group"
             >
-              <div class="exercise-editor__field exercise-editor__field--enonce">
+              <div class="exercise-editor__field exercise-editor__field--statement">
                 <span class="exercise-editor__label">
-                  {{ 'courses.editor.exercise.enonceLabel' | transloco }}
+                  {{ 'courses.editor.exercise.questionStatementLabel' | transloco }}
                 </span>
-                <app-markdown-field [formControl]="group.controls.enonce" [courseId]="courseId()" />
+                <app-markdown-field [formControl]="group.controls.statement" [courseId]="courseId()" />
               </div>
 
               <label class="exercise-editor__field">
                 <span class="exercise-editor__label">
-                  {{ 'courses.editor.exercise.reponseLabel' | transloco }}
+                  {{ 'courses.editor.exercise.answerLabel' | transloco }}
                 </span>
                 <textarea
-                  class="exercise-editor__reponse"
+                  class="exercise-editor__answer"
                   rows="3"
                   maxlength="20000"
-                  [formControl]="group.controls.reponseAttendue"
-                  [placeholder]="'courses.editor.exercise.reponsePlaceholder' | transloco"
+                  [formControl]="group.controls.expectedAnswer"
+                  [placeholder]="'courses.editor.exercise.answerPlaceholder' | transloco"
                 ></textarea>
                 <span class="exercise-editor__hint">
-                  {{ 'courses.editor.exercise.reponseHint' | transloco }}
+                  {{ 'courses.editor.exercise.answerHint' | transloco }}
                 </span>
               </label>
             </div>
@@ -233,12 +233,12 @@
 
   <!-- Panneau aperçu : pas de Monaco dedans → @if (patron `markdown-field`),
        le rendu ne coûte que sur l'onglet actif. -->
-  @if (activeTab() === 'apercu') {
+  @if (activeTab() === 'preview') {
     <section
       role="tabpanel"
-      class="exercise-editor__panel exercise-editor__panel--apercu"
-      [id]="uid + '-panel-apercu'"
-      [attr.aria-labelledby]="uid + '-tab-apercu'"
+      class="exercise-editor__panel exercise-editor__panel--preview"
+      [id]="uid + '-panel-preview'"
+      [attr.aria-labelledby]="uid + '-tab-preview'"
     >
       @if (hasContent()) {
         <app-markdown-view
@@ -248,7 +248,7 @@
         />
       } @else {
         <p class="exercise-editor__empty">
-          {{ 'courses.editor.exercise.apercuEmpty' | transloco }}
+          {{ 'courses.editor.exercise.previewEmpty' | transloco }}
         </p>
       }
     </section>

@@ -7,10 +7,10 @@ import { CoursePreviewDocument } from './course-preview-document';
 const IMAGE: CourseResource = {
   id: 'resource-2',
   type: 'image',
-  nom_original: 'illustration.png',
-  taille: 1_800_000,
+  original_name: 'illustration.png',
+  size: 1_800_000,
   mime: 'image/png',
-  statut: 'disponible',
+  status: 'available',
   created_at: '2026-07-04T09:00:00Z',
   updated_at: '2026-07-04T09:01:00Z',
 };
@@ -18,10 +18,10 @@ const IMAGE: CourseResource = {
 const PDF: CourseResource = {
   id: 'resource-1',
   type: 'document',
-  nom_original: 'schema-suites.pdf',
-  taille: 245_000,
+  original_name: 'schema-suites.pdf',
+  size: 245_000,
   mime: 'application/pdf',
-  statut: 'disponible',
+  status: 'available',
   created_at: '2026-07-05T10:00:00Z',
   updated_at: '2026-07-05T10:05:00Z',
 };
@@ -30,10 +30,10 @@ const PDF: CourseResource = {
 const ZIP: CourseResource = {
   id: 'resource-9',
   type: 'document',
-  nom_original: 'archives.zip',
-  taille: 3_000_000,
+  original_name: 'archives.zip',
+  size: 3_000_000,
   mime: 'application/zip',
-  statut: 'disponible',
+  status: 'available',
   created_at: '2026-07-01T08:00:00Z',
   updated_at: '2026-07-01T08:00:00Z',
 };
@@ -44,8 +44,8 @@ describe('CoursePreviewDocument', () => {
 
   async function createComponent(
     resource: CourseResource | undefined,
-    legende: string | null = null,
-    affichage: 'inline' | 'telechargement' = 'inline',
+    caption: string | null = null,
+    display: 'inline' | 'download' = 'inline',
   ): Promise<ComponentFixture<CoursePreviewDocument>> {
     await TestBed.configureTestingModule({
       imports: [CoursePreviewDocument, provideTranslocoTesting()],
@@ -54,8 +54,8 @@ describe('CoursePreviewDocument', () => {
     const fixture = TestBed.createComponent(CoursePreviewDocument);
     fixture.componentRef.setInput('courseId', 'course-1');
     fixture.componentRef.setInput('resource', resource);
-    fixture.componentRef.setInput('legende', legende);
-    fixture.componentRef.setInput('affichage', affichage);
+    fixture.componentRef.setInput('caption', caption);
+    fixture.componentRef.setInput('display', display);
     await fixture.whenStable();
     fixture.detectChanges();
     return fixture;
@@ -67,7 +67,7 @@ describe('CoursePreviewDocument', () => {
 
   beforeEach(() => getDownloadUrl.mockClear());
 
-  it('affiche une image en ligne via l’URL présignée', async () => {
+  it('shows an image inline via the presigned URL', async () => {
     const fixture = await createComponent(IMAGE);
     // Forme d'appel historique : jamais de disposition pour les médias.
     expect(getDownloadUrl).toHaveBeenCalledWith('course-1', 'resource-2');
@@ -76,7 +76,7 @@ describe('CoursePreviewDocument', () => {
     expect(img!.getAttribute('src')).toBe('https://s3.example/presigned');
   });
 
-  it('embarque un PDF en iframe via l’URL présignée inline', async () => {
+  it('embeds a PDF in an iframe via the inline presigned URL', async () => {
     const fixture = await createComponent(PDF);
     expect(getDownloadUrl).toHaveBeenCalledWith('course-1', 'resource-1', 'inline');
     const iframe = el(fixture).querySelector<HTMLIFrameElement>(
@@ -91,14 +91,14 @@ describe('CoursePreviewDocument', () => {
     expect(el(fixture).querySelector('.course-preview-document__card')).toBeNull();
   });
 
-  it('garde la carte téléchargeable pour un PDF en mode téléchargement', async () => {
-    const fixture = await createComponent(PDF, null, 'telechargement');
+  it('keeps the downloadable card for a PDF in download mode', async () => {
+    const fixture = await createComponent(PDF, null, 'download');
     expect(getDownloadUrl).not.toHaveBeenCalled();
     expect(el(fixture).querySelector('iframe')).toBeNull();
     expect(el(fixture).querySelector('.course-preview-document__card')).toBeTruthy();
   });
 
-  it('la rangée d’actions du PDF ouvre un onglet (inline) et télécharge (attachment)', async () => {
+  it('the PDF action row opens a tab (inline) and downloads (attachment)', async () => {
     const fixture = await createComponent(PDF);
     const open = vi.spyOn(window, 'open').mockReturnValue(null);
     const [openInTab, download] = el(fixture).querySelectorAll<HTMLButtonElement>(
@@ -119,7 +119,7 @@ describe('CoursePreviewDocument', () => {
     open.mockRestore();
   });
 
-  it('retombe sur la carte avec message quand la présignature du PDF échoue', async () => {
+  it('falls back to the card with a message when the PDF presign fails', async () => {
     getDownloadUrl.mockRejectedValueOnce(new Error('presign failed'));
     const fixture = await createComponent(PDF);
     expect(el(fixture).querySelector('iframe')).toBeNull();
@@ -127,7 +127,7 @@ describe('CoursePreviewDocument', () => {
     expect(el(fixture).querySelector('[role="alert"]')).toBeTruthy();
   });
 
-  it('affiche une carte téléchargeable pour un document non-PDF', async () => {
+  it('shows a downloadable card for a non-PDF document', async () => {
     const fixture = await createComponent(ZIP);
     // Pas de présignature en avance pour un document sans aperçu.
     expect(getDownloadUrl).not.toHaveBeenCalled();
@@ -136,7 +136,7 @@ describe('CoursePreviewDocument', () => {
     expect(card!.textContent).toContain('archives.zip');
   });
 
-  it('le bouton de téléchargement ouvre l’URL présignée avec noopener', async () => {
+  it('the download button opens the presigned URL with noopener', async () => {
     const fixture = await createComponent(ZIP);
     const open = vi.spyOn(window, 'open').mockReturnValue(null);
 
@@ -148,14 +148,14 @@ describe('CoursePreviewDocument', () => {
     open.mockRestore();
   });
 
-  it('affiche la légende en figcaption quand présente', async () => {
+  it('shows the caption as a figcaption when present', async () => {
     const fixture = await createComponent(PDF, 'Schéma récapitulatif');
     expect(el(fixture).querySelector('.course-preview-document__caption')?.textContent).toContain(
       'Schéma récapitulatif',
     );
   });
 
-  it('affiche un message quand la ressource est introuvable', async () => {
+  it('shows a message when the resource is not found', async () => {
     const fixture = await createComponent(undefined);
     expect(el(fixture).querySelector('.course-preview-document__missing')).toBeTruthy();
     expect(getDownloadUrl).not.toHaveBeenCalled();

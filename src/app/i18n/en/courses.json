@@ -47,8 +47,8 @@
     "emptyHint": "Pick a block type below to get started.",
     "add": "Add a block",
     "types": {
-      "texte": "Text",
-      "exercice": "Exercise",
+      "text": "Text",
+      "exercise": "Exercise",
       "document": "Document",
       "module": "Interactive module"
     },
@@ -80,8 +80,8 @@
     "retry": "Retry",
     "notFound": "This block does not exist or has been deleted.",
     "unsupported": "The content editor for this block type is coming soon — its title and description are already editable above.",
-    "titreLabel": "Title",
-    "titrePlaceholder": "Block title (optional)",
+    "titleLabel": "Title",
+    "titlePlaceholder": "Block title (optional)",
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "Short description (optional)",
     "saveMeta": "Save",
@@ -98,18 +98,18 @@
     },
     "exercise": {
       "tabsLabel": "Exercise sections",
-      "sujetLabel": "Subject",
-      "sujetHint": "General instructions for the exercise, visible to students.",
+      "statementLabel": "Subject",
+      "statementHint": "General instructions for the exercise, visible to students.",
       "questionsTitle": "Questions",
-      "apercuLabel": "Full preview",
-      "apercuEmpty": "Nothing to preview yet.",
+      "previewLabel": "Full preview",
+      "previewEmpty": "Nothing to preview yet.",
       "question": "Question {{index}}",
       "empty": "No questions yet.",
       "add": "Add a question",
-      "enonceLabel": "Prompt",
-      "reponseLabel": "Expected answer",
-      "reponsePlaceholder": "Reference answer (optional)",
-      "reponseHint": "Answer key visible only to you — never shown to students.",
+      "questionStatementLabel": "Prompt",
+      "answerLabel": "Expected answer",
+      "answerPlaceholder": "Reference answer (optional)",
+      "answerHint": "Answer key visible only to you — never shown to students.",
       "moveUp": "Move question {{index}} up",
       "moveDown": "Move question {{index}} down",
       "dragHandle": "Reorder question {{index}}",
@@ -124,11 +124,11 @@
       "noResource": "No resource",
       "resourcesEmpty": "No resource available — upload a file in the course's Resources tab first.",
       "resourceError": "The resource selection could not be saved. Try again.",
-      "legendeLabel": "Caption",
-      "legendePlaceholder": "Short caption shown with the document (optional)",
-      "affichageLabel": "Display",
-      "affichageInline": "Inline in the course",
-      "affichageTelechargement": "As a download",
+      "captionLabel": "Caption",
+      "captionPlaceholder": "Short caption shown with the document (optional)",
+      "displayLabel": "Display",
+      "displayInline": "Inline in the course",
+      "displayDownload": "As a download",
       "previewLabel": "Preview"
     },
     "module": {
@@ -174,9 +174,9 @@
     "delete": "Delete",
     "confirmDelete": "Confirm deletion",
     "mutationError": "The operation did not complete. Try again.",
-    "statut": {
-      "en_attente": "Awaiting upload",
-      "disponible": "Available"
+    "status": {
+      "pending": "Awaiting upload",
+      "available": "Available"
     },
     "types": {
       "document": "Document",
@@ -233,15 +233,15 @@
   "share": {
     "badge": {
       "public": "Public",
-      "prive": "Shared by link",
-      "en_cours": "Draft"
+      "private": "Shared by link",
+      "draft": "Draft"
     },
     "visibility": {
       "legend": "Who can view this course?",
-      "en_cours": "Draft",
-      "en_coursHint": "Nobody but you. Existing share links are suspended.",
-      "prive": "Shared by link",
-      "priveHint": "Only students with a valid share link (9 months).",
+      "draft": "Draft",
+      "draftHint": "Nobody but you. Existing share links are suspended.",
+      "private": "Shared by link",
+      "privateHint": "Only students with a valid share link (9 months).",
       "public": "Public",
       "publicHint": "Available to anyone with its address and listed in your public catalogue.",
       "error": "The visibility change did not go through. Try again."
@@ -254,7 +254,7 @@
     "links": {
       "title": "Share links",
       "hint": "Create one link per class or group: each can be revoked separately. A link expires after 9 months.",
-      "libellePlaceholder": "Label (optional) — e.g. 6B 2026",
+      "labelPlaceholder": "Label (optional) — e.g. 6B 2026",
       "create": "Create a link",
       "createError": "Creating the link did not go through. Try again.",
       "loading": "Loading links…",

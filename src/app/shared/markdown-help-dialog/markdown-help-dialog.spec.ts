@@ -23,7 +23,7 @@ describe('MarkdownHelpDialog', () => {
     return (fixture.nativeElement as HTMLElement).querySelector('dialog')!;
   }
 
-  it('rend les trois sections (markdown, LaTeX, mermaid) et l’exemple', async () => {
+  it('renders the three sections (markdown, LaTeX, mermaid) and the example', async () => {
     const fixture = await createComponent();
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
 
@@ -40,7 +40,7 @@ describe('MarkdownHelpDialog', () => {
     expect(examples.some((code) => code.includes('graph TD'))).toBe(true);
   });
 
-  it('rend les sections GeoGebra et JSXGraph avec leur exemple', async () => {
+  it('renders the GeoGebra and JSXGraph sections with their example', async () => {
     const fixture = await createComponent();
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('GeoGebra');
@@ -53,7 +53,7 @@ describe('MarkdownHelpDialog', () => {
     expect(examples.some((code) => code.includes('```tikz'))).toBe(true);
   });
 
-  it('chaque section renvoie vers sa page de doc en nouvel onglet', async () => {
+  it('each section links to its doc page in a new tab', async () => {
     const fixture = await createComponent();
     const links = [
       ...fixture.nativeElement.querySelectorAll('a[href*="markdown-language/docs"]'),
@@ -70,7 +70,7 @@ describe('MarkdownHelpDialog', () => {
     expect(links.every((a) => a.getAttribute('target') === '_blank')).toBe(true);
   });
 
-  it('open() ouvre la modale, close() la ferme', async () => {
+  it('open() opens the dialog, close() closes it', async () => {
     const fixture = await createComponent();
     // jsdom n'implémente pas showModal/close : on les remplace par des stubs.
     const showModal = (dialog(fixture).showModal = vi.fn());
@@ -83,7 +83,7 @@ describe('MarkdownHelpDialog', () => {
     expect(close).toHaveBeenCalledOnce();
   });
 
-  it('un clic sur le fond (la <dialog> elle-même) ferme', async () => {
+  it('a backdrop click (the <dialog> itself) closes', async () => {
     const fixture = await createComponent();
     const close = (dialog(fixture).close = vi.fn());
 
@@ -91,7 +91,7 @@ describe('MarkdownHelpDialog', () => {
     expect(close).toHaveBeenCalledOnce();
   });
 
-  it('un clic sur un enfant ne ferme pas', async () => {
+  it('a click on a child does not close', async () => {
     const fixture = await createComponent();
     const close = (dialog(fixture).close = vi.fn());
 

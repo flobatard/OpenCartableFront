@@ -1,13 +1,13 @@
 /**
  * Profil applicatif de l'utilisateur courant, servi par le back
  * (`GET /api/v1/users/me`, auto-provisionné au premier appel). Les champs
- * reprennent le contrat de l'API tel quel (snake_case, français métier).
+ * reprennent le contrat de l'API tel quel (snake_case).
  *
  * Les rôles sont cumulables : un compte peut être prof ET élève. Chaque rôle
- * coché a son bloc de sélections (`enseignement` / `apprentissage`), `null`
+ * coché a son bloc de sélections (`teaching` / `learning`), `null`
  * sinon — c'est le contexte qui porte la sémantique, pas le rôle.
  */
-export interface ProfilContexte {
+export interface ProfileContext {
   education_level_ids: string[];
   subject_ids: string[];
 }
@@ -18,21 +18,21 @@ export interface UserProfile {
   /** Identifiant OIDC opaque (claim `sub` du JWT). */
   sub: string;
   email: string | null;
-  est_prof: boolean;
-  est_eleve: boolean;
+  is_teacher: boolean;
+  is_student: boolean;
   /** Code du système scolaire (`fr`, `uk`, …), `null` avant onboarding. */
-  systeme_scolaire: string | null;
+  school_system: string | null;
   /**
    * Nom d'affichage des pages publiques (catalogue de cours, J2) — seule
    * donnée d'identité montrée aux élèves ; `null` = catalogue anonyme.
    */
-  nom_public: string | null;
+  public_name: string | null;
   /**
    * Opt-in à la recherche publique de professeurs (J3). Le flag seul ne
-   * suffit pas à remonter : il faut aussi un `nom_public` et ≥1 cours public
+   * suffit pas à remonter : il faut aussi un `public_name` et ≥1 cours public
    * (règle portée par le back).
    */
-  cherchable: boolean;
+  searchable: boolean;
   /**
    * URL présignée (TTL court) de la photo de profil, `null` si aucune.
    * Re-mintée par le back à chaque lecture/mutation du profil — ne jamais
@@ -41,21 +41,21 @@ export interface UserProfile {
   avatar_url: string | null;
   /** `false` tant que l'onboarding bloquant n'a pas été soumis. */
   onboarding_complete: boolean;
-  enseignement: ProfilContexte | null;
-  apprentissage: ProfilContexte | null;
+  teaching: ProfileContext | null;
+  learning: ProfileContext | null;
 }
 
 /** Corps du `PUT /api/v1/users/me/onboarding` (remplacement complet du profil). */
 export interface OnboardingPayload {
-  est_prof: boolean;
-  est_eleve: boolean;
-  systeme_scolaire: string;
+  is_teacher: boolean;
+  is_student: boolean;
+  school_system: string;
   /** Optionnel — blanc/absent devient `null` côté back (catalogue anonyme). */
-  nom_public: string | null;
+  public_name: string | null;
   /** PUT = remplacement complet : un payload sans le champ « décoche ». */
-  cherchable: boolean;
-  enseignement: ProfilContexte | null;
-  apprentissage: ProfilContexte | null;
+  searchable: boolean;
+  teaching: ProfileContext | null;
+  learning: ProfileContext | null;
 }
 
 /** Réponse du `POST /api/v1/users/me/avatar` (motif `ResourcePresign`, réduit). */

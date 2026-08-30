@@ -7,8 +7,8 @@ import type { ResourceType } from '../resources/resource.model';
  * seule, sans identité ni Bearer. Champs en snake_case comme le reste de
  * l'API. Différences avec le contrat prof : matières/niveaux dénormalisés en
  * **noms** (les taxonomies sont derrière JWT), ressources embarquées dans le
- * détail (toutes `disponible`, jamais de statut ni de s3_key), et le
- * `content` des blocs `exercice` ne porte JAMAIS les `reponse_attendue`
+ * détail (toutes `available`, jamais de `status` ni de s3_key), et le
+ * `content` des blocs `exercise` ne porte JAMAIS les `expected_answer`
  * (filtrage structurel côté back).
  */
 
@@ -19,19 +19,19 @@ export interface PublicAccess {
   key: string;
 }
 
-/** Ressource du détail public — toujours `disponible`, par contrat. */
+/** Ressource du détail public — toujours `available`, par contrat. */
 export interface PublicResource {
   id: string;
   type: ResourceType;
-  nom_original: string;
-  taille: number;
+  original_name: string;
+  size: number;
   mime: string;
 }
 
 /** Cours du catalogue public d'un prof. */
 export interface PublicCourseSummary {
   id: string;
-  titre: string;
+  title: string;
   description: string | null;
   /** Noms de matières, déjà triés par le back. */
   subjects: string[];
@@ -48,9 +48,9 @@ export interface PublicCourseDetail extends PublicCourseSummary {
   resources: PublicResource[];
 }
 
-/** Catalogue public d'un prof (`nom_public` null = catalogue anonyme). */
+/** Catalogue public d'un prof (`public_name` null = catalogue anonyme). */
 export interface PublicProfessor {
-  nom_public: string | null;
+  public_name: string | null;
   /** URL présignée (TTL court) de la photo de profil, `null` si aucune. */
   avatar_url: string | null;
   courses: PublicCourseSummary[];

@@ -2,7 +2,7 @@
  * Credential IA de l'utilisateur — miroir du contrat API
  * `/v1/users/me/ai-credentials` (snake_case conservé, convention du repo).
  *
- * La clé API n'est JAMAIS renvoyée par l'API : seul `api_key_definie`
+ * La clé API n'est JAMAIS renvoyée par l'API : seul `api_key_set`
  * indique qu'une clé est enregistrée (chiffrée côté serveur).
  */
 
@@ -29,13 +29,13 @@ export interface AiCredentials {
   provider: AiProvider | null;
   model: string | null;
   base_url: string | null;
-  api_key_definie: boolean;
+  api_key_set: boolean;
   /** L'IA par défaut (fallback serveur) est proposée par ce serveur. */
-  ia_defaut_disponible: boolean;
+  default_ai_available: boolean;
   /** Plafond quotidien effectif de l'IA par défaut ; 0 = illimité. */
-  quota_quotidien: number;
+  daily_quota: number;
   /** Appels déjà servis par l'IA par défaut aujourd'hui (jour UTC). */
-  appels_aujourdhui: number;
+  calls_today: number;
 }
 
 /**
@@ -46,10 +46,10 @@ export const EMPTY_AI_CREDENTIALS: AiCredentials = {
   provider: null,
   model: null,
   base_url: null,
-  api_key_definie: false,
-  ia_defaut_disponible: false,
-  quota_quotidien: 0,
-  appels_aujourdhui: 0,
+  api_key_set: false,
+  default_ai_available: false,
+  daily_quota: 0,
+  calls_today: 0,
 };
 
 export interface AiCredentialsPayload {

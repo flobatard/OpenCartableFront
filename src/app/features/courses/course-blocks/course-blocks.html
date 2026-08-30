@@ -21,12 +21,12 @@
     @if (detail(); as course) {
       <header class="course-blocks__head">
         <div class="course-blocks__head-row">
-          <h1 class="course-blocks__title">{{ course.titre }}</h1>
+          <h1 class="course-blocks__title">{{ course.title }}</h1>
           <span
             class="course-blocks__visibility-badge"
-            [class.course-blocks__visibility-badge--shared]="course.visibilite !== 'en_cours'"
+            [class.course-blocks__visibility-badge--shared]="course.visibility !== 'draft'"
           >
-            {{ 'courses.share.badge.' + course.visibilite | transloco }}
+            {{ 'courses.share.badge.' + course.visibility | transloco }}
           </span>
           <button
             type="button"
@@ -58,11 +58,11 @@
           subjectNames(course.subject_ids).length || levelNames(course.education_level_ids).length
         ) {
           <ul class="course-blocks__badges">
-            @for (nom of subjectNames(course.subject_ids); track nom) {
-              <li class="course-blocks__badge course-blocks__badge--subject">{{ nom }}</li>
+            @for (name of subjectNames(course.subject_ids); track name) {
+              <li class="course-blocks__badge course-blocks__badge--subject">{{ name }}</li>
             }
-            @for (nom of levelNames(course.education_level_ids); track nom) {
-              <li class="course-blocks__badge course-blocks__badge--level">{{ nom }}</li>
+            @for (name of levelNames(course.education_level_ids); track name) {
+              <li class="course-blocks__badge course-blocks__badge--level">{{ name }}</li>
             }
           </ul>
         }
@@ -235,8 +235,8 @@
                 {{ 'courses.blocks.types.' + block.type | transloco }}
               </span>
               <span class="course-blocks__body">
-                @if (block.titre) {
-                  <span class="course-blocks__title-line">{{ block.titre }}</span>
+                @if (block.title) {
+                  <span class="course-blocks__title-line">{{ block.title }}</span>
                 } @else {
                   <span class="course-blocks__title-line course-blocks__title-line--empty">
                     {{ 'courses.blocks.untitled' | transloco }}

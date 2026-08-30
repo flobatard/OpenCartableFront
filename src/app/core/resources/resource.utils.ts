@@ -76,12 +76,12 @@ export function resourceTypeFromMime(mime: string): ResourceType {
  * de l'octet. Formatage maison déterministe : pas d'`Intl` (dépendant de la
  * locale jsdom en spec), virgule décimale française comme le reste de l'UI.
  */
-export function formatBytes(taille: number): string {
-  if (taille < 1000) {
-    return `${taille} o`;
+export function formatBytes(size: number): string {
+  if (size < 1000) {
+    return `${size} o`;
   }
   const units = ['ko', 'Mo', 'Go'] as const;
-  let value = taille;
+  let value = size;
   let unit: (typeof units)[number] = units[0];
   for (const candidate of units) {
     value = value / 1000;

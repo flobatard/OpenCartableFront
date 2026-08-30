@@ -18,13 +18,13 @@ describe('ResourceService', () => {
     resource_id: 'resource-9',
     s3_key: 'resource-9/notes.pdf',
     upload_url: 'https://s3.test/put/resource-9/notes.pdf',
-    statut: 'en_attente',
+    status: 'pending',
     expires_in: 900,
   };
   const CONFIRMED = {
     ...COURSE_RESOURCES_FIXTURE[0],
     id: 'resource-9',
-    nom_original: 'notes.pdf',
+    original_name: 'notes.pdf',
   };
 
   beforeEach(() => {
@@ -48,14 +48,14 @@ describe('ResourceService', () => {
     httpMock.expectOne(url).flush(COURSE_RESOURCES_FIXTURE);
   }
 
-  it('loadList charge la bibliothèque dans les signaux', () => {
+  it('loadList loads the library into the signals', () => {
     loadList();
     expect(service.list()).toEqual(COURSE_RESOURCES_FIXTURE);
     expect(service.listLoading()).toBe(false);
     expect(service.listError()).toBe(false);
   });
 
-  it('loadList signale l’erreur réseau et un nouvel appel refetch', () => {
+  it('loadList reports the network error and a new call refetches', () => {
     service.loadList('course-1');
     httpMock.expectOne(url).flush(null, { status: 500, statusText: 'Server Error' });
     expect(service.listError()).toBe(true);
@@ -65,7 +65,7 @@ describe('ResourceService', () => {
     expect(service.list()).toEqual(COURSE_RESOURCES_FIXTURE);
   });
 
-  it('upload enchaîne presign → PUT S3 (sans Bearer) → confirm et insère en tête', async () => {
+  it('upload chains presign → S3 PUT (no Bearer) → confirm and inserts first', async () => {
     loadList();
     const file = new File(['contenu'], 'notes.pdf', { type: 'application/pdf' });
     const upload = service.upload('course-1', file);
@@ -74,9 +74,9 @@ describe('ResourceService', () => {
     const presignReq = httpMock.expectOne(url);
     expect(presignReq.request.method).toBe('POST');
     expect(presignReq.request.body).toEqual({
-      nom_original: 'notes.pdf',
+      original_name: 'notes.pdf',
       mime: 'application/pdf',
-      taille: file.size,
+      size: file.size,
       type: 'document',
     });
     presignReq.flush(PRESIGN);
@@ -103,7 +103,7 @@ describe('ResourceService', () => {
     expect(service.uploadState()).toEqual({ phase: 'idle', progress: 0 });
   });
 
-  it('upload en échec passe uploadState à error et rejette', async () => {
+  it('a failed upload switches uploadState to error and rejects', async () => {
     const file = new File(['x'], 'notes.pdf', { type: 'application/pdf' });
     const upload = service.upload('course-1', file);
     httpMock.expectOne(url).flush(null, { status: 422, statusText: 'Unprocessable' });
@@ -112,29 +112,29 @@ describe('ResourceService', () => {
     expect(service.uploadState().phase).toBe('error');
   });
 
-  it('un fichier sans MIME est déclaré application/octet-stream (type document)', async () => {
+  it('a file without a MIME is declared application/octet-stream (document type)', async () => {
     const file = new File(['x'], 'mystere.bin', { type: '' });
     const upload = service.upload('course-1', file);
 
     const presignReq = httpMock.expectOne(url);
     expect(presignReq.request.body).toEqual({
-      nom_original: 'mystere.bin',
+      original_name: 'mystere.bin',
       mime: 'application/octet-stream',
-      taille: file.size,
+      size: file.size,
       type: 'document',
     });
     presignReq.flush(null, { status: 422, statusText: 'Unprocessable' }); // court-circuit
     await expect(upload).rejects.toBeTruthy();
   });
 
-  it('rename PATCH le nom et remplace l’entrée du signal', async () => {
+  it('rename PATCHes the name and replaces the signal entry', async () => {
     loadList();
-    const renamed = { ...COURSE_RESOURCES_FIXTURE[0], nom_original: 'schema-final.pdf' };
+    const renamed = { ...COURSE_RESOURCES_FIXTURE[0], original_name: 'schema-final.pdf' };
 
     const rename = service.rename('course-1', 'resource-1', 'schema-final.pdf');
     const req = httpMock.expectOne(`${url}/resource-1`);
     expect(req.request.method).toBe('PATCH');
-    expect(req.request.body).toEqual({ nom_original: 'schema-final.pdf' });
+    expect(req.request.body).toEqual({ original_name: 'schema-final.pdf' });
     req.flush(renamed);
 
     expect(await rename).toEqual(renamed);
@@ -142,7 +142,7 @@ describe('ResourceService', () => {
     expect(service.list()[1]).toEqual(COURSE_RESOURCES_FIXTURE[1]); // intact
   });
 
-  it('deleteResource retire l’entrée du signal', async () => {
+  it('deleteResource removes the entry from the signal', async () => {
     loadList();
     const remove = service.deleteResource('course-1', 'resource-1');
     const req = httpMock.expectOne(`${url}/resource-1`);
@@ -153,7 +153,7 @@ describe('ResourceService', () => {
     expect(service.list().map((r) => r.id)).toEqual(['resource-2', 'resource-3']);
   });
 
-  it('getDownloadUrl retourne l’URL présignée (l’ouverture reste à l’appelant)', async () => {
+  it('getDownloadUrl returns the presigned URL (opening is left to the caller)', async () => {
     const download = service.getDownloadUrl('course-1', 'resource-1');
     // Sans argument : aucun query param — la requête historique est inchangée.
     const req = httpMock.expectOne(`${url}/resource-1/download`);
@@ -163,7 +163,7 @@ describe('ResourceService', () => {
     expect(await download).toBe('https://s3.test/get/uuid/schema.pdf');
   });
 
-  it('getDownloadUrl en inline ajoute le query param disposition', async () => {
+  it('getDownloadUrl with inline adds the disposition query param', async () => {
     const download = service.getDownloadUrl('course-1', 'resource-1', 'inline');
     const req = httpMock.expectOne(`${url}/resource-1/download?disposition=inline`);
     expect(req.request.method).toBe('GET');
@@ -172,7 +172,7 @@ describe('ResourceService', () => {
     expect(await download).toBe('https://s3.test/get/uuid/schema.pdf');
   });
 
-  it('une mutation d’un autre cours ne touche pas la liste chargée', async () => {
+  it('a mutation of another course leaves the loaded list untouched', async () => {
     loadList();
     const remove = service.deleteResource('course-2', 'resource-x');
     httpMock
@@ -183,7 +183,7 @@ describe('ResourceService', () => {
     expect(service.list()).toEqual(COURSE_RESOURCES_FIXTURE);
   });
 
-  it('purge la liste et l’état d’upload quand la session tombe', () => {
+  it('clears the list and the upload state when the session drops', () => {
     loadList();
     isAuthenticated.set(false);
     TestBed.tick(); // flush de l'effect de purge

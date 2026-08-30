@@ -39,7 +39,7 @@ describe('CourseService', () => {
     httpMock.expectOne(`${url}/${COURSE_DETAIL_FIXTURE.id}`).flush(COURSE_DETAIL_FIXTURE);
   }
 
-  it('loadList charge la liste dans les signaux', () => {
+  it('loadList loads the list into the signals', () => {
     service.loadList();
     expect(service.listLoading()).toBe(true);
     httpMock.expectOne(url).flush(COURSES_FIXTURE);
@@ -49,7 +49,7 @@ describe('CourseService', () => {
     expect(service.listError()).toBe(false);
   });
 
-  it('loadList signale l’erreur réseau et un nouvel appel refetch', () => {
+  it('loadList reports the network error and a new call refetches', () => {
     service.loadList();
     httpMock.expectOne(url).error(new ProgressEvent('network'));
     expect(service.listError()).toBe(true);
@@ -60,7 +60,7 @@ describe('CourseService', () => {
     expect(service.list()).toEqual(COURSES_FIXTURE);
   });
 
-  it('loadDetail purge le détail précédent puis charge le cours', () => {
+  it('loadDetail clears the previous detail then loads the course', () => {
     loadDetail();
     expect(service.detail()).toEqual(COURSE_DETAIL_FIXTURE);
 
@@ -70,7 +70,7 @@ describe('CourseService', () => {
     expect(service.detail()?.id).toBe('course-2');
   });
 
-  it('loadDetail signale l’erreur (cours introuvable ou réseau)', () => {
+  it('loadDetail reports the error (course not found or network)', () => {
     service.loadDetail('course-x');
     httpMock
       .expectOne(`${url}/course-x`)
@@ -80,9 +80,9 @@ describe('CourseService', () => {
     expect(service.detailError()).toBe(true);
   });
 
-  it('createCourse fait un POST avec le payload exact', async () => {
+  it('createCourse POSTs the exact payload', async () => {
     const payload = {
-      titre: 'Suites numériques',
+      title: 'Suites numériques',
       description: null,
       subject_ids: ['math'],
       education_level_ids: ['college-6e'],
@@ -96,23 +96,23 @@ describe('CourseService', () => {
     expect(await create).toEqual(COURSES_FIXTURE[0]);
   });
 
-  it('addBlock ajoute le bloc renvoyé en fin de détail', async () => {
+  it('addBlock appends the returned block to the detail', async () => {
     loadDetail();
     const created: CourseBlock = {
       id: 'block-3',
       position: 2,
-      type: 'exercice',
-      titre: null,
+      type: 'exercise',
+      title: null,
       description: null,
-      content: { enonce: '', questions: [] },
+      content: { statement: '', questions: [] },
       resource_id: null,
       module_id: null,
     };
 
-    const add = service.addBlock(COURSE_DETAIL_FIXTURE.id, 'exercice');
+    const add = service.addBlock(COURSE_DETAIL_FIXTURE.id, 'exercise');
     const req = httpMock.expectOne(`${url}/${COURSE_DETAIL_FIXTURE.id}/blocks`);
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ type: 'exercice' });
+    expect(req.request.body).toEqual({ type: 'exercise' });
     req.flush(created);
     await add;
 
@@ -120,16 +120,16 @@ describe('CourseService', () => {
     expect(service.detail()?.block_count).toBe(COURSE_DETAIL_FIXTURE.block_count + 1);
   });
 
-  it('addBlock inclut le méta titre/description dans le corps du POST', async () => {
+  it('addBlock includes the title/description meta in the POST body', async () => {
     loadDetail();
-    const meta = { titre: 'Vidéo d’intro', description: 'Une présentation.' };
+    const meta = { title: 'Vidéo d’intro', description: 'Une présentation.' };
     const created: CourseBlock = {
       id: 'block-3',
       position: 2,
       type: 'document',
-      titre: meta.titre,
+      title: meta.title,
       description: meta.description,
-      content: { legende: null, affichage: 'inline' },
+      content: { caption: null, display: 'inline' },
       resource_id: null,
       module_id: null,
     };
@@ -144,7 +144,7 @@ describe('CourseService', () => {
     expect(service.detail()?.blocks.at(-1)).toEqual(created);
   });
 
-  it('deleteBlock retire le bloc du détail', async () => {
+  it('deleteBlock removes the block from the detail', async () => {
     loadDetail();
     const remove = service.deleteBlock(COURSE_DETAIL_FIXTURE.id, 'block-1');
     const req = httpMock.expectOne(`${url}/${COURSE_DETAIL_FIXTURE.id}/blocks/block-1`);
@@ -156,7 +156,7 @@ describe('CourseService', () => {
     expect(service.detail()?.block_count).toBe(COURSE_DETAIL_FIXTURE.block_count - 1);
   });
 
-  it('deleteCourse fait un DELETE, retire de la liste et nulle le détail affiché', async () => {
+  it('deleteCourse DELETEs, removes from the list and nulls the displayed detail', async () => {
     service.loadList();
     httpMock.expectOne(url).flush(COURSES_FIXTURE);
     loadDetail(); // détail = course-1
@@ -171,7 +171,7 @@ describe('CourseService', () => {
     expect(service.detail()).toBeNull();
   });
 
-  it('deleteCourse ne touche pas le détail affiché d’un autre cours', async () => {
+  it('deleteCourse leaves the displayed detail of another course untouched', async () => {
     loadDetail(); // détail = course-1
     const remove = service.deleteCourse('course-2');
     httpMock.expectOne(`${url}/course-2`).flush(null, { status: 204, statusText: 'No Content' });
@@ -180,7 +180,7 @@ describe('CourseService', () => {
     expect(service.detail()).toEqual(COURSE_DETAIL_FIXTURE); // intact
   });
 
-  it('reorderBlocks réordonne le signal de façon optimiste (avant le PUT) puis confirme', async () => {
+  it('reorderBlocks reorders the signal optimistically (before the PUT) then confirms', async () => {
     loadDetail();
     const reorder = service.reorderBlocks(COURSE_DETAIL_FIXTURE.id, [
       'block-2',
@@ -203,7 +203,7 @@ describe('CourseService', () => {
     expect(service.detail()?.blocks.map((b) => b.position)).toEqual([0, 1, 2]);
   });
 
-  it('reorderBlocks rejette sur erreur réseau (l’appelant resynchronise)', async () => {
+  it('reorderBlocks rejects on network error (the caller resyncs)', async () => {
     loadDetail();
     const reorder = service.reorderBlocks(COURSE_DETAIL_FIXTURE.id, [
       'block-2',
@@ -217,7 +217,7 @@ describe('CourseService', () => {
     await expect(reorder).rejects.toBeTruthy();
   });
 
-  it('updateBlockContent fait un PATCH et remplace le bloc dans le détail', async () => {
+  it('updateBlockContent PATCHes and replaces the block in the detail', async () => {
     loadDetail();
     const updated: CourseBlock = {
       ...COURSE_BLOCKS_FIXTURE[0],
@@ -237,22 +237,22 @@ describe('CourseService', () => {
     expect(service.detail()?.blocks[1]).toEqual(COURSE_BLOCKS_FIXTURE[1]); // intact
   });
 
-  it('updateBlockMeta PATCH le titre/description et remplace le bloc dans le détail', async () => {
+  it('updateBlockMeta PATCHes the title/description and replaces the block in the detail', async () => {
     loadDetail();
     const updated: CourseBlock = {
       ...COURSE_BLOCKS_FIXTURE[0],
-      titre: 'Titre modifié',
+      title: 'Titre modifié',
       description: null,
     };
 
     const update = service.updateBlockMeta(COURSE_DETAIL_FIXTURE.id, 'block-1', {
-      titre: 'Titre modifié',
+      title: 'Titre modifié',
       description: null,
     });
     const req = httpMock.expectOne(`${url}/${COURSE_DETAIL_FIXTURE.id}/blocks/block-1`);
     expect(req.request.method).toBe('PATCH');
     // Corps du méta uniquement (jamais `content`) ; `null` efface un champ.
-    expect(req.request.body).toEqual({ titre: 'Titre modifié', description: null });
+    expect(req.request.body).toEqual({ title: 'Titre modifié', description: null });
     req.flush(updated);
 
     expect(await update).toEqual(updated);
@@ -260,7 +260,7 @@ describe('CourseService', () => {
     expect(service.detail()?.blocks[1]).toEqual(COURSE_BLOCKS_FIXTURE[1]); // intact
   });
 
-  it('updateBlockResource PATCH resource_id (uuid ou null) et remplace le bloc', async () => {
+  it('updateBlockResource PATCHes resource_id (uuid or null) and replaces the block', async () => {
     loadDetail();
     const updated: CourseBlock = { ...COURSE_BLOCKS_FIXTURE[1], resource_id: 'resource-9' };
 
@@ -284,9 +284,9 @@ describe('CourseService', () => {
     expect(service.detail()?.blocks[1].resource_id).toBeNull();
   });
 
-  it('une mutation d’un autre cours ne touche pas le détail chargé', async () => {
+  it('a mutation of another course leaves the loaded detail untouched', async () => {
     loadDetail();
-    const add = service.addBlock('course-2', 'texte');
+    const add = service.addBlock('course-2', 'text');
     httpMock
       .expectOne(`${url}/course-2/blocks`)
       .flush({ ...COURSE_BLOCKS_FIXTURE[0], id: 'block-x' });
@@ -295,7 +295,7 @@ describe('CourseService', () => {
     expect(service.detail()).toEqual(COURSE_DETAIL_FIXTURE);
   });
 
-  it('purge liste et détail quand la session tombe', () => {
+  it('clears list and detail when the session drops', () => {
     service.loadList();
     httpMock.expectOne(url).flush(COURSES_FIXTURE);
     loadDetail();
@@ -307,7 +307,7 @@ describe('CourseService', () => {
     expect(service.detail()).toBeNull();
   });
 
-  it('exportCourse récupère l’archive en blob (Bearer via intercepteur, pas window.open)', async () => {
+  it('exportCourse fetches the archive as a blob (Bearer via interceptor, no window.open)', async () => {
     const promise = service.exportCourse('course-1');
     const req = httpMock.expectOne(`${url}/course-1/export`);
     expect(req.request.method).toBe('GET');
@@ -319,10 +319,10 @@ describe('CourseService', () => {
     expect(await promise).toBe(archive);
   });
 
-  it('importCourse poste un FormData, suit la progression et insère le cours en tête', async () => {
+  it('importCourse POSTs a FormData, tracks progress and inserts the course first', async () => {
     service.loadList();
     httpMock.expectOne(url).flush(COURSES_FIXTURE);
-    const importe = { ...COURSES_FIXTURE[0], id: 'course-importe' };
+    const imported = { ...COURSES_FIXTURE[0], id: 'course-importe' };
 
     const promise = service.importCourse(
       new File(['zip'], 'cours.zip', { type: 'application/zip' }),
@@ -341,13 +341,13 @@ describe('CourseService', () => {
     req.event({ type: HttpEventType.UploadProgress, loaded: 100, total: 100 });
     expect(service.importState()).toEqual({ phase: 'processing', progress: 100 });
 
-    req.flush(importe);
-    expect(await promise).toEqual(importe);
-    expect(service.list()[0]).toEqual(importe);
+    req.flush(imported);
+    expect(await promise).toEqual(imported);
+    expect(service.list()[0]).toEqual(imported);
     expect(service.importState()).toEqual({ phase: 'idle', progress: 0 });
   });
 
-  it('importCourse passe en erreur et rejette sur un refus du back', async () => {
+  it('importCourse switches to error and rejects when the backend refuses', async () => {
     const promise = service.importCourse(new File(['x'], 'c.zip', { type: 'application/zip' }));
     httpMock
       .expectOne(`${url}/import`)

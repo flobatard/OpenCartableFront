@@ -3,7 +3,7 @@ import type { CourseStyleSettings } from './course-style.service';
 /**
  * Cours du prof et blocs qui les composent, servis par le back
  * (`/api/v1/courses`). Les champs reprennent le contrat de l'API tel quel
- * (snake_case, français métier).
+ * (snake_case).
  */
 
 /**
@@ -12,7 +12,7 @@ import type { CourseStyleSettings } from './course-style.service';
  * choisie ensuite dans l'éditeur), `module` naît vide lui aussi (pont vers
  * un module interactif de la bibliothèque de modules du cours).
  */
-export type BlockType = 'texte' | 'exercice' | 'document' | 'module';
+export type BlockType = 'text' | 'exercise' | 'document' | 'module';
 
 export interface CourseBlock {
   id: string;
@@ -20,7 +20,7 @@ export interface CourseBlock {
   position: number;
   type: BlockType;
   /** Titre commun facultatif (tous types), distinct du `content`. */
-  titre: string | null;
+  title: string | null;
   /** Description commune facultative (tous types), distincte du `content`. */
   description: string | null;
   /** Contenu JSONB, contrat applicatif par type — rempli par les futurs éditeurs. */
@@ -45,8 +45,8 @@ export interface CourseBlock {
  * d'`updateBlockContent`.
  */
 export type DocumentContentPayload = {
-  legende: string | null;
-  affichage: 'inline' | 'telechargement';
+  caption: string | null;
+  display: 'inline' | 'download';
 };
 
 /**
@@ -58,11 +58,11 @@ export type DocumentContentPayload = {
 export type ExerciseQuestionPayload = {
   id: string | null;
   /** Énoncé markdown (mêmes règles que le bloc texte). */
-  enonce: string;
+  statement: string;
   /** Seul type admis aujourd'hui (extensible : QCM…). */
-  type: 'texte_libre';
+  type: 'free_text';
   /** Corrigé du prof, texte simple — jamais montré aux élèves. */
-  reponse_attendue: string;
+  expected_answer: string;
 };
 
 /**
@@ -72,7 +72,7 @@ export type ExerciseQuestionPayload = {
  * assignable au `Record<string, unknown>` d'`updateBlockContent`.
  */
 export type ExerciseContentPayload = {
-  enonce: string;
+  statement: string;
   questions: ExerciseQuestionPayload[];
 };
 
@@ -82,25 +82,25 @@ export type ExerciseContentPayload = {
  * indépendamment du `content` propre à chaque type.
  */
 export interface BlockMetaPayload {
-  titre: string | null;
+  title: string | null;
   description: string | null;
 }
 
 /**
  * Régime d'accès élève d'un cours (J2) : `public` = URL directe + catalogue
- * public du prof ; `prive` = liens de partage à token uniquement ; `en_cours`
+ * public du prof ; `private` = liens de partage à token uniquement ; `draft`
  * (défaut) = inaccessible publiquement, liens suspendus.
  */
-export type CourseVisibility = 'public' | 'prive' | 'en_cours';
+export type CourseVisibility = 'public' | 'private' | 'draft';
 
 export interface CourseSummary {
   id: string;
-  titre: string;
+  title: string;
   description: string | null;
   subject_ids: string[];
   education_level_ids: string[];
   block_count: number;
-  visibilite: CourseVisibility;
+  visibility: CourseVisibility;
   created_at: string;
   updated_at: string;
   /**
@@ -118,7 +118,7 @@ export interface CourseDetail extends CourseSummary {
 
 /** Corps du `POST /courses`. */
 export interface CourseCreatePayload {
-  titre: string;
+  title: string;
   description: string | null;
   subject_ids: string[];
   education_level_ids: string[];

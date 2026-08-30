@@ -9,10 +9,10 @@
             type="button"
             class="subject-multi-picker__chip"
             [disabled]="disabled()"
-            [attr.aria-label]="'subjects.multiPicker.remove' | transloco: { nom: node.nom }"
+            [attr.aria-label]="'subjects.multiPicker.remove' | transloco: { name: node.name }"
             (click)="remove(node.id)"
           >
-            <span class="subject-multi-picker__chip-nom">{{ node.nom }}</span>
+            <span class="subject-multi-picker__chip-name">{{ node.name }}</span>
             <span class="subject-multi-picker__chip-x" aria-hidden="true">×</span>
           </button>
         </li>

@@ -11,10 +11,10 @@ const CREDENTIALS: AiCredentials = {
   provider: 'anthropic',
   model: 'claude-sonnet-5',
   base_url: null,
-  api_key_definie: true,
-  ia_defaut_disponible: true,
-  quota_quotidien: 30,
-  appels_aujourdhui: 0,
+  api_key_set: true,
+  default_ai_available: true,
+  daily_quota: 30,
+  calls_today: 0,
 };
 
 describe('AiCredentialsService', () => {
@@ -39,7 +39,7 @@ describe('AiCredentialsService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('ne fait qu’un seul GET pour deux ensureLoaded() concurrents', async () => {
+  it('issues a single GET for two concurrent ensureLoaded() calls', async () => {
     const first = service.ensureLoaded();
     const second = service.ensureLoaded();
     httpMock.expectOne(url).flush(CREDENTIALS);
@@ -49,7 +49,7 @@ describe('AiCredentialsService', () => {
     expect(service.credentials()).toEqual(CREDENTIALS);
   });
 
-  it('invalide la requête en vol sur erreur : le retry refait un GET', async () => {
+  it('invalidates the in-flight request on error: the retry issues a new GET', async () => {
     const first = service.ensureLoaded();
     httpMock.expectOne(url).error(new ProgressEvent('network'));
     await expect(first).rejects.toBeTruthy();
@@ -59,7 +59,7 @@ describe('AiCredentialsService', () => {
     expect(await retry).toEqual(CREDENTIALS);
   });
 
-  it('save fait un PUT (payload transmis tel quel) et remplace le signal', async () => {
+  it('save PUTs (payload passed through as-is) and replaces the signal', async () => {
     const payload = { provider: 'anthropic' as const, model: 'claude-sonnet-5', base_url: null };
     const submit = service.save(payload);
 
@@ -74,7 +74,7 @@ describe('AiCredentialsService', () => {
     expect(service.credentials()).toEqual(CREDENTIALS);
   });
 
-  it('remove fait un DELETE puis RELIT le credential (quota de l’IA par défaut frais)', async () => {
+  it('remove DELETEs then RE-READS the credential (fresh default-AI quota)', async () => {
     const removal = service.remove();
     const req = httpMock.expectOne(url);
     expect(req.request.method).toBe('DELETE');
@@ -83,9 +83,9 @@ describe('AiCredentialsService', () => {
 
     const fresh: AiCredentials = {
       ...EMPTY_AI_CREDENTIALS,
-      ia_defaut_disponible: true,
-      quota_quotidien: 30,
-      appels_aujourdhui: 12,
+      default_ai_available: true,
+      daily_quota: 30,
+      calls_today: 12,
     };
     const reread = httpMock.expectOne(url);
     expect(reread.request.method).toBe('GET');
@@ -95,7 +95,7 @@ describe('AiCredentialsService', () => {
     expect(service.credentials()).toEqual(fresh);
   });
 
-  it('remove replie sur l’état vide si la relecture échoue (la suppression a réussi)', async () => {
+  it('remove falls back to the empty state when the re-read fails (the deletion succeeded)', async () => {
     const removal = service.remove();
     httpMock.expectOne(url).flush(null, { status: 204, statusText: 'No Content' });
     await new Promise((resolve) => setTimeout(resolve));
@@ -105,7 +105,7 @@ describe('AiCredentialsService', () => {
     expect(service.credentials()).toEqual(EMPTY_AI_CREDENTIALS);
   });
 
-  it('purge le credential quand la session tombe', async () => {
+  it('clears the credential when the session drops', async () => {
     const first = service.ensureLoaded();
     httpMock.expectOne(url).flush(CREDENTIALS);
     await first;

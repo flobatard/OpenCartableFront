@@ -90,7 +90,7 @@ export class Search {
     const tree = this.#subjects.tree();
     return visibleRows(tree, new Set(allIds(tree))).map((row) => ({
       id: row.node.id,
-      label: indent(row.node.nom, row.depth),
+      label: indent(row.node.name, row.depth),
     }));
   });
 
@@ -98,7 +98,7 @@ export class Search {
   protected readonly levelOptions = computed<FacetOption[]>(() =>
     flattenTree(this.#levels.tree()).map((row) => ({
       id: row.node.id,
-      label: indent(row.node.nom, row.depth),
+      label: indent(row.node.name, row.depth),
     })),
   );
 

@@ -18,7 +18,7 @@ import {
  *
  * Le Bearer est attaché automatiquement par l'intercepteur OIDC (URL sous
  * `environment.apiUrl`). La clé API saisie ne fait que TRANSITER dans le
- * payload du PUT : l'API ne la renvoie jamais (`api_key_definie` seul).
+ * payload du PUT : l'API ne la renvoie jamais (`api_key_set` seul).
  */
 @Injectable({ providedIn: 'root' })
 export class AiCredentialsService {
@@ -43,7 +43,7 @@ export class AiCredentialsService {
 
   /**
    * Retourne le credential (le GET répond 200 même sans configuration —
-   * champs `null` + `api_key_definie: false`). Appels concurrents partagés.
+   * champs `null` + `api_key_set: false`). Appels concurrents partagés.
    */
   ensureLoaded(): Promise<AiCredentials> {
     const cached = this.#credentials();

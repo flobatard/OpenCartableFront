@@ -77,100 +77,100 @@
             <input
               type="checkbox"
               class="profile__role-checkbox"
-              [formControl]="form.controls.estProf"
+              [formControl]="form.controls.isTeacher"
             />
-            <span class="profile__role-title">{{ 'onboarding.roles.prof' | transloco }}</span>
-            <span class="profile__role-hint">{{ 'onboarding.roles.profHint' | transloco }}</span>
+            <span class="profile__role-title">{{ 'onboarding.roles.teacher' | transloco }}</span>
+            <span class="profile__role-hint">{{ 'onboarding.roles.teacherHint' | transloco }}</span>
           </label>
           <label class="profile__role-card">
             <input
               type="checkbox"
               class="profile__role-checkbox"
-              [formControl]="form.controls.estEleve"
+              [formControl]="form.controls.isStudent"
             />
-            <span class="profile__role-title">{{ 'onboarding.roles.eleve' | transloco }}</span>
-            <span class="profile__role-hint">{{ 'onboarding.roles.eleveHint' | transloco }}</span>
+            <span class="profile__role-title">{{ 'onboarding.roles.student' | transloco }}</span>
+            <span class="profile__role-hint">{{ 'onboarding.roles.studentHint' | transloco }}</span>
           </label>
         </div>
-        <label class="profile__nom-public">
-          <span>{{ 'onboarding.nomPublic.label' | transloco }}</span>
+        <label class="profile__public-name">
+          <span>{{ 'onboarding.publicName.label' | transloco }}</span>
           <input
             type="text"
             maxlength="100"
-            [formControl]="form.controls.nomPublic"
-            [placeholder]="'onboarding.nomPublic.placeholder' | transloco"
+            [formControl]="form.controls.publicName"
+            [placeholder]="'onboarding.publicName.placeholder' | transloco"
           />
-          <span class="profile__hint">{{ 'onboarding.nomPublic.hint' | transloco }}</span>
+          <span class="profile__hint">{{ 'onboarding.publicName.hint' | transloco }}</span>
         </label>
         <!-- Opt-in recherche publique (J3) : le back n'expose le profil que si
              nom public ET au moins un cours public — le hint l'explique. -->
         <label class="profile__cherchable">
-          <input type="checkbox" [formControl]="form.controls.cherchable" />
+          <input type="checkbox" [formControl]="form.controls.searchable" />
           <span>{{ 'profile.searchable.label' | transloco }}</span>
         </label>
         <span class="profile__hint">{{ 'profile.searchable.hint' | transloco }}</span>
       </fieldset>
 
       <fieldset class="profile__fieldset">
-        <legend class="profile__legend">{{ 'onboarding.systeme.legend' | transloco }}</legend>
+        <legend class="profile__legend">{{ 'onboarding.system.legend' | transloco }}</legend>
         @if (levels.error()) {
-          <p class="profile__error">{{ 'onboarding.systeme.error' | transloco }}</p>
+          <p class="profile__error">{{ 'onboarding.system.error' | transloco }}</p>
           <button type="button" class="btn btn--secondary" (click)="levels.reload()">
             {{ 'profile.retry' | transloco }}
           </button>
-        } @else if (!systemes().length) {
+        } @else if (!systems().length) {
           <p class="profile__status" aria-live="polite">
-            {{ 'onboarding.systeme.loading' | transloco }}
+            {{ 'onboarding.system.loading' | transloco }}
           </p>
         } @else {
           <div class="profile__radios">
-            @for (code of systemes(); track code) {
+            @for (code of systems(); track code) {
               <label class="profile__radio">
                 <input
                   type="radio"
-                  name="systeme"
-                  [checked]="systemeValue() === code"
-                  (change)="selectSysteme(code)"
+                  name="system"
+                  [checked]="systemValue() === code"
+                  (change)="selectSystem(code)"
                 />
-                <span>{{ systemeLabel(code) }}</span>
+                <span>{{ systemLabel(code) }}</span>
               </label>
             }
           </div>
         }
       </fieldset>
 
-      @if (estProf()) {
+      @if (isTeacher()) {
         <fieldset class="profile__fieldset">
           <legend class="profile__legend">{{ 'profile.teachingSection' | transloco }}</legend>
           <h2 class="profile__section-title">{{ 'onboarding.steps.levelsTaught' | transloco }}</h2>
           <app-education-level-picker
-            [systeme]="systemeValue()"
-            [formControl]="form.controls.enseignement.controls.educationLevelIds"
+            [system]="systemValue()"
+            [formControl]="form.controls.teaching.controls.educationLevelIds"
           />
           <h2 class="profile__section-title">
             {{ 'onboarding.steps.subjectsTaught' | transloco }}
           </h2>
           <app-subject-multi-picker
-            [formControl]="form.controls.enseignement.controls.subjectIds"
+            [formControl]="form.controls.teaching.controls.subjectIds"
           />
         </fieldset>
       }
 
-      @if (estEleve()) {
+      @if (isStudent()) {
         <fieldset class="profile__fieldset">
           <legend class="profile__legend">{{ 'profile.learningSection' | transloco }}</legend>
           <h2 class="profile__section-title">
             {{ 'onboarding.steps.levelsLearned' | transloco }}
           </h2>
           <app-education-level-picker
-            [systeme]="systemeValue()"
-            [formControl]="form.controls.apprentissage.controls.educationLevelIds"
+            [system]="systemValue()"
+            [formControl]="form.controls.learning.controls.educationLevelIds"
           />
           <h2 class="profile__section-title">
             {{ 'onboarding.steps.subjectsLearned' | transloco }}
           </h2>
           <app-subject-multi-picker
-            [formControl]="form.controls.apprentissage.controls.subjectIds"
+            [formControl]="form.controls.learning.controls.subjectIds"
           />
         </fieldset>
       }

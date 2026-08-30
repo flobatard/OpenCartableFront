@@ -22,7 +22,7 @@ describe('CourseStyleDialog', () => {
     return (fixture.nativeElement as HTMLElement).querySelector('dialog')!;
   }
 
-  it('open() ouvre la modale, close() la ferme', async () => {
+  it('open() opens the dialog, close() closes it', async () => {
     const fixture = await createComponent();
     const showModal = (dialog(fixture).showModal = vi.fn());
     const close = (dialog(fixture).close = vi.fn());
@@ -34,7 +34,7 @@ describe('CourseStyleDialog', () => {
     expect(close).toHaveBeenCalledOnce();
   });
 
-  it('un clic sur le fond ferme, un clic sur un enfant non', async () => {
+  it('a backdrop click closes, a child click does not', async () => {
     const fixture = await createComponent();
     const close = (dialog(fixture).close = vi.fn());
 
@@ -47,7 +47,7 @@ describe('CourseStyleDialog', () => {
     expect(close).toHaveBeenCalledOnce();
   });
 
-  it('déplacer le curseur de taille met à jour le service', async () => {
+  it('moving the size slider updates the service', async () => {
     const fixture = await createComponent();
     const service = TestBed.inject(CourseStyleService);
     // Le premier <input type=range> est la taille du texte.
@@ -59,7 +59,7 @@ describe('CourseStyleDialog', () => {
     expect(service.settings().fontSizePx).toBe(20);
   });
 
-  it('cliquer « serif » bascule la police du service', async () => {
+  it('clicking “serif” switches the service font', async () => {
     const fixture = await createComponent();
     const service = TestBed.inject(CourseStyleService);
     const pills = fixture.nativeElement.querySelectorAll('.course-style__choices .pill');
@@ -68,7 +68,7 @@ describe('CourseStyleDialog', () => {
     expect(service.settings().font).toBe('serif');
   });
 
-  it('le bouton Réinitialiser rétablit les défauts', async () => {
+  it('the Reset button restores the defaults', async () => {
     const fixture = await createComponent();
     const service = TestBed.inject(CourseStyleService);
     service.update({ fontSizePx: 22, font: 'serif' });

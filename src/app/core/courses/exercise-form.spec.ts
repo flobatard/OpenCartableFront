@@ -9,20 +9,25 @@ import {
   patchExerciseFormFromContent,
   payloadFromBlockContent,
   payloadFromExerciseForm,
-  questionEnoncePreview,
+  questionStatementPreview,
   removeQuestion,
 } from './exercise-form';
 
 const CONTENT = {
-  enonce: '## Suites\nSoit $u_n$ une suite.',
+  statement: '## Suites\nSoit $u_n$ une suite.',
   questions: [
-    { id: 'q-1', enonce: 'Montrer que $u_n$ converge.', type: 'texte_libre', reponse_attendue: 'Par encadrement.' },
-    { id: 'q-2', enonce: 'Donner sa limite.', type: 'texte_libre', reponse_attendue: '0' },
+    {
+      id: 'q-1',
+      statement: 'Montrer que $u_n$ converge.',
+      type: 'free_text',
+      expected_answer: 'Par encadrement.',
+    },
+    { id: 'q-2', statement: 'Donner sa limite.', type: 'free_text', expected_answer: '0' },
   ],
 };
 
 describe('exercise-form', () => {
-  it('patchExerciseFormFromContent pré-remplit sujet et questions sans émettre', () => {
+  it('patchExerciseFormFromContent prefills statement and questions without emitting', () => {
     const form = buildExerciseForm();
     const emissions: unknown[] = [];
     form.valueChanges.subscribe((v) => emissions.push(v));
@@ -31,68 +36,73 @@ describe('exercise-form', () => {
 
     expect(emissions).toEqual([]);
     expect(form.getRawValue()).toEqual({
-      enonce: '## Suites\nSoit $u_n$ une suite.',
+      statement: '## Suites\nSoit $u_n$ une suite.',
       questions: [
-        { id: 'q-1', enonce: 'Montrer que $u_n$ converge.', reponseAttendue: 'Par encadrement.' },
-        { id: 'q-2', enonce: 'Donner sa limite.', reponseAttendue: '0' },
+        { id: 'q-1', statement: 'Montrer que $u_n$ converge.', expectedAnswer: 'Par encadrement.' },
+        { id: 'q-2', statement: 'Donner sa limite.', expectedAnswer: '0' },
       ],
     });
   });
 
-  it('patchExerciseFormFromContent mute la FormArray existante (les souscriptions survivent)', () => {
+  it('patchExerciseFormFromContent mutates the existing FormArray (subscriptions survive)', () => {
     const form = buildExerciseForm();
-    const questionsAvant = form.controls.questions;
+    const questionsBefore = form.controls.questions;
 
     patchExerciseFormFromContent(form, CONTENT);
 
-    expect(form.controls.questions).toBe(questionsAvant);
+    expect(form.controls.questions).toBe(questionsBefore);
     // La souscription posée avant le patch voit bien les frappes suivantes.
     const emissions: unknown[] = [];
     form.valueChanges.subscribe((v) => emissions.push(v));
-    form.controls.questions.at(0).controls.enonce.setValue('Modifiée');
+    form.controls.questions.at(0).controls.statement.setValue('Modifiée');
     expect(emissions.length).toBe(1);
   });
 
-  it('tolère le contenu par défaut, le legacy sans reponse_attendue et le malformé', () => {
+  it('tolerates default content, legacy without expected_answer, and malformed content', () => {
     const form = buildExerciseForm();
 
-    patchExerciseFormFromContent(form, { enonce: '', questions: [] });
-    expect(form.getRawValue()).toEqual({ enonce: '', questions: [] });
+    patchExerciseFormFromContent(form, { statement: '', questions: [] });
+    expect(form.getRawValue()).toEqual({ statement: '', questions: [] });
 
     patchExerciseFormFromContent(form, {
-      enonce: 'Sujet',
-      questions: [{ id: 'q-1', enonce: 'Q1', type: 'texte_libre' }],
+      statement: 'Sujet',
+      questions: [{ id: 'q-1', statement: 'Q1', type: 'free_text' }],
     });
     expect(form.getRawValue().questions).toEqual([
-      { id: 'q-1', enonce: 'Q1', reponseAttendue: '' },
+      { id: 'q-1', statement: 'Q1', expectedAnswer: '' },
     ]);
 
-    patchExerciseFormFromContent(form, { enonce: 42, questions: 'oops' });
-    expect(form.getRawValue()).toEqual({ enonce: '', questions: [] });
+    patchExerciseFormFromContent(form, { statement: 42, questions: 'oops' });
+    expect(form.getRawValue()).toEqual({ statement: '', questions: [] });
   });
 
-  it('payloadFromExerciseForm mappe vers le contrat back (snake_case, type posé, id null)', () => {
+  it('payloadFromExerciseForm maps to the backend contract (snake_case, type set, null id)', () => {
     const form = buildExerciseForm();
     patchExerciseFormFromContent(form, CONTENT);
     addQuestion(form);
-    form.controls.questions.at(2).controls.enonce.setValue('Nouvelle question');
+    form.controls.questions.at(2).controls.statement.setValue('Nouvelle question');
 
     expect(payloadFromExerciseForm(form)).toEqual({
-      enonce: '## Suites\nSoit $u_n$ une suite.',
+      statement: '## Suites\nSoit $u_n$ une suite.',
       questions: [
-        { id: 'q-1', enonce: 'Montrer que $u_n$ converge.', type: 'texte_libre', reponse_attendue: 'Par encadrement.' },
-        { id: 'q-2', enonce: 'Donner sa limite.', type: 'texte_libre', reponse_attendue: '0' },
-        { id: null, enonce: 'Nouvelle question', type: 'texte_libre', reponse_attendue: '' },
+        {
+          id: 'q-1',
+          statement: 'Montrer que $u_n$ converge.',
+          type: 'free_text',
+          expected_answer: 'Par encadrement.',
+        },
+        { id: 'q-2', statement: 'Donner sa limite.', type: 'free_text', expected_answer: '0' },
+        { id: null, statement: 'Nouvelle question', type: 'free_text', expected_answer: '' },
       ],
     });
   });
 
-  it('payloadFromBlockContent normalise un content back en payload comparable', () => {
+  it('payloadFromBlockContent normalizes a backend content into a comparable payload', () => {
     expect(payloadFromBlockContent(CONTENT)).toEqual(CONTENT);
-    expect(payloadFromBlockContent({})).toEqual({ enonce: '', questions: [] });
+    expect(payloadFromBlockContent({})).toEqual({ statement: '', questions: [] });
   });
 
-  it('addQuestion et removeQuestion émettent (autosave déclenché)', () => {
+  it('addQuestion and removeQuestion emit (autosave triggered)', () => {
     const form = buildExerciseForm();
     const emissions: unknown[] = [];
     form.valueChanges.subscribe((v) => emissions.push(v));
@@ -104,7 +114,7 @@ describe('exercise-form', () => {
     expect(form.controls.questions.length).toBe(0);
   });
 
-  it('moveQuestion déplace en émettant une seule fois, no-op aux bornes', () => {
+  it('moveQuestion moves with a single emission, no-op at the bounds', () => {
     const form = buildExerciseForm();
     patchExerciseFormFromContent(form, CONTENT);
     const emissions: unknown[] = [];
@@ -120,11 +130,11 @@ describe('exercise-form', () => {
     expect(payloadFromExerciseForm(form).questions.map((q) => q.id)).toEqual(['q-2', 'q-1']);
   });
 
-  it('moveQuestionTo déplace vers un index arbitraire en réutilisant l’instance, une seule émission', () => {
+  it('moveQuestionTo moves to an arbitrary index reusing the instance, single emission', () => {
     const form = buildExerciseForm();
     patchExerciseFormFromContent(form, CONTENT);
     addQuestion(form); // 3 questions : q-1, q-2, (id null)
-    const premier = form.controls.questions.at(0);
+    const first = form.controls.questions.at(0);
     const emissions: unknown[] = [];
     form.valueChanges.subscribe((v) => emissions.push(v));
 
@@ -134,10 +144,10 @@ describe('exercise-form', () => {
     expect(payloadFromExerciseForm(form).questions.map((q) => q.id)).toEqual(['q-2', null, 'q-1']);
     // Instance réutilisée : le même FormGroup est désormais en dernière position
     // (contrat pour @for track group, openGroup et applyGeneratedIds).
-    expect(form.controls.questions.at(2)).toBe(premier);
+    expect(form.controls.questions.at(2)).toBe(first);
   });
 
-  it('moveQuestionTo est un no-op aux bornes et pour from === to', () => {
+  it('moveQuestionTo is a no-op at the bounds and for from === to', () => {
     const form = buildExerciseForm();
     patchExerciseFormFromContent(form, CONTENT); // 2 questions
     const emissions: unknown[] = [];
@@ -151,9 +161,9 @@ describe('exercise-form', () => {
     expect(payloadFromExerciseForm(form).questions.map((q) => q.id)).toEqual(['q-1', 'q-2']);
   });
 
-  it('applyGeneratedIds pose les ids null sans émettre et sans écraser', () => {
+  it('applyGeneratedIds sets null ids without emitting and without overwriting', () => {
     const form = buildExerciseForm();
-    patchExerciseFormFromContent(form, { enonce: 'Sujet', questions: [] });
+    patchExerciseFormFromContent(form, { statement: 'Sujet', questions: [] });
     addQuestion(form);
     addQuestion(form);
     form.controls.questions.at(0).controls.id.setValue('deja-la', { emitEvent: false });
@@ -161,11 +171,11 @@ describe('exercise-form', () => {
     form.valueChanges.subscribe((v) => emissions.push(v));
 
     applyGeneratedIds([...form.controls.questions.controls], {
-      enonce: 'Sujet',
+      statement: 'Sujet',
       questions: [
-        { id: 'autre', enonce: '', type: 'texte_libre', reponse_attendue: '' },
-        { id: 'q-new', enonce: '', type: 'texte_libre', reponse_attendue: '' },
-        { id: 'disparu', enonce: '', type: 'texte_libre', reponse_attendue: '' },
+        { id: 'autre', statement: '', type: 'free_text', expected_answer: '' },
+        { id: 'q-new', statement: '', type: 'free_text', expected_answer: '' },
+        { id: 'disparu', statement: '', type: 'free_text', expected_answer: '' },
       ],
     });
 
@@ -174,29 +184,29 @@ describe('exercise-form', () => {
     expect(form.controls.questions.at(1).controls.id.value).toBe('q-new');
   });
 
-  it('applyGeneratedIds matche sur le snapshot capturé à l’envoi, pas sur la FormArray courante', () => {
+  it('applyGeneratedIds matches on the snapshot captured at send time, not the current FormArray', () => {
     // Une question supprimée pendant le vol du PATCH ne décale pas les ids
     // des groupes restants : le matching suit les instances envoyées.
     const form = buildExerciseForm();
     addQuestion(form);
     addQuestion(form);
     const snapshot = [...form.controls.questions.controls];
-    const survivant = form.controls.questions.at(1);
+    const survivor = form.controls.questions.at(1);
 
     removeQuestion(form, 0); // supprimée pendant le vol
 
     applyGeneratedIds(snapshot, {
-      enonce: '',
+      statement: '',
       questions: [
-        { id: 'id-supprimee', enonce: '', type: 'texte_libre', reponse_attendue: '' },
-        { id: 'id-survivant', enonce: '', type: 'texte_libre', reponse_attendue: '' },
+        { id: 'id-supprimee', statement: '', type: 'free_text', expected_answer: '' },
+        { id: 'id-survivant', statement: '', type: 'free_text', expected_answer: '' },
       ],
     });
 
-    expect(survivant.controls.id.value).toBe('id-survivant');
+    expect(survivor.controls.id.value).toBe('id-survivant');
   });
 
-  it('fullExerciseMarkdown concatène sujet + énoncés, ignore le vide, sépare par \\n\\n', () => {
+  it('fullExerciseMarkdown joins statement + question statements, skips blanks, separates with \\n\\n', () => {
     const form = buildExerciseForm();
     // Formulaire entièrement vide → chaîne vide.
     expect(fullExerciseMarkdown(form)).toBe('');
@@ -207,23 +217,23 @@ describe('exercise-form', () => {
     );
 
     // Sujet seul (aucune question).
-    const sujetSeul = buildExerciseForm();
-    sujetSeul.controls.enonce.setValue('Un énoncé.');
-    expect(fullExerciseMarkdown(sujetSeul)).toBe('Un énoncé.');
+    const statementOnly = buildExerciseForm();
+    statementOnly.controls.statement.setValue('Un énoncé.');
+    expect(fullExerciseMarkdown(statementOnly)).toBe('Un énoncé.');
 
     // Blocs vides ou en espaces ignorés, pas de séparateur superflu.
     patchExerciseFormFromContent(form, {
-      enonce: '   ',
+      statement: '   ',
       questions: [
-        { id: null, enonce: 'Q1', type: 'texte_libre', reponse_attendue: '' },
-        { id: null, enonce: '  ', type: 'texte_libre', reponse_attendue: '' },
-        { id: null, enonce: 'Q3', type: 'texte_libre', reponse_attendue: '' },
+        { id: null, statement: 'Q1', type: 'free_text', expected_answer: '' },
+        { id: null, statement: '  ', type: 'free_text', expected_answer: '' },
+        { id: null, statement: 'Q3', type: 'free_text', expected_answer: '' },
       ],
     });
     expect(fullExerciseMarkdown(form)).toBe('Q1\n\nQ3');
   });
 
-  it('exerciseMarkdownFromContent concatène sujet + énoncés sans réponse attendue', () => {
+  it('exerciseMarkdownFromContent joins statement + question statements without expected answers', () => {
     // Même sortie que fullExerciseMarkdown, mais depuis un content brut.
     expect(exerciseMarkdownFromContent(CONTENT)).toBe(
       '## Suites\nSoit $u_n$ une suite.\n\nMontrer que $u_n$ converge.\n\nDonner sa limite.',
@@ -232,28 +242,30 @@ describe('exercise-form', () => {
     expect(exerciseMarkdownFromContent(CONTENT)).not.toContain('Par encadrement.');
     // Content vide / malformé toléré → chaîne vide.
     expect(exerciseMarkdownFromContent({})).toBe('');
-    expect(exerciseMarkdownFromContent({ enonce: 5, questions: 'nope' })).toBe('');
+    expect(exerciseMarkdownFromContent({ statement: 5, questions: 'nope' })).toBe('');
     // Vides ignorés, pas de séparateur superflu.
     expect(
       exerciseMarkdownFromContent({
-        enonce: '   ',
+        statement: '   ',
         questions: [
-          { id: null, enonce: 'Q1', type: 'texte_libre', reponse_attendue: '' },
-          { id: null, enonce: '  ', type: 'texte_libre', reponse_attendue: '' },
-          { id: null, enonce: 'Q3', type: 'texte_libre', reponse_attendue: '' },
+          { id: null, statement: 'Q1', type: 'free_text', expected_answer: '' },
+          { id: null, statement: '  ', type: 'free_text', expected_answer: '' },
+          { id: null, statement: 'Q3', type: 'free_text', expected_answer: '' },
         ],
       }),
     ).toBe('Q1\n\nQ3');
   });
 
-  it('questionEnoncePreview normalise les espaces et tronque', () => {
-    expect(questionEnoncePreview('')).toBe('');
-    expect(questionEnoncePreview('   ')).toBe('');
+  it('questionStatementPreview normalizes whitespace and truncates', () => {
+    expect(questionStatementPreview('')).toBe('');
+    expect(questionStatementPreview('   ')).toBe('');
     // Markdown multi-lignes → une seule ligne, espaces normalisés.
-    expect(questionEnoncePreview('## Titre\n\nSoit  $x$   pair.')).toBe('## Titre Soit $x$ pair.');
+    expect(questionStatementPreview('## Titre\n\nSoit  $x$   pair.')).toBe(
+      '## Titre Soit $x$ pair.',
+    );
     // Troncature avec ellipsis au-delà de la longueur max.
     const long = 'a'.repeat(100);
-    const preview = questionEnoncePreview(long, 80);
+    const preview = questionStatementPreview(long, 80);
     expect(preview.endsWith('…')).toBe(true);
     expect(preview.length).toBe(81);
   });

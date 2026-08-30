@@ -94,7 +94,7 @@ export const routes: Routes = [
       },
       {
         // Vue élève d'un cours PUBLIC (J2) : accès direct par id, sans token.
-        // Déclaré avant `p/:profId` : `courses` doit matcher le segment
+        // Déclaré avant `p/:teacherId` : `courses` doit matcher le segment
         // littéral, pas un id de prof (convention `courses/new`).
         path: 'p/courses/:courseId',
         data: { access: 'public' },
@@ -126,7 +126,7 @@ export const routes: Routes = [
       },
       {
         // Catalogue public d'un prof (J2) : ses cours `public` uniquement.
-        path: 'p/:profId',
+        path: 'p/:teacherId',
         loadComponent: () =>
           import('./features/student/student-catalog/student-catalog').then(
             (m) => m.StudentCatalog,

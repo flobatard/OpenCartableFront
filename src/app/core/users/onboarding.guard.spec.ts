@@ -36,25 +36,25 @@ describe('onboardingGuard', () => {
     ensureLoaded = vi.fn();
   });
 
-  it('renvoie false au rendu serveur', async () => {
+  it('returns false during server rendering', async () => {
     configure('server');
     expect(await runGuard('/fr/subjects')).toBe(false);
   });
 
-  it('laisse passer un non-authentifié (authGuard en amont décide)', async () => {
+  it('lets an unauthenticated user through (upstream authGuard decides)', async () => {
     isAuthenticated.set(false);
     configure();
     expect(await runGuard('/fr/subjects')).toBe(true);
     expect(ensureLoaded).not.toHaveBeenCalled();
   });
 
-  it('laisse passer un profil onboardé', async () => {
+  it('lets an onboarded profile through', async () => {
     ensureLoaded.mockResolvedValue(USER_PROFILE_ONBOARDED_FIXTURE);
     configure();
     expect(await runGuard('/fr/subjects')).toBe(true);
   });
 
-  it('redirige un profil incomplet vers l’onboarding avec next', async () => {
+  it('redirects an incomplete profile to the onboarding with next', async () => {
     ensureLoaded.mockResolvedValue(USER_PROFILE_FIXTURE);
     configure();
     const result = await runGuard('/en/subjects');
@@ -64,7 +64,7 @@ describe('onboardingGuard', () => {
     expect(tree.queryParams['next']).toBe('/en/subjects');
   });
 
-  it('laisse passer si le profil est injoignable (fail-open)', async () => {
+  it('lets through when the profile is unreachable (fail-open)', async () => {
     ensureLoaded.mockRejectedValue(new Error('down'));
     configure();
     expect(await runGuard('/fr/subjects')).toBe(true);

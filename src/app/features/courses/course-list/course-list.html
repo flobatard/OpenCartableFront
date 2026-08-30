@@ -42,12 +42,12 @@
             [routerLink]="['/', language.lang(), 'courses', course.id]"
           >
             <h2 class="course-list__card-title">
-              {{ course.titre }}
+              {{ course.title }}
               <span
                 class="course-list__visibility-badge"
-                [class.course-list__visibility-badge--shared]="course.visibilite !== 'en_cours'"
+                [class.course-list__visibility-badge--shared]="course.visibility !== 'draft'"
               >
-                {{ 'courses.share.badge.' + course.visibilite | transloco }}
+                {{ 'courses.share.badge.' + course.visibility | transloco }}
               </span>
             </h2>
             @if (course.description) {
@@ -55,11 +55,11 @@
             }
             @if (subjectNames(course.subject_ids).length || levelNames(course.education_level_ids).length) {
               <ul class="course-list__badges">
-                @for (nom of subjectNames(course.subject_ids); track nom) {
-                  <li class="course-list__badge course-list__badge--subject">{{ nom }}</li>
+                @for (name of subjectNames(course.subject_ids); track name) {
+                  <li class="course-list__badge course-list__badge--subject">{{ name }}</li>
                 }
-                @for (nom of levelNames(course.education_level_ids); track nom) {
-                  <li class="course-list__badge course-list__badge--level">{{ nom }}</li>
+                @for (name of levelNames(course.education_level_ids); track name) {
+                  <li class="course-list__badge course-list__badge--level">{{ name }}</li>
                 }
               </ul>
             }

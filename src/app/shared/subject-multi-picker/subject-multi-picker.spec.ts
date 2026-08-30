@@ -31,7 +31,7 @@ describe('SubjectMultiPicker', () => {
   }
 
   function chipNames(fixture: ComponentFixture<SubjectMultiPicker>): string[] {
-    return [...el(fixture).querySelectorAll('.subject-multi-picker__chip-nom')].map(
+    return [...el(fixture).querySelectorAll('.subject-multi-picker__chip-name')].map(
       (c) => c.textContent?.trim() ?? '',
     );
   }
@@ -56,7 +56,7 @@ describe('SubjectMultiPicker', () => {
     vi.clearAllMocks();
   });
 
-  it('writeValue affiche les chips et dédoublonne, sans émettre', async () => {
+  it('writeValue shows the chips and dedupes, without emitting', async () => {
     const fixture = await createComponent();
     const changes: string[][] = [];
     fixture.componentInstance.registerOnChange((v) => changes.push(v));
@@ -67,7 +67,7 @@ describe('SubjectMultiPicker', () => {
     expect(changes).toEqual([]);
   });
 
-  it('sélectionner via le picker interne ajoute la matière et vide le champ', async () => {
+  it('selecting via the inner picker adds the subject and clears the field', async () => {
     const fixture = await createComponent();
     const changes: string[][] = [];
     fixture.componentInstance.registerOnChange((v) => changes.push(v));
@@ -81,7 +81,7 @@ describe('SubjectMultiPicker', () => {
     expect(text?.textContent).not.toContain('Espaces vectoriels');
   });
 
-  it('resélectionner une matière déjà choisie ne crée pas de doublon', async () => {
+  it('re-selecting an already chosen subject creates no duplicate', async () => {
     const fixture = await createComponent();
     const changes: string[][] = [];
     fixture.componentInstance.registerOnChange((v) => changes.push(v));
@@ -93,7 +93,7 @@ describe('SubjectMultiPicker', () => {
     expect(chipNames(fixture)).toEqual(['Espaces vectoriels']);
   });
 
-  it('le bouton d’une chip retire la matière', async () => {
+  it('a chip’s button removes the subject', async () => {
     const fixture = await createComponent();
     fixture.componentInstance.writeValue(['math', 'francais']);
     const changes: string[][] = [];
@@ -107,7 +107,7 @@ describe('SubjectMultiPicker', () => {
     expect(chipNames(fixture)).toEqual(['Français']);
   });
 
-  it('un id inconnu n’a pas de chip mais est préservé dans l’émission suivante', async () => {
+  it('an unknown id has no chip but is preserved in the next emission', async () => {
     const fixture = await createComponent();
     fixture.componentInstance.writeValue(['fantome']);
     const changes: string[][] = [];
@@ -120,7 +120,7 @@ describe('SubjectMultiPicker', () => {
     expect(changes).toEqual([['fantome', 'math-algebre-ev']]);
   });
 
-  it('setDisabledState désactive le champ interne et les chips', async () => {
+  it('setDisabledState disables the inner field and the chips', async () => {
     const fixture = await createComponent();
     fixture.componentInstance.writeValue(['math']);
     fixture.componentInstance.setDisabledState(true);

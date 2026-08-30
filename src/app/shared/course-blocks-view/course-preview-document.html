@@ -7,14 +7,14 @@
             class="course-preview-document__media"
             [attr.data-oc-resource-id]="res.id"
             [src]="mediaUrl()"
-            [alt]="legende() ?? res.nom_original"
+            [alt]="caption() ?? res.original_name"
           />
         }
         @case ('audio') {
           <audio
             class="course-preview-document__media"
             [attr.data-oc-resource-id]="res.id"
-            [attr.aria-label]="res.nom_original"
+            [attr.aria-label]="res.original_name"
             controls
             [src]="mediaUrl()"
           ></audio>
@@ -23,7 +23,7 @@
           <video
             class="course-preview-document__media"
             [attr.data-oc-resource-id]="res.id"
-            [attr.aria-label]="res.nom_original"
+            [attr.aria-label]="res.original_name"
             controls
             [src]="mediaUrl()"
           ></video>
@@ -34,7 +34,7 @@
         class="course-preview-document__pdf"
         [attr.data-oc-resource-id]="res.id"
         [src]="pdfUrl()"
-        [title]="res.nom_original"
+        [title]="res.original_name"
         loading="lazy"
         referrerpolicy="no-referrer"
       ></iframe>
@@ -48,8 +48,8 @@
       </div>
     } @else {
       <div class="course-preview-document__card">
-        <span class="course-preview-document__name">{{ res.nom_original }}</span>
-        <span class="course-preview-document__meta">{{ formatBytes(res.taille) }}</span>
+        <span class="course-preview-document__name">{{ res.original_name }}</span>
+        <span class="course-preview-document__meta">{{ formatBytes(res.size) }}</span>
         <button
           type="button"
           class="btn btn--secondary"
@@ -65,8 +65,8 @@
         </p>
       }
     }
-    @if (legende()) {
-      <figcaption class="course-preview-document__caption">{{ legende() }}</figcaption>
+    @if (caption()) {
+      <figcaption class="course-preview-document__caption">{{ caption() }}</figcaption>
     }
   </figure>
 } @else {

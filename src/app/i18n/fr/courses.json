@@ -47,8 +47,8 @@
     "emptyHint": "Choisis un type de bloc ci-dessous pour commencer.",
     "add": "Ajouter un bloc",
     "types": {
-      "texte": "Texte",
-      "exercice": "Exercice",
+      "text": "Texte",
+      "exercise": "Exercice",
       "document": "Document",
       "module": "Module interactif"
     },
@@ -80,8 +80,8 @@
     "retry": "Réessayer",
     "notFound": "Ce bloc n'existe pas ou a été supprimé.",
     "unsupported": "L'éditeur de contenu de ce type de bloc arrive bientôt — son titre et sa description sont déjà modifiables ci-dessus.",
-    "titreLabel": "Titre",
-    "titrePlaceholder": "Titre du bloc (facultatif)",
+    "titleLabel": "Titre",
+    "titlePlaceholder": "Titre du bloc (facultatif)",
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "Courte description (facultatif)",
     "saveMeta": "Enregistrer",
@@ -98,18 +98,18 @@
     },
     "exercise": {
       "tabsLabel": "Sections de l'exercice",
-      "sujetLabel": "Sujet",
-      "sujetHint": "Énoncé général de l'exercice, visible par les élèves.",
+      "statementLabel": "Sujet",
+      "statementHint": "Énoncé général de l'exercice, visible par les élèves.",
       "questionsTitle": "Questions",
-      "apercuLabel": "Aperçu complet",
-      "apercuEmpty": "Rien à prévisualiser pour le moment.",
+      "previewLabel": "Aperçu complet",
+      "previewEmpty": "Rien à prévisualiser pour le moment.",
       "question": "Question {{index}}",
       "empty": "Aucune question pour l'instant.",
       "add": "Ajouter une question",
-      "enonceLabel": "Énoncé",
-      "reponseLabel": "Réponse attendue",
-      "reponsePlaceholder": "Réponse de référence (facultatif)",
-      "reponseHint": "Corrigé visible uniquement par vous — jamais montré aux élèves.",
+      "questionStatementLabel": "Énoncé",
+      "answerLabel": "Réponse attendue",
+      "answerPlaceholder": "Réponse de référence (facultatif)",
+      "answerHint": "Corrigé visible uniquement par vous — jamais montré aux élèves.",
       "moveUp": "Monter la question {{index}}",
       "moveDown": "Descendre la question {{index}}",
       "dragHandle": "Réordonner la question {{index}}",
@@ -124,11 +124,11 @@
       "noResource": "Aucune ressource",
       "resourcesEmpty": "Aucune ressource disponible — ajoute d'abord un fichier dans l'onglet Ressources du cours.",
       "resourceError": "Le choix de la ressource n'a pas pu être enregistré. Réessaie.",
-      "legendeLabel": "Légende",
-      "legendePlaceholder": "Courte légende affichée avec le document (facultatif)",
-      "affichageLabel": "Affichage",
-      "affichageInline": "Intégré au cours",
-      "affichageTelechargement": "En téléchargement",
+      "captionLabel": "Légende",
+      "captionPlaceholder": "Courte légende affichée avec le document (facultatif)",
+      "displayLabel": "Affichage",
+      "displayInline": "Intégré au cours",
+      "displayDownload": "En téléchargement",
       "previewLabel": "Aperçu"
     },
     "module": {
@@ -174,9 +174,9 @@
     "delete": "Supprimer",
     "confirmDelete": "Confirmer la suppression",
     "mutationError": "L'opération n'a pas abouti. Réessayez.",
-    "statut": {
-      "en_attente": "En attente d'envoi",
-      "disponible": "Disponible"
+    "status": {
+      "pending": "En attente d'envoi",
+      "available": "Disponible"
     },
     "types": {
       "document": "Document",
@@ -233,15 +233,15 @@
   "share": {
     "badge": {
       "public": "Public",
-      "prive": "Partagé par lien",
-      "en_cours": "Brouillon"
+      "private": "Partagé par lien",
+      "draft": "Brouillon"
     },
     "visibility": {
       "legend": "Qui peut consulter ce cours ?",
-      "en_cours": "En cours de rédaction",
-      "en_coursHint": "Personne d'autre que vous. Les liens de partage existants sont suspendus.",
-      "prive": "Partagé par lien",
-      "priveHint": "Uniquement les élèves qui ont un lien de partage valide (9 mois).",
+      "draft": "En cours de rédaction",
+      "draftHint": "Personne d'autre que vous. Les liens de partage existants sont suspendus.",
+      "private": "Partagé par lien",
+      "privateHint": "Uniquement les élèves qui ont un lien de partage valide (9 mois).",
       "public": "Public",
       "publicHint": "Accessible à tous par son adresse et listé dans votre catalogue public.",
       "error": "Le changement de visibilité n'a pas abouti. Réessayez."
@@ -254,7 +254,7 @@
     "links": {
       "title": "Liens de partage",
       "hint": "Créez un lien par classe ou par groupe : chacun se révoque séparément. Un lien expire au bout de 9 mois.",
-      "libellePlaceholder": "Libellé (facultatif) — ex. 6eB 2026",
+      "labelPlaceholder": "Libellé (facultatif) — ex. 6eB 2026",
       "create": "Créer un lien",
       "createError": "La création du lien n'a pas abouti. Réessayez.",
       "loading": "Chargement des liens…",

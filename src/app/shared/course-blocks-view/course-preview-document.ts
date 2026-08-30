@@ -9,9 +9,9 @@ import { formatBytes, isPdfResource } from '../../core/resources/resource.utils'
 /**
  * Rendu d'un bloc `document` dans l'aperçu global du cours : média intégré
  * (image/audio/vidéo affichés en ligne via l'URL présignée du back), PDF
- * embarqué dans le viewer natif du navigateur (iframe, si `affichage` vaut
+ * embarqué dans le viewer natif du navigateur (iframe, si `display` vaut
  * `inline`) et repli en carte téléchargeable pour les autres `document`, les
- * PDF en `telechargement` et en cas d'échec de présignature. Présentational —
+ * PDF en `download` et en cas d'échec de présignature. Présentational —
  * n'a aucune logique d'onglet ni d'édition ; la ressource pointée lui est
  * passée résolue par l'hôte.
  *
@@ -37,10 +37,10 @@ export class CoursePreviewDocument {
   readonly courseId = input.required<string>();
   /** Ressource pointée, déjà résolue par le parent (`undefined` = supprimée/inconnue). */
   readonly resource = input<CourseResource | undefined>(undefined);
-  readonly legende = input<string | null>(null);
+  readonly caption = input<string | null>(null);
   /** Mode d'affichage éditorial du bloc — ne pèse que sur les PDF :
-      `telechargement` garde la carte au lieu de l'embed. */
-  readonly affichage = input<'inline' | 'telechargement'>('inline');
+      `download` garde la carte au lieu de l'embed. */
+  readonly display = input<'inline' | 'download'>('inline');
 
   /** URL présignée du média intégré (TTL court, jamais stockée). `null` tant
       qu'elle n'est pas résolue ou si le bloc retombe sur la carte téléchargeable. */
@@ -68,11 +68,11 @@ export class CoursePreviewDocument {
     // direct — une présignature périmée ne doit pas écraser la plus récente.
     effect((onCleanup) => {
       const resource = this.resource();
-      const affichage = this.affichage();
+      const display = this.display();
       this.#mediaUrl.set(null);
       this.#pdfUrl.set(null);
       this.#error.set(false);
-      if (!this.#isBrowser || !resource || resource.statut !== 'disponible') {
+      if (!this.#isBrowser || !resource || resource.status !== 'available') {
         return;
       }
       let stale = false;
@@ -95,7 +95,7 @@ export class CoursePreviewDocument {
           });
         return;
       }
-      if (this.#isPdf(resource) && affichage === 'inline') {
+      if (this.#isPdf(resource) && display === 'inline') {
         void this.#resources
           .getDownloadUrl(courseId, resource.id, 'inline')
           .then((url) => {
@@ -136,7 +136,7 @@ export class CoursePreviewDocument {
     return (
       !!resource &&
       this.#isPdf(resource) &&
-      this.affichage() === 'inline' &&
+      this.display() === 'inline' &&
       this.pdfUrl() !== null &&
       !this.error()
     );

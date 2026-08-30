@@ -47,14 +47,14 @@ describe('ResourceView', () => {
     getDownloadUrl = vi.fn().mockResolvedValue('https://s3.test/get/uuid/schema.pdf');
   });
 
-  it('présigne en inline puis redirige le navigateur vers l’URL S3', async () => {
+  it('presigns inline then redirects the browser to the S3 URL', async () => {
     await createComponent();
 
     expect(getDownloadUrl).toHaveBeenCalledWith('c1', 'r1', 'inline');
     expect(redirectTo).toHaveBeenCalledWith('https://s3.test/get/uuid/schema.pdf');
   });
 
-  it('affiche le spinner tant que la présignature est en vol', async () => {
+  it('shows the spinner while the presign is in flight', async () => {
     let resolve!: (url: string) => void;
     getDownloadUrl.mockReturnValue(new Promise<string>((r) => (resolve = r)));
     const fixture = createFixture();
@@ -66,7 +66,7 @@ describe('ResourceView', () => {
     await pending;
   });
 
-  it('404 : ressource introuvable (supprimée), avec lien retour au cours', async () => {
+  it('404: resource not found (deleted), with a back-to-course link', async () => {
     getDownloadUrl.mockRejectedValue(httpError(404));
     const fixture = await createComponent();
 
@@ -76,14 +76,14 @@ describe('ResourceView', () => {
     expect(back?.getAttribute('href')).toBe('/fr/courses/c1');
   });
 
-  it('409 : ressource non disponible (upload non confirmé)', async () => {
+  it('409: resource not available (upload not confirmed)', async () => {
     getDownloadUrl.mockRejectedValue(httpError(409));
     const fixture = await createComponent();
 
     expect(fixture.componentInstance.error()).toBe('unavailable');
   });
 
-  it('erreur réseau : message générique', async () => {
+  it('network error: generic message', async () => {
     getDownloadUrl.mockRejectedValue(new Error('down'));
     const fixture = await createComponent();
 

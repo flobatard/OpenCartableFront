@@ -49,7 +49,7 @@
                   (change)="toggleValue(row.node)"
                 />
                 <label class="education-level-picker__label" [for]="domId(row.node)">
-                  {{ row.node.nom }}
+                  {{ row.node.name }}
                 </label>
               </li>
             }
@@ -71,10 +71,10 @@
             type="button"
             class="education-level-picker__chip"
             [disabled]="disabled()"
-            [attr.aria-label]="'educationLevels.picker.remove' | transloco: { nom: node.nom }"
+            [attr.aria-label]="'educationLevels.picker.remove' | transloco: { name: node.name }"
             (click)="toggleValue(node)"
           >
-            <span class="education-level-picker__chip-nom">{{ node.nom }}</span>
+            <span class="education-level-picker__chip-name">{{ node.name }}</span>
             <span class="education-level-picker__chip-x" aria-hidden="true">×</span>
           </button>
         </li>

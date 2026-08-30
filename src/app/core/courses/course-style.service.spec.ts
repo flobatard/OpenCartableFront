@@ -10,13 +10,13 @@ import {
 } from './course-style.service';
 
 describe('clampCourseStyle', () => {
-  it('retourne les défauts pour une entrée vide ou nulle', () => {
+  it('returns the defaults for an empty or null input', () => {
     expect(clampCourseStyle(null)).toEqual(COURSE_STYLE_DEFAULTS);
     expect(clampCourseStyle(undefined)).toEqual(COURSE_STYLE_DEFAULTS);
     expect(clampCourseStyle({})).toEqual(COURSE_STYLE_DEFAULTS);
   });
 
-  it('borne chaque réglage numérique dans sa plage', () => {
+  it('clamps every numeric setting into its range', () => {
     const s = clampCourseStyle({
       fontSizePx: 999,
       lineHeight: 0.1,
@@ -31,7 +31,7 @@ describe('clampCourseStyle', () => {
     expect(s.paragraphGapEm).toBe(2.4);
   });
 
-  it('retombe sur le défaut pour une valeur non finie', () => {
+  it('falls back to the default for a non-finite value', () => {
     const s = clampCourseStyle({
       fontSizePx: Number.NaN,
       lineHeight: undefined as unknown as number,
@@ -40,14 +40,14 @@ describe('clampCourseStyle', () => {
     expect(s.lineHeight).toBe(COURSE_STYLE_DEFAULTS.lineHeight);
   });
 
-  it('n’accepte que sans/serif pour la police (défaut sans)', () => {
+  it('accepts only sans/serif for the font (default sans)', () => {
     expect(clampCourseStyle({ font: 'serif' }).font).toBe('serif');
     expect(clampCourseStyle({ font: 'comic' as unknown as 'sans' }).font).toBe('sans');
   });
 });
 
 describe('courseStyleVars', () => {
-  it('mappe les réglages en custom properties (facteurs écran+papier)', () => {
+  it('maps the settings to custom properties (screen+paper factors)', () => {
     const vars = courseStyleVars({
       fontSizePx: 20,
       headingScale: 1.1,
@@ -64,7 +64,7 @@ describe('courseStyleVars', () => {
     expect(vars['--course-font']).toBe('var(--font-serif)');
   });
 
-  it('rend des facteurs neutres (1) et la police sans empattement aux défauts', () => {
+  it('yields neutral factors (1) and the sans-serif font at the defaults', () => {
     const vars = courseStyleVars(COURSE_STYLE_DEFAULTS);
     expect(vars['--course-font-scale']).toBe('1');
     expect(vars['--course-line-scale']).toBe('1');
@@ -80,12 +80,12 @@ describe('CourseStyleService', () => {
     service = TestBed.inject(CourseStyleService);
   });
 
-  it('démarre sur les réglages par défaut', () => {
+  it('starts on the default settings', () => {
     expect(service.settings()).toEqual(COURSE_STYLE_DEFAULTS);
     expect(service.styleVars()['--course-font-scale']).toBe('1');
   });
 
-  it('update() applique un patch borné, reflété par styleVars()', () => {
+  it('update() applies a clamped patch, reflected by styleVars()', () => {
     service.update({ fontSizePx: 20 });
     expect(service.settings().fontSizePx).toBe(20);
     expect(service.styleVars()['--course-font-scale']).toBe('1.25');
@@ -94,13 +94,13 @@ describe('CourseStyleService', () => {
     expect(service.settings().fontSizePx).toBe(22);
   });
 
-  it('reset() restaure les défauts', () => {
+  it('reset() restores the defaults', () => {
     service.update({ fontSizePx: 20, font: 'serif' });
     service.reset();
     expect(service.settings()).toEqual(COURSE_STYLE_DEFAULTS);
   });
 
-  it('load() applique les réglages enregistrés du cours (preview_settings)', () => {
+  it('load() applies the stored course settings (preview_settings)', () => {
     service.load('course-1', { fontSizePx: 20, font: 'serif' });
     expect(service.settings().fontSizePx).toBe(20);
     expect(service.settings().font).toBe('serif');
@@ -108,12 +108,12 @@ describe('CourseStyleService', () => {
     expect(service.settings().lineHeight).toBe(COURSE_STYLE_DEFAULTS.lineHeight);
   });
 
-  it('load() traite un objet vide comme « jamais personnalisé » (défauts)', () => {
+  it('load() treats an empty object as never customized (defaults)', () => {
     service.load('course-1', {});
     expect(service.settings()).toEqual(COURSE_STYLE_DEFAULTS);
   });
 
-  it('load() est idempotent sur le même cours, réinitialise sur un autre', () => {
+  it('load() is idempotent on the same course, resets on another', () => {
     service.load('course-1');
     service.update({ fontSizePx: 20 });
 
@@ -125,7 +125,7 @@ describe('CourseStyleService', () => {
   });
 });
 
-describe('CourseStyleService — persistance', () => {
+describe('CourseStyleService — persistence', () => {
   let service: CourseStyleService;
   let httpMock: HttpTestingController;
 
@@ -142,7 +142,7 @@ describe('CourseStyleService — persistance', () => {
     vi.useRealTimers();
   });
 
-  it('persiste l’objet complet (6 champs) via PUT …/preview après le débounce', () => {
+  it('persists the full object (6 fields) via PUT …/preview after the debounce', () => {
     const url = `${environment.apiUrl}/v1/courses/course-1/preview`;
     service.load('course-1');
     service.update({ fontSizePx: 20 });
@@ -165,7 +165,7 @@ describe('CourseStyleService — persistance', () => {
     httpMock.verify();
   });
 
-  it('ne persiste pas hors contexte cours (aucun cours chargé)', () => {
+  it('does not persist outside a course context (no course loaded)', () => {
     service.update({ fontSizePx: 20 });
     vi.advanceTimersByTime(600);
     // Aucune requête émise (courseId null).

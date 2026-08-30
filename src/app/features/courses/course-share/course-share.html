@@ -38,7 +38,7 @@
         </button>
       </p>
     }
-    @if (visibility() !== 'en_cours') {
+    @if (visibility() !== 'draft') {
       <p class="course-share__library-note">
         {{ 'courses.share.libraryNotice' | transloco }}
       </p>
@@ -54,9 +54,9 @@
         type="text"
         class="course-share__libelle"
         maxlength="200"
-        [value]="libelle()"
-        [placeholder]="'courses.share.links.libellePlaceholder' | transloco"
-        (input)="libelle.set($any($event.target).value)"
+        [value]="label()"
+        [placeholder]="'courses.share.links.labelPlaceholder' | transloco"
+        (input)="label.set($any($event.target).value)"
       />
       <button type="submit" class="btn btn--primary" [disabled]="creating()">
         {{ 'courses.share.links.create' | transloco }}
@@ -89,8 +89,8 @@
             [class.course-share__row--inactive]="link.revoked || isExpired(link)"
           >
             <div class="course-share__row-main">
-              @if (link.libelle) {
-                <span class="course-share__row-libelle">{{ link.libelle }}</span>
+              @if (link.label) {
+                <span class="course-share__row-label">{{ link.label }}</span>
               }
               <span class="course-share__url">{{ shareUrl(link) }}</span>
               <span class="course-share__row-meta">

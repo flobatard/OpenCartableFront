@@ -34,28 +34,28 @@ describe('BlockCreateDialog', () => {
     el.dispatchEvent(new Event('input'));
   }
 
-  it('open(type) ouvre la modale, fixe le type et réinitialise le formulaire', async () => {
+  it('open(type) opens the dialog, sets the type and resets the form', async () => {
     const fixture = await createComponent();
     const showModal = (dialog(fixture).showModal = vi.fn());
 
-    type(field(fixture, 'titre'), 'Ancienne saisie');
+    type(field(fixture, 'title'), 'Ancienne saisie');
     fixture.componentInstance.open('document');
     fixture.detectChanges();
     await fixture.whenStable();
 
     expect(showModal).toHaveBeenCalledOnce();
-    expect(field(fixture, 'titre').value).toBe(''); // réinitialisé à l'ouverture
+    expect(field(fixture, 'title').value).toBe(''); // réinitialisé à l'ouverture
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Document'); // titre = type
   });
 
-  it('submit émet create avec le type et le méta trimé puis ferme', async () => {
+  it('submit emits create with the type and the trimmed meta, then closes', async () => {
     const fixture = await createComponent();
     dialog(fixture).showModal = vi.fn();
     const close = (dialog(fixture).close = vi.fn());
 
-    fixture.componentInstance.open('exercice');
+    fixture.componentInstance.open('exercise');
     fixture.detectChanges();
-    type(field(fixture, 'titre'), '  Mon titre  ');
+    type(field(fixture, 'title'), '  Mon titre  ');
     type(field(fixture, 'description'), 'Ma description');
 
     let emitted: { type: BlockType; meta: unknown } | undefined;
@@ -67,17 +67,17 @@ describe('BlockCreateDialog', () => {
     await fixture.whenStable();
 
     expect(emitted).toEqual({
-      type: 'exercice',
-      meta: { titre: 'Mon titre', description: 'Ma description' },
+      type: 'exercise',
+      meta: { title: 'Mon titre', description: 'Ma description' },
     });
     expect(close).toHaveBeenCalledOnce();
   });
 
-  it('crée sans saisie (méta null) reste possible', async () => {
+  it('creating without input (null meta) stays possible', async () => {
     const fixture = await createComponent();
     dialog(fixture).showModal = vi.fn();
     dialog(fixture).close = vi.fn();
-    fixture.componentInstance.open('texte');
+    fixture.componentInstance.open('text');
     fixture.detectChanges();
 
     let emitted: { type: BlockType; meta: unknown } | undefined;
@@ -88,10 +88,10 @@ describe('BlockCreateDialog', () => {
       .click();
     await fixture.whenStable();
 
-    expect(emitted).toEqual({ type: 'texte', meta: { titre: null, description: null } });
+    expect(emitted).toEqual({ type: 'text', meta: { title: null, description: null } });
   });
 
-  it('un clic sur le fond (la <dialog> elle-même) ferme', async () => {
+  it('a backdrop click (the <dialog> itself) closes', async () => {
     const fixture = await createComponent();
     const close = (dialog(fixture).close = vi.fn());
 

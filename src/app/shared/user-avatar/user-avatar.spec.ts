@@ -12,12 +12,12 @@ describe('UserAvatar', () => {
     fixture.detectChanges();
   });
 
-  it('affiche le repli SVG générique sans URL', () => {
+  it('shows the generic SVG fallback without a URL', () => {
     expect(host.querySelector('img')).toBeNull();
     expect(host.querySelector('svg.user-avatar__fallback')).not.toBeNull();
   });
 
-  it("rend l'image avec l'URL fournie, décorative (alt vide)", () => {
+  it("renders the image with the provided URL, decorative (empty alt)", () => {
     fixture.componentRef.setInput('url', 'https://s3.test/avatar.jpg');
     fixture.detectChanges();
 
@@ -28,7 +28,7 @@ describe('UserAvatar', () => {
     expect(host.querySelector('svg')).toBeNull();
   });
 
-  it("bascule sur le repli quand l'image échoue (URL présignée expirée)", () => {
+  it("falls back when the image fails (expired presigned URL)", () => {
     fixture.componentRef.setInput('url', 'https://s3.test/expired.jpg');
     fixture.detectChanges();
 
@@ -39,7 +39,7 @@ describe('UserAvatar', () => {
     expect(host.querySelector('svg.user-avatar__fallback')).not.toBeNull();
   });
 
-  it("réarme l'image quand l'URL change après une erreur", () => {
+  it("re-arms the image when the URL changes after an error", () => {
     fixture.componentRef.setInput('url', 'https://s3.test/expired.jpg');
     fixture.detectChanges();
     host.querySelector('img')?.dispatchEvent(new Event('error'));
@@ -52,7 +52,7 @@ describe('UserAvatar', () => {
     expect(host.querySelector('img')?.getAttribute('src')).toBe('https://s3.test/fresh.jpg');
   });
 
-  it('applique la classe de taille', () => {
+  it('applies the size class', () => {
     fixture.componentRef.setInput('size', 'sm');
     fixture.detectChanges();
     expect(host.classList).toContain('user-avatar--sm');

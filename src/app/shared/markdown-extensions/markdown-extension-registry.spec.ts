@@ -24,7 +24,7 @@ function setup(defs: MarkdownExtensionDef[]): MarkdownExtensionRegistry {
 }
 
 describe('MarkdownExtensionRegistry', () => {
-  it('indexe les defs enregistrées et expose defs', () => {
+  it('indexes the registered defs and exposes defs', () => {
     const def: MarkdownExtensionDef = {
       language: 'fake',
       isPrintable: true,
@@ -37,13 +37,13 @@ describe('MarkdownExtensionRegistry', () => {
     expect(registry.get('inconnu')).toBeUndefined();
   });
 
-  it('fonctionne sans aucune extension enregistrée', () => {
+  it('works with no registered extension', () => {
     const registry = setup([]);
     expect(registry.defs).toEqual([]);
     expect(registry.get('fake')).toBeUndefined();
   });
 
-  it('mémoïse l’import : loadComponent appelé une seule fois pour deux load', async () => {
+  it('memoizes the import: loadComponent called once for two loads', async () => {
     const loadComponent = vi
       .fn()
       .mockResolvedValue(FakeExtension as Type<MarkdownExtensionComponent>);
@@ -54,12 +54,12 @@ describe('MarkdownExtensionRegistry', () => {
     expect(loadComponent).toHaveBeenCalledTimes(1);
   });
 
-  it('rejette pour un langage inconnu', async () => {
+  it('rejects for an unknown language', async () => {
     const registry = setup([]);
     await expect(registry.load('inconnu')).rejects.toThrow();
   });
 
-  it('retire un import échoué du cache pour permettre la retentative', async () => {
+  it('removes a failed import from the cache to allow retrying', async () => {
     const loadComponent = vi
       .fn()
       .mockRejectedValueOnce(new Error('offline'))

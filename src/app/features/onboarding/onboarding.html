@@ -34,56 +34,56 @@
                 <input
                   type="checkbox"
                   class="onboarding__role-checkbox"
-                  [formControl]="form.controls.estProf"
+                  [formControl]="form.controls.isTeacher"
                 />
-                <span class="onboarding__role-title">{{ 'onboarding.roles.prof' | transloco }}</span>
-                <span class="onboarding__role-hint">{{ 'onboarding.roles.profHint' | transloco }}</span>
+                <span class="onboarding__role-title">{{ 'onboarding.roles.teacher' | transloco }}</span>
+                <span class="onboarding__role-hint">{{ 'onboarding.roles.teacherHint' | transloco }}</span>
               </label>
               <label class="onboarding__role-card">
                 <input
                   type="checkbox"
                   class="onboarding__role-checkbox"
-                  [formControl]="form.controls.estEleve"
+                  [formControl]="form.controls.isStudent"
                 />
-                <span class="onboarding__role-title">{{ 'onboarding.roles.eleve' | transloco }}</span>
-                <span class="onboarding__role-hint">{{ 'onboarding.roles.eleveHint' | transloco }}</span>
+                <span class="onboarding__role-title">{{ 'onboarding.roles.student' | transloco }}</span>
+                <span class="onboarding__role-hint">{{ 'onboarding.roles.studentHint' | transloco }}</span>
               </label>
             </div>
-            <label class="onboarding__nom-public">
-              <span>{{ 'onboarding.nomPublic.label' | transloco }}</span>
+            <label class="onboarding__public-name">
+              <span>{{ 'onboarding.publicName.label' | transloco }}</span>
               <input
                 type="text"
                 maxlength="100"
-                [formControl]="form.controls.nomPublic"
-                [placeholder]="'onboarding.nomPublic.placeholder' | transloco"
+                [formControl]="form.controls.publicName"
+                [placeholder]="'onboarding.publicName.placeholder' | transloco"
               />
-              <span class="onboarding__hint">{{ 'onboarding.nomPublic.hint' | transloco }}</span>
+              <span class="onboarding__hint">{{ 'onboarding.publicName.hint' | transloco }}</span>
             </label>
           </fieldset>
         }
-        @case ('systeme') {
+        @case ('system') {
           <fieldset class="onboarding__fieldset">
-            <legend class="onboarding__legend">{{ 'onboarding.systeme.legend' | transloco }}</legend>
+            <legend class="onboarding__legend">{{ 'onboarding.system.legend' | transloco }}</legend>
             @if (levels.error()) {
-              <p class="onboarding__error">{{ 'onboarding.systeme.error' | transloco }}</p>
+              <p class="onboarding__error">{{ 'onboarding.system.error' | transloco }}</p>
               <button type="button" class="btn btn--secondary" (click)="levels.reload()">
                 {{ 'onboarding.retry' | transloco }}
               </button>
-            } @else if (!systemes().length) {
+            } @else if (!systems().length) {
               <p class="onboarding__status" aria-live="polite">
-                {{ 'onboarding.systeme.loading' | transloco }}
+                {{ 'onboarding.system.loading' | transloco }}
               </p>
             } @else {
               <div class="onboarding__radios">
-                @for (code of systemes(); track code) {
+                @for (code of systems(); track code) {
                   <label class="onboarding__radio">
                     <input
                       type="radio"
-                      name="systeme"
-                      [checked]="systemeValue() === code"
-                      (change)="selectSysteme(code)"
+                      name="system"
+                      [checked]="systemValue() === code"
+                      (change)="selectSystem(code)"
                     />
-                    <span>{{ systemeLabel(code) }}</span>
+                    <span>{{ systemLabel(code) }}</span>
                   </label>
                 }
               </div>
@@ -93,25 +93,25 @@
         @case ('levelsTaught') {
           <h2 class="onboarding__step-title">{{ 'onboarding.steps.levelsTaught' | transloco }}</h2>
           <app-education-level-picker
-            [systeme]="systemeValue()"
-            [formControl]="form.controls.enseignement.controls.educationLevelIds"
+            [system]="systemValue()"
+            [formControl]="form.controls.teaching.controls.educationLevelIds"
           />
         }
         @case ('subjectsTaught') {
           <h2 class="onboarding__step-title">{{ 'onboarding.steps.subjectsTaught' | transloco }}</h2>
-          <app-subject-multi-picker [formControl]="form.controls.enseignement.controls.subjectIds" />
+          <app-subject-multi-picker [formControl]="form.controls.teaching.controls.subjectIds" />
         }
         @case ('levelsLearned') {
           <h2 class="onboarding__step-title">{{ 'onboarding.steps.levelsLearned' | transloco }}</h2>
           <app-education-level-picker
-            [systeme]="systemeValue()"
-            [formControl]="form.controls.apprentissage.controls.educationLevelIds"
+            [system]="systemValue()"
+            [formControl]="form.controls.learning.controls.educationLevelIds"
           />
         }
         @case ('subjectsLearned') {
           <h2 class="onboarding__step-title">{{ 'onboarding.steps.subjectsLearned' | transloco }}</h2>
           <app-subject-multi-picker
-            [formControl]="form.controls.apprentissage.controls.subjectIds"
+            [formControl]="form.controls.learning.controls.subjectIds"
           />
         }
       }

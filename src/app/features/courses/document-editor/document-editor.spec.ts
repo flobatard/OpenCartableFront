@@ -6,7 +6,7 @@ import { COURSE_RESOURCES_FIXTURE } from '../../../testing/resources.fixture';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
 
 describe('DocumentEditor', () => {
-  const AVAILABLE = COURSE_RESOURCES_FIXTURE.filter((r) => r.statut === 'disponible');
+  const AVAILABLE = COURSE_RESOURCES_FIXTURE.filter((r) => r.status === 'available');
   // L'aperçu embarqué (CoursePreviewDocument) présigne via le résolveur prof.
   const getDownloadUrl = vi.fn().mockResolvedValue('https://s3.example/presigned');
 
@@ -25,7 +25,7 @@ describe('DocumentEditor', () => {
     fixture.componentRef.setInput('courseId', 'course-1');
     fixture.componentRef.setInput(
       'initial',
-      inputs.initial ?? { legende: 'Schéma', affichage: 'telechargement' },
+      inputs.initial ?? { caption: 'Schéma', display: 'download' },
     );
     // `??` piègerait le cas `resourceId: null` (bloc sans ressource) : on ne
     // replie sur resource-1 que si la clé est absente.
@@ -45,34 +45,34 @@ describe('DocumentEditor', () => {
 
   beforeEach(() => getDownloadUrl.mockClear());
 
-  it('initialise le formulaire depuis [initial] sans émettre, et le select depuis [resourceId]', async () => {
+  it('initializes the form from [initial] without emitting, and the select from [resourceId]', async () => {
     const emissions: DocumentContentPayload[] = [];
     const fixture = await createComponent();
     fixture.componentInstance.contentChange.subscribe((p) => emissions.push(p));
 
     expect(fixture.componentInstance.form.getRawValue()).toEqual({
-      legende: 'Schéma',
-      affichage: 'telechargement',
+      caption: 'Schéma',
+      display: 'download',
     });
     expect(fixture.componentInstance.resourceControl.value).toBe('resource-1');
     expect(emissions).toEqual([]); // l'init ne déclenche pas l'autosave du parent
   });
 
-  it('émet contentChange à chaque frappe (légende vide → null)', async () => {
+  it('emits contentChange on every keystroke (empty caption → null)', async () => {
     const fixture = await createComponent();
     const emissions: DocumentContentPayload[] = [];
     fixture.componentInstance.contentChange.subscribe((p) => emissions.push(p));
 
-    fixture.componentInstance.form.controls.legende.setValue('Nouvelle légende');
-    fixture.componentInstance.form.controls.legende.setValue('   ');
+    fixture.componentInstance.form.controls.caption.setValue('Nouvelle légende');
+    fixture.componentInstance.form.controls.caption.setValue('   ');
 
     expect(emissions).toEqual([
-      { legende: 'Nouvelle légende', affichage: 'telechargement' },
-      { legende: null, affichage: 'telechargement' },
+      { caption: 'Nouvelle légende', display: 'download' },
+      { caption: null, display: 'download' },
     ]);
   });
 
-  it('émet resourcePick au choix d’une ressource, null pour l’option vide', async () => {
+  it('emits resourcePick when a resource is chosen, null for the empty option', async () => {
     const fixture = await createComponent();
     const picks: (string | null)[] = [];
     fixture.componentInstance.resourcePick.subscribe((id) => picks.push(id));
@@ -83,12 +83,12 @@ describe('DocumentEditor', () => {
     expect(picks).toEqual(['resource-2', null]);
   });
 
-  it('un resourceId absent de la liste retombe sur l’option vide (ressource supprimée)', async () => {
+  it('a resourceId missing from the list falls back to the empty option (deleted resource)', async () => {
     const fixture = await createComponent({ resourceId: 'resource-fantome' });
     expect(fixture.componentInstance.resourceControl.value).toBe('');
   });
 
-  it('resetResource rétablit le select sans émettre (revert après échec du PATCH)', async () => {
+  it('resetResource restores the select without emitting (revert after a failed PATCH)', async () => {
     const fixture = await createComponent();
     const picks: (string | null)[] = [];
     fixture.componentInstance.resourcePick.subscribe((id) => picks.push(id));
@@ -100,15 +100,15 @@ describe('DocumentEditor', () => {
     expect(picks).toEqual(['resource-2']); // le revert n'a rien émis
   });
 
-  it('sans ressource disponible, un message renvoie vers l’onglet Ressources', async () => {
+  it('without an available resource, a message points to the Resources tab', async () => {
     const fixture = await createComponent({ resources: [], resourceId: null });
     expect(el(fixture).querySelector('.document-editor__hint')?.textContent).toContain(
       'onglet Ressources',
     );
   });
 
-  it('monte l’aperçu de la ressource initiale avec l’éditorial du bloc (seed)', async () => {
-    // [initial] est en `telechargement` : l'aperçu du PDF doit montrer la CARTE
+  it('mounts the initial resource preview with the block’s editorial (seed)', async () => {
+    // [initial] est en `download` : l'aperçu du PDF doit montrer la CARTE
     // — preuve que le seed de l'éditorial traverse les patchs `emitEvent: false`
     // (sinon l'aperçu resterait sur le défaut `inline` → iframe).
     const fixture = await createComponent();
@@ -120,7 +120,7 @@ describe('DocumentEditor', () => {
     expect(preview!.querySelector('iframe')).toBeNull();
   });
 
-  it('l’aperçu suit le choix de ressource du select (optimiste, avant le PATCH)', async () => {
+  it('the preview follows the select’s resource choice (optimistic, before the PATCH)', async () => {
     const fixture = await createComponent();
     fixture.componentInstance.resourceControl.setValue('resource-2');
     fixture.detectChanges();
@@ -131,9 +131,9 @@ describe('DocumentEditor', () => {
     expect(el(fixture).querySelector('img.course-preview-document__media')).toBeTruthy();
   });
 
-  it('l’aperçu suit la frappe de légende (figcaption en direct)', async () => {
+  it('the preview follows caption typing (live figcaption)', async () => {
     const fixture = await createComponent();
-    fixture.componentInstance.form.controls.legende.setValue('Légende live');
+    fixture.componentInstance.form.controls.caption.setValue('Légende live');
     fixture.detectChanges();
 
     expect(el(fixture).querySelector('.course-preview-document__caption')?.textContent).toContain(
@@ -141,12 +141,12 @@ describe('DocumentEditor', () => {
     );
   });
 
-  it('sans ressource sélectionnée, aucun aperçu (jamais la notice « introuvable »)', async () => {
+  it('without a selected resource, no preview (never the “not found” notice)', async () => {
     const fixture = await createComponent({ resourceId: null });
     expect(el(fixture).querySelector('app-course-preview-document')).toBeNull();
   });
 
-  it('resetResource ramène l’aperçu sur la ressource du bloc', async () => {
+  it('resetResource brings the preview back to the block’s resource', async () => {
     const fixture = await createComponent();
     fixture.componentInstance.resourceControl.setValue('resource-2');
     fixture.detectChanges();

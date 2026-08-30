@@ -19,7 +19,7 @@ describe('CourseChat', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('rend l’en-tête, l’état vide et une saisie désactivée', async () => {
+  it('renders the header, the empty state and a disabled input', async () => {
     const fixture = await createComponent();
 
     expect(el(fixture).querySelector('.course-chat__title')?.textContent).toContain('Assistant');
@@ -30,7 +30,7 @@ describe('CourseChat', () => {
     expect(el(fixture).querySelector<HTMLButtonElement>('.course-chat__send')?.disabled).toBe(true);
   });
 
-  it('émet collapse au clic sur le bouton de repli', async () => {
+  it('emits collapse on the collapse button click', async () => {
     const fixture = await createComponent();
     const spy = vi.fn();
     fixture.componentInstance.collapse.subscribe(spy);

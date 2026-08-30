@@ -13,16 +13,20 @@
 
 /** Réponse d'une question, telle que persistée. */
 export interface StoredAnswer {
-  texte: string;
+  text: string;
   /** Marquée « terminée » par l'élève (verrouillée à l'écran). */
   locked: boolean;
   /** ISO 8601 — informatif (affichage futur, arbitrage multi-appareils J5). */
   updatedAt: string;
 }
 
-/** Valeur persistée pour un bloc exercice ; `version` ouvre les migrations. */
+/**
+ * Valeur persistée pour un bloc exercice ; `version` ouvre les migrations.
+ * v1 (historique) portait le champ `texte` — migré en `text` à la lecture,
+ * jamais perdu (cf. `readAnswers`).
+ */
 export interface StoredBlockAnswers {
-  version: 1;
+  version: 2;
   answers: Record<string, StoredAnswer>;
 }
 
@@ -33,12 +37,14 @@ export function answerStorageKey(courseId: string, blockId: string): string {
 
 /** Valeur vide (aucune réponse enregistrée). */
 export function emptyAnswers(): StoredBlockAnswers {
-  return { version: 1, answers: {} };
+  return { version: 2, answers: {} };
 }
 
 /**
  * Lit les réponses persistées d'un bloc. Toute donnée illisible (storage
  * indisponible, JSON corrompu, version inconnue) retombe sur la valeur vide.
+ * Une entrée v1 (`{texte, locked, updatedAt}`) est migrée en lecture vers la
+ * forme v2 (`{text, …}`) — la prochaine écriture repersiste en v2.
  */
 export function readAnswers(storage: Storage | null, key: string): StoredBlockAnswers {
   if (storage === null) {
@@ -53,7 +59,8 @@ export function readAnswers(storage: Storage | null, key: string): StoredBlockAn
     if (
       typeof parsed !== 'object' ||
       parsed === null ||
-      (parsed as { version?: unknown }).version !== 1 ||
+      ((parsed as { version?: unknown }).version !== 1 &&
+        (parsed as { version?: unknown }).version !== 2) ||
       typeof (parsed as { answers?: unknown }).answers !== 'object'
     ) {
       return emptyAnswers();
@@ -62,17 +69,21 @@ export function readAnswers(storage: Storage | null, key: string): StoredBlockAn
     const rawAnswers = (parsed as { answers: Record<string, unknown> }).answers;
     for (const [id, value] of Object.entries(rawAnswers)) {
       if (typeof value === 'object' && value !== null) {
-        const { texte, locked, updatedAt } = value as Partial<StoredAnswer>;
-        if (typeof texte === 'string') {
+        const { text, texte, locked, updatedAt } = value as Partial<StoredAnswer> & {
+          texte?: unknown;
+        };
+        // Migration v1→v2 : le champ historique `texte` est relu comme `text`.
+        const migrated = typeof text === 'string' ? text : typeof texte === 'string' ? texte : null;
+        if (migrated !== null) {
           answers[id] = {
-            texte,
+            text: migrated,
             locked: locked === true,
             updatedAt: typeof updatedAt === 'string' ? updatedAt : '',
           };
         }
       }
     }
-    return { version: 1, answers };
+    return { version: 2, answers };
   } catch {
     return emptyAnswers();
   }

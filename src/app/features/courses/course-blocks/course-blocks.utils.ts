@@ -16,12 +16,12 @@ export function blockExcerpt(block: CourseBlock): string {
 
 function rawExcerpt(block: CourseBlock): string {
   switch (block.type) {
-    case 'texte':
+    case 'text':
       return asString(block.content['markdown']);
-    case 'exercice':
-      return asString(block.content['enonce']);
+    case 'exercise':
+      return asString(block.content['statement']);
     case 'document':
-      return asString(block.content['legende']);
+      return asString(block.content['caption']);
     default:
       return '';
   }

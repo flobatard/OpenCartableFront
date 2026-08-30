@@ -27,7 +27,7 @@ describe('PublicEducationLevelService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('récupère l’arbre public et le pousse dans le signal', () => {
+  it('fetches the public tree and pushes it into the signal', () => {
     service.load();
     httpMock.expectOne(url).flush(EDUCATION_LEVELS_FIXTURE);
 
@@ -35,7 +35,7 @@ describe('PublicEducationLevelService', () => {
     expect(service.tree()).toEqual(EDUCATION_LEVELS_FIXTURE);
   });
 
-  it('signale une erreur réseau et se recharge via reload()', () => {
+  it('reports a network error and reloads via reload()', () => {
     service.load();
     httpMock.expectOne(url).error(new ProgressEvent('network'));
     expect(service.error()).toBe(true);

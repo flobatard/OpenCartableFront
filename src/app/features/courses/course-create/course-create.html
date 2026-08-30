@@ -3,15 +3,15 @@
 
   <form class="course-create__form" [formGroup]="form" (ngSubmit)="save()">
     <div class="course-create__field">
-      <label class="course-create__label" for="course-titre">
+      <label class="course-create__label" for="course-title">
         {{ 'courses.create.titleLabel' | transloco }}
       </label>
       <input
-        id="course-titre"
+        id="course-title"
         type="text"
         class="course-create__input"
         maxlength="300"
-        [formControl]="form.controls.titre"
+        [formControl]="form.controls.title"
         [placeholder]="'courses.create.titlePlaceholder' | transloco"
       />
     </div>
@@ -38,7 +38,7 @@
     <div class="course-create__field">
       <h2 class="course-create__section">{{ 'courses.create.levelsLabel' | transloco }}</h2>
       <app-education-level-picker
-        [systeme]="systeme()"
+        [system]="system()"
         [formControl]="form.controls.educationLevelIds"
       />
     </div>

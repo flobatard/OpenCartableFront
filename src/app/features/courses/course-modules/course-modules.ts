@@ -72,13 +72,13 @@ export class CourseModules implements OnInit {
 
   /** Crée le module (code vide) puis ouvre directement son éditeur. */
   protected async create(): Promise<void> {
-    const titre = this.createControl.value.trim();
-    if (!titre || this.mutating()) {
+    const title = this.createControl.value.trim();
+    if (!title || this.mutating()) {
       return;
     }
     this.#startMutation();
     try {
-      const module = await this.#modules.createModule(this.courseId(), { titre });
+      const module = await this.#modules.createModule(this.courseId(), { title });
       this.createControl.setValue('');
       await this.#router.navigate([
         '/',
@@ -97,7 +97,7 @@ export class CourseModules implements OnInit {
 
   protected startRename(module: ModuleSummary): void {
     this.renamingId.set(module.id);
-    this.renameControl.setValue(module.titre);
+    this.renameControl.setValue(module.title);
     this.mutationError.set(false);
   }
 
@@ -106,13 +106,13 @@ export class CourseModules implements OnInit {
   }
 
   protected async saveRename(module: ModuleSummary): Promise<void> {
-    const titre = this.renameControl.value.trim();
-    if (!titre || this.mutating()) {
+    const title = this.renameControl.value.trim();
+    if (!title || this.mutating()) {
       return;
     }
     this.#startMutation();
     try {
-      await this.#modules.renameModule(this.courseId(), module.id, titre);
+      await this.#modules.renameModule(this.courseId(), module.id, title);
       this.renamingId.set(null);
     } catch {
       this.mutationError.set(true);

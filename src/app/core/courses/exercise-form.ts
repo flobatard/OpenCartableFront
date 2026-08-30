@@ -9,32 +9,32 @@ import { ExerciseContentPayload, ExerciseQuestionPayload } from './course.model'
  * a pas généré un).
  */
 
-/** Longueurs miroir du back (`ExerciceContent`/`ExerciceQuestion`). */
-const SUJET_MAX = 100_000;
+/** Longueurs miroir du back (`ExerciseContent`/`ExerciseQuestion`). */
+const STATEMENT_MAX = 100_000;
 const QUESTION_MAX = 20_000;
 export const QUESTIONS_MAX = 50;
 
 export type ExerciseQuestionGroup = FormGroup<{
   id: FormControl<string | null>;
-  enonce: FormControl<string>;
-  reponseAttendue: FormControl<string>;
+  statement: FormControl<string>;
+  expectedAnswer: FormControl<string>;
 }>;
 
 export type ExerciseForm = FormGroup<{
-  enonce: FormControl<string>;
+  statement: FormControl<string>;
   questions: FormArray<ExerciseQuestionGroup>;
 }>;
 
 export function buildQuestionGroup(
-  question?: Partial<Pick<ExerciseQuestionPayload, 'id' | 'enonce' | 'reponse_attendue'>>,
+  question?: Partial<Pick<ExerciseQuestionPayload, 'id' | 'statement' | 'expected_answer'>>,
 ): ExerciseQuestionGroup {
   return new FormGroup({
     id: new FormControl<string | null>(question?.id ?? null),
-    enonce: new FormControl(question?.enonce ?? '', {
+    statement: new FormControl(question?.statement ?? '', {
       nonNullable: true,
       validators: [Validators.maxLength(QUESTION_MAX)],
     }),
-    reponseAttendue: new FormControl(question?.reponse_attendue ?? '', {
+    expectedAnswer: new FormControl(question?.expected_answer ?? '', {
       nonNullable: true,
       validators: [Validators.maxLength(QUESTION_MAX)],
     }),
@@ -43,9 +43,9 @@ export function buildQuestionGroup(
 
 export function buildExerciseForm(): ExerciseForm {
   return new FormGroup({
-    enonce: new FormControl('', {
+    statement: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.maxLength(SUJET_MAX)],
+      validators: [Validators.maxLength(STATEMENT_MAX)],
     }),
     questions: new FormArray<ExerciseQuestionGroup>([]),
   });
@@ -53,18 +53,18 @@ export function buildExerciseForm(): ExerciseForm {
 
 /**
  * Pré-remplit le formulaire depuis le `content` JSONB d'un bloc exercice,
- * sans émettre. Tolérant au contenu par défaut (`{"enonce": "", "questions":
- * []}`), au legacy sans `reponse_attendue` et au malformé (`questions` non
- * liste → aucune question). La `FormArray` existante est **mutée** (`clear` +
- * `push`), jamais remplacée : les souscriptions `valueChanges` posées sur le
- * formulaire survivent.
+ * sans émettre. Tolérant au contenu par défaut (`{"statement": "",
+ * "questions": []}`), au legacy sans `expected_answer` et au malformé
+ * (`questions` non liste → aucune question). La `FormArray` existante est
+ * **mutée** (`clear` + `push`), jamais remplacée : les souscriptions
+ * `valueChanges` posées sur le formulaire survivent.
  */
 export function patchExerciseFormFromContent(
   form: ExerciseForm,
   content: Record<string, unknown>,
 ): void {
-  const enonce = typeof content['enonce'] === 'string' ? content['enonce'] : '';
-  form.controls.enonce.setValue(enonce, { emitEvent: false });
+  const statement = typeof content['statement'] === 'string' ? content['statement'] : '';
+  form.controls.statement.setValue(statement, { emitEvent: false });
   const questions = form.controls.questions;
   questions.clear({ emitEvent: false });
   for (const question of normalizedQuestions(content)) {
@@ -76,12 +76,12 @@ export function patchExerciseFormFromContent(
 export function payloadFromExerciseForm(form: ExerciseForm): ExerciseContentPayload {
   const v = form.getRawValue();
   return {
-    enonce: v.enonce,
+    statement: v.statement,
     questions: v.questions.map((q) => ({
       id: q.id,
-      enonce: q.enonce,
-      type: 'texte_libre' as const,
-      reponse_attendue: q.reponseAttendue,
+      statement: q.statement,
+      type: 'free_text' as const,
+      expected_answer: q.expectedAnswer,
     })),
   };
 }
@@ -92,12 +92,12 @@ export function payloadFromExerciseForm(form: ExerciseForm): ExerciseContentPayl
  */
 export function payloadFromBlockContent(content: Record<string, unknown>): ExerciseContentPayload {
   return {
-    enonce: typeof content['enonce'] === 'string' ? content['enonce'] : '',
+    statement: typeof content['statement'] === 'string' ? content['statement'] : '',
     questions: normalizedQuestions(content).map((q) => ({
       id: q.id,
-      enonce: q.enonce,
-      type: 'texte_libre' as const,
-      reponse_attendue: q.reponse_attendue,
+      statement: q.statement,
+      type: 'free_text' as const,
+      expected_answer: q.expected_answer,
     })),
   };
 }
@@ -109,7 +109,7 @@ export function payloadFromBlockContent(content: Record<string, unknown>): Exerc
  */
 export function fullExerciseMarkdown(form: ExerciseForm): string {
   const v = form.getRawValue();
-  return joinExerciseMarkdown(v.enonce, v.questions.map((q) => q.enonce));
+  return joinExerciseMarkdown(v.statement, v.questions.map((q) => q.statement));
 }
 
 /**
@@ -121,14 +121,14 @@ export function fullExerciseMarkdown(form: ExerciseForm): string {
 export function exerciseMarkdownFromContent(content: Record<string, unknown>): string {
   const payload = payloadFromBlockContent(content);
   return joinExerciseMarkdown(
-    payload.enonce,
-    payload.questions.map((q) => q.enonce),
+    payload.statement,
+    payload.questions.map((q) => q.statement),
   );
 }
 
 /** Sujet + énoncés, vides ignorés, séparés par 2 sauts de ligne. */
-function joinExerciseMarkdown(enonce: string, questionEnonces: string[]): string {
-  return [enonce, ...questionEnonces]
+function joinExerciseMarkdown(statement: string, questionStatements: string[]): string {
+  return [statement, ...questionStatements]
     .map((s) => s.trim())
     .filter((s) => s.length > 0)
     .join('\n\n');
@@ -137,8 +137,8 @@ function joinExerciseMarkdown(enonce: string, questionEnonces: string[]): string
 /** Aperçu compact de l'énoncé pour l'en-tête replié d'une question (accordéon) :
     espaces normalisés (le markdown multi-lignes tient sur une ligne), tronqué.
     Chaîne vide si l'énoncé est vide. */
-export function questionEnoncePreview(enonce: string, maxLength = 80): string {
-  const text = enonce.replace(/\s+/g, ' ').trim();
+export function questionStatementPreview(statement: string, maxLength = 80): string {
+  const text = statement.replace(/\s+/g, ' ').trim();
   return text.length > maxLength ? `${text.slice(0, maxLength).trimEnd()}…` : text;
 }
 
@@ -198,13 +198,13 @@ export function applyGeneratedIds(
 
 function normalizedQuestions(
   content: Record<string, unknown>,
-): Pick<ExerciseQuestionPayload, 'id' | 'enonce' | 'reponse_attendue'>[] {
+): Pick<ExerciseQuestionPayload, 'id' | 'statement' | 'expected_answer'>[] {
   const raw = Array.isArray(content['questions']) ? content['questions'] : [];
   return raw
     .filter((q): q is Record<string, unknown> => typeof q === 'object' && q !== null)
     .map((q) => ({
       id: typeof q['id'] === 'string' ? q['id'] : null,
-      enonce: typeof q['enonce'] === 'string' ? q['enonce'] : '',
-      reponse_attendue: typeof q['reponse_attendue'] === 'string' ? q['reponse_attendue'] : '',
+      statement: typeof q['statement'] === 'string' ? q['statement'] : '',
+      expected_answer: typeof q['expected_answer'] === 'string' ? q['expected_answer'] : '',
     }));
 }

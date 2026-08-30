@@ -76,7 +76,7 @@ export class ModuleEditor implements OnInit, OnDestroy {
   protected readonly loading = signal(false);
   protected readonly loadError = signal(false);
   /** Titre du module (en-tête) — le renommage vit dans l'onglet Modules. */
-  protected readonly titre = signal('');
+  protected readonly title = signal('');
 
   protected readonly activeTab = signal<CodeTab>('html');
   protected readonly tabs = TAB_ORDER;
@@ -170,7 +170,7 @@ export class ModuleEditor implements OnInit, OnDestroy {
     this.#modules.getModule(this.courseId, this.moduleId).then(
       (module) => {
         this.loading.set(false);
-        this.titre.set(module.titre);
+        this.title.set(module.title);
         // Init UNIQUE des contrôles depuis le module chargé ; jamais réécrits
         // ensuite (un patch du cache post-save n'écrase pas la frappe).
         if (!this.#initialized) {

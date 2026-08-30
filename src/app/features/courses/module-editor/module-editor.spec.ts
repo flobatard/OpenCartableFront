@@ -9,7 +9,7 @@ import { ModuleEditor } from './module-editor';
 
 const DETAIL: ModuleDetail = {
   id: 'module-1',
-  titre: 'Quiz interactif',
+  title: 'Quiz interactif',
   html: '<p>Salut</p>',
   css: 'p { color: red; }',
   js: "console.log('ok')",
@@ -67,7 +67,7 @@ describe('ModuleEditor', () => {
     await configure();
   });
 
-  it('charge le module et initialise les trois contrôles une seule fois', async () => {
+  it('loads the module and initializes the three controls only once', async () => {
     const fixture = await createComponent();
     expect(modulesMock.getModule).toHaveBeenCalledWith('course-1', 'module-1');
     expect(fixture.componentInstance.htmlControl.value).toBe(DETAIL.html);
@@ -76,7 +76,7 @@ describe('ModuleEditor', () => {
     expect(el(fixture).textContent).toContain('Quiz interactif');
   });
 
-  it('trois onglets HTML/CSS/JS : bascule par [hidden], panneaux jamais détruits', async () => {
+  it('three HTML/CSS/JS tabs: switched via [hidden], panels never destroyed', async () => {
     const fixture = await createComponent();
     const panels = () => Array.from(el(fixture).querySelectorAll<HTMLElement>('[role="tabpanel"]'));
     // Les trois panneaux existent dès le départ (Monaco vit dans les trois).
@@ -91,7 +91,7 @@ describe('ModuleEditor', () => {
     expect(tabs[2].getAttribute('aria-selected')).toBe('true');
   });
 
-  it('la preview reçoit le code chargé puis suit la frappe (debounce 500 ms)', async () => {
+  it('the preview receives the loaded code then follows typing (500 ms debounce)', async () => {
     vi.useFakeTimers();
     try {
       const fixture = await createComponent();
@@ -117,7 +117,7 @@ describe('ModuleEditor', () => {
     }
   });
 
-  it('autosave : frappe → dirty → PATCH du code complet après 1500 ms → saved', async () => {
+  it('autosave: keystroke → dirty → PATCH of the full code after 1500 ms → saved', async () => {
     vi.useFakeTimers();
     try {
       const fixture = await createComponent();
@@ -138,7 +138,7 @@ describe('ModuleEditor', () => {
     }
   });
 
-  it('pas de PATCH quand le code revient à l’état persisté', async () => {
+  it('no PATCH when the code returns to the persisted state', async () => {
     vi.useFakeTimers();
     try {
       const fixture = await createComponent();
@@ -152,7 +152,7 @@ describe('ModuleEditor', () => {
     }
   });
 
-  it('flush au ngOnDestroy si une frappe n’a pas été persistée', async () => {
+  it('flushes on ngOnDestroy when a keystroke was not persisted', async () => {
     vi.useFakeTimers();
     try {
       const fixture = await createComponent();
@@ -172,7 +172,7 @@ describe('ModuleEditor', () => {
     }
   });
 
-  it('le flush au destroy attend le PATCH en vol (l’ancien code n’écrase jamais le nouveau)', async () => {
+  it('the destroy flush awaits the in-flight PATCH (old code never overwrites new)', async () => {
     vi.useFakeTimers();
     try {
       const fixture = await createComponent();
@@ -211,7 +211,7 @@ describe('ModuleEditor', () => {
     }
   });
 
-  it('assistant : visible par défaut, replié par la bascule, rouvert au repli', async () => {
+  it('assistant: visible by default, collapsed by the toggle, reopened after collapse', async () => {
     const fixture = await createComponent();
     const chat = () => el(fixture).querySelector<HTMLElement>('app-course-chat')!;
     const divider = () => el(fixture).querySelector<HTMLElement>('.module-editor__divider')!;
@@ -230,7 +230,7 @@ describe('ModuleEditor', () => {
     expect(chat().hidden).toBe(false);
   });
 
-  it('la poignée redimensionne au clavier, bornée 15–85 %', async () => {
+  it('the handle resizes via keyboard, clamped to 15–85%', async () => {
     const fixture = await createComponent();
     const divider = el(fixture).querySelector<HTMLElement>('.module-editor__divider')!;
     expect(divider.getAttribute('aria-valuenow')).toBe('68');
@@ -244,7 +244,7 @@ describe('ModuleEditor', () => {
     expect(divider.getAttribute('aria-valuenow')).toBe('85');
   });
 
-  it('erreur de chargement : message + bouton Réessayer', async () => {
+  it('load error: message + retry button', async () => {
     modulesMock.getModule.mockRejectedValueOnce(new Error('boom'));
     const fixture = await createComponent();
     expect(el(fixture).textContent).toContain('Impossible de charger');

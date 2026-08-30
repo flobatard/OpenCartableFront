@@ -25,7 +25,7 @@ describe('PublicSubjectService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('récupère l’arbre public et le pousse dans le signal', () => {
+  it('fetches the public tree and pushes it into the signal', () => {
     service.load();
     httpMock.expectOne(url).flush(SUBJECTS_FIXTURE);
 
@@ -33,14 +33,14 @@ describe('PublicSubjectService', () => {
     expect(service.tree()).toEqual(SUBJECTS_FIXTURE);
   });
 
-  it('ne fait qu’un seul appel réseau pour plusieurs abonnés (cache shareReplay)', () => {
+  it('issues a single network call for several subscribers (shareReplay cache)', () => {
     service.tree$().subscribe();
     service.tree$().subscribe();
     httpMock.expectOne(url).flush(SUBJECTS_FIXTURE);
     httpMock.verify();
   });
 
-  it('signale une erreur réseau et se recharge via reload()', () => {
+  it('reports a network error and reloads via reload()', () => {
     service.load();
     httpMock.expectOne(url).error(new ProgressEvent('network'));
     expect(service.error()).toBe(true);

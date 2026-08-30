@@ -34,7 +34,7 @@ import { CourseShare } from '../course-share/course-share';
 import { moveIdTo } from './course-blocks.utils';
 
 /** Types proposés à l'ajout — tous créables. */
-const CREATABLE_TYPES: readonly BlockType[] = ['texte', 'exercice', 'document', 'module'];
+const CREATABLE_TYPES: readonly BlockType[] = ['text', 'exercise', 'document', 'module'];
 
 /** Suffixe d'ids ARIA uniques par instance (compteur de module, jamais Date/Random). */
 let sequence = 0;
@@ -197,15 +197,15 @@ export class CourseBlocks implements OnInit {
   /** Noms des matières du cours (id inconnu de l'arbre → pas de chip). */
   protected subjectNames(ids: string[]): string[] {
     return ids
-      .map((id) => findSubjectById(this.#subjects.tree(), id)?.nom)
-      .filter((nom): nom is string => nom !== undefined);
+      .map((id) => findSubjectById(this.#subjects.tree(), id)?.name)
+      .filter((name): name is string => name !== undefined);
   }
 
   /** Noms des niveaux du cours, en ordre d'arbre (id inconnu → pas de chip). */
   protected levelNames(ids: string[]): string[] {
     return sortByTreeOrder(this.#levels.tree(), ids)
-      .map((id) => findLevelById(this.#levels.tree(), id)?.nom)
-      .filter((nom): nom is string => nom !== undefined);
+      .map((id) => findLevelById(this.#levels.tree(), id)?.name)
+      .filter((name): name is string => name !== undefined);
   }
 
   /** Ouvre la modale de création pour le type demandé (saisie titre/description). */
@@ -362,7 +362,7 @@ export class CourseBlocks implements OnInit {
     this.exporting.set(true);
     try {
       const blob = await this.#courses.exportCourse(this.#courseId);
-      downloadBlob(blob, courseExportFilename(detail.titre));
+      downloadBlob(blob, courseExportFilename(detail.title));
     } catch {
       this.#notifications.error(this.#transloco.translate('courses.blocks.exportError'));
     } finally {

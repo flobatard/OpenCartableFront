@@ -25,7 +25,7 @@ describe('MarkdownField', () => {
   };
   const modulesMock = {
     list: signal<ModuleSummary[]>([
-      { id: 'module-1', titre: 'Quiz interactif', created_at: '', updated_at: '' },
+      { id: 'module-1', title: 'Quiz interactif', created_at: '', updated_at: '' },
     ]),
     listLoading: signal(false),
     loadList: vi.fn(),
@@ -66,7 +66,7 @@ describe('MarkdownField', () => {
     return [...el(fixture).querySelectorAll<HTMLButtonElement>('button[role="tab"]')];
   }
 
-  it('writeValue alimente le contrôle sans émettre onChange', async () => {
+  it('writeValue feeds the control without emitting onChange', async () => {
     const fixture = await createComponent();
     const changes: string[] = [];
     fixture.componentInstance.registerOnChange((v) => changes.push(v));
@@ -78,7 +78,7 @@ describe('MarkdownField', () => {
     expect(changes).toEqual([]);
   });
 
-  it('la frappe dans le contrôle interne relaie la valeur (registerOnChange)', async () => {
+  it('typing in the inner control relays the value (registerOnChange)', async () => {
     const fixture = await createComponent();
     const changes: string[] = [];
     fixture.componentInstance.registerOnChange((v) => changes.push(v));
@@ -89,7 +89,7 @@ describe('MarkdownField', () => {
     expect(changes).toEqual(['tapé']);
   });
 
-  it('setDisabledState désactive le contrôle interne', async () => {
+  it('setDisabledState disables the inner control', async () => {
     const fixture = await createComponent();
     fixture.componentInstance.setDisabledState(true);
     expect(fixture.componentInstance.control.disabled).toBe(true);
@@ -98,7 +98,7 @@ describe('MarkdownField', () => {
     expect(fixture.componentInstance.control.disabled).toBe(false);
   });
 
-  it('l’onglet aperçu rend le markdown local ; l’éditeur reste monté', async () => {
+  it('the preview tab renders the local markdown; the editor stays mounted', async () => {
     const fixture = await createComponent();
     fixture.componentInstance.control.setValue('## Section');
     await fixture.whenStable();
@@ -112,7 +112,7 @@ describe('MarkdownField', () => {
     expect(editorPanel?.hidden).toBe(true);
   });
 
-  it('l’aperçu rend les formules LaTeX via KaTeX', async () => {
+  it('the preview renders LaTeX formulas via KaTeX', async () => {
     const fixture = await createComponent();
     fixture.componentInstance.control.setValue('Soit $x^2$ un carré.');
     await fixture.whenStable();
@@ -123,7 +123,7 @@ describe('MarkdownField', () => {
     expect(el(fixture).querySelector('.markdown-field__preview .katex')).toBeTruthy();
   });
 
-  it('les flèches basculent d’onglet (APG tabs)', async () => {
+  it('arrow keys switch tabs (APG tabs)', async () => {
     const fixture = await createComponent();
     const tablist = el(fixture).querySelector('[role="tablist"]')!;
 
@@ -132,7 +132,7 @@ describe('MarkdownField', () => {
     expect(tabs(fixture)[1].getAttribute('aria-selected')).toBe('true');
   });
 
-  it('deux instances portent des ids de tablist distincts', async () => {
+  it('two instances carry distinct tablist ids', async () => {
     await configure();
     const a = await instantiate();
     const b = await instantiate();
@@ -144,25 +144,25 @@ describe('MarkdownField', () => {
     );
   });
 
-  it('sans courseId : pas de bouton d’insertion de ressource', async () => {
+  it('without courseId: no resource insertion button', async () => {
     const fixture = await createComponent();
     expect(el(fixture).querySelector('.markdown-field__insert-btn')).toBeNull();
   });
 
-  it('avec courseId : le bouton d’insertion de ressource apparaît', async () => {
+  it('with courseId: the resource insertion button appears', async () => {
     await configure();
     const fixture = await instantiate('course-1');
     expect(el(fixture).querySelector('.markdown-field__insert-btn')).toBeTruthy();
   });
 
-  it('choisir une ressource insère son snippet markdown au curseur', async () => {
+  it('picking a resource inserts its markdown snippet at the cursor', async () => {
     await configure();
     const fixture = await instantiate('course-1');
     const editor = fixture.debugElement.query(By.directive(MarkdownEditor))
       .componentInstance as MarkdownEditor;
     const insert = vi.spyOn(editor, 'insertAtCursor');
 
-    // Le picker (toujours monté) liste les ressources `disponible` ; on clique la 1re.
+    // Le picker (toujours monté) liste les ressources `available` ; on clique la 1re.
     el(fixture).querySelector<HTMLButtonElement>('.res-picker__item')!.click();
 
     expect(insert).toHaveBeenCalledWith('[schema-suites.pdf](oc-resource:resource-1)');

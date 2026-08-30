@@ -30,7 +30,7 @@ import { Spinner } from '../../../shared/spinner/spinner';
 /** Question affichable (formes inattendues du JSONB filtrées). */
 interface ExerciseQuestion {
   id: string;
-  enonce: string;
+  statement: string;
 }
 
 /** Délai d'autosave localStorage après une frappe (ms). */
@@ -78,7 +78,7 @@ export class StudentExercise implements OnDestroy {
   protected readonly block = computed(() => {
     const detail = this.detail();
     return (
-      detail?.blocks.find((b) => b.id === this.#blockId && b.type === 'exercice') ?? null
+      detail?.blocks.find((b) => b.id === this.#blockId && b.type === 'exercise') ?? null
     );
   });
 
@@ -91,10 +91,10 @@ export class StudentExercise implements OnDestroy {
       (this.detail() !== null && this.block() === null),
   );
 
-  /** Sujet de l'exercice (`content.enonce`, gardé string). */
-  protected readonly enonce = computed(() => {
+  /** Sujet de l'exercice (`content.statement`, gardé string). */
+  protected readonly statement = computed(() => {
     const content = this.block()?.content;
-    return typeof content?.['enonce'] === 'string' ? content['enonce'] : '';
+    return typeof content?.['statement'] === 'string' ? content['statement'] : '';
   });
 
   /** Questions affichables (id + énoncé), dans l'ordre du back. */
@@ -105,9 +105,9 @@ export class StudentExercise implements OnDestroy {
       if (typeof q !== 'object' || q === null) {
         return [];
       }
-      const { id, enonce } = q as { id?: unknown; enonce?: unknown };
+      const { id, statement } = q as { id?: unknown; statement?: unknown };
       return typeof id === 'string'
-        ? [{ id, enonce: typeof enonce === 'string' ? enonce : '' }]
+        ? [{ id, statement: typeof statement === 'string' ? statement : '' }]
         : [];
     });
   });
@@ -120,7 +120,7 @@ export class StudentExercise implements OnDestroy {
 
   /** Vrai dès qu'au moins une réponse est enregistrée sur l'appareil. */
   protected readonly hasAnswers = computed(
-    () => Object.values(this.answers()).some((a) => a.texte !== '' || a.locked),
+    () => Object.values(this.answers()).some((a) => a.text !== '' || a.locked),
   );
 
   #saveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -164,7 +164,7 @@ export class StudentExercise implements OnDestroy {
 
   /** Réponse courante d'une question (chaîne vide si jamais saisie). */
   protected answerText(questionId: string): string {
-    return this.answers()[questionId]?.texte ?? '';
+    return this.answers()[questionId]?.text ?? '';
   }
 
   /** Question marquée « terminée » (textarea verrouillée). */
@@ -177,7 +177,7 @@ export class StudentExercise implements OnDestroy {
     this.answers.update((answers) => ({
       ...answers,
       [questionId]: {
-        texte: value,
+        text: value,
         locked: answers[questionId]?.locked === true,
         updatedAt: new Date().toISOString(),
       },
@@ -190,7 +190,7 @@ export class StudentExercise implements OnDestroy {
     this.answers.update((answers) => ({
       ...answers,
       [questionId]: {
-        texte: answers[questionId]?.texte ?? '',
+        text: answers[questionId]?.text ?? '',
         locked: answers[questionId]?.locked !== true,
         updatedAt: new Date().toISOString(),
       },
@@ -234,7 +234,7 @@ export class StudentExercise implements OnDestroy {
       return;
     }
     const ok = writeAnswers(this.#storage, this.#restoredKey, {
-      version: 1,
+      version: 2,
       answers: this.answers(),
     });
     this.storageOk.set(ok);

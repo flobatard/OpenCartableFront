@@ -44,11 +44,11 @@ export function baseUrlRequired(provider: AiProvider | null): boolean {
 }
 
 /** Clé requise pour un provider cloud tant qu'aucune clé n'est enregistrée. */
-export function keyRequired(provider: AiProvider | null, apiKeyDefinie: boolean): boolean {
+export function keyRequired(provider: AiProvider | null, apiKeySet: boolean): boolean {
   if (provider === null || PROVIDERS_KEY_OPTIONAL.includes(provider)) {
     return false;
   }
-  return !apiKeyDefinie;
+  return !apiKeySet;
 }
 
 /**
@@ -72,12 +72,12 @@ export function payloadFromForm(form: AiCredentialsForm): AiCredentialsPayload {
 }
 
 /** Règles de complétude (mêmes que la validation back). */
-export function isFormComplete(v: AiCredentialsForm['value'], apiKeyDefinie: boolean): boolean {
+export function isFormComplete(v: AiCredentialsForm['value'], apiKeySet: boolean): boolean {
   const provider = v.provider ?? null;
   if (!provider || !v.model?.trim()) {
     return false;
   }
-  if (keyRequired(provider, apiKeyDefinie) && !v.apiKey?.trim()) {
+  if (keyRequired(provider, apiKeySet) && !v.apiKey?.trim()) {
     return false;
   }
   if (baseUrlRequired(provider) && !v.baseUrl?.trim()) {

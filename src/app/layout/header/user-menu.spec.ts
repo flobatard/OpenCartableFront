@@ -61,7 +61,7 @@ describe('UserMenu', () => {
     vi.clearAllMocks();
   });
 
-  it('fermé par défaut : affiche le nom, pas de menu dans le DOM', async () => {
+  it('closed by default: shows the name, no menu in the DOM', async () => {
     const fixture = await createComponent();
 
     expect(trigger(fixture).textContent).toContain('Prof');
@@ -69,7 +69,7 @@ describe('UserMenu', () => {
     expect(el(fixture).querySelector('[role="menu"]')).toBeNull();
   });
 
-  it("charge le profil (fail-open) et affiche l'avatar dans le déclencheur", async () => {
+  it("loads the profile (fail-open) and shows the avatar in the trigger", async () => {
     const fixture = await createComponent();
 
     // Sans profil chargé : repli SVG générique, et le GET partagé est parti.
@@ -87,7 +87,7 @@ describe('UserMenu', () => {
     ).toBe('https://s3.test/avatar.jpg');
   });
 
-  it("reste fonctionnel si le chargement du profil échoue", async () => {
+  it("stays functional when the profile load fails", async () => {
     ensureLoaded = vi.fn().mockRejectedValue(new Error('down'));
     const fixture = await createComponent();
     await openMenu(fixture);
@@ -96,7 +96,7 @@ describe('UserMenu', () => {
     expect(trigger(fixture).querySelector('app-user-avatar svg')).not.toBeNull();
   });
 
-  it('le clic ouvre le menu avec « Paramètres » et « Se déconnecter »', async () => {
+  it('clicking opens the menu with “Paramètres” and “Se déconnecter”', async () => {
     const fixture = await createComponent();
     await openMenu(fixture);
 
@@ -107,7 +107,7 @@ describe('UserMenu', () => {
     ]);
   });
 
-  it('le lien « Paramètres » pointe vers /fr/settings et ferme le menu', async () => {
+  it('the “Paramètres” link points to /fr/settings and closes the menu', async () => {
     const fixture = await createComponent();
     await openMenu(fixture);
 
@@ -119,7 +119,7 @@ describe('UserMenu', () => {
     expect(el(fixture).querySelector('[role="menu"]')).toBeNull();
   });
 
-  it('« Se déconnecter » appelle logout et ferme le menu', async () => {
+  it('“Se déconnecter” calls logout and closes the menu', async () => {
     const fixture = await createComponent();
     await openMenu(fixture);
 
@@ -130,7 +130,7 @@ describe('UserMenu', () => {
     expect(el(fixture).querySelector('[role="menu"]')).toBeNull();
   });
 
-  it('Escape ferme le menu et rend le focus au déclencheur', async () => {
+  it('Escape closes the menu and returns focus to the trigger', async () => {
     const fixture = await createComponent();
     await openMenu(fixture);
 
@@ -143,7 +143,7 @@ describe('UserMenu', () => {
     expect(document.activeElement).toBe(trigger(fixture));
   });
 
-  it('un focus sortant du composant ferme le menu', async () => {
+  it('focus leaving the component closes the menu', async () => {
     const fixture = await createComponent();
     await openMenu(fixture);
 
@@ -155,7 +155,7 @@ describe('UserMenu', () => {
     expect(el(fixture).querySelector('[role="menu"]')).toBeNull();
   });
 
-  it('ArrowDown sur le déclencheur ouvre et focalise le premier item', async () => {
+  it('ArrowDown on the trigger opens and focuses the first item', async () => {
     const fixture = await createComponent();
 
     trigger(fixture).dispatchEvent(
@@ -167,7 +167,7 @@ describe('UserMenu', () => {
     expect(document.activeElement).toBe(items(fixture)[0]);
   });
 
-  it('les flèches cyclent entre les items', async () => {
+  it('arrow keys cycle through the items', async () => {
     const fixture = await createComponent();
     await openMenu(fixture);
     items(fixture)[0].focus();

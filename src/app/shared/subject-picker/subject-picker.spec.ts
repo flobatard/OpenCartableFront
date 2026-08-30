@@ -35,12 +35,12 @@ describe('SubjectPicker', () => {
     vi.clearAllMocks();
   });
 
-  it('charge l’arbre au démarrage', async () => {
+  it('loads the tree on startup', async () => {
     await createComponent();
     expect(subjectsMock.load).toHaveBeenCalled();
   });
 
-  it('writeValue restaure l’affichage du chemin complet', async () => {
+  it('writeValue restores the full path display', async () => {
     const fixture = await createComponent();
     fixture.componentInstance.writeValue('math-algebre-ev');
     await fixture.whenStable();
@@ -49,7 +49,7 @@ describe('SubjectPicker', () => {
     expect(text?.textContent?.trim()).toBe('Mathématiques › Algèbre › Espaces vectoriels');
   });
 
-  it('émet l’id du nœud via registerOnChange à la sélection', async () => {
+  it('emits the node id via registerOnChange on selection', async () => {
     const fixture = await createComponent();
     const changes: (string | null)[] = [];
     fixture.componentInstance.registerOnChange((v) => changes.push(v));
@@ -62,7 +62,7 @@ describe('SubjectPicker', () => {
     expect(changes).toEqual(['math']);
   });
 
-  it('setDisabledState désactive le champ', async () => {
+  it('setDisabledState disables the field', async () => {
     const fixture = await createComponent();
     fixture.componentInstance.setDisabledState(true);
     await fixture.whenStable();
@@ -71,7 +71,7 @@ describe('SubjectPicker', () => {
     expect(field?.disabled).toBe(true);
   });
 
-  it('leavesOnly rend les nœuds à enfants non sélectionnables', async () => {
+  it('leavesOnly makes nodes with children unselectable', async () => {
     const fixture = await createComponent();
     fixture.componentRef.setInput('leavesOnly', true);
     await fixture.whenStable();
@@ -90,7 +90,7 @@ describe('SubjectPicker', () => {
     expect(changes).toEqual([]);
   });
 
-  it('filtre à tous les niveaux et affiche le chemin des résultats', async () => {
+  it('filters at every level and shows the result paths', async () => {
     const fixture = await createComponent();
     el(fixture).querySelector<HTMLButtonElement>('.subject-picker__field')?.click();
     await fixture.whenStable();

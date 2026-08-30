@@ -12,9 +12,9 @@
   "childCount": "{{ count }} subtopic(s)",
   "level": {
     "discipline": "Discipline",
-    "domaine": "Domain",
-    "sousDomaine": "Subdomain",
-    "sujet": "Topic"
+    "domain": "Domain",
+    "subdomain": "Subdomain",
+    "topic": "Topic"
   },
   "picker": {
     "placeholder": "Choose a subject",
@@ -22,6 +22,6 @@
     "noResults": "No subject found."
   },
   "multiPicker": {
-    "remove": "Remove {{ nom }}"
+    "remove": "Remove {{ name }}"
   }
 }

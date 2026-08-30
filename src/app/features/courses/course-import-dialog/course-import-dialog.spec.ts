@@ -66,7 +66,7 @@ describe('CourseImportDialog', () => {
     );
   }
 
-  it('open() ouvre la modale réinitialisée ; sans fichier, Importer est désactivé', async () => {
+  it('open() opens the reset dialog; without a file, Import is disabled', async () => {
     const fixture = await createComponent();
     const showModal = (dialog(fixture).showModal = vi.fn());
 
@@ -77,7 +77,7 @@ describe('CourseImportDialog', () => {
     expect(submitButton(fixture).disabled).toBe(true);
   });
 
-  it('affiche nom et taille du fichier choisi et active Importer', async () => {
+  it('shows the chosen file’s name and size and enables Import', async () => {
     const fixture = await createComponent();
     selectFile(fixture, new File(['abc'], 'cours-fractions.zip', { type: 'application/zip' }));
 
@@ -87,7 +87,7 @@ describe('CourseImportDialog', () => {
     expect(errorText(fixture)).toBe('');
   });
 
-  it('refuse un fichier au-dessus du plafond, sans requête', async () => {
+  it('refuses a file above the cap, without a request', async () => {
     const fixture = await createComponent();
     const gros = new File(['x'], 'gros.zip', { type: 'application/zip' });
     Object.defineProperty(gros, 'size', { value: MAX_IMPORT_BYTES + 1 });
@@ -98,7 +98,7 @@ describe('CourseImportDialog', () => {
     expect(importCourse).not.toHaveBeenCalled();
   });
 
-  it('import réussi : ferme, toast succès, navigue vers le cours créé', async () => {
+  it('successful import: closes, success toast, navigates to the created course', async () => {
     const fixture = await createComponent();
     dialog(fixture).showModal = vi.fn();
     const close = (dialog(fixture).close = vi.fn());
@@ -115,7 +115,7 @@ describe('CourseImportDialog', () => {
     expect(navigate).toHaveBeenCalledWith(['/', 'fr', 'courses', 'c-importe']);
   });
 
-  it('422 → message « archive invalide », pas de navigation', async () => {
+  it('422 → “invalid archive” message, no navigation', async () => {
     const fixture = await createComponent();
     dialog(fixture).showModal = vi.fn();
     importCourse.mockRejectedValue(new HttpErrorResponse({ status: 422 }));
@@ -129,7 +129,7 @@ describe('CourseImportDialog', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
-  it('pendant l’envoi : progression affichée, boutons figés, close() no-op', async () => {
+  it('while sending: progress shown, buttons frozen, close() is a no-op', async () => {
     const fixture = await createComponent();
     const close = (dialog(fixture).close = vi.fn());
     selectFile(fixture, new File(['zip'], 'cours.zip', { type: 'application/zip' }));

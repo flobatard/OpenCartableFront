@@ -59,15 +59,15 @@ export class CourseList {
   /** Noms des matières du cours (id inconnu de l'arbre → pas de chip). */
   protected subjectNames(ids: string[]): string[] {
     return ids
-      .map((id) => findSubjectById(this.#subjects.tree(), id)?.nom)
-      .filter((nom): nom is string => nom !== undefined);
+      .map((id) => findSubjectById(this.#subjects.tree(), id)?.name)
+      .filter((name): name is string => name !== undefined);
   }
 
   /** Noms des niveaux du cours, en ordre d'arbre (id inconnu → pas de chip). */
   protected levelNames(ids: string[]): string[] {
     return sortByTreeOrder(this.#levels.tree(), ids)
-      .map((id) => findLevelById(this.#levels.tree(), id)?.nom)
-      .filter((nom): nom is string => nom !== undefined);
+      .map((id) => findLevelById(this.#levels.tree(), id)?.name)
+      .filter((name): name is string => name !== undefined);
   }
 
   /** Date de dernière modification dans la locale de l'UI (pas de DatePipe : locale fr non enregistrée). */

@@ -45,13 +45,13 @@ describe('Subjects', () => {
     vi.clearAllMocks();
   });
 
-  it('charge l’arbre au démarrage et affiche les disciplines repliées', async () => {
+  it('loads the tree on startup and shows disciplines collapsed', async () => {
     const fixture = await createComponent();
     expect(subjectsMock.load).toHaveBeenCalled();
     expect(names(fixture)).toEqual(['Mathématiques', 'Français']);
   });
 
-  it('déplie un nœud au clic sur le chevron', async () => {
+  it('expands a node on chevron click', async () => {
     const fixture = await createComponent();
     el(fixture).querySelector<HTMLButtonElement>('.subjects__twistie')?.click();
     await fixture.whenStable();
@@ -59,7 +59,7 @@ describe('Subjects', () => {
     expect(names(fixture)).toContain('Algèbre');
   });
 
-  it('« tout déplier » montre tous les nœuds', async () => {
+  it('“expand all” shows every node', async () => {
     const fixture = await createComponent();
     const expandAll = Array.from(
       el(fixture).querySelectorAll<HTMLButtonElement>('.subjects__actions .btn'),
@@ -71,7 +71,7 @@ describe('Subjects', () => {
     expect(names(fixture)).toHaveLength(6);
   });
 
-  it('la recherche déplie les branches contenant un résultat', async () => {
+  it('searching expands the branches containing a result', async () => {
     const fixture = await createComponent();
     const search = el(fixture).querySelector<HTMLInputElement>('.subjects__search');
     search!.value = 'espaces';
@@ -81,21 +81,21 @@ describe('Subjects', () => {
     expect(names(fixture)).toEqual(['Mathématiques', 'Algèbre', 'Espaces vectoriels']);
   });
 
-  it('affiche le compteur d’enfants et le libellé de niveau', async () => {
+  it('shows the child count and the level label', async () => {
     const fixture = await createComponent();
     const firstNode = el(fixture).querySelector('.subjects__node');
     expect(firstNode?.querySelector('.subjects__count')?.textContent?.trim()).toBe('2');
     expect(firstNode?.querySelector('.subjects__level')?.textContent?.trim()).toBe('Discipline');
   });
 
-  it('affiche un skeleton pendant le chargement', async () => {
+  it('shows a skeleton while loading', async () => {
     loading.set(true);
     const fixture = await createComponent();
     expect(el(fixture).querySelector('.subjects__skeleton')).toBeTruthy();
     expect(el(fixture).querySelector('.subjects__tree')).toBeNull();
   });
 
-  it('affiche l’erreur et relance le fetch via Réessayer', async () => {
+  it('shows the error and refetches via the retry button', async () => {
     error.set(true);
     const fixture = await createComponent();
     const retry = el(fixture).querySelector<HTMLButtonElement>('.subjects__error .btn');

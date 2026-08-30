@@ -45,7 +45,7 @@
       @for (resource of list(); track resource.id) {
         <li
           class="course-resources__row"
-          [class.course-resources__row--pending]="resource.statut === 'en_attente'"
+          [class.course-resources__row--pending]="resource.status === 'pending'"
         >
           <span class="course-resources__type">
             {{ typeKey(resource) | transloco }}
@@ -68,11 +68,11 @@
                 </button>
               </form>
             } @else {
-              <span class="course-resources__name">{{ resource.nom_original }}</span>
+              <span class="course-resources__name">{{ resource.original_name }}</span>
               <span class="course-resources__meta">
-                {{ formatSize(resource.taille) }} · {{ addedOn(resource.created_at) }}
-                @if (resource.statut === 'en_attente') {
-                  · {{ 'courses.resources.statut.en_attente' | transloco }}
+                {{ formatSize(resource.size) }} · {{ addedOn(resource.created_at) }}
+                @if (resource.status === 'pending') {
+                  · {{ 'courses.resources.status.pending' | transloco }}
                 }
               </span>
             }
@@ -99,7 +99,7 @@
             <button
               type="button"
               class="btn btn--ghost"
-              [disabled]="mutating() || resource.statut === 'en_attente'"
+              [disabled]="mutating() || resource.status === 'pending'"
               (click)="download(resource)"
             >
               {{ 'courses.resources.download' | transloco }}

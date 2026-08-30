@@ -8,44 +8,44 @@ import { DocumentContentPayload } from './course.model';
  * est une colonne du bloc, éditée à part (`updateBlockResource`).
  */
 
-/** Longueur miroir du back (`DocumentContent.legende`). */
-const LEGENDE_MAX = 500;
+/** Longueur miroir du back (`DocumentContent.caption`). */
+const CAPTION_MAX = 500;
 
 export type DocumentForm = FormGroup<{
-  legende: FormControl<string>;
-  affichage: FormControl<'inline' | 'telechargement'>;
+  caption: FormControl<string>;
+  display: FormControl<'inline' | 'download'>;
 }>;
 
 export function buildDocumentForm(): DocumentForm {
   return new FormGroup({
-    legende: new FormControl('', {
+    caption: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.maxLength(LEGENDE_MAX)],
+      validators: [Validators.maxLength(CAPTION_MAX)],
     }),
-    affichage: new FormControl<'inline' | 'telechargement'>('inline', { nonNullable: true }),
+    display: new FormControl<'inline' | 'download'>('inline', { nonNullable: true }),
   });
 }
 
 /**
- * Normalise le `content` JSONB d'un bloc document en payload sûr : `legende`
- * chaîne non vide ou `null`, `affichage` replié sur `'inline'` si absent ou
+ * Normalise le `content` JSONB d'un bloc document en payload sûr : `caption`
+ * chaîne non vide ou `null`, `display` replié sur `'inline'` si absent ou
  * inconnu (contenu par défaut du back, ou donnée d'une version antérieure).
  */
 export function payloadFromDocumentContent(
   content: Record<string, unknown>,
 ): DocumentContentPayload {
-  const legende = typeof content['legende'] === 'string' ? content['legende'] : null;
+  const caption = typeof content['caption'] === 'string' ? content['caption'] : null;
   return {
-    legende: legende !== null && legende !== '' ? legende : null,
-    affichage: content['affichage'] === 'telechargement' ? 'telechargement' : 'inline',
+    caption: caption !== null && caption !== '' ? caption : null,
+    display: content['display'] === 'download' ? 'download' : 'inline',
   };
 }
 
 /** Payload du PATCH depuis l'état courant du formulaire (légende vide → `null`). */
 export function payloadFromDocumentForm(form: DocumentForm): DocumentContentPayload {
-  const { legende, affichage } = form.getRawValue();
-  const trimmed = legende.trim();
-  return { legende: trimmed === '' ? null : trimmed, affichage };
+  const { caption, display } = form.getRawValue();
+  const trimmed = caption.trim();
+  return { caption: trimmed === '' ? null : trimmed, display };
 }
 
 /** Pré-remplit le formulaire depuis le `content` d'un bloc (sans émettre). */
@@ -55,7 +55,7 @@ export function patchDocumentFormFromContent(
 ): void {
   const payload = payloadFromDocumentContent(content);
   form.patchValue(
-    { legende: payload.legende ?? '', affichage: payload.affichage },
+    { caption: payload.caption ?? '', display: payload.display },
     { emitEvent: false },
   );
 }

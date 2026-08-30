@@ -50,7 +50,7 @@ export class CourseCreate implements OnInit {
   protected readonly saveError = signal(false);
 
   /** Système scolaire du profil : filtre le picker de niveaux (`null` = tous). */
-  protected readonly systeme = signal<string | null>(null);
+  protected readonly system = signal<string | null>(null);
 
   protected readonly canSubmit = computed(
     () => !this.saving() && isCourseFormComplete(this.#formValue()),
@@ -65,7 +65,7 @@ export class CourseCreate implements OnInit {
     // montre tous les systèmes plutôt que de bloquer la création.
     void this.#profiles
       .ensureLoaded()
-      .then((profile) => this.systeme.set(profile.systeme_scolaire))
+      .then((profile) => this.system.set(profile.school_system))
       .catch(() => undefined);
   }
 

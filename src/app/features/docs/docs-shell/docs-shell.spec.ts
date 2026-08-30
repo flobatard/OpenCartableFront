@@ -63,7 +63,7 @@ describe('DocsShell', () => {
     // rien : setup par test (le slug initial varie).
   });
 
-  it('rend un onglet par page (intégrés + extensions) avec le bon href', async () => {
+  it('renders one tab per page (built-ins + extensions) with the right href', async () => {
     const fixture = setup('katex');
     await settle(fixture);
     const links = [...fixture.nativeElement.querySelectorAll('.tabs a.tab')] as HTMLAnchorElement[];
@@ -75,20 +75,20 @@ describe('DocsShell', () => {
     ]);
   });
 
-  it('monte le composant de doc du slug via NgComponentOutlet', async () => {
+  it('mounts the slug’s doc component via NgComponentOutlet', async () => {
     const fixture = setup('fakelang');
     await settle(fixture);
     expect(fixture.nativeElement.querySelector('.fake-doc')).not.toBeNull();
   });
 
-  it('affiche la notice pour un slug inconnu', async () => {
+  it('shows the notice for an unknown slug', async () => {
     const fixture = setup('inconnu');
     await settle(fixture);
     expect(fixture.nativeElement.querySelector('.docs-shell__notice')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.fake-doc')).toBeNull();
   });
 
-  it('change de composant quand le param de chemin change (paramMap observé)', async () => {
+  it('switches component when the path param changes (paramMap observed)', async () => {
     const fixture = setup('fakelang');
     await settle(fixture);
     expect(fixture.nativeElement.querySelector('.fake-doc')).not.toBeNull();
@@ -99,7 +99,7 @@ describe('DocsShell', () => {
     expect(fixture.nativeElement.querySelector('.fake-doc')).toBeNull();
   });
 
-  it('affiche l’erreur si l’import du composant échoue', async () => {
+  it('shows the error when the component import fails', async () => {
     const broken = {
       ...FAKE_DEF,
       language: 'brokenlang',
