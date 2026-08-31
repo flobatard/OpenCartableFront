@@ -1,0 +1,81 @@
+<div class="chat-settings">
+  <!-- Roue crantée (à gauche du pied) : menu des réglages du modèle (Escape
+       referme et refocalise, focus sortant referme). -->
+  <div
+    class="chat-settings__anchor"
+    (keydown.escape)="onMenuEscape()"
+    (focusout)="onMenuFocusout($event)"
+  >
+    <button
+      #menuTrigger
+      type="button"
+      class="chat-settings__gear"
+      aria-haspopup="menu"
+      [attr.aria-expanded]="menuOpen()"
+      [attr.aria-controls]="menuId"
+      [attr.aria-label]="'courseChat.config.settings' | transloco"
+      (click)="toggleMenu()"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        width="16"
+        height="16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path
+          d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+        />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+    </button>
+    @if (menuOpen()) {
+      <div class="chat-settings__menu" role="menu" [id]="menuId">
+        <button
+          type="button"
+          role="menuitem"
+          class="chat-settings__menu-item"
+          (click)="openModelSettings()"
+        >
+          {{ 'courseChat.config.changeModel' | transloco }}
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (aiCreds(); as creds) {
+    @if (creds.provider !== null) {
+      <span class="chat-settings__model">
+        {{ 'courseChat.config.customModel' | transloco: { model: creds.model } }}
+      </span>
+    } @else {
+      <span class="chat-settings__model">
+        {{
+          'courseChat.config.defaultModel'
+            | transloco: { model: creds.default_model || creds.default_provider }
+        }}
+      </span>
+      <span class="chat-settings__quota">
+        @if (creds.daily_quota === 0) {
+          {{ 'courseChat.config.unlimited' | transloco }}
+        } @else {
+          {{
+            'courseChat.config.usage'
+              | transloco
+                : {
+                    used: creds.calls_today,
+                    total: creds.daily_quota,
+                    remaining: quotaRemaining(),
+                  }
+          }}
+        }
+      </span>
+    }
+  }
+</div>
+
+<app-ai-settings-dialog />

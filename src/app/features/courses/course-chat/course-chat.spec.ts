@@ -2,6 +2,11 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import {
+  AiCredentials,
+  EMPTY_AI_CREDENTIALS,
+} from '../../../core/ai-credentials/ai-credentials.model';
+import { AiCredentialsService } from '../../../core/ai-credentials/ai-credentials.service';
+import {
   AssistantConversation,
   AssistantConversationDetail,
   AssistantMessage,
@@ -49,6 +54,24 @@ function message(
   };
 }
 
+/** Credential IA par défaut du serveur (bandeau modèle + quota). */
+const DEFAULT_AI_CREDS: AiCredentials = {
+  ...EMPTY_AI_CREDENTIALS,
+  default_ai_available: true,
+  daily_quota: 30,
+  calls_today: 12,
+  default_provider: 'mistral',
+  default_model: 'ministral-14b-latest',
+};
+
+function mockCredentials() {
+  return {
+    credentials: signal<AiCredentials | null>(null),
+    ensureLoaded: vi.fn().mockResolvedValue(EMPTY_AI_CREDENTIALS),
+    refresh: vi.fn().mockResolvedValue(EMPTY_AI_CREDENTIALS),
+  };
+}
+
 function mockAssistant() {
   return {
     conversations: signal<AssistantConversation[] | null>([]),
@@ -75,16 +98,19 @@ function mockAssistant() {
 
 describe('CourseChat', () => {
   let assistant: ReturnType<typeof mockAssistant>;
+  let credentials: ReturnType<typeof mockCredentials>;
 
   async function createComponent(
     inputs: Partial<{ blockId: string; moduleId: string }> = {},
   ): Promise<ComponentFixture<CourseChat>> {
     assistant = mockAssistant();
+    credentials = mockCredentials();
     await TestBed.configureTestingModule({
       imports: [CourseChat, provideTranslocoTesting()],
       providers: [
         provideRouter([]),
         { provide: CourseAssistantService, useValue: assistant },
+        { provide: AiCredentialsService, useValue: credentials },
         { provide: LanguageService, useValue: { lang: () => 'fr' } },
         // Le markdown-view des réponses injecte le résolveur de ressources
         // (impl. prof → AuthService → OAuthService, absent du TestBed).
@@ -129,6 +155,7 @@ describe('CourseChat', () => {
       expect(textarea?.disabled).toBe(true);
       // Le câblage IA ne s'active jamais depuis un hôte éditeur.
       expect(assistant.loadConversations).not.toHaveBeenCalled();
+      expect(credentials.ensureLoaded).not.toHaveBeenCalled();
     });
 
     it('emits collapse on the collapse button click', async () => {
@@ -318,6 +345,94 @@ describe('CourseChat', () => {
       } finally {
         vi.useRealTimers();
       }
+    });
+
+    it('shows the personal model when a custom config is stored', async () => {
+      const fixture = await createComponent();
+      credentials.credentials.set({
+        ...DEFAULT_AI_CREDS,
+        provider: 'anthropic',
+        model: 'claude-sonnet-5',
+        api_key_set: true,
+      });
+      fixture.detectChanges();
+
+      const banner = el(fixture).querySelector('.chat-settings');
+      expect(banner?.textContent).toContain('claude-sonnet-5');
+      // Config personnelle : jamais de compteur de quota (BYO token non compté).
+      expect(banner?.textContent).not.toContain('30');
+    });
+
+    it('shows the default model with the daily quota counter (default AI mode)', async () => {
+      const fixture = await createComponent();
+      credentials.credentials.set(DEFAULT_AI_CREDS);
+      fixture.detectChanges();
+
+      const banner = el(fixture).querySelector('.chat-settings');
+      expect(banner?.textContent).toContain('ministral-14b-latest');
+      expect(banner?.textContent).toContain('12/30');
+      expect(banner?.textContent).toContain('18');
+    });
+
+    it('quota 0: unlimited wording, and no banner at all without any config nor fallback', async () => {
+      const fixture = await createComponent();
+      credentials.credentials.set({ ...DEFAULT_AI_CREDS, daily_quota: 0 });
+      fixture.detectChanges();
+      expect(el(fixture).querySelector('.chat-settings')?.textContent).toContain('illimités');
+
+      credentials.credentials.set(EMPTY_AI_CREDENTIALS);
+      fixture.detectChanges();
+      expect(el(fixture).querySelector('.chat-settings__model')).toBeNull();
+    });
+
+    it('re-reads the quota counter when a default-AI streamed turn ends', async () => {
+      const fixture = await createComponent();
+      credentials.credentials.set(DEFAULT_AI_CREDS);
+      assistant.streamState.set('streaming');
+      fixture.detectChanges();
+      expect(credentials.refresh).not.toHaveBeenCalled();
+
+      assistant.streamState.set('idle');
+      fixture.detectChanges();
+      expect(credentials.refresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('never re-reads the quota for a BYO-token turn (nothing was consumed)', async () => {
+      const fixture = await createComponent();
+      credentials.credentials.set({
+        ...DEFAULT_AI_CREDS,
+        provider: 'anthropic',
+        model: 'claude-sonnet-5',
+        api_key_set: true,
+      });
+      assistant.streamState.set('streaming');
+      fixture.detectChanges();
+      assistant.streamState.set('idle');
+      fixture.detectChanges();
+
+      expect(credentials.refresh).not.toHaveBeenCalled();
+    });
+
+    it('gear menu: opens on click, its item opens the AI settings dialog', async () => {
+      const fixture = await createComponent();
+      expect(el(fixture).querySelector('.chat-settings__menu')).toBeNull();
+
+      const dialogEl = el(fixture).querySelector<HTMLDialogElement>(
+        'app-ai-settings-dialog dialog',
+      )!;
+      const showModal = (dialogEl.showModal = vi.fn());
+
+      el(fixture).querySelector<HTMLButtonElement>('.chat-settings__gear')?.click();
+      fixture.detectChanges();
+
+      const item = el(fixture).querySelector<HTMLButtonElement>('.chat-settings__menu-item');
+      expect(item?.textContent).toContain('Sélectionner un autre modèle');
+
+      item?.click();
+      fixture.detectChanges();
+
+      expect(el(fixture).querySelector('.chat-settings__menu')).toBeNull();
+      expect(showModal).toHaveBeenCalledOnce();
     });
 
     it('navigates to the cited block on citation click (re-garde uuid)', async () => {

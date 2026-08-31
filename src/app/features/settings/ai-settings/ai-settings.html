@@ -1,6 +1,8 @@
 <section class="ai-settings">
-  <h2 class="ai-settings__title">{{ 'settings.ai.title' | transloco }}</h2>
-  <p class="ai-settings__intro">{{ 'settings.ai.intro' | transloco }}</p>
+  @if (!embedded()) {
+    <h2 class="ai-settings__title">{{ 'settings.ai.title' | transloco }}</h2>
+    <p class="ai-settings__intro">{{ 'settings.ai.intro' | transloco }}</p>
+  }
 
   @if (loading()) {
     <p class="ai-settings__status" aria-live="polite">{{ 'settings.ai.loading' | transloco }}</p>

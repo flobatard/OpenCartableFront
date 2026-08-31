@@ -1,0 +1,66 @@
+/* Modale « Réglages IA » du panneau assistant (élément <dialog> natif : focus
+   trap, Escape, backdrop). Chrome calqué sur .course-style (course-style-dialog),
+   élargie pour le formulaire complet des réglages IA. */
+
+.ai-settings-dialog {
+  width: min(640px, calc(100vw - 32px));
+  max-height: calc(100dvh - 64px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.ai-settings-dialog::backdrop {
+  background: rgb(15 23 42 / 55%);
+}
+
+.ai-settings-dialog__inner {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 64px);
+}
+
+.ai-settings-dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ai-settings-dialog__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+.ai-settings-dialog__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ai-settings-dialog__close:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.ai-settings-dialog__body {
+  padding: 18px 20px;
+  overflow-y: auto;
+}

@@ -1,13 +1,14 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { AssistantOutlet } from './features/courses/assistant-panel/assistant-outlet';
 import { Header } from './layout/header/header';
 import { Footer } from './layout/footer/footer';
 import { Snackbar } from './shared/snackbar/snackbar';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, TranslocoPipe, Header, Footer, Snackbar],
+  imports: [RouterOutlet, TranslocoPipe, Header, Footer, Snackbar, AssistantOutlet],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

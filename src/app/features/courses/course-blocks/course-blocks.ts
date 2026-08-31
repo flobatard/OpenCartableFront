@@ -26,7 +26,6 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SubjectService } from '../../../core/subjects/subject.service';
 import { findById as findSubjectById } from '../../../core/subjects/subject.utils';
-import { AssistantPanel } from '../assistant-panel/assistant-panel';
 import { BlockCreateDialog } from '../block-create-dialog/block-create-dialog';
 import { CourseModules } from '../course-modules/course-modules';
 import { CoursePreview } from '../course-preview/course-preview';
@@ -65,7 +64,6 @@ const TAB_ORDER: readonly CourseTab[] = ['blocks', 'resources', 'modules', 'prev
   imports: [
     RouterLink,
     TranslocoPipe,
-    AssistantPanel,
     BlockCreateDialog,
     CourseModules,
     CourseResources,

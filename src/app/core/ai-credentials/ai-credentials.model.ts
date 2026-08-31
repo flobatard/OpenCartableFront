@@ -50,6 +50,10 @@ export interface AiCredentials {
   daily_quota: number;
   /** Appels déjà servis par l'IA par défaut aujourd'hui (jour UTC). */
   calls_today: number;
+  /** Provider servi par l'IA par défaut (`null` sans fallback serveur). */
+  default_provider: string | null;
+  /** Modèle servi par l'IA par défaut (`null` sans fallback serveur). */
+  default_model: string | null;
 }
 
 /**
@@ -64,6 +68,8 @@ export const EMPTY_AI_CREDENTIALS: AiCredentials = {
   default_ai_available: false,
   daily_quota: 0,
   calls_today: 0,
+  default_provider: null,
+  default_model: null,
 };
 
 export interface AiCredentialsPayload {

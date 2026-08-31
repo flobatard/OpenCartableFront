@@ -1,8 +1,12 @@
-import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { AiCredentialsService } from '../../../core/ai-credentials/ai-credentials.service';
 import { CourseAssistantService } from '../../../core/course-assistant/course-assistant.service';
 import { LanguageService } from '../../../core/i18n/language.service';
+import {
+  mockAiCredentialsService,
+  mockCourseAssistantService,
+} from '../../../testing/assistant.fixture';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
 import { AssistantPanel } from './assistant-panel';
 
@@ -12,23 +16,11 @@ describe('AssistantPanel', () => {
       imports: [AssistantPanel, provideTranslocoTesting()],
       providers: [
         provideRouter([]),
-        {
-          provide: CourseAssistantService,
-          useValue: {
-            conversations: signal(null),
-            listLoading: signal(false),
-            listError: signal(false),
-            active: signal(null),
-            activeLoading: signal(false),
-            activeError: signal(false),
-            streamState: signal('idle'),
-            streamErrorStatus: signal(null),
-            streamingText: signal(''),
-            streamingThinking: signal(''),
-            toolActivity: signal([]),
-            loadConversations: vi.fn().mockResolvedValue(undefined),
-          },
-        },
+        // L'état plié/déplié vit dans le service (partagé entre les hôtes) :
+        // le mock fait vivre le signal panelOpen.
+        { provide: CourseAssistantService, useValue: mockCourseAssistantService() },
+        // Le chat en mode global lit aussi le credential IA (bandeau modèle/quota).
+        { provide: AiCredentialsService, useValue: mockAiCredentialsService() },
         { provide: LanguageService, useValue: { lang: () => 'fr' } },
       ],
     }).compileComponents();

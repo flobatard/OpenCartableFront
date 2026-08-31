@@ -15,6 +15,8 @@ const CREDENTIALS: AiCredentials = {
   default_ai_available: true,
   daily_quota: 30,
   calls_today: 0,
+  default_provider: 'mistral',
+  default_model: 'ministral-14b-latest',
 };
 
 describe('AiCredentialsService', () => {
@@ -57,6 +59,20 @@ describe('AiCredentialsService', () => {
     const retry = service.ensureLoaded();
     httpMock.expectOne(url).flush(CREDENTIALS);
     expect(await retry).toEqual(CREDENTIALS);
+  });
+
+  it('refresh always re-issues a GET and replaces the signal (fresh quota counter)', async () => {
+    const first = service.ensureLoaded();
+    httpMock.expectOne(url).flush(CREDENTIALS);
+    await first;
+
+    const refreshed = service.refresh();
+    const req = httpMock.expectOne(url);
+    expect(req.request.method).toBe('GET');
+    req.flush({ ...CREDENTIALS, calls_today: 7 });
+
+    expect(await refreshed).toEqual({ ...CREDENTIALS, calls_today: 7 });
+    expect(service.credentials()?.calls_today).toBe(7);
   });
 
   it('save PUTs (payload passed through as-is) and replaces the signal', async () => {

@@ -144,6 +144,46 @@ describe('MarkdownView', () => {
     expect(content(fixture)?.querySelector('[data-oc-extension]')).toBeNull();
   });
 
+  it('a resolved render is frozen: a later library refetch neither re-renders nor re-presigns', async () => {
+    const fixture = await createComponent('![illus](oc-resource:resource-2)', 'course-1');
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve));
+    fixture.detectChanges();
+    expect(resourcesMock.getDownloadUrl).toHaveBeenCalledTimes(1);
+    const img = content(fixture)?.querySelector('img');
+
+    // Une page hôte traversée refait un loadList : loading, puis nouvelle
+    // référence de liste. Le rendu résolu ne doit pas broncher (sinon, saut
+    // de scroll du fil de l'assistant persistant à chaque navigation).
+    resourcesMock.listLoading.set(true);
+    await fixture.whenStable();
+    resourcesMock.list.set([...COURSE_RESOURCES_FIXTURE]);
+    resourcesMock.listLoading.set(false);
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve));
+    fixture.detectChanges();
+
+    expect(resourcesMock.getDownloadUrl).toHaveBeenCalledTimes(1); // pas de re-présignature
+    expect(content(fixture)?.querySelector('img')).toBe(img!); // DOM intact, aucun flash
+  });
+
+  it('changing the markdown lifts the freeze and resolves again', async () => {
+    const fixture = await createComponent('![illus](oc-resource:resource-2)', 'course-1');
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve));
+    expect(resourcesMock.getDownloadUrl).toHaveBeenCalledTimes(1);
+
+    fixture.componentRef.setInput('markdown', 'modifié\n\n![illus](oc-resource:resource-2)');
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve));
+    fixture.detectChanges();
+
+    expect(resourcesMock.getDownloadUrl).toHaveBeenCalledTimes(2);
+    expect(content(fixture)?.querySelector('img')?.getAttribute('src')).toBe(
+      'https://s3.example/presigned',
+    );
+  });
+
   it('a pending reference is not presigned (unavailable note)', async () => {
     const fixture = await createComponent('[capsule](oc-resource:resource-3)', 'course-1');
     await fixture.whenStable();

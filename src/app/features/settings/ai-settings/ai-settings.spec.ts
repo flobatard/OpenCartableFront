@@ -15,6 +15,8 @@ const STORED: AiCredentials = {
   default_ai_available: true,
   daily_quota: 30,
   calls_today: 12,
+  default_provider: 'mistral',
+  default_model: 'ministral-14b-latest',
 };
 
 const NO_CONFIG: AiCredentials = {
@@ -25,6 +27,8 @@ const NO_CONFIG: AiCredentials = {
   default_ai_available: true,
   daily_quota: 30,
   calls_today: 12,
+  default_provider: 'mistral',
+  default_model: 'ministral-14b-latest',
 };
 
 describe('AiSettings', () => {

@@ -321,9 +321,4 @@
 
   <app-block-create-dialog (create)="confirmCreate($event)" />
 
-  <!-- Assistant IA du cours (contexte global) : hôte flottant épinglé au
-       viewport, hors du flux des onglets. -->
-  @if (detail(); as course) {
-    <app-assistant-panel [courseId]="course.id" />
-  }
 </section>

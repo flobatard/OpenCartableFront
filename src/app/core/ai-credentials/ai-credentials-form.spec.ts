@@ -20,6 +20,8 @@ const STORED: AiCredentials = {
   default_ai_available: false,
   daily_quota: 30,
   calls_today: 0,
+  default_provider: null,
+  default_model: null,
 };
 
 describe('ai-credentials-form', () => {

@@ -81,12 +81,27 @@ export class CourseAssistantService {
   readonly #toolActivity = signal<AssistantToolActivity[]>([]);
   readonly toolActivity = this.#toolActivity.asReadonly();
 
+  /**
+   * État déplié/replié du panneau assistant, PARTAGÉ par tous ses hôtes
+   * (pilule flottante de la page cours, chat ancré des éditeurs) : l'assistant
+   * ouvert reste ouvert quand l'utilisateur navigue — notamment en suivant une
+   * citation `oc-block:` vers l'éditeur du bloc cité. Volontairement hors de
+   * `#reset` : changer de cours ne referme pas le panneau.
+   */
+  readonly #panelOpen = signal(false);
+  readonly panelOpen = this.#panelOpen.asReadonly();
+
   constructor() {
     effect(() => {
       if (!this.#auth.isAuthenticated()) {
         this.#reset();
+        this.#panelOpen.set(false);
       }
     });
+  }
+
+  setPanelOpen(open: boolean): void {
+    this.#panelOpen.set(open);
   }
 
   #reset(): void {

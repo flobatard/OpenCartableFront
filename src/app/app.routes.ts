@@ -241,16 +241,21 @@ export const routes: Routes = [
       },
       {
         // Éditeur du contenu d'un bloc (texte pour l'instant — monaco charge au navigateur).
+        // Params en snapshot → remontage forcé quand blockId change (une citation
+        // oc-block: de l'assistant peut naviguer d'un éditeur de bloc à un autre).
         path: 'courses/:id/blocks/:blockId',
         canActivate: [authGuard, onboardingGuard],
+        data: { remountOnParamChange: true },
         loadComponent: () =>
           import('./features/courses/block-editor/block-editor').then((m) => m.BlockEditor),
       },
       {
         // Éditeur d'un module interactif (3 Monaco HTML/CSS/JS + preview
-        // sandbox — charge au navigateur).
+        // sandbox — charge au navigateur). Params en snapshot → remontage
+        // forcé quand moduleId change (motif block-editor).
         path: 'courses/:id/modules/:moduleId',
         canActivate: [authGuard, onboardingGuard],
+        data: { remountOnParamChange: true },
         loadComponent: () =>
           import('./features/courses/module-editor/module-editor').then((m) => m.ModuleEditor),
       },

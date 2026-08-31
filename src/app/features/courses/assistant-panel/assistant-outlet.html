@@ -1,0 +1,7 @@
+<!-- @defer : le chunk du panneau ne se charge qu'à la première entrée dans un
+     cours ; une fois chargé, c'est le @if qui monte/démonte selon l'URL. -->
+@defer (when courseId() !== null) {
+  @if (courseId(); as id) {
+    <app-assistant-panel [courseId]="id" />
+  }
+}

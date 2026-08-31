@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import { Component, computed, inject, input, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -46,6 +46,12 @@ let nextId = 0;
   styleUrl: './ai-settings.scss',
 })
 export class AiSettings implements OnInit {
+  /**
+   * Mode encastré (modale « Réglages IA » du panneau assistant) : le chrome
+   * de la page (titre + intro) est masqué, la modale hôte porte le sien.
+   */
+  readonly embedded = input(false);
+
   readonly #credentials = inject(AiCredentialsService);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 

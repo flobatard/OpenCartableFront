@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser, PlatformLocation } from '@angular/common';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
+import { provideRouter, RouteReuseStrategy } from '@angular/router';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { MemoryStorage, OAuthStorage, provideOAuthClient } from 'angular-oauth2-oidc';
 import { provideTransloco, TranslocoService } from '@jsverse/transloco';
@@ -17,12 +17,17 @@ import { routes } from './app.routes';
 import { environment } from '../environments/environment';
 import { TranslocoImportLoader } from './core/i18n/transloco-loader';
 import { langFromPath, LanguageService } from './core/i18n/language.service';
+import { RemountOnParamChangeStrategy } from './core/routing/remount-on-param-change.strategy';
 import { provideMarkdownExtensions } from './shared/markdown-extensions/markdown-extensions.providers';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
+    // Les pages d'édition (params en snapshot) remontent quand leurs params
+    // changent — cf. doc de la stratégie (citations oc-block: du panneau
+    // assistant naviguant d'un éditeur de bloc à un autre).
+    { provide: RouteReuseStrategy, useClass: RemountOnParamChangeStrategy },
     provideClientHydration(withEventReplay()),
     // withInterceptorsFromDi : l'intercepteur d'angular-oauth2-oidc (Bearer vers
     // l'API) est enregistré via le token legacy HTTP_INTERCEPTORS.

@@ -29,6 +29,18 @@
   "toolResult": "Result (excerpt)",
   "toolError": "Error",
   "toolNoResult": "Result unavailable",
+  "config": {
+    "settings": "Model settings",
+    "changeModel": "Choose another model…",
+    "customModel": "Model: {{model}}",
+    "defaultModel": "Default AI: {{model}}",
+    "usage": "{{used}}/{{total}} messages today — {{remaining}} left",
+    "unlimited": "unlimited messages"
+  },
+  "settingsDialog": {
+    "title": "AI settings",
+    "close": "Close"
+  },
   "tools": {
     "read_block": "Reading a course block",
     "read_resource_pdf": "Reading a library PDF",

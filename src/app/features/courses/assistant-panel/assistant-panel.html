@@ -1,9 +1,9 @@
-<div class="assistant-panel__card" [hidden]="!expanded()">
-  <app-course-chat [courseId]="courseId()" (collapse)="expanded.set(false)" />
+<div class="assistant-panel__card" [hidden]="!assistant.panelOpen()">
+  <app-course-chat [courseId]="courseId()" (collapse)="assistant.setPanelOpen(false)" />
 </div>
 
-@if (!expanded()) {
-  <button type="button" class="assistant-panel__pill" (click)="expanded.set(true)">
+@if (!assistant.panelOpen()) {
+  <button type="button" class="assistant-panel__pill" (click)="assistant.setPanelOpen(true)">
     <svg
       viewBox="0 0 24 24"
       width="18"

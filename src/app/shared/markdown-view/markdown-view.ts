@@ -128,6 +128,20 @@ export class MarkdownView {
   readonly #html = signal<SafeHtml>(this.#sanitizer.bypassSecurityTrustHtml(''));
   protected readonly html = this.#html.asReadonly();
 
+  /**
+   * Clé (thème|cours|markdown) du dernier rendu dont la passe ressources a
+   * ABOUTI : pour un contenu identique, l'effet de rendu sort avant toute
+   * écriture et sans relire `list()`/`listLoading()` — il se désabonne de la
+   * bibliothèque. Sans ce gel, chaque `loadList()` d'une page hôte traversée
+   * (navigation page cours ⇄ éditeurs) rejouerait le rendu de TOUTES les vues
+   * à ressources encore montées — dont chaque message du panneau assistant
+   * persistant : flash du HTML de base non résolu, re-présignature de chaque
+   * URL, et saut de scroll du fil. Contrepartie assumée : une ressource
+   * devenue disponible/renommée APRÈS un rendu résolu n'actualise pas ce
+   * rendu tant que son markdown, le thème ou le cours ne changent pas.
+   */
+  #resolvedResourcesKey: string | null = null;
+
   constructor() {
     // Chargement défensif de la bibliothèque : seulement si aucun hôte ne l'a
     // chargée pour ce cours (liste vide et pas en cours) — sinon on écraserait
@@ -143,17 +157,27 @@ export class MarkdownView {
 
     // Rendu markdown+KaTeX synchrone (chemin rapide), puis passes asynchrones
     // Mermaid et ressources. Gardé sur le navigateur. Re-rendu quand le
-    // markdown, le thème ou la bibliothèque change.
+    // markdown ou le thème change — et à l'arrivée de la bibliothèque tant
+    // que la passe ressources n'a pas abouti (gel ensuite).
     effect((onCleanup) => {
       if (!this.#isBrowser) {
         return;
       }
       const theme = this.#theme.theme();
       const courseId = this.courseId();
+      const markdown = this.markdown();
+      // Gel du rendu résolu (cf. #resolvedResourcesKey) : sortir AVANT la
+      // lecture de la bibliothèque — l'effet ne re-suivra list()/listLoading()
+      // que si le contenu change réellement.
+      const key = `${theme}|${courseId}|${markdown}`;
+      if (this.#resolvedResourcesKey === key) {
+        return;
+      }
+      this.#resolvedResourcesKey = null;
       // Passe extensions synchrone : les fences des langages enregistrés
       // (```geogebra…) deviennent des hôtes `data-oc-extension`, montés en
       // composants par l'afterRenderEffect ci-dessous une fois le HTML au DOM.
-      let base = renderCourseMarkdown(this.markdown());
+      let base = renderCourseMarkdown(markdown);
       if (hasMarkdownExtensions(base, this.#extensions.defs)) {
         base = applyExtensionPlaceholders(base, this.#extensions.defs);
       }
@@ -176,6 +200,9 @@ export class MarkdownView {
         (enhanced) => {
           if (!stale) {
             this.#html.set(this.#sanitizer.bypassSecurityTrustHtml(enhanced));
+            if (resolveResources) {
+              this.#resolvedResourcesKey = key;
+            }
           }
         },
       );

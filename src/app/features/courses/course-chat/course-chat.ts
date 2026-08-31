@@ -20,6 +20,7 @@ import { CourseAssistantService } from '../../../core/course-assistant/course-as
 import { LanguageService } from '../../../core/i18n/language.service';
 import { isBlockId } from '../../../core/markdown/course-block-ref';
 import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
+import { CourseChatSettings } from './course-chat-settings';
 import { ChatToolView, CourseChatTool, toolResultExcerpt } from './course-chat-tool';
 
 /**
@@ -42,13 +43,14 @@ const SCROLL_PIN_THRESHOLD_PX = 80;
  * Panneau assistant IA du cours. Deux régimes, choisis par les inputs :
  *
  * - **mode global** (`blockId` et `moduleId` absents — hôte : le panneau
- *   flottant de la page cours) : chat câblé sur `CourseAssistantService` —
- *   historique des conversations, fil streamé (texte dévoilé progressivement,
- *   thinking repliable, appels d'outils dépliables — `app-course-chat-tool`),
+ *   flottant `assistant-panel`, présent sur la page cours ET sur les pages
+ *   d'édition) : chat câblé sur `CourseAssistantService` — historique des
+ *   conversations, fil streamé (texte dévoilé progressivement, thinking
+ *   repliable, appels d'outils dépliables — `app-course-chat-tool`),
  *   citations `oc-block:` cliquables par délégation d'événements sur le fil ;
  * - **mode placeholder** (un `blockId`/`moduleId` est passé — hôtes
- *   block-editor/module-editor) : la coquille « bientôt » historique, les
- *   flux HITL d'édition arrivant dans un lot ultérieur.
+ *   block-editor/module-editor, colonne ancrée) : la coquille « bientôt »
+ *   historique, réservée aux flux HITL d'édition d'un lot ultérieur.
  *
  * Deux régimes de rendu du texte assistant : pendant le stream,
  * `app-markdown-view` sans `courseId` (références oc-* inertes → re-rendus
@@ -58,7 +60,7 @@ const SCROLL_PIN_THRESHOLD_PX = 80;
  */
 @Component({
   selector: 'app-course-chat',
-  imports: [TranslocoPipe, MarkdownView, RouterLink, CourseChatTool],
+  imports: [TranslocoPipe, MarkdownView, RouterLink, CourseChatTool, CourseChatSettings],
   templateUrl: './course-chat.html',
   styleUrl: './course-chat.scss',
 })
@@ -78,9 +80,10 @@ export class CourseChat {
 
   /**
    * Injection PARESSEUSE : le service (et sa chaîne AuthService → OAuthService)
-   * n'est résolu qu'en mode global — les hôtes éditeurs, restés placeholder,
-   * n'ont aucune dépendance IA à fournir (câblage additif, zéro régression,
-   * y compris dans leurs specs).
+   * n'est résolu qu'en mode global — un hôte éditeur (et sa spec) n'a
+   * **aucune** dépendance IA à fournir ; seule une spec montant le mode global
+   * (assistant-outlet/assistant-panel, course-chat) fournit les mocks à
+   * signaux de `testing/assistant.fixture.ts`.
    */
   #assistantRef: CourseAssistantService | null = null;
   protected get assistant(): CourseAssistantService {

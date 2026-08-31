@@ -29,6 +29,18 @@
   "toolResult": "Résultat (extrait)",
   "toolError": "Erreur",
   "toolNoResult": "Résultat indisponible",
+  "config": {
+    "settings": "Réglages du modèle",
+    "changeModel": "Sélectionner un autre modèle…",
+    "customModel": "Modèle : {{model}}",
+    "defaultModel": "IA par défaut : {{model}}",
+    "usage": "{{used}}/{{total}} messages aujourd'hui — {{remaining}} restants",
+    "unlimited": "messages illimités"
+  },
+  "settingsDialog": {
+    "title": "Réglages IA",
+    "close": "Fermer"
+  },
   "tools": {
     "read_block": "Lecture d'un bloc du cours",
     "read_resource_pdf": "Lecture d'un PDF de la bibliothèque",

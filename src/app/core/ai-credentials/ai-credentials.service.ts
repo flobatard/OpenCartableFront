@@ -65,6 +65,18 @@ export class AiCredentialsService {
   }
 
   /**
+   * Relit le credential depuis le serveur (compteur de quota du jour compris)
+   * et remplace le signal — utilisé par le panneau assistant après un tour
+   * servi par l'IA par défaut, dont le back vient de consommer le quota.
+   * L'échec est relayé (le signal garde alors sa dernière valeur).
+   */
+  async refresh(): Promise<AiCredentials> {
+    const credentials = await firstValueFrom(this.#http.get<AiCredentials>(this.#url));
+    this.#credentials.set(credentials);
+    return credentials;
+  }
+
+  /**
    * Enregistre le credential ; un payload SANS `api_key` conserve la clé déjà
    * enregistrée côté serveur. La réponse remplace le signal.
    */

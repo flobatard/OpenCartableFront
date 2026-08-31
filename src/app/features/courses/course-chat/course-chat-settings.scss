@@ -1,0 +1,91 @@
+/* Pied de panneau discret, sous le composer : roue crantée à gauche, modèle
+   en service à sa suite, compteur de quota à droite. */
+
+:host {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.chat-settings {
+  display: flex;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 2px 16px 4px 10px;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.chat-settings__model {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.chat-settings__quota {
+  margin-inline-start: auto;
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ancre du menu déroulant, en tête de ligne (roue à gauche du pied). */
+.chat-settings__anchor {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+}
+
+.chat-settings__gear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.chat-settings__gear:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+/* Ancré en bas à gauche du panneau : le menu se déploie vers le HAUT,
+   aligné sur le bord gauche de la roue (il déborderait sinon du panneau). */
+.chat-settings__menu {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  inset-inline-start: 0;
+  z-index: 10;
+  min-width: 220px;
+  padding: 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.chat-settings__menu-item {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 14px;
+  text-align: start;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.chat-settings__menu-item:hover,
+.chat-settings__menu-item:focus-visible {
+  background: var(--bg-subtle);
+}
