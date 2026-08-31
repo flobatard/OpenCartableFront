@@ -44,10 +44,12 @@ const SCROLL_PIN_THRESHOLD_PX = 80;
  *
  * - **mode global** (`blockId` et `moduleId` absents — hôte : le panneau
  *   flottant `assistant-panel`, présent sur la page cours ET sur les pages
- *   d'édition) : chat câblé sur `CourseAssistantService` — historique des
- *   conversations, fil streamé (texte dévoilé progressivement, thinking
- *   repliable, appels d'outils dépliables — `app-course-chat-tool`),
- *   citations `oc-block:` cliquables par délégation d'événements sur le fil ;
+ *   d'édition) : chat câblé sur `CourseAssistantService` — vue d'entrée =
+ *   conversation vide (brouillon local, créée côté serveur au premier
+ *   message), historique des conversations derrière la flèche retour, fil
+ *   streamé (texte dévoilé progressivement, thinking repliable, appels
+ *   d'outils dépliables — `app-course-chat-tool`), citations `oc-block:`
+ *   cliquables par délégation d'événements sur le fil ;
  * - **mode placeholder** (un `blockId`/`moduleId` est passé — hôtes
  *   block-editor/module-editor, colonne ancrée) : la coquille « bientôt »
  *   historique, réservée aux flux HITL d'édition d'un lot ultérieur.
@@ -94,6 +96,9 @@ export class CourseChat {
   protected readonly globalMode = computed(
     () => this.blockId() === null && this.moduleId() === null,
   );
+
+  /** Conversation active = brouillon local (id vide, rien en base). */
+  protected readonly activeIsDraft = computed(() => this.assistant.active()?.id === '');
 
   protected readonly draft = signal('');
   protected readonly deleteArmed = signal<string | null>(null);
@@ -299,7 +304,8 @@ export class CourseChat {
   }
 
   protected newConversation(): void {
-    void this.assistant.createConversation();
+    this.#pinnedToBottom = true;
+    this.assistant.startNewConversation();
   }
 
   protected openConversation(id: string): void {

@@ -37,6 +37,11 @@ function emptyDetail(): AssistantConversationDetail {
   return { ...CONVERSATION, messages: [] };
 }
 
+/** Brouillon local : la vue d'entrée du service réel (id vide, rien en base). */
+function draftDetail(): AssistantConversationDetail {
+  return { ...CONVERSATION, id: '', title: null, messages: [] };
+}
+
 function message(
   partial: Partial<AssistantMessage> & Pick<AssistantMessage, 'id' | 'role'>,
 ): AssistantMessage {
@@ -86,7 +91,7 @@ function mockAssistant() {
     streamingThinking: signal(''),
     toolActivity: signal<AssistantToolActivity[]>([]),
     loadConversations: vi.fn().mockResolvedValue(undefined),
-    createConversation: vi.fn().mockResolvedValue(undefined),
+    startNewConversation: vi.fn(),
     openConversation: vi.fn().mockResolvedValue(undefined),
     closeConversation: vi.fn(),
     renameConversation: vi.fn().mockResolvedValue(undefined),
@@ -179,6 +184,42 @@ describe('CourseChat', () => {
       expect(el(fixture).querySelector('.course-chat__conversation-title')?.textContent).toContain(
         'Synthèse du chapitre',
       );
+    });
+
+    it('renders the draft as an empty conversation: enabled composer, no new button', async () => {
+      const fixture = await createComponent();
+      assistant.active.set(draftDetail());
+      fixture.detectChanges();
+
+      // Vue conversation (pas la liste), fil vide avec l'invite.
+      expect(el(fixture).querySelector('.course-chat__conversations')).toBeNull();
+      expect(el(fixture).querySelector('.course-chat__thread')).toBeTruthy();
+      expect(el(fixture).textContent).toContain('Posez votre première question');
+      expect(el(fixture).querySelector('.course-chat__title')?.textContent).toContain(
+        'Nouvelle conversation',
+      );
+
+      // Composer actif — l'envoi crée la conversation côté serveur (service).
+      expect(el(fixture).querySelector<HTMLTextAreaElement>('.course-chat__input')?.disabled).toBe(
+        false,
+      );
+      // Le bouton « Nouvelle conversation » disparaît (le brouillon est déjà neuf),
+      // mais l'historique reste accessible par la flèche retour.
+      expect(el(fixture).querySelector('.course-chat__new')).toBeNull();
+      const back = el(fixture).querySelector<HTMLButtonElement>('.course-chat__back');
+      expect(back).toBeTruthy();
+      back?.click();
+      expect(assistant.closeConversation).toHaveBeenCalled();
+    });
+
+    it('starts a new local draft from the list (no server call from the component)', async () => {
+      const fixture = await createComponent();
+      assistant.conversations.set([]);
+      fixture.detectChanges();
+
+      el(fixture).querySelector<HTMLButtonElement>('.course-chat__empty--list .btn')?.click();
+
+      expect(assistant.startNewConversation).toHaveBeenCalledTimes(1);
     });
 
     it('opens a conversation from the list', async () => {

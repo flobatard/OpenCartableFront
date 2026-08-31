@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { effect, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -30,6 +30,26 @@ export interface AssistantToolActivity {
 export type AssistantStreamState = 'idle' | 'streaming' | 'error';
 
 /**
+ * Conversation **brouillon** : la vue d'entrée du panneau est une conversation
+ * vide purement locale (`id` vide — jamais un id serveur), matérialisée côté
+ * back seulement au premier message envoyé. Un brouillon jamais utilisé ne
+ * crée donc rien en base ; les dates sont des placeholders jamais affichés.
+ */
+function draftConversation(): AssistantConversationDetail {
+  const now = new Date().toISOString();
+  return {
+    id: '',
+    context: 'course',
+    block_id: null,
+    module_id: null,
+    title: null,
+    created_at: now,
+    updated_at: now,
+    messages: [],
+  };
+}
+
+/**
  * Assistant IA d'un cours — variante mutable du patron (motif `CourseService`)
  * plus le **premier client SSE du projet** : le CRUD des conversations passe
  * par `HttpClient` (Bearer automatique, URLs sous `apiUrl`), mais le flux de
@@ -37,6 +57,10 @@ export type AssistantStreamState = 'idle' | 'streaming' | 'error';
  * donc hors intercepteur OIDC : l'`Authorization` est posée à la main depuis
  * `AuthService.accessToken` (seule couche qui connaît le token). Navigateur
  * uniquement (`isPlatformBrowser`), annulable (`AbortController`).
+ *
+ * La vue d'entrée est une conversation **brouillon** (cf. `draftConversation`) :
+ * `active` ne vaut `null` que quand l'historique est affiché ; `sendMessage`
+ * matérialise le brouillon (POST) avant de streamer le premier tour.
  *
  * État en signaux, scopé à UN cours à la fois (garde `#courseId`, motif
  * `ResourceService`), purgé à la déconnexion. Pendant un tour, les deltas
@@ -63,7 +87,7 @@ export class CourseAssistantService {
   readonly #listError = signal(false);
   readonly listError = this.#listError.asReadonly();
 
-  readonly #active = signal<AssistantConversationDetail | null>(null);
+  readonly #active = signal<AssistantConversationDetail | null>(draftConversation());
   readonly active = this.#active.asReadonly();
   readonly #activeLoading = signal(false);
   readonly activeLoading = this.#activeLoading.asReadonly();
@@ -108,7 +132,7 @@ export class CourseAssistantService {
     this.stopStreaming();
     this.#courseId = null;
     this.#conversations.set(null);
-    this.#active.set(null);
+    this.#active.set(draftConversation());
     this.#listError.set(false);
     this.#activeError.set(false);
     this.#streamState.set('idle');
@@ -147,18 +171,38 @@ export class CourseAssistantService {
     }
   }
 
-  /** Crée une conversation vide et l'ouvre. */
-  async createConversation(): Promise<void> {
-    const courseId = this.#courseId;
-    if (!courseId) {
-      return;
-    }
-    const conversation = await firstValueFrom(
-      this.#http.post<AssistantConversation>(this.#base(courseId), { context: 'course' }),
-    );
-    this.#conversations.update((list) => [conversation, ...(list ?? [])]);
-    this.#active.set({ ...conversation, messages: [] });
+  /**
+   * Ouvre une conversation vide — purement LOCALE (brouillon) : rien n'est
+   * créé côté serveur avant le premier message (`sendMessage` matérialise).
+   */
+  startNewConversation(): void {
+    this.stopStreaming();
+    this.#active.set(draftConversation());
     this.#clearTurn();
+  }
+
+  /**
+   * Matérialise le brouillon actif côté serveur (POST) au premier message.
+   * `null` si le POST échoue (état d'erreur posé) ou si le contexte a changé
+   * pendant l'aller-retour (autre cours, autre conversation ouverte).
+   */
+  async #createConversation(courseId: string): Promise<AssistantConversation | null> {
+    try {
+      const created = await firstValueFrom(
+        this.#http.post<AssistantConversation>(this.#base(courseId), { context: 'course' }),
+      );
+      if (this.#courseId !== courseId || this.#active()?.id !== '') {
+        return null;
+      }
+      this.#conversations.update((list) => [created, ...(list ?? [])]);
+      this.#active.update((detail) =>
+        detail ? { ...detail, ...created, messages: detail.messages } : detail,
+      );
+      return created;
+    } catch (error) {
+      this.#failStream(error instanceof HttpErrorResponse ? error.status : 0);
+      return null;
+    }
   }
 
   /** Ouvre une conversation existante (recharge ses messages persistés). */
@@ -185,7 +229,7 @@ export class CourseAssistantService {
     }
   }
 
-  /** Referme la conversation active (retour à la liste). */
+  /** Referme la conversation active (affiche l'historique des conversations). */
   closeConversation(): void {
     this.stopStreaming();
     this.#active.set(null);
@@ -230,6 +274,10 @@ export class CourseAssistantService {
    * classe). Une réponse non-2xx (404/422/429/503 eager) est lue en JSON
    * FastAPI et devient l'état d'erreur ; les erreurs mid-stream arrivent en
    * événement `error` du flux. Un abort conserve le texte partiel affiché.
+   *
+   * Sur un brouillon (`id` vide), la conversation est d'abord matérialisée
+   * côté serveur — c'est le SEUL point de création : un brouillon sans message
+   * n'existe jamais en base.
    */
   async sendMessage(content: string): Promise<void> {
     const courseId = this.#courseId;
@@ -245,11 +293,23 @@ export class CourseAssistantService {
     this.#appendMessage({ role: 'user', content: trimmed });
     this.#clearTurn();
     this.#streamState.set('streaming');
+
+    let conversationId = conversation.id;
+    if (!conversationId) {
+      const created = await this.#createConversation(courseId);
+      if (!created) {
+        // Échec (état d'erreur posé) ou contexte changé pendant le POST : le
+        // message reste affiché en local, rien n'est streamé.
+        return;
+      }
+      conversationId = created.id;
+    }
+
     const abort = new AbortController();
     this.#abort = abort;
 
     try {
-      const response = await fetch(`${this.#base(courseId)}/${conversation.id}/messages/stream`, {
+      const response = await fetch(`${this.#base(courseId)}/${conversationId}/messages/stream`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

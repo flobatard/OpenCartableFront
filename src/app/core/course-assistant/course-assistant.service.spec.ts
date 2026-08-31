@@ -78,6 +78,26 @@ describe('CourseAssistantService', () => {
     expect(service.listError()).toBe(false);
   });
 
+  it('starts on an empty draft conversation (nothing created server-side)', async () => {
+    await loadList();
+    expect(service.active()?.id).toBe('');
+    expect(service.active()?.messages).toEqual([]);
+    // Aucun POST : le brouillon est purement local.
+    http.verify();
+  });
+
+  it('startNewConversation resets to a fresh local draft without any request', async () => {
+    await loadList();
+    await openConversation();
+    expect(service.active()?.id).toBe('conv-1');
+
+    service.startNewConversation();
+
+    expect(service.active()?.id).toBe('');
+    expect(service.active()?.messages).toEqual([]);
+    http.verify();
+  });
+
   it('flags a list load failure and allows retry', async () => {
     const promise = service.loadConversations('c1');
     http.expectOne(BASE).flush('boom', { status: 503, statusText: 'Unavailable' });
@@ -86,16 +106,48 @@ describe('CourseAssistantService', () => {
     expect(service.conversations()).toBeNull();
   });
 
-  it('creates a conversation and opens it empty', async () => {
+  it('materializes the draft server-side on the first message, then streams', async () => {
     await loadList();
-    const promise = service.createConversation();
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        sseResponse([
+          'event: token\ndata: {"delta":"Réponse"}\n\n',
+          'event: done\ndata: {"usage":null,"user_message_id":"u1","message_ids":["m1"],' +
+            '"sources":{},"title":"Premier échange"}\n\n',
+        ]),
+      );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const promise = service.sendMessage('Bonjour');
     const req = http.expectOne(BASE);
     expect(req.request.body).toEqual({ context: 'course' });
     req.flush({ ...CONVERSATION, id: 'conv-2' });
     await promise;
-    expect(service.conversations()?.[0].id).toBe('conv-2');
+
+    // Le flux vise la conversation créée, le message local est conservé.
+    const [url] = fetchMock.mock.calls[0] as [string];
+    expect(url).toBe(`${BASE}/conv-2/messages/stream`);
     expect(service.active()?.id).toBe('conv-2');
-    expect(service.active()?.messages).toEqual([]);
+    expect(service.active()?.messages[0].content).toBe('Bonjour');
+    expect(service.conversations()?.[0].id).toBe('conv-2');
+    expect(service.conversations()?.length).toBe(2);
+  });
+
+  it('maps a failed draft creation to the error state, keeping the local message', async () => {
+    await loadList();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    const promise = service.sendMessage('Bonjour');
+    http.expectOne(BASE).flush('boom', { status: 503, statusText: 'Unavailable' });
+    await promise;
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(service.streamState()).toBe('error');
+    expect(service.streamErrorStatus()).toBe(503);
+    expect(service.active()?.id).toBe('');
+    expect(service.active()?.messages[0].content).toBe('Bonjour');
   });
 
   it('deletes a conversation and closes it if active', async () => {

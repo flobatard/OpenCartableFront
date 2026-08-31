@@ -75,12 +75,16 @@
     } @else {
       <h2 class="course-chat__title">{{ 'courseChat.title' | transloco }}</h2>
     }
-    <button type="button" class="btn btn--ghost course-chat__new" (click)="newConversation()">
-      {{ 'courseChat.newConversation' | transloco }}
-    </button>
+    @if (!activeIsDraft()) {
+      <!-- Inutile sur le brouillon : la conversation affichée est déjà neuve. -->
+      <button type="button" class="btn btn--ghost course-chat__new" (click)="newConversation()">
+        {{ 'courseChat.newConversation' | transloco }}
+      </button>
+    }
     <button
       type="button"
       class="course-chat__collapse"
+      [class.course-chat__collapse--push]="activeIsDraft()"
       [attr.aria-label]="'courseChat.collapse' | transloco"
       (click)="collapse.emit()"
     >
