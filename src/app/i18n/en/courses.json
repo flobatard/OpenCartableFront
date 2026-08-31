@@ -87,6 +87,12 @@
     "saveMeta": "Save",
     "metaSaved": "Saved",
     "metaError": "Save failed",
+    "nav": {
+      "label": "Block navigation",
+      "previous": "Previous block",
+      "next": "Next block",
+      "position": "Block {{ current }} / {{ total }}"
+    },
     "resize": "Resize the editor and assistant",
     "toggleChat": "Assistant",
     "showChat": "Show assistant",

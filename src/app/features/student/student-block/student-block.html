@@ -8,6 +8,16 @@
         'student.course.blockPosition' | transloco: { current: index(), total: blocks().length }
       }}
     </span>
+    @if (previous(); as target) {
+      <a class="btn btn--secondary" [routerLink]="blockLink(target)">
+        ← {{ 'student.course.previousBlock' | transloco }}
+      </a>
+    }
+    @if (next(); as target) {
+      <a class="btn btn--secondary" [routerLink]="blockLink(target)" (click)="scrollToTop()">
+        {{ 'student.course.nextBlock' | transloco }} →
+      </a>
+    }
   </div>
 
   <div class="student-block__content" [style]="courseStyle.styleVars()">
@@ -28,7 +38,7 @@
       <span></span>
     }
     @if (next(); as target) {
-      <a class="btn btn--secondary" [routerLink]="blockLink(target)">
+      <a class="btn btn--secondary" [routerLink]="blockLink(target)" (click)="scrollToTop()">
         {{ 'student.course.nextBlock' | transloco }} →
       </a>
     }

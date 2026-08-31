@@ -90,7 +90,10 @@ describe('BlockEditor', () => {
     await TestBed.configureTestingModule({
       imports: [BlockEditor, provideTranslocoTesting()],
       providers: [
-        provideRouter([]),
+        // Attrape-tout : les clics sur les liens précédent/suivant naviguent
+        // pour de vrai (RouterLink) — sans route correspondante, la promesse
+        // de navigation serait rejetée et polluerait la sortie des tests.
+        provideRouter([{ path: '**', children: [] }]),
         { provide: CourseService, useValue: coursesMock },
         { provide: ResourceService, useValue: resourcesMock },
         { provide: ModuleService, useValue: modulesMock },
@@ -166,6 +169,56 @@ describe('BlockEditor', () => {
     await fixture.whenStable();
 
     expect(fixture.componentInstance.content.value).toBe(INITIAL);
+  });
+
+  it('renders previous/next navigation at top and bottom of the page', async () => {
+    const fixture = await createComponent('block-2');
+    fixture.detectChanges();
+
+    const navs = el(fixture).querySelectorAll('.block-editor__nav');
+    expect(navs).toHaveLength(2);
+    for (const nav of Array.from(navs)) {
+      const links = nav.querySelectorAll('a');
+      expect(links).toHaveLength(2);
+      expect(links[0].getAttribute('href')).toContain('/courses/course-1/blocks/block-1');
+      expect(links[1].getAttribute('href')).toContain('/courses/course-1/blocks/block-3');
+      expect(nav.textContent).toContain('2 / 3');
+    }
+  });
+
+  it('omits the previous link on the first block and the next link on the last', async () => {
+    const first = await createComponent('block-1');
+    first.detectChanges();
+    const firstNav = el(first).querySelector('.block-editor__nav')!;
+    expect(firstNav.querySelectorAll('a')).toHaveLength(1);
+    expect(firstNav.querySelector('a')!.getAttribute('href')).toContain(
+      '/courses/course-1/blocks/block-2',
+    );
+
+    TestBed.resetTestingModule();
+    const last = await createComponent('block-3');
+    last.detectChanges();
+    const lastNav = el(last).querySelector('.block-editor__nav')!;
+    expect(lastNav.querySelectorAll('a')).toHaveLength(1);
+    expect(lastNav.querySelector('a')!.getAttribute('href')).toContain(
+      '/courses/course-1/blocks/block-2',
+    );
+  });
+
+  it('scrolls back to top when following the next link only', async () => {
+    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+    const fixture = await createComponent('block-2');
+    fixture.detectChanges();
+
+    const [previous, next] = Array.from(
+      el(fixture).querySelectorAll<HTMLAnchorElement>('.block-editor__nav a'),
+    );
+    previous.click();
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    next.click();
+    expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
+    scrollTo.mockRestore();
   });
 
   it('autosave: nothing before 1.5 s, then one PATCH with the current value', async () => {

@@ -34,6 +34,29 @@
   font-size: 14px;
 }
 
+/* Navigation précédent/suivant entre blocs (haut et bas de page) -------------- */
+
+.block-editor__nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.block-editor__nav--bottom {
+  margin: 24px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.block-editor__nav-position {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Titre/description du bloc (tous types) — enregistrement explicite ----------- */
 
 .block-editor__meta {

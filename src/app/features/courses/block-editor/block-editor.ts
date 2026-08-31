@@ -22,6 +22,7 @@ import {
 } from '../../../core/courses/block-meta-form';
 import {
   BlockMetaPayload,
+  CourseBlock,
   DocumentContentPayload,
   ExerciseContentPayload,
 } from '../../../core/courses/course.model';
@@ -106,6 +107,18 @@ export class BlockEditor implements OnInit, OnDestroy {
   protected readonly block = computed(
     () => this.detail()?.blocks.find((b) => b.id === this.blockId) ?? null,
   );
+
+  /** Blocs du cours dans l'ordre du back (navigation précédent/suivant). */
+  protected readonly blocks = computed<CourseBlock[]>(() => this.detail()?.blocks ?? []);
+
+  /** Rang 1-indexé du bloc édité (0 si introuvable) — motif `StudentBlock`. */
+  protected readonly blockIndex = computed(() => {
+    const block = this.block();
+    return block === null ? 0 : this.blocks().indexOf(block) + 1;
+  });
+
+  protected readonly previousBlock = computed<CourseBlock | null>(() => this.#neighbour(-1));
+  protected readonly nextBlock = computed<CourseBlock | null>(() => this.#neighbour(1));
 
   /**
    * Contenu markdown édité (blocs texte), relayé au `app-markdown-field`.
@@ -355,6 +368,25 @@ export class BlockEditor implements OnInit, OnDestroy {
 
   protected reload(): void {
     this.#courses.loadDetail(this.courseId);
+  }
+
+  /** Lien vers l'éditeur d'un autre bloc du cours — la route porte
+      `remountOnParamChange` : le flush d'autosave du destroy tourne, puis l'init. */
+  protected blockNavLink(block: CourseBlock): string[] {
+    return ['/', this.language.lang(), 'courses', this.courseId, 'blocks', block.id];
+  }
+
+  /** Clic « Bloc suivant » (haut ou bas) : la lecture reprend en haut de la
+      page remontée — « précédent » conserve, lui, la position de défilement. */
+  protected scrollToTop(): void {
+    if (this.#isBrowser) {
+      window.scrollTo({ top: 0 });
+    }
+  }
+
+  #neighbour(delta: number): CourseBlock | null {
+    const index = this.blockIndex();
+    return index === 0 ? null : (this.blocks()[index - 1 + delta] ?? null);
   }
 
   /** Enregistre titre/description (tous types). N'envoie que le méta, jamais le contenu. */

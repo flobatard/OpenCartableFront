@@ -87,6 +87,12 @@
     "saveMeta": "Enregistrer",
     "metaSaved": "Enregistré",
     "metaError": "Échec de l'enregistrement",
+    "nav": {
+      "label": "Navigation entre les blocs",
+      "previous": "Bloc précédent",
+      "next": "Bloc suivant",
+      "position": "Bloc {{ current }} / {{ total }}"
+    },
     "resize": "Redimensionner l'éditeur et l'assistant",
     "toggleChat": "Assistant",
     "showChat": "Afficher l'assistant",

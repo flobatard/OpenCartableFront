@@ -23,6 +23,33 @@
           </p>
         </header>
 
+        <nav class="block-editor__nav" [attr.aria-label]="'courses.editor.nav.label' | transloco">
+          @if (previousBlock(); as target) {
+            <a class="btn btn--secondary" [routerLink]="blockNavLink(target)">
+              ← {{ 'courses.editor.nav.previous' | transloco }}
+            </a>
+          } @else {
+            <span></span>
+          }
+          <span class="block-editor__nav-position">
+            {{
+              'courses.editor.nav.position'
+                | transloco: { current: blockIndex(), total: blocks().length }
+            }}
+          </span>
+          @if (nextBlock(); as target) {
+            <a
+              class="btn btn--secondary"
+              [routerLink]="blockNavLink(target)"
+              (click)="scrollToTop()"
+            >
+              {{ 'courses.editor.nav.next' | transloco }} →
+            </a>
+          } @else {
+            <span></span>
+          }
+        </nav>
+
         <form class="block-editor__meta" [formGroup]="metaForm" (ngSubmit)="saveMeta()">
           <label class="block-editor__field">
             <span class="block-editor__label">{{ 'courses.editor.titleLabel' | transloco }}</span>
@@ -225,6 +252,36 @@
             <p>{{ 'courses.editor.unsupported' | transloco }}</p>
           </div>
         }
+
+        <nav
+          class="block-editor__nav block-editor__nav--bottom"
+          [attr.aria-label]="'courses.editor.nav.label' | transloco"
+        >
+          @if (previousBlock(); as target) {
+            <a class="btn btn--secondary" [routerLink]="blockNavLink(target)">
+              ← {{ 'courses.editor.nav.previous' | transloco }}
+            </a>
+          } @else {
+            <span></span>
+          }
+          <span class="block-editor__nav-position">
+            {{
+              'courses.editor.nav.position'
+                | transloco: { current: blockIndex(), total: blocks().length }
+            }}
+          </span>
+          @if (nextBlock(); as target) {
+            <a
+              class="btn btn--secondary"
+              [routerLink]="blockNavLink(target)"
+              (click)="scrollToTop()"
+            >
+              {{ 'courses.editor.nav.next' | transloco }} →
+            </a>
+          } @else {
+            <span></span>
+          }
+        </nav>
       } @else {
         <div class="block-editor__notice">
           <p>{{ 'courses.editor.notFound' | transloco }}</p>

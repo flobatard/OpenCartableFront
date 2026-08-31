@@ -77,6 +77,13 @@ export class StudentBlock {
   protected readonly exerciseLink = (blockId: string): string[] =>
     publicCourseLink(this.#language.lang(), this.#courses.access(), 'exercises', blockId);
 
+  /** Clic « Suivant » (haut ou bas) : la lecture reprend en haut de la page —
+      « Précédent » conserve, lui, la position de défilement. Handler de clic :
+      jamais exécuté au SSR, pas de garde plateforme nécessaire. */
+  protected scrollToTop(): void {
+    window.scrollTo({ top: 0 });
+  }
+
   #neighbour(delta: number): CourseBlock | null {
     const index = this.index();
     return index === 0 ? null : (this.blocks()[index - 1 + delta] ?? null);

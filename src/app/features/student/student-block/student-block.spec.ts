@@ -49,7 +49,10 @@ describe('StudentBlock', () => {
     await TestBed.configureTestingModule({
       imports: [StudentBlock, provideTranslocoTesting()],
       providers: [
-        provideRouter([]),
+        // Attrape-tout : les clics sur les liens précédent/suivant naviguent
+        // pour de vrai (RouterLink) — sans route correspondante, la promesse
+        // de navigation serait rejetée et polluerait la sortie des tests.
+        provideRouter([{ path: '**', children: [] }]),
         { provide: PublicCourseService, useValue: coursesMock },
         { provide: COURSE_RESOURCE_RESOLVER, useValue: resolverMock },
         // Requis : le dernier bloc de la fixture est un bloc `module`. Sans lui,
@@ -115,6 +118,36 @@ describe('StudentBlock', () => {
 
     expect(position(fixture)).toBe('4 / 4');
     expect(footerLinks(fixture)).toEqual(['/fr/p/courses/course-1/blocks/block-3']);
+  });
+
+  it('repeats the previous/next links in the top bar', async () => {
+    const fixture = await createComponent('block-2');
+
+    const links = Array.from(
+      el(fixture).querySelectorAll<HTMLAnchorElement>(
+        '.student-block__nav:not(.student-block__nav--footer) a',
+      ),
+    ).map((a) => a.getAttribute('href'));
+    expect(links).toEqual([
+      '/fr/p/courses/course-1', // retour au sommaire
+      '/fr/p/courses/course-1/blocks/block-1',
+      '/fr/p/courses/course-1/blocks/block-3',
+    ]);
+  });
+
+  it('scrolls back to top when following the next link only', async () => {
+    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+    const fixture = await createComponent('block-2');
+
+    const [previous, next] = Array.from(
+      el(fixture).querySelectorAll<HTMLAnchorElement>('.student-block__nav--footer a'),
+    );
+    previous.click();
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    next.click();
+    expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
+    scrollTo.mockRestore();
   });
 
   it('follows the observed paramMap when the route param changes', async () => {
