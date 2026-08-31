@@ -234,6 +234,16 @@
   font-style: italic;
 }
 
+/* Citation d'un bloc par l'assistant IA (`oc-block:` — ancre sans href, id en
+   data-*). Cliquable seulement là où un hôte délègue le clic (panneau chat) ;
+   ailleurs elle garde l'apparence d'un lien mais reste inerte. Global car
+   injectée en innerHTML (l'encapsulation émulée ne la scope pas). */
+.course-content .course-block-ref {
+  color: var(--link);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* Thème sombre */
 [data-theme='dark'] {
   --color-primary: var(--indigo-500);

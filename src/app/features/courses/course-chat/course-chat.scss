@@ -1,6 +1,6 @@
 /* Carte assistant : colonne flex (en-tête fixe / messages scrollables / composer épinglé).
    Le display est ré-annulé sous [hidden] car une règle d'auteur bat le [hidden] de l'UA
-   (le parent block-editor masque le chat via [hidden] au repli). */
+   (les hôtes masquent le chat via [hidden] au repli). */
 :host {
   display: flex;
   flex-direction: column;
@@ -27,6 +27,10 @@
 
 .course-chat__title {
   margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   font-family: var(--font-display);
   font-size: 16px;
 }
@@ -40,18 +44,31 @@
   font-weight: 600;
 }
 
+.course-chat__new {
+  margin-inline-start: auto;
+  flex: 0 0 auto;
+}
+
+/* Boutons discrets de l'en-tête — le retour (`--back`) partage ces styles. */
 .course-chat__collapse {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 28px;
   height: 28px;
-  margin-inline-start: auto;
+  flex: 0 0 auto;
   background: none;
   border: 0;
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
+  font: inherit;
   cursor: pointer;
+}
+
+/* Mode placeholder (pas de bouton « nouvelle conversation ») : le repli
+   est poussé à droite par cette variante. */
+.course-chat__collapse--push {
+  margin-inline-start: auto;
 }
 
 .course-chat__collapse:hover {
@@ -59,20 +76,31 @@
   color: var(--text-primary);
 }
 
-/* Zone de messages : scroll interne. L'état vide est centré tant qu'il n'y a
-   pas de conversation ; le futur fil de messages remplacera place-items par un flux. */
+/* Zone centrale : flux vertical scrollable (fil, liste, états). */
 .course-chat__messages {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+/* État vide du placeholder : centré (l'ancien place-items du panneau). */
+.course-chat__messages--empty {
   display: grid;
   place-items: center;
-  padding: 16px;
 }
 
 .course-chat__empty {
   max-width: 32ch;
   text-align: center;
+}
+
+.course-chat__empty--list {
+  align-self: center;
+  margin: auto 0;
 }
 
 .course-chat__empty-icon {
@@ -91,6 +119,132 @@
   font-size: 14px;
 }
 
+.course-chat__status {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.course-chat__alert {
+  padding: 10px 12px;
+  border: 1px solid var(--text-danger);
+  border-radius: var(--radius);
+  color: var(--text-danger);
+  font-size: 14px;
+}
+
+.course-chat__alert p {
+  margin: 0;
+}
+
+.course-chat__alert a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* Historique des conversations. */
+.course-chat__conversations {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.course-chat__conversation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.course-chat__conversation-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 10px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.course-chat__conversation-open:hover {
+  background: var(--bg-subtle);
+}
+
+.course-chat__conversation-title {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.course-chat__conversation-date {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.course-chat__conversation-delete {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.course-chat__conversation-delete:hover,
+.course-chat__conversation-delete--armed {
+  color: var(--text-danger);
+}
+
+/* Fil : seule la question du prof est une bulle ; la réponse assistant est
+   un bloc pleine largeur (markdown-view), sans règle dédiée. */
+.course-chat__bubble {
+  align-self: flex-end;
+  max-width: 90%;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  font-size: 14px;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+/* Les appels d'outils (lignes dépliables) vivent dans app-course-chat-tool. */
+
+/* Raisonnement live : repliable, atténué, texte brut. */
+.course-chat__thinking {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.course-chat__thinking summary {
+  cursor: pointer;
+}
+
+.course-chat__thinking-text {
+  margin: 6px 0 0;
+  white-space: pre-wrap;
+  font-family: inherit;
+}
+
 .course-chat__composer {
   display: flex;
   flex-direction: column;
@@ -101,7 +255,7 @@
 }
 
 /* Champ — DESIGN_SYSTEM §8 : bordure porteuse slate-500, placeholder slate-500
-   (jamais slate-400). Désactivé tant que l'IA n'est pas branchée. */
+   (jamais slate-400). */
 .course-chat__input {
   width: 100%;
   padding: 10px 12px;

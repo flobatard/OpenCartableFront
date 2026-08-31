@@ -1,6 +1,7 @@
 import DOMPurify from 'dompurify';
 import katex from 'katex';
 import { Marked, Tokens, TokenizerAndRendererExtension } from 'marked';
+import { BLOCK_REF_ATTR, parseBlockRef } from './course-block-ref';
 import { MODULE_REF_ATTR, parseModuleRef } from './course-module-ref';
 import { parseResourceRef, ResourceRefKind, RESOURCE_REF_ATTR } from './course-resource-ref';
 
@@ -131,6 +132,19 @@ function modulePlaceholder(id: string, label: string): string {
   );
 }
 
+/**
+ * Ancre inerte d'une citation de bloc (`oc-block:<id>`, assistant IA) : pas
+ * de href (rien à résoudre), l'id voyage en `data-*` (survit à DOMPurify) et
+ * `tabindex` la rend focusable — le panneau assistant navigue par délégation
+ * d'événements ; partout ailleurs l'ancre reste un texte inerte.
+ */
+function blockRefAnchor(id: string, label: string): string {
+  return (
+    `<a ${BLOCK_REF_ATTR}="${escapeHtmlAttr(id)}" class="course-block-ref"` +
+    ` role="link" tabindex="0">${label}</a>`
+  );
+}
+
 // Instance dédiée, configurée UNE fois au chargement du module : ne jamais
 // muter le singleton `marked` (son use() est global). Défauts identiques
 // (gfm actif) — le markdown sans formule se rend comme avant.
@@ -152,6 +166,12 @@ const courseMarked = new Marked({
       if (moduleId !== null) {
         return modulePlaceholder(moduleId, escapeHtmlAttr(text));
       }
+      // `![…](oc-block:…)` n'a pas de sens image, mais un modèle IA peut
+      // l'émettre : même ancre que le lien plutôt qu'une <img> vidée.
+      const blockId = parseBlockRef(href);
+      if (blockId !== null) {
+        return blockRefAnchor(blockId, escapeHtmlAttr(text));
+      }
       const id = parseResourceRef(href);
       return id === null
         ? false
@@ -163,6 +183,11 @@ const courseMarked = new Marked({
       const moduleId = parseModuleRef(href);
       if (moduleId !== null) {
         return modulePlaceholder(moduleId, this.parser.parseInline(tokens));
+      }
+      // `oc-block:` (citations de l'assistant IA) : ancre inerte data-*.
+      const blockId = parseBlockRef(href);
+      if (blockId !== null) {
+        return blockRefAnchor(blockId, this.parser.parseInline(tokens));
       }
       const id = parseResourceRef(href);
       return id === null

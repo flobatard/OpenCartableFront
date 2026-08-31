@@ -1,0 +1,40 @@
+<details
+  class="chat-tool"
+  [class.chat-tool--error]="tool().status === 'error'"
+  [class.chat-tool--running]="tool().status === 'running'"
+>
+  <summary class="chat-tool__summary">
+    <span aria-hidden="true">🛠</span>
+    <span class="chat-tool__label">{{ labelKey() | transloco }}</span>
+    @if (tool().status === 'running') {
+      <span class="chat-tool__state">{{ 'courseChat.toolRunning' | transloco }}</span>
+    } @else if (tool().status === 'error') {
+      <span class="chat-tool__state">— {{ 'courseChat.toolFailed' | transloco }}</span>
+    }
+  </summary>
+  <div class="chat-tool__body">
+    <p class="chat-tool__heading">{{ 'courseChat.toolArguments' | transloco }}</p>
+    @if (argEntries().length > 0) {
+      <dl class="chat-tool__args">
+        @for (arg of argEntries(); track arg.key) {
+          <dt>{{ arg.key }}</dt>
+          <dd>{{ arg.value }}</dd>
+        }
+      </dl>
+    } @else {
+      <p class="chat-tool__muted">{{ 'courseChat.toolNoArguments' | transloco }}</p>
+    }
+    <p class="chat-tool__heading">
+      {{
+        (tool().status === 'error' ? 'courseChat.toolError' : 'courseChat.toolResult') | transloco
+      }}
+    </p>
+    @if (tool().status === 'running') {
+      <p class="chat-tool__muted">{{ 'courseChat.toolRunning' | transloco }}</p>
+    } @else if (tool().result) {
+      <pre class="chat-tool__result">{{ tool().result }}</pre>
+    } @else {
+      <p class="chat-tool__muted">{{ 'courseChat.toolNoResult' | transloco }}</p>
+    }
+  </div>
+</details>

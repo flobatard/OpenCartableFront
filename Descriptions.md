@@ -51,7 +51,8 @@ Notes, rendus d'élèves, messagerie, gestion de classe. Ce n'est pas un ENT, c'
 - Aperçus / miniatures des documents.
 - Liens de partage avec options (expiration, révocation).
 
-### Plus tard — couche IA (terrain déjà préparé)
+### Couche IA (première brique livrée)
+- **Livré — assistant IA de cours (contexte global)** : chat par cours à **conversations persistées**, côté prof — panneau flottant repliable en bas à droite de la page cours, réponses streamées (SSE : texte, raisonnement, activité d'outils) qui **citent leurs sources** (liens cliquables vers les blocs/ressources cités), tools d'exploration du cours (lecture d'un bloc, extraction du texte d'un PDF de la bibliothèque, lecture d'une image de la bibliothèque — modèle à vision requis —, lecture du code d'un module interactif), appels d'outils dépliables dans le fil (paramètres, résultat ou erreur). Décision actée : l'IA se décline en **5 contextes** sur base commune (global cours ; édition texte/exercice/module ; résolution d'exercice élève — ce dernier sans persistance), chacun avec ses flux HITL — les 4 autres restent à livrer, ainsi que le **chat élève anonyme** (reporté).
 - Extraction de texte des documents → indexation sémantique (**ChromaDB**, si la vectorisation est actée).
 - Recherche sémantique et RAG sur la base de cours.
 - Génération assistée : résumés, quiz, fiches de révision à partir d'un cours.
@@ -145,6 +146,7 @@ Le point le plus sensible niveau sécurité : on sert du **code arbitraire** (ce
 - À surveiller : un lien public reste *diffusable* — pas de données sensibles dans les cours partagés (rien de personnel sur des élèves de toute façon, cf. périmètre).
 
 ### 5.7 Préparation de la couche IA
+- **Brique J5 livrée : l'assistant IA de cours** (cf. § « Couche IA » ci-dessus et le CLAUDE.md du back pour l'implémentation — agent LangGraph confiné dans `app/core/ai/`, tables de conversations, contrat SSE élargi `token`/`thinking`/`tool_call`/`tool_result`, citations `oc-block:`/`oc-resource:`). Côté front : premier client SSE du repo (fetch + ReadableStream, Bearer manuel via `AuthService`), panneau flottant `assistant-panel`, `CourseChat` câblé en mode global (les hôtes éditeurs restent placeholder jusqu'aux lots HITL).
 - La **vectorisation des cours n'est pas actée**. Si elle se fait, elle passera probablement par **ChromaDB** (dépendances déjà présentes dans le backend) — aucune préparation en base Postgres n'est requise d'ici là.
 - Prévoir, sans l'implémenter au MVP : un pipeline *extraction de texte (PDF/images) → découpage → embeddings → stockage vectoriel*, déclenché en tâche de fond à l'upload.
 - Le choix Python/FastAPI rend naturelle l'intégration ultérieure (RAG, génération de quiz/résumés). Pour le fournisseur de modèle, garder en tête la contrainte RGPD (option hébergée UE type Mistral, ou modèle local selon ressources).
@@ -225,7 +227,7 @@ erDiagram
 | **J2 — Partage** | Liens publics, vue lecture seule élève, présignature des ressources | Un cours consultable par lien |
 | **J3 — Recherche** *(livré)* | Page publique `/search` (onglets Cours / Professeurs, facettes matière/niveau, pagination) sur la FTS Postgres du back | Retrouver n'importe quel support |
 | **J4 — Interactif** *(livré, anticipé avant J2/J3)* | Bibliothèque de modules HTML/CSS/JS par cours (code en base, éditeur intégré) + sandbox iframe origine opaque | Intégrer un quiz dans un cours |
-| **J5 — IA** | extraction texte, vectorisation (ChromaDB, si actée), recherche sémantique / RAG | Première brique IA |
+| **J5 — IA** *(1re brique livrée)* | **Assistant de cours** : chat par cours à conversations persistées, agent + tools (lecture de blocs, extraction PDF), citations de sources — cf. §5.7 ; restent les contextes d'édition/résolution (HITL), le chat élève, la vectorisation (ChromaDB, si actée) et le RAG | Interroger, critiquer et synthétiser un cours avec l'IA |
 
 ---
 

@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { CourseBlocks } from './course-blocks';
+import { CourseAssistantService } from '../../../core/course-assistant/course-assistant.service';
 import { CourseBlock, CourseDetail } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
 import { EducationLevelService } from '../../../core/education-levels/education-level.service';
@@ -91,6 +92,26 @@ describe('CourseBlocks', () => {
       imports: [CourseBlocks, provideTranslocoTesting()],
       providers: [
         provideRouter([]),
+        // La page embarque le panneau assistant flottant (mode global) : tout
+        // spec la montant fournit un mock du service assistant (motif du mock
+        // CourseService pour la modale d'import).
+        {
+          provide: CourseAssistantService,
+          useValue: {
+            conversations: signal(null),
+            listLoading: signal(false),
+            listError: signal(false),
+            active: signal(null),
+            activeLoading: signal(false),
+            activeError: signal(false),
+            streamState: signal('idle'),
+            streamErrorStatus: signal(null),
+            streamingText: signal(''),
+            streamingThinking: signal(''),
+            toolActivity: signal([]),
+            loadConversations: vi.fn().mockResolvedValue(undefined),
+          },
+        },
         { provide: CourseService, useValue: coursesMock },
         { provide: SubjectService, useValue: subjectsMock },
         { provide: EducationLevelService, useValue: levelsMock },

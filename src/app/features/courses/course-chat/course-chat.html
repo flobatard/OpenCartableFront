@@ -1,57 +1,280 @@
-<header class="course-chat__header">
-  <h2 class="course-chat__title">{{ 'courseChat.title' | transloco }}</h2>
-  <span class="course-chat__badge">{{ 'courseChat.soon' | transloco }}</span>
-  <button
-    type="button"
-    class="course-chat__collapse"
-    [attr.aria-label]="'courseChat.collapse' | transloco"
-    (click)="collapse.emit()"
-  >
-    <svg
-      viewBox="0 0 24 24"
-      width="20"
-      height="20"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="1.75"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      aria-hidden="true"
+@if (!globalMode()) {
+  <!-- Mode placeholder (block-editor / module-editor) : les flux HITL
+       d'édition arrivent dans un lot ultérieur. -->
+  <header class="course-chat__header">
+    <h2 class="course-chat__title">{{ 'courseChat.title' | transloco }}</h2>
+    <span class="course-chat__badge">{{ 'courseChat.soon' | transloco }}</span>
+    <button
+      type="button"
+      class="course-chat__collapse course-chat__collapse--push"
+      [attr.aria-label]="'courseChat.collapse' | transloco"
+      (click)="collapse.emit()"
     >
-      <path d="m9 18 6-6-6-6" />
-    </svg>
-  </button>
-</header>
+      <svg
+        viewBox="0 0 24 24"
+        width="20"
+        height="20"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="m9 18 6-6-6-6" />
+      </svg>
+    </button>
+  </header>
 
-<div class="course-chat__messages" role="log" aria-live="polite">
-  <div class="course-chat__empty">
-    <svg
-      class="course-chat__empty-icon"
-      viewBox="0 0 24 24"
-      width="32"
-      height="32"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="1.75"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    </svg>
-    <p class="course-chat__empty-title">{{ 'courseChat.emptyTitle' | transloco }}</p>
-    <p class="course-chat__empty-hint">{{ 'courseChat.emptyHint' | transloco }}</p>
+  <div class="course-chat__messages course-chat__messages--empty" role="log" aria-live="polite">
+    <div class="course-chat__empty">
+      <svg
+        class="course-chat__empty-icon"
+        viewBox="0 0 24 24"
+        width="32"
+        height="32"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      </svg>
+      <p class="course-chat__empty-title">{{ 'courseChat.emptyTitle' | transloco }}</p>
+      <p class="course-chat__empty-hint">{{ 'courseChat.emptyHint' | transloco }}</p>
+    </div>
   </div>
-</div>
 
-<div class="course-chat__composer">
-  <textarea
-    class="course-chat__input"
-    rows="2"
-    disabled
-    [attr.placeholder]="'courseChat.inputPlaceholder' | transloco"
-  ></textarea>
-  <button type="button" class="btn btn--primary course-chat__send" disabled>
-    {{ 'courseChat.send' | transloco }}
-  </button>
-</div>
+  <div class="course-chat__composer">
+    <textarea
+      class="course-chat__input"
+      rows="2"
+      disabled
+      [attr.placeholder]="'courseChat.inputPlaceholder' | transloco"
+    ></textarea>
+    <button type="button" class="btn btn--primary course-chat__send" disabled>
+      {{ 'courseChat.send' | transloco }}
+    </button>
+  </div>
+} @else {
+  <header class="course-chat__header">
+    @if (assistant.active(); as conversation) {
+      <button
+        type="button"
+        class="course-chat__collapse course-chat__back"
+        [attr.aria-label]="'courseChat.backToList' | transloco"
+        (click)="backToList()"
+      >
+        ←
+      </button>
+      <h2 class="course-chat__title">
+        {{ conversation.title || ('courseChat.untitled' | transloco) }}
+      </h2>
+    } @else {
+      <h2 class="course-chat__title">{{ 'courseChat.title' | transloco }}</h2>
+    }
+    <button type="button" class="btn btn--ghost course-chat__new" (click)="newConversation()">
+      {{ 'courseChat.newConversation' | transloco }}
+    </button>
+    <button
+      type="button"
+      class="course-chat__collapse"
+      [attr.aria-label]="'courseChat.collapse' | transloco"
+      (click)="collapse.emit()"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        width="20"
+        height="20"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="m9 18 6-6-6-6" />
+      </svg>
+    </button>
+  </header>
+
+  @if (!assistant.active()) {
+    <!-- Vue liste : l'historique des conversations du cours. -->
+    <div class="course-chat__messages course-chat__list">
+      @if (assistant.listLoading()) {
+        <p class="course-chat__status" role="status">{{ 'courseChat.listLoading' | transloco }}</p>
+      } @else if (assistant.listError()) {
+        <div class="course-chat__alert" role="alert">
+          <p>{{ 'courseChat.listError' | transloco }}</p>
+          <button
+            type="button"
+            class="btn btn--secondary"
+            (click)="assistant.loadConversations(courseId())"
+          >
+            {{ 'courseChat.retry' | transloco }}
+          </button>
+        </div>
+      } @else if ((assistant.conversations() ?? []).length === 0) {
+        <div class="course-chat__empty course-chat__empty--list">
+          <p class="course-chat__empty-title">{{ 'courseChat.listEmptyTitle' | transloco }}</p>
+          <p class="course-chat__empty-hint">{{ 'courseChat.listEmptyHint' | transloco }}</p>
+          <button type="button" class="btn btn--primary" (click)="newConversation()">
+            {{ 'courseChat.newConversation' | transloco }}
+          </button>
+        </div>
+      } @else {
+        <ul class="course-chat__conversations">
+          @for (conversation of assistant.conversations(); track conversation.id) {
+            <li class="course-chat__conversation">
+              <button
+                type="button"
+                class="course-chat__conversation-open"
+                (click)="openConversation(conversation.id)"
+              >
+                <span class="course-chat__conversation-title">
+                  {{ conversation.title || ('courseChat.untitled' | transloco) }}
+                </span>
+                <span class="course-chat__conversation-date">
+                  {{ updatedOn(conversation.updated_at) }}
+                </span>
+              </button>
+              <button
+                type="button"
+                class="course-chat__conversation-delete"
+                [class.course-chat__conversation-delete--armed]="deleteArmed() === conversation.id"
+                (click)="requestDelete(conversation.id)"
+                (blur)="disarmDelete()"
+              >
+                {{
+                  (deleteArmed() === conversation.id
+                    ? 'courseChat.deleteConfirm'
+                    : 'courseChat.delete'
+                  ) | transloco
+                }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  } @else {
+    <!-- Fil de messages : délégation des citations oc-block (clic + Entrée). -->
+    <div
+      #log
+      class="course-chat__messages course-chat__thread"
+      role="log"
+      aria-live="polite"
+      (scroll)="onLogScroll()"
+      (click)="onCitation($event)"
+      (keydown)="onCitationKeydown($event)"
+    >
+      @if (assistant.activeLoading()) {
+        <p class="course-chat__status" role="status">
+          {{ 'courseChat.conversationLoading' | transloco }}
+        </p>
+      } @else if (assistant.activeError()) {
+        <div class="course-chat__alert" role="alert">
+          <p>{{ 'courseChat.conversationError' | transloco }}</p>
+        </div>
+      } @else {
+        @if (assistant.active()!.messages.length === 0 && assistant.streamState() !== 'streaming') {
+          <div class="course-chat__empty course-chat__empty--list">
+            <p class="course-chat__empty-hint">{{ 'courseChat.threadEmptyHint' | transloco }}</p>
+          </div>
+        }
+        @for (message of assistant.active()!.messages; track message.id) {
+          @if (message.role === 'user') {
+            <div class="course-chat__bubble">{{ message.content }}</div>
+          } @else if (message.role === 'assistant') {
+            @for (tool of toolViews(message); track tool.id) {
+              <app-course-chat-tool [tool]="tool" />
+            }
+            @if (message.content) {
+              <div class="course-chat__answer">
+                <app-markdown-view
+                  [markdown]="message.content"
+                  [courseId]="courseId()"
+                  [showPrint]="false"
+                  [showSettings]="false"
+                />
+              </div>
+            }
+          }
+          <!-- Les tours `tool` ne rendent rien par eux-mêmes : ils alimentent
+               (is_error, extrait) les appels du message assistant qui les a
+               demandés, rendus dépliables par app-course-chat-tool. -->
+        }
+
+        @if (assistant.streamState() === 'streaming' || streamingRender()) {
+          @if (assistant.streamingThinking()) {
+            <details class="course-chat__thinking">
+              <summary>{{ 'courseChat.thinking' | transloco }}</summary>
+              <pre class="course-chat__thinking-text">{{ assistant.streamingThinking() }}</pre>
+            </details>
+          }
+          @for (tool of liveToolViews(); track tool.id) {
+            <app-course-chat-tool [tool]="tool" />
+          }
+          @if (streamingRender()) {
+            <div class="course-chat__answer">
+              <!-- Pendant le stream : texte dévoilé progressivement, pas de
+                   courseId (oc-* inertes, re-rendus bon marché) ; le message
+                   finalisé sera rendu avec le vrai. -->
+              <app-markdown-view
+                [markdown]="streamingRender()"
+                [courseId]="null"
+                [showPrint]="false"
+                [showSettings]="false"
+              />
+            </div>
+          } @else if (assistant.streamState() === 'streaming') {
+            <p class="course-chat__status" role="status">
+              {{ 'courseChat.generating' | transloco }}
+            </p>
+          }
+        }
+
+        @if (errorKey(); as key) {
+          <div class="course-chat__alert" role="alert">
+            <p>
+              {{ key | transloco }}
+              @if (errorLinksToSettings()) {
+                <a [routerLink]="['/', language.lang(), 'settings', 'ai']">
+                  {{ 'courseChat.errors.settingsLink' | transloco }}
+                </a>
+              }
+            </p>
+          </div>
+        }
+      }
+    </div>
+
+    <div class="course-chat__composer">
+      <textarea
+        class="course-chat__input"
+        rows="2"
+        [value]="draft()"
+        [disabled]="assistant.streamState() === 'streaming'"
+        [attr.placeholder]="'courseChat.inputPlaceholder' | transloco"
+        (input)="onDraftInput($event)"
+        (keydown)="onComposerKeydown($event)"
+      ></textarea>
+      @if (assistant.streamState() === 'streaming') {
+        <button type="button" class="btn btn--secondary course-chat__send" (click)="stop()">
+          {{ 'courseChat.stop' | transloco }}
+        </button>
+      } @else {
+        <button
+          type="button"
+          class="btn btn--primary course-chat__send"
+          [disabled]="!draft().trim()"
+          (click)="send()"
+        >
+          {{ 'courseChat.send' | transloco }}
+        </button>
+      }
+    </div>
+  }
+}

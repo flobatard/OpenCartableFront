@@ -1,0 +1,84 @@
+/* Hôte flottant : épinglé au viewport, sous le skip-link (100) et le
+   snackbar (200) — les <dialog> natifs vivent dans le top layer, toujours
+   au-dessus. */
+:host {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* Déplié : une vraie surface de lecture — ~44 % de la largeur du viewport,
+   bornée 560–920px (jamais plus que l'écran moins les marges), sur ~85 % de
+   la hauteur. [hidden] re-annulé (une règle d'auteur bat le [hidden] de l'UA —
+   motif course-chat). */
+.assistant-panel__card {
+  width: min(clamp(560px, 44vw, 920px), calc(100vw - 32px));
+  height: min(85vh, calc(100vh - 48px));
+  display: flex;
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius);
+  transition: opacity 0.15s ease;
+}
+
+.assistant-panel__card[hidden] {
+  display: none;
+}
+
+/* La carte du chat remplit l'hôte. */
+.assistant-panel__card app-course-chat {
+  flex: 1;
+  min-width: 0;
+}
+
+.assistant-panel__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--color-primary);
+  border: 0;
+  border-radius: var(--radius-full);
+  color: #fff; /* texte blanc sur indigo-600 : autorisé */
+  font: inherit;
+  font-weight: 600;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+}
+
+.assistant-panel__pill:hover {
+  background: var(--color-primary-hover);
+}
+
+.assistant-panel__pill:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Bottom-sheet sous le breakpoint unique du projet. */
+@media (max-width: 900px) {
+  :host {
+    right: 8px;
+    left: 8px;
+    bottom: 8px;
+    align-items: stretch;
+  }
+
+  .assistant-panel__card {
+    width: 100%;
+    height: min(85vh, calc(100vh - 32px));
+  }
+
+  .assistant-panel__pill {
+    align-self: flex-end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assistant-panel__card {
+    transition: none;
+  }
+}
