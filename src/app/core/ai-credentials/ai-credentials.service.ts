@@ -6,6 +6,7 @@ import { AuthService } from '../auth/auth.service';
 import {
   AiCredentials,
   AiCredentialsPayload,
+  AiModelListPayload,
   EMPTY_AI_CREDENTIALS,
 } from './ai-credentials.model';
 
@@ -89,5 +90,26 @@ export class AiCredentialsService {
     } catch {
       this.#credentials.set(EMPTY_AI_CREDENTIALS);
     }
+  }
+
+  /**
+   * Teste la config du formulaire par un mini-appel provider côté serveur —
+   * même corps que le PUT (`api_key` omise = tester avec la clé enregistrée),
+   * jamais de quota. Sans effet sur le signal : rien n'est persisté ; l'échec
+   * (HttpErrorResponse 400/422/429/503) est relayé à l'appelant.
+   */
+  async testConnection(payload: AiCredentialsPayload): Promise<void> {
+    await firstValueFrom(this.#http.post<{ ok: boolean }>(`${this.#url}/test`, payload));
+  }
+
+  /**
+   * Modèles proposés par le provider (auto-complétion du champ modèle) —
+   * POST : la clé voyage en body, jamais en query. Sans effet sur le signal.
+   */
+  async listModels(payload: AiModelListPayload): Promise<string[]> {
+    const response = await firstValueFrom(
+      this.#http.post<{ models: string[] }>(`${this.#url}/models`, payload),
+    );
+    return response.models;
   }
 }

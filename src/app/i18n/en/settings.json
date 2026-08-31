@@ -38,6 +38,23 @@
     "optional": "(optional)",
     "save": "Save",
     "saved": "Settings saved.",
+    "test": {
+      "button": "Test connection",
+      "testing": "Testing…",
+      "success": "Connection successful: the provider answered."
+    },
+    "models": {
+      "loading": "Loading models…",
+      "empty": "No matching model at the provider.",
+      "needsConfig": "Fill in the API key (and the server URL when required) to get model suggestions."
+    },
+    "probeErrors": {
+      "badKey": "API key rejected by the provider: check it.",
+      "invalid": "Request rejected by the provider: check the model and the fields.",
+      "rateLimited": "Provider rate limit or quota reached (the key is valid).",
+      "unavailable": "Provider unreachable: check the server URL or try again later.",
+      "generic": "Operation failed: please try again later."
+    },
     "delete": "Delete configuration",
     "deleteConfirm": "Confirm deletion",
     "deleted": "Configuration deleted.",

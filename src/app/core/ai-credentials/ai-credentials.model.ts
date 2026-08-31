@@ -25,6 +25,20 @@ export const PROVIDERS_WITH_BASE_URL: readonly AiProvider[] = ['ollama', 'openai
 /** Providers dont la clé API est facultative (miroir du back). */
 export const PROVIDERS_KEY_OPTIONAL: readonly AiProvider[] = ['ollama', 'openai_compatible'];
 
+/**
+ * Providers dont l'API sait lister les modèles disponibles (miroir du back
+ * `PROVIDERS_WITH_MODEL_LISTING`) — huggingface en est exclu (le Hub entier
+ * n'est pas un catalogue exploitable).
+ */
+export const PROVIDERS_WITH_MODEL_LISTING: readonly AiProvider[] = [
+  'anthropic',
+  'openai',
+  'google',
+  'mistral',
+  'ollama',
+  'openai_compatible',
+];
+
 export interface AiCredentials {
   provider: AiProvider | null;
   model: string | null;
@@ -56,6 +70,17 @@ export interface AiCredentialsPayload {
   provider: AiProvider;
   model: string;
   /** OMIS (jamais `null` explicite) = conserver la clé déjà enregistrée. */
+  api_key?: string;
+  base_url: string | null;
+}
+
+/**
+ * Corps du `POST /users/me/ai-credentials/models` (listing des modèles d'un
+ * provider) : pas de `model` — c'est lui qu'on cherche —, même sémantique de
+ * clé que le PUT (omise = clé déjà enregistrée côté serveur).
+ */
+export interface AiModelListPayload {
+  provider: AiProvider;
   api_key?: string;
   base_url: string | null;
 }

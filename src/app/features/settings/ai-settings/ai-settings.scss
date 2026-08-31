@@ -118,6 +118,51 @@
   font-size: 14px;
 }
 
+/* Combobox du champ modèle : suggestions chargées au focus (motif visuel
+   du dropdown de subject-picker, en local — pas un CVA, un seul usage). */
+.ai-settings__combobox {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-settings__options {
+  position: absolute;
+  z-index: 20;
+  inset-inline: 0;
+  top: calc(100% + 4px);
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.ai-settings__option {
+  padding: 6px 12px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.ai-settings__option:hover,
+.ai-settings__option--active {
+  background: var(--bg-subtle);
+}
+
+.ai-settings__option-note {
+  padding: 6px 12px;
+  color: var(--text-secondary);
+}
+
+.ai-settings__field .ai-settings__error {
+  margin: 0;
+  font-size: 14px;
+}
+
 .ai-settings__optional {
   color: var(--text-secondary);
   font-weight: 400;

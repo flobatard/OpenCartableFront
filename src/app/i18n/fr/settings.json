@@ -38,6 +38,23 @@
     "optional": "(facultatif)",
     "save": "Enregistrer",
     "saved": "Réglages enregistrés.",
+    "test": {
+      "button": "Tester la connexion",
+      "testing": "Test en cours…",
+      "success": "Connexion réussie : le fournisseur a répondu."
+    },
+    "models": {
+      "loading": "Chargement des modèles…",
+      "empty": "Aucun modèle correspondant chez le fournisseur.",
+      "needsConfig": "Renseignez la clé API (et l'URL du serveur si demandée) pour obtenir des suggestions de modèles."
+    },
+    "probeErrors": {
+      "badKey": "Clé API refusée par le fournisseur : vérifiez-la.",
+      "invalid": "Requête refusée par le fournisseur : vérifiez le modèle et les champs saisis.",
+      "rateLimited": "Limite de débit ou quota du fournisseur atteint (la clé est valide).",
+      "unavailable": "Fournisseur injoignable : vérifiez l'URL du serveur ou réessayez plus tard.",
+      "generic": "Opération impossible : réessayez plus tard."
+    },
     "delete": "Supprimer la configuration",
     "deleteConfirm": "Confirmer la suppression",
     "deleted": "Configuration supprimée.",

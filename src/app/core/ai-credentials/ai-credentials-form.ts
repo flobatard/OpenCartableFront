@@ -2,9 +2,11 @@ import { FormControl, FormGroup } from '@angular/forms';
 import {
   AiCredentials,
   AiCredentialsPayload,
+  AiModelListPayload,
   AiProvider,
   PROVIDERS_KEY_OPTIONAL,
   PROVIDERS_WITH_BASE_URL,
+  PROVIDERS_WITH_MODEL_LISTING,
 } from './ai-credentials.model';
 
 /**
@@ -84,4 +86,34 @@ export function isFormComplete(v: AiCredentialsForm['value'], apiKeySet: boolean
     return false;
   }
   return true;
+}
+
+/** L'auto-complétion des modèles est proposée pour ce provider. */
+export function modelListingSupported(provider: AiProvider | null): boolean {
+  return provider !== null && PROVIDERS_WITH_MODEL_LISTING.includes(provider);
+}
+
+/**
+ * Le listing des modèles est lançable : provider listable, clé disponible
+ * (saisie ou déjà enregistrée), base_url si requise — la complétude du
+ * formulaire SANS le modèle (c'est justement lui qu'on cherche).
+ */
+export function canListModels(v: AiCredentialsForm['value'], apiKeySet: boolean): boolean {
+  const provider = v.provider ?? null;
+  if (!modelListingSupported(provider)) {
+    return false;
+  }
+  if (keyRequired(provider, apiKeySet) && !v.apiKey?.trim()) {
+    return false;
+  }
+  if (baseUrlRequired(provider) && !v.baseUrl?.trim()) {
+    return false;
+  }
+  return true;
+}
+
+/** Corps du `POST .../models` : `payloadFromForm` sans le champ `model`. */
+export function modelListPayloadFromForm(form: AiCredentialsForm): AiModelListPayload {
+  const { model: _model, ...payload } = payloadFromForm(form);
+  return payload;
 }

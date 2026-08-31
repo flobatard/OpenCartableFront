@@ -2,8 +2,11 @@ import {
   baseUrlRequired,
   baseUrlVisible,
   buildAiCredentialsForm,
+  canListModels,
   isFormComplete,
   keyRequired,
+  modelListingSupported,
+  modelListPayloadFromForm,
   patchFormFromCredentials,
   payloadFromForm,
 } from './ai-credentials-form';
@@ -94,5 +97,44 @@ describe('ai-credentials-form', () => {
     expect(isFormComplete(form.value, false)).toBe(false); // base_url requise
     form.controls.baseUrl.setValue('https://groq.example/v1');
     expect(isFormComplete(form.value, false)).toBe(true); // clé optionnelle ici
+  });
+
+  it('modelListingSupported: every provider except huggingface (and none)', () => {
+    expect(modelListingSupported('anthropic')).toBe(true);
+    expect(modelListingSupported('ollama')).toBe(true);
+    expect(modelListingSupported('huggingface')).toBe(false);
+    expect(modelListingSupported(null)).toBe(false);
+  });
+
+  it('canListModels: same rules as completeness, WITHOUT the model field', () => {
+    const form = buildAiCredentialsForm();
+    expect(canListModels(form.value, false)).toBe(false); // pas de provider
+
+    form.setValue({ provider: 'anthropic', model: '', apiKey: '', baseUrl: '' });
+    expect(canListModels(form.value, false)).toBe(false); // clé requise
+    expect(canListModels(form.value, true)).toBe(true); // clé déjà enregistrée
+    form.controls.apiKey.setValue('sk-x');
+    expect(canListModels(form.value, false)).toBe(true); // le modèle vide n'empêche rien
+
+    form.setValue({ provider: 'openai_compatible', model: '', apiKey: '', baseUrl: '' });
+    expect(canListModels(form.value, false)).toBe(false); // base_url requise
+    form.controls.baseUrl.setValue('https://groq.example/v1');
+    expect(canListModels(form.value, false)).toBe(true);
+
+    form.setValue({ provider: 'huggingface', model: '', apiKey: 'hf-x', baseUrl: '' });
+    expect(canListModels(form.value, false)).toBe(false); // pas de listing chez hf
+  });
+
+  it('modelListPayloadFromForm drops the model, keeps the key semantics', () => {
+    const form = buildAiCredentialsForm();
+    patchFormFromCredentials(form, STORED);
+    form.controls.model.setValue('résidu-ignoré');
+
+    const payload = modelListPayloadFromForm(form);
+    expect(payload).toEqual({ provider: 'anthropic', base_url: null });
+    expect('api_key' in payload).toBe(false); // champ vide = clé enregistrée
+
+    form.controls.apiKey.setValue('sk-saisie');
+    expect(modelListPayloadFromForm(form).api_key).toBe('sk-saisie');
   });
 });

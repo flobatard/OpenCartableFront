@@ -86,7 +86,11 @@
         }
       </div>
     } @else {
-      <form class="ai-settings__form" [formGroup]="form">
+      <!-- Anti-gestionnaire de mots de passe Firefox : la parade EFFECTIVE est
+           l'ordre des champs (le champ modèle vient après le password, cf. son
+           commentaire) — Firefox ignore autocomplete="off" pour ses logins ;
+           off/new-password restent posés pour limiter l'autofill ailleurs. -->
+      <form class="ai-settings__form" autocomplete="off" [formGroup]="form">
       <label class="ai-settings__field">
         <span>{{ 'settings.ai.provider' | transloco }}</span>
         <select class="ai-settings__select" [formControl]="form.controls.provider">
@@ -100,20 +104,10 @@
       </label>
 
       <label class="ai-settings__field">
-        <span>{{ 'settings.ai.model' | transloco }}</span>
-        <input
-          type="text"
-          maxlength="200"
-          [formControl]="form.controls.model"
-          [placeholder]="'settings.ai.modelPlaceholder' | transloco"
-        />
-      </label>
-
-      <label class="ai-settings__field">
         <span>{{ 'settings.ai.apiKey' | transloco }}</span>
         <input
           type="password"
-          autocomplete="off"
+          autocomplete="new-password"
           [formControl]="form.controls.apiKey"
           [placeholder]="
             (apiKeySet() ? 'settings.ai.keyStoredPlaceholder' : 'settings.ai.keyPlaceholder')
@@ -144,6 +138,66 @@
         </label>
       }
 
+      <!-- Le champ modèle vient APRÈS le champ password : le gestionnaire de
+           connexions de Firefox ignore autocomplete="off" et greffe « Gérer
+           les mots de passe » sur le dernier champ texte qui PRÉCÈDE un
+           password (pris pour l'identifiant). Aucun champ texte avant la clé
+           = rien à greffer. L'ordre sert aussi l'UX : les suggestions de
+           modèles ont besoin de la clé (et de l'URL) déjà saisies. -->
+      <label class="ai-settings__field">
+        <span>{{ 'settings.ai.model' | transloco }}</span>
+        <span class="ai-settings__combobox">
+          <input
+            type="text"
+            maxlength="200"
+            autocomplete="off"
+            [attr.role]="modelsSupported() ? 'combobox' : null"
+            [attr.aria-autocomplete]="modelsSupported() ? 'list' : null"
+            [attr.aria-expanded]="modelsSupported() ? modelsOpen() : null"
+            [attr.aria-controls]="modelsSupported() ? modelsListId : null"
+            [attr.aria-activedescendant]="activeOptionId()"
+            [formControl]="form.controls.model"
+            [placeholder]="'settings.ai.modelPlaceholder' | transloco"
+            (focus)="openModels()"
+            (input)="openModels()"
+            (blur)="closeModels()"
+            (keydown)="onModelKeydown($event)"
+          />
+          @if (modelsOpen()) {
+            <ul class="ai-settings__options" role="listbox" [id]="modelsListId">
+              @if (modelsLoading()) {
+                <li class="ai-settings__option-note">
+                  {{ 'settings.ai.models.loading' | transloco }}
+                </li>
+              } @else if (modelOptions() !== null && filteredModels().length === 0) {
+                <li class="ai-settings__option-note">
+                  {{ 'settings.ai.models.empty' | transloco }}
+                </li>
+              } @else {
+                @for (model of filteredModels(); track model; let i = $index) {
+                  <li
+                    role="option"
+                    class="ai-settings__option"
+                    [id]="modelsListId + '-' + i"
+                    [class.ai-settings__option--active]="i === activeIndex()"
+                    [attr.aria-selected]="i === activeIndex()"
+                    (pointerdown)="$event.preventDefault()"
+                    (click)="pickModel(model)"
+                  >
+                    {{ model }}
+                  </li>
+                }
+              }
+            </ul>
+          }
+        </span>
+        @if (modelsErrorKey(); as errorKey) {
+          <span class="ai-settings__error" aria-live="polite">{{ errorKey | transloco }}</span>
+        } @else if (modelsSupported() && !modelsConfigReady()) {
+          <span class="ai-settings__hint">{{ 'settings.ai.models.needsConfig' | transloco }}</span>
+        }
+      </label>
+
       <div class="ai-settings__actions">
         @if (saveSuccess()) {
           <p class="ai-settings__success" aria-live="polite">
@@ -158,6 +212,22 @@
         @if (saveErrorKey(); as errorKey) {
           <p class="ai-settings__error" aria-live="polite">{{ errorKey | transloco }}</p>
         }
+        @if (testSuccess()) {
+          <p class="ai-settings__success" aria-live="polite">
+            {{ 'settings.ai.test.success' | transloco }}
+          </p>
+        }
+        @if (testErrorKey(); as errorKey) {
+          <p class="ai-settings__error" aria-live="polite">{{ errorKey | transloco }}</p>
+        }
+        <button
+          type="button"
+          class="btn btn--secondary ai-settings__test"
+          [disabled]="!canTest()"
+          (click)="testConnection()"
+        >
+          {{ (testing() ? 'settings.ai.test.testing' : 'settings.ai.test.button') | transloco }}
+        </button>
         @if (hasStoredConfig()) {
           <button
             type="button"

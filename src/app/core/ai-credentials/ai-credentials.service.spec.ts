@@ -105,6 +105,43 @@ describe('AiCredentialsService', () => {
     expect(service.credentials()).toEqual(EMPTY_AI_CREDENTIALS);
   });
 
+  it('testConnection POSTs the PUT-shaped payload to /test, without touching the signal', async () => {
+    const payload = { provider: 'anthropic' as const, model: 'claude-sonnet-5', base_url: null };
+    const test = service.testConnection(payload);
+
+    const req = httpMock.expectOne(`${url}/test`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(payload);
+    req.flush({ ok: true });
+
+    await test;
+    expect(service.credentials()).toBeNull(); // rien persisté, rien chargé
+  });
+
+  it('testConnection relays the provider failure to the caller', async () => {
+    const test = service.testConnection({
+      provider: 'openai',
+      model: 'gpt-4o',
+      api_key: 'sk-mauvaise',
+      base_url: null,
+    });
+    httpMock
+      .expectOne(`${url}/test`)
+      .flush({ detail: 'refusée' }, { status: 400, statusText: 'Bad Request' });
+    await expect(test).rejects.toMatchObject({ status: 400 });
+  });
+
+  it('listModels POSTs to /models (key in the body, never in the URL) and unwraps the list', async () => {
+    const models = service.listModels({ provider: 'ollama', base_url: 'http://pi:11434' });
+
+    const req = httpMock.expectOne(`${url}/models`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ provider: 'ollama', base_url: 'http://pi:11434' });
+    req.flush({ models: ['llama3.2:latest', 'qwen3:8b'] });
+
+    expect(await models).toEqual(['llama3.2:latest', 'qwen3:8b']);
+  });
+
   it('clears the credential when the session drops', async () => {
     const first = service.ensureLoaded();
     httpMock.expectOne(url).flush(CREDENTIALS);
