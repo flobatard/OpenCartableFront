@@ -1,0 +1,85 @@
+:host {
+  display: block;
+}
+
+/* Liste — grammaire visuelle de `course-resources` (onglet prof), sans les
+   états de mutation (upload, renommage, suppression). */
+
+.student-resources__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.student-resources__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.student-resources__type {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--slate-700);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+:host-context([data-theme='dark']) .student-resources__type {
+  color: var(--slate-100);
+}
+
+.student-resources__body {
+  display: flex;
+  flex: 1 1 200px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.student-resources__name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-resources__meta {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.student-resources__actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  margin-left: auto;
+}
+
+/* États ------------------------------------------------------------------------ */
+
+.student-resources__empty {
+  margin: 0;
+  padding: 40px 24px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.student-resources__error {
+  margin: 12px 0 0;
+  color: var(--text-danger);
+  font-size: 13px;
+}

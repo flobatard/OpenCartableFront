@@ -20,23 +20,45 @@
         }
       </ul>
     }
-    <div class="student-course__actions">
-      <button type="button" class="btn btn--secondary" (click)="download()">
-        {{ 'student.course.downloadPdf' | transloco }}
-      </button>
-    </div>
   </header>
 
-  @if (!course.blocks.length) {
-    <p class="student-course__notice">{{ 'student.course.empty' | transloco }}</p>
-  } @else {
-    <div #content [style]="courseStyle.styleVars()">
-      <app-course-blocks-view
-        [blocks]="course.blocks"
-        [courseId]="course.id"
-        [resources]="resources()"
-        [exerciseLink]="exerciseLink"
-      />
-    </div>
-  }
+  <nav
+    class="student-course__tabbar tabs"
+    [attr.aria-label]="'student.course.tabsLabel' | transloco"
+  >
+    <a
+      class="tab"
+      [class.tab--active]="activeTab() === 'blocks'"
+      [attr.aria-current]="activeTab() === 'blocks' ? 'page' : null"
+      [routerLink]="tabLink('blocks')"
+    >
+      {{ 'student.course.tabs.blocks' | transloco }}
+    </a>
+    <a
+      class="tab"
+      [class.tab--active]="activeTab() === 'resources'"
+      [attr.aria-current]="activeTab() === 'resources' ? 'page' : null"
+      [routerLink]="tabLink('resources')"
+    >
+      {{ 'student.course.tabs.resources' | transloco }}
+    </a>
+    <a
+      class="tab"
+      [class.tab--active]="activeTab() === 'modules'"
+      [attr.aria-current]="activeTab() === 'modules' ? 'page' : null"
+      [routerLink]="tabLink('modules')"
+    >
+      {{ 'student.course.tabs.modules' | transloco }}
+    </a>
+    <a
+      class="tab"
+      [class.tab--active]="activeTab() === 'content'"
+      [attr.aria-current]="activeTab() === 'content' ? 'page' : null"
+      [routerLink]="tabLink('content')"
+    >
+      {{ 'student.course.tabs.content' | transloco }}
+    </a>
+  </nav>
+
+  <router-outlet />
 }

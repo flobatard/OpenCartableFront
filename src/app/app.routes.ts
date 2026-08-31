@@ -24,6 +24,92 @@ const PUBLIC_CONTENT_PROVIDERS = [
   { provide: COURSE_MODULE_RESOLVER, useExisting: PublicModuleResolver },
 ];
 
+/**
+ * Enfants d'un cours élève, identiques dans les deux régimes d'accès (lien de
+ * partage et cours public) — c'est le `data.access` du parent qui les
+ * distingue. Deux familles :
+ *
+ * - les **pages pleines**, déclarées d'abord : exercice, module dédié
+ *   (démonstration d'un module seul) et redirection de ressource. Elles n'ont
+ *   ni en-tête ni onglets, chargent le cours elles-mêmes et sont partageables
+ *   telles quelles ;
+ * - la **coquille à onglets** (`path: ''`, `StudentCourse`) et ses enfants, un
+ *   par onglet — Sommaire (défaut) | Ressources | Modules | Cours entier —, le
+ *   bloc seul vivant sous l'onglet Sommaire. **Une route par onglet** : l'état
+ *   de navigation est dans le chemin, pas en query param.
+ *
+ * L'ordre compte : les pages pleines portent toutes deux segments, la coquille
+ * un chemin vide — déclarer les premières avant elle évite toute ambiguïté
+ * entre `modules/:moduleId` (page dédiée) et `modules` (onglet).
+ */
+const PUBLIC_COURSE_CHILDREN = [
+  {
+    path: 'exercises/:blockId',
+    loadComponent: () =>
+      import('./features/student/student-exercise/student-exercise').then(
+        (m) => m.StudentExercise,
+      ),
+  },
+  {
+    // Page dédiée d'un module interactif : le prof y renvoie pour démontrer
+    // un module seul, sans le reste du cours.
+    path: 'modules/:moduleId',
+    loadComponent: () =>
+      import('./features/student/student-module/student-module').then((m) => m.StudentModule),
+  },
+  {
+    // Cible des liens de ressource des PDF exportés côté élève : présigne
+    // sans Bearer puis redirige vers l'URL S3 inline.
+    path: 'resources/:resourceId',
+    loadComponent: () =>
+      import('./features/student/student-resource-view/student-resource-view').then(
+        (m) => m.StudentResourceView,
+      ),
+  },
+  {
+    path: '',
+    loadComponent: () =>
+      import('./features/student/student-course/student-course').then((m) => m.StudentCourse),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full' as const,
+        loadComponent: () =>
+          import('./features/student/student-summary/student-summary').then(
+            (m) => m.StudentSummary,
+          ),
+      },
+      {
+        // Bloc seul, sous l'onglet Sommaire (qui reste l'onglet actif).
+        path: 'blocks/:blockId',
+        loadComponent: () =>
+          import('./features/student/student-block/student-block').then((m) => m.StudentBlock),
+      },
+      {
+        path: 'resources',
+        loadComponent: () =>
+          import('./features/student/student-resources/student-resources').then(
+            (m) => m.StudentResources,
+          ),
+      },
+      {
+        path: 'modules',
+        loadComponent: () =>
+          import('./features/student/student-modules/student-modules').then(
+            (m) => m.StudentModules,
+          ),
+      },
+      {
+        path: 'content',
+        loadComponent: () =>
+          import('./features/student/student-content/student-content').then(
+            (m) => m.StudentContent,
+          ),
+      },
+    ],
+  },
+];
+
 export const routes: Routes = [
   {
     // Redirige vers /<lang>/home selon la préférence stockée puis la langue du navigateur.
@@ -65,32 +151,7 @@ export const routes: Routes = [
         path: 'shared/:token',
         data: { access: 'token' },
         providers: PUBLIC_CONTENT_PROVIDERS,
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            loadComponent: () =>
-              import('./features/student/student-course/student-course').then(
-                (m) => m.StudentCourse,
-              ),
-          },
-          {
-            path: 'exercises/:blockId',
-            loadComponent: () =>
-              import('./features/student/student-exercise/student-exercise').then(
-                (m) => m.StudentExercise,
-              ),
-          },
-          {
-            // Cible des liens de ressource des PDF exportés côté élève :
-            // présigne sans Bearer puis redirige vers l'URL S3 inline.
-            path: 'resources/:resourceId',
-            loadComponent: () =>
-              import(
-                './features/student/student-resource-view/student-resource-view'
-              ).then((m) => m.StudentResourceView),
-          },
-        ],
+        children: PUBLIC_COURSE_CHILDREN,
       },
       {
         // Vue élève d'un cours PUBLIC (J2) : accès direct par id, sans token.
@@ -99,30 +160,7 @@ export const routes: Routes = [
         path: 'p/courses/:courseId',
         data: { access: 'public' },
         providers: PUBLIC_CONTENT_PROVIDERS,
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            loadComponent: () =>
-              import('./features/student/student-course/student-course').then(
-                (m) => m.StudentCourse,
-              ),
-          },
-          {
-            path: 'exercises/:blockId',
-            loadComponent: () =>
-              import('./features/student/student-exercise/student-exercise').then(
-                (m) => m.StudentExercise,
-              ),
-          },
-          {
-            path: 'resources/:resourceId',
-            loadComponent: () =>
-              import(
-                './features/student/student-resource-view/student-resource-view'
-              ).then((m) => m.StudentResourceView),
-          },
-        ],
+        children: PUBLIC_COURSE_CHILDREN,
       },
       {
         // Catalogue public d'un prof (J2) : ses cours `public` uniquement.

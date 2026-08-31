@@ -1,0 +1,38 @@
+@if (!resources().length) {
+  <p class="student-resources__empty">{{ 'student.course.resourcesEmpty' | transloco }}</p>
+} @else {
+  <ul class="student-resources__list">
+    @for (resource of resources(); track resource.id) {
+      <li class="student-resources__row">
+        <span class="student-resources__type">{{ typeKey(resource) | transloco }}</span>
+        <span class="student-resources__body">
+          <span class="student-resources__name">{{ resource.original_name }}</span>
+          <span class="student-resources__meta">{{ formatSize(resource.size) }}</span>
+        </span>
+        <div class="student-resources__actions">
+          @if (canPreview(resource)) {
+            <button type="button" class="btn btn--ghost" (click)="preview(resource)">
+              {{ 'student.course.viewResource' | transloco }}
+            </button>
+          }
+          <button
+            type="button"
+            class="btn btn--ghost"
+            [disabled]="downloading() !== null"
+            (click)="download(resource)"
+          >
+            {{ 'student.course.downloadResource' | transloco }}
+          </button>
+        </div>
+      </li>
+    }
+  </ul>
+}
+
+@if (downloadError()) {
+  <p class="student-resources__error" role="alert">
+    {{ 'student.course.downloadError' | transloco }}
+  </p>
+}
+
+<app-resource-preview-dialog [courseId]="courseId()" />

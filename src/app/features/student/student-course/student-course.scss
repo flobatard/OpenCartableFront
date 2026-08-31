@@ -55,11 +55,9 @@
   color: var(--text-secondary);
 }
 
-.student-course__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 8px;
+/* Onglets = liens de navigation (motif DocsShell), pas un tablist APG. */
+.student-course__tabbar {
+  margin-bottom: 20px;
 }
 
 .student-course__loading {
@@ -75,10 +73,11 @@
   text-align: center;
 }
 
-/* L'en-tête (actions comprises) n'a rien à faire sur le papier : seul le
-   contenu des blocs part au PDF (le clone imprimé est #content). */
+/* L'en-tête et les onglets n'ont rien à faire sur le papier : seul le contenu
+   des blocs part au PDF (le clone imprimé vient de l'onglet Cours entier). */
 @media print {
-  .student-course__header {
+  .student-course__header,
+  .student-course__tabbar {
     display: none;
   }
 }

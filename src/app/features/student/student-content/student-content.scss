@@ -1,0 +1,25 @@
+:host {
+  display: block;
+}
+
+.student-content__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.student-content__notice {
+  margin: 0;
+  padding: 48px 24px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* La barre d'actions n'a rien à faire sur le papier (le clone imprimé est
+   #content, mais la règle vaut aussi pour une impression directe). */
+@media print {
+  .student-content__actions {
+    display: none;
+  }
+}

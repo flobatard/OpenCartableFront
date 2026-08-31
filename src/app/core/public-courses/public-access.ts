@@ -22,3 +22,20 @@ export function publicAccessFromRoute(route: ActivatedRoute): PublicAccess | nul
 export function publicCourseSegments(access: PublicAccess): string[] {
   return access.mode === 'token' ? ['shared', access.key] : ['p', 'courses', access.key];
 }
+
+/**
+ * Commandes routerLink **absolues** d'une sous-page du cours élève (onglet,
+ * bloc seul, exercice, module dédié) — `publicCourseLink(lang, access, 'blocks', id)`.
+ *
+ * Absolues et non relatives : les sous-pages sont montées à des profondeurs
+ * différentes (enfants de la coquille pour les onglets, frères pour les pages
+ * pleines), un lien relatif n'y voudrait pas dire la même chose. Sans accès
+ * connu (détail pas encore chargé), `[]` — le lien est inerte.
+ */
+export function publicCourseLink(
+  lang: string,
+  access: PublicAccess | null,
+  ...rest: string[]
+): string[] {
+  return access === null ? [] : ['/', lang, ...publicCourseSegments(access), ...rest];
+}

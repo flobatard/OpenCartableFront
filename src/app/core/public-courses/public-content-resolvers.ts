@@ -6,6 +6,7 @@ import {
 import { AppLang } from '../i18n/language.service';
 import { ModuleDetail } from '../modules/module.model';
 import { CourseResource } from '../resources/resource.model';
+import { PublicModuleSummary } from './public-course.model';
 import { PublicCourseService } from './public-course.service';
 
 /**
@@ -59,6 +60,16 @@ export class PublicResourceResolver implements CourseResourceResolver {
 @Injectable()
 export class PublicModuleResolver implements CourseModuleResolver {
   readonly #courses = inject(PublicCourseService);
+
+  /**
+   * Bibliothèque de modules du cours (titres seuls), adossée au détail public
+   * comme `list` côté ressources — consommée par l'onglet Modules de la vue
+   * élève. Hors de l'interface `CourseModuleResolver` à dessein : l'impl. prof
+   * n'a pas de liste à exposer (`ModuleService` la porte déjà).
+   */
+  readonly list = computed<readonly PublicModuleSummary[]>(
+    () => this.#courses.detail()?.modules ?? [],
+  );
 
   getModule(courseId: string, moduleId: string): Promise<ModuleDetail> {
     return this.#courses.getModule(courseId, moduleId);

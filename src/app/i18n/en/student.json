@@ -4,7 +4,36 @@
     "empty": "This course has no content yet.",
     "downloadPdf": "Download the PDF",
     "solveExercise": "Solve the exercise",
-    "backToCourse": "Back to the course"
+    "backToCourse": "Back to the course",
+    "tabsLabel": "Course sections",
+    "tabs": {
+      "blocks": "Contents",
+      "resources": "Resources",
+      "modules": "Modules",
+      "content": "Whole course"
+    },
+    "backToSummary": "Contents",
+    "blockPosition": "{{ current }} / {{ total }}",
+    "previousBlock": "Previous",
+    "nextBlock": "Next",
+    "untitledBlock": "Part {{ number }}",
+    "blockType": {
+      "text": "Text",
+      "exercise": "Exercise",
+      "document": "Document",
+      "module": "Interactive"
+    },
+    "resourcesEmpty": "This course has no files to download.",
+    "modulesEmpty": "This course has no interactive modules.",
+    "viewResource": "View",
+    "downloadResource": "Download",
+    "downloadError": "The download failed. Please try again.",
+    "openModule": "Open",
+    "blockNotFound": "This part of the course does not exist or is no longer available."
+  },
+  "module": {
+    "backToModules": "Back to the modules",
+    "notFound": "This module does not exist or is no longer available."
   },
   "catalog": {
     "title": "Public courses",

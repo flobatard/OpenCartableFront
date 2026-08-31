@@ -31,7 +31,30 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client,
   },
   {
+    // Onglets de la coquille + bloc seul : une route par onglet (l'état de
+    // navigation vit dans le chemin, plus en query param).
+    path: ':lang/shared/:token/blocks/:blockId',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: ':lang/shared/:token/resources',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: ':lang/shared/:token/modules',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: ':lang/shared/:token/content',
+    renderMode: RenderMode.Client,
+  },
+  {
     path: ':lang/shared/:token/exercises/:blockId',
+    renderMode: RenderMode.Client,
+  },
+  {
+    // Page dédiée d'un module (démonstration) : iframe sandbox, browser-only.
+    path: ':lang/shared/:token/modules/:moduleId',
     renderMode: RenderMode.Client,
   },
   {
@@ -47,7 +70,27 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client,
   },
   {
+    path: ':lang/p/courses/:courseId/blocks/:blockId',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: ':lang/p/courses/:courseId/resources',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: ':lang/p/courses/:courseId/modules',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: ':lang/p/courses/:courseId/content',
+    renderMode: RenderMode.Client,
+  },
+  {
     path: ':lang/p/courses/:courseId/exercises/:blockId',
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: ':lang/p/courses/:courseId/modules/:moduleId',
     renderMode: RenderMode.Client,
   },
   {

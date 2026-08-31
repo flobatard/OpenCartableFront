@@ -1,0 +1,43 @@
+@if (block(); as current) {
+  <div class="student-block__nav">
+    <a class="btn btn--ghost" [routerLink]="summaryLink()">
+      ← {{ 'student.course.backToSummary' | transloco }}
+    </a>
+    <span class="student-block__position">
+      {{
+        'student.course.blockPosition' | transloco: { current: index(), total: blocks().length }
+      }}
+    </span>
+  </div>
+
+  <div class="student-block__content" [style]="courseStyle.styleVars()">
+    <app-course-blocks-view
+      [blocks]="[current]"
+      [courseId]="courseId()"
+      [resources]="resources()"
+      [exerciseLink]="exerciseLink"
+    />
+  </div>
+
+  <div class="student-block__nav student-block__nav--footer">
+    @if (previous(); as target) {
+      <a class="btn btn--secondary" [routerLink]="blockLink(target)">
+        ← {{ 'student.course.previousBlock' | transloco }}
+      </a>
+    } @else {
+      <span></span>
+    }
+    @if (next(); as target) {
+      <a class="btn btn--secondary" [routerLink]="blockLink(target)">
+        {{ 'student.course.nextBlock' | transloco }} →
+      </a>
+    }
+  </div>
+} @else {
+  <p class="student-block__notice">{{ 'student.course.blockNotFound' | transloco }}</p>
+  <p class="student-block__back">
+    <a class="btn btn--secondary" [routerLink]="summaryLink()">
+      {{ 'student.course.backToSummary' | transloco }}
+    </a>
+  </p>
+}

@@ -1,0 +1,14 @@
+@if (!modules().length) {
+  <p class="student-modules__empty">{{ 'student.course.modulesEmpty' | transloco }}</p>
+} @else {
+  <ul class="student-modules__list">
+    @for (module of modules(); track module.id) {
+      <li class="student-modules__item">
+        <a class="student-modules__link" [routerLink]="moduleLink(module)">
+          <span class="student-modules__title">{{ module.title }}</span>
+          <span class="student-modules__open">{{ 'student.course.openModule' | transloco }}</span>
+        </a>
+      </li>
+    }
+  </ul>
+}

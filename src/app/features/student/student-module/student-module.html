@@ -1,0 +1,23 @@
+@if (error()) {
+  <p class="student-module__notice">{{ 'student.course.notFound' | transloco }}</p>
+} @else if (loading()) {
+  <div class="student-module__loading">
+    <app-spinner size="lg" />
+  </div>
+} @else if (module(); as current) {
+  <header class="student-module__header">
+    <a class="student-module__back" [routerLink]="modulesLink()">
+      ← {{ 'student.module.backToModules' | transloco }}
+    </a>
+    <h1 class="student-module__title">{{ current.title }}</h1>
+  </header>
+
+  <app-module-embed [courseId]="courseId()" [moduleId]="current.id" />
+} @else {
+  <p class="student-module__notice">{{ 'student.module.notFound' | transloco }}</p>
+  <p class="student-module__actions">
+    <a class="btn btn--secondary" [routerLink]="courseLink()">
+      {{ 'student.course.backToCourse' | transloco }}
+    </a>
+  </p>
+}

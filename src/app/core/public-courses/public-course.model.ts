@@ -28,6 +28,16 @@ export interface PublicResource {
   mime: string;
 }
 
+/**
+ * Module interactif du détail public — titre seul. Le code (`html`/`css`/`js`)
+ * n'arrive jamais ici : il est servi module par module par le GET dédié,
+ * consommé par `ModuleEmbed` via le résolveur.
+ */
+export interface PublicModuleSummary {
+  id: string;
+  title: string;
+}
+
 /** Cours du catalogue public d'un prof. */
 export interface PublicCourseSummary {
   id: string;
@@ -42,10 +52,15 @@ export interface PublicCourseSummary {
   updated_at: string;
 }
 
-/** Détail complet filtré servi à la vue élève (blocs ordonnés + ressources). */
+/**
+ * Détail complet filtré servi à la vue élève : blocs ordonnés + les deux
+ * bibliothèques du cours (ressources `available` et modules), qui alimentent
+ * les onglets Ressources et Modules sans requête supplémentaire.
+ */
 export interface PublicCourseDetail extends PublicCourseSummary {
   blocks: CourseBlock[];
   resources: PublicResource[];
+  modules: PublicModuleSummary[];
 }
 
 /** Catalogue public d'un prof (`public_name` null = catalogue anonyme). */

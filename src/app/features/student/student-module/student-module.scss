@@ -1,0 +1,48 @@
+/* Page de démonstration : plus large que le plafond de lecture (880px) — un
+   module interactif a souvent besoin de place (grapheur, tableur, schéma). */
+:host {
+  display: block;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.student-module__header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.student-module__back {
+  color: var(--text-secondary);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.student-module__back:hover,
+.student-module__back:focus-visible {
+  color: var(--text-primary);
+}
+
+.student-module__title {
+  margin: 0;
+}
+
+.student-module__loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.student-module__notice {
+  margin: 0;
+  padding: 48px 24px 16px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.student-module__actions {
+  margin: 0;
+  text-align: center;
+}

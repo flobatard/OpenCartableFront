@@ -1,0 +1,27 @@
+@if (!blocks().length) {
+  <p class="student-summary__notice">{{ 'student.course.empty' | transloco }}</p>
+} @else {
+  <ol class="student-summary__list">
+    @for (block of blocks(); track block.id) {
+      <li class="student-summary__item">
+        <a class="student-summary__link" [routerLink]="blockLink(block)">
+          <span class="student-summary__num">{{ blockNumber(block) }}</span>
+          <span class="student-summary__body">
+            <span class="student-summary__title">
+              {{
+                block.title ||
+                  ('student.course.untitledBlock' | transloco: { number: blockNumber(block) })
+              }}
+            </span>
+            @if (block.description) {
+              <span class="student-summary__desc">{{ block.description }}</span>
+            }
+          </span>
+          <span class="student-summary__type">
+            {{ 'student.course.blockType.' + block.type | transloco }}
+          </span>
+        </a>
+      </li>
+    }
+  </ol>
+}

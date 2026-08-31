@@ -1,0 +1,17 @@
+@if (!blocks().length) {
+  <p class="student-content__notice">{{ 'student.course.empty' | transloco }}</p>
+} @else {
+  <div class="student-content__actions">
+    <button type="button" class="btn btn--secondary" (click)="download()">
+      {{ 'student.course.downloadPdf' | transloco }}
+    </button>
+  </div>
+  <div #content [style]="courseStyle.styleVars()">
+    <app-course-blocks-view
+      [blocks]="blocks()"
+      [courseId]="courseId()"
+      [resources]="resources()"
+      [exerciseLink]="exerciseLink"
+    />
+  </div>
+}

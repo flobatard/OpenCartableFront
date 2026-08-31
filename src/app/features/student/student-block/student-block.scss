@@ -1,0 +1,44 @@
+:host {
+  display: block;
+}
+
+.student-block__nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.student-block__nav--footer {
+  justify-content: space-between;
+  margin: 24px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.student-block__position {
+  margin-left: auto;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.student-block__notice {
+  margin: 0;
+  padding: 48px 24px 16px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.student-block__back {
+  margin: 0;
+  text-align: center;
+}
+
+/* Seul le contenu du bloc part au PDF : la navigation n'a rien à y faire. */
+@media print {
+  .student-block__nav {
+    display: none;
+  }
+}

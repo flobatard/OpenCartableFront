@@ -51,8 +51,15 @@ export class PublicCourseService {
   readonly #catalogError = signal(false);
   readonly catalogError = this.#catalogError.asReadonly();
 
-  /** Accès dont `detail` est le reflet — garde des sous-requêtes. */
-  #access: PublicAccess | null = null;
+  /**
+   * Accès dont `detail` est le reflet — garde des sous-requêtes. Exposé en
+   * signal : les sous-pages du cours (onglets, bloc seul, module dédié) en
+   * dérivent leurs liens sans relire `data.access` de la route. Elles ne
+   * peuvent pas le faire elles-mêmes — leur route parente porte désormais un
+   * composant (la coquille), ce qui coupe l'héritage de `data` par défaut.
+   */
+  readonly #accessSignal = signal<PublicAccess | null>(null);
+  readonly access = this.#accessSignal.asReadonly();
   /** Détail en vol, partagé (la route ressource et la page cours le réutilisent). */
   #inflight: Promise<PublicCourseDetail | null> | null = null;
 
@@ -79,7 +86,7 @@ export class PublicCourseService {
         return Promise.resolve(current);
       }
     }
-    this.#access = access;
+    this.#accessSignal.set(access);
     this.#detail.set(null);
     this.#detailError.set(false);
     this.#detailLoading.set(true);
@@ -169,14 +176,15 @@ export class PublicCourseService {
    * absolue (`siteUrl`) : un PDF partagé l'exige.
    */
   contentUrl(lang: AppLang, courseId: string, resourceId: string): string {
-    return publicResourceContentUrl(lang, this.#access, courseId, resourceId);
+    return publicResourceContentUrl(lang, this.#accessSignal(), courseId, resourceId);
   }
 
   /** Token de partage actif (query param des sous-requêtes), sinon rien. */
   #params(extra: Record<string, string>): HttpParams {
     let params = new HttpParams();
-    if (this.#access?.mode === 'token') {
-      params = params.set('token', this.#access.key);
+    const access = this.#accessSignal();
+    if (access?.mode === 'token') {
+      params = params.set('token', access.key);
     }
     for (const [key, value] of Object.entries(extra)) {
       params = params.set(key, value);
@@ -185,7 +193,8 @@ export class PublicCourseService {
   }
 
   #sameAccess(access: PublicAccess): boolean {
-    return this.#access?.mode === access.mode && this.#access?.key === access.key;
+    const current = this.#accessSignal();
+    return current?.mode === access.mode && current?.key === access.key;
   }
 }
 
