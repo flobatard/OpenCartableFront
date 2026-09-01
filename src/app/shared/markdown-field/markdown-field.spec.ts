@@ -167,4 +167,17 @@ describe('MarkdownField', () => {
 
     expect(insert).toHaveBeenCalledWith('[schema-suites.pdf](oc-resource:resource-1)');
   });
+
+  it('replaceAll delegates to the monaco editor and reports its outcome', async () => {
+    const fixture = await createComponent();
+    const editor = fixture.debugElement.query(By.directive(MarkdownEditor))
+      .componentInstance as MarkdownEditor;
+
+    // jsdom : monaco jamais initialisé → false, l'hôte se replie sur son contrôle.
+    expect(fixture.componentInstance.replaceAll('# Proposé')).toBe(false);
+
+    const replace = vi.spyOn(editor, 'replaceAll').mockReturnValue(true);
+    expect(fixture.componentInstance.replaceAll('# Proposé')).toBe(true);
+    expect(replace).toHaveBeenCalledWith('# Proposé');
+  });
 });

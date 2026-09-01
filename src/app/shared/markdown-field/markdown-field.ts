@@ -188,4 +188,22 @@ export class MarkdownField implements ControlValueAccessor {
   protected onModulePick(module: ModuleSummary): void {
     this.editorRef()?.insertAtCursor(buildModuleMarkdown(module));
   }
+
+  /**
+   * Remplace tout le contenu VIA l'éditeur Monaco (`MarkdownEditor.replaceAll`
+   * — l'édit entre dans la pile d'annulation : Ctrl-Z le retire), pour que
+   * l'application d'une proposition HITL s'intègre à l'édition comme une
+   * frappe. `false` si Monaco n'est pas prêt (SSR/jsdom, chargement) :
+   * l'appelant écrit alors son contrôle classiquement (sans undo).
+   */
+  replaceAll(text: string): boolean {
+    return this.editorRef()?.replaceAll(text) ?? false;
+  }
+
+  /** Rend le focus à l'éditeur Monaco — appelé par l'hôte quand la revue HITL
+      se referme (le champ redevient visible), pour qu'un Ctrl-Z immédiat
+      atteigne Monaco sans clic préalable. */
+  focusEditor(): void {
+    this.editorRef()?.focusEditor();
+  }
 }

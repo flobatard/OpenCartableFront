@@ -1,6 +1,6 @@
-@if (!globalMode()) {
-  <!-- Mode placeholder (block-editor / module-editor) : les flux HITL
-       d'édition arrivent dans un lot ultérieur. -->
+@if (mode() === 'placeholder') {
+  <!-- Mode placeholder (bloc exercice / module-editor) : les contextes
+       d'édition restants arrivent dans des lots ultérieurs. -->
   <header class="course-chat__header">
     <h2 class="course-chat__title">{{ 'courseChat.title' | transloco }}</h2>
     <span class="course-chat__badge">{{ 'courseChat.soon' | transloco }}</span>
@@ -123,7 +123,12 @@
       } @else if ((assistant.conversations() ?? []).length === 0) {
         <div class="course-chat__empty course-chat__empty--list">
           <p class="course-chat__empty-title">{{ 'courseChat.listEmptyTitle' | transloco }}</p>
-          <p class="course-chat__empty-hint">{{ 'courseChat.listEmptyHint' | transloco }}</p>
+          <p class="course-chat__empty-hint">
+            {{
+              (mode() === 'block' ? 'courseChat.blockListEmptyHint' : 'courseChat.listEmptyHint')
+                | transloco
+            }}
+          </p>
           <button type="button" class="btn btn--primary" (click)="newConversation()">
             {{ 'courseChat.newConversation' | transloco }}
           </button>
@@ -185,7 +190,14 @@
       } @else {
         @if (assistant.active()!.messages.length === 0 && assistant.streamState() !== 'streaming') {
           <div class="course-chat__empty course-chat__empty--list">
-            <p class="course-chat__empty-hint">{{ 'courseChat.threadEmptyHint' | transloco }}</p>
+            <p class="course-chat__empty-hint">
+              {{
+                (mode() === 'block'
+                  ? 'courseChat.blockThreadEmptyHint'
+                  : 'courseChat.threadEmptyHint'
+                ) | transloco
+              }}
+            </p>
           </div>
         }
         @for (message of assistant.active()!.messages; track message.id) {
@@ -193,7 +205,15 @@
             <div class="course-chat__bubble">{{ message.content }}</div>
           } @else if (message.role === 'assistant') {
             @for (tool of toolViews(message); track tool.id) {
-              <app-course-chat-tool [tool]="tool" />
+              @if (isProposal(tool)) {
+                <app-course-chat-proposal
+                  [summary]="proposalSummary(tool)"
+                  [status]="tool.status"
+                  [result]="tool.result"
+                />
+              } @else {
+                <app-course-chat-tool [tool]="tool" />
+              }
             }
             @if (message.content) {
               <div class="course-chat__answer">
@@ -211,7 +231,7 @@
                demandés, rendus dépliables par app-course-chat-tool. -->
         }
 
-        @if (assistant.streamState() === 'streaming' || streamingRender()) {
+        @if (turnActive() || streamingRender()) {
           @if (assistant.streamingThinking()) {
             <details class="course-chat__thinking">
               <summary>{{ 'courseChat.thinking' | transloco }}</summary>
@@ -219,7 +239,15 @@
             </details>
           }
           @for (tool of liveToolViews(); track tool.id) {
-            <app-course-chat-tool [tool]="tool" />
+            @if (isProposal(tool)) {
+              <app-course-chat-proposal
+                [summary]="proposalSummary(tool)"
+                [status]="tool.status"
+                [result]="tool.result"
+              />
+            } @else {
+              <app-course-chat-tool [tool]="tool" />
+            }
           }
           @if (streamingRender()) {
             <div class="course-chat__answer">
@@ -260,8 +288,11 @@
         class="course-chat__input"
         rows="2"
         [value]="draft()"
-        [disabled]="assistant.streamState() === 'streaming'"
-        [attr.placeholder]="'courseChat.inputPlaceholder' | transloco"
+        [disabled]="turnActive()"
+        [attr.placeholder]="
+          (mode() === 'block' ? 'courseChat.blockInputPlaceholder' : 'courseChat.inputPlaceholder')
+            | transloco
+        "
         (input)="onDraftInput($event)"
         (keydown)="onComposerKeydown($event)"
       ></textarea>
@@ -283,6 +314,7 @@
   }
 
   <!-- Pied de panneau discret : modèle en service (config personnelle ou IA
-       par défaut + quota) et roue crantée ouvrant la modale de réglages IA. -->
-  <app-course-chat-settings />
+       par défaut + quota) et roue crantée ouvrant la modale de réglages IA —
+       câblé sur l'instance d'état du panneau (globale ou ancrée). -->
+  <app-course-chat-settings [assistant]="assistant" />
 }

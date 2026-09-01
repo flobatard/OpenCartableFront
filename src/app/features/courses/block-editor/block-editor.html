@@ -144,7 +144,23 @@
           >
             <div class="block-editor__editor-col" [style.--editor-basis]="editorPct() + '%'">
               @if (block.type === 'text') {
-                <app-markdown-field [formControl]="content" [courseId]="courseId" />
+                <!-- Le champ est MASQUÉ (jamais @if : Monaco survit) pendant la
+                     revue d'une proposition HITL, qui prend sa place. -->
+                <app-markdown-field
+                  [formControl]="content"
+                  [courseId]="courseId"
+                  [class.block-editor__field--reviewing]="pendingProposal() !== null"
+                />
+                @if (pendingProposal(); as proposal) {
+                  <app-proposal-review
+                    [proposal]="proposal"
+                    [original]="contentMarkdown()"
+                    [busy]="proposalBusy()"
+                    [error]="proposalError()"
+                    (accepted)="onProposalAccept($event)"
+                    (rejected)="onProposalReject($event)"
+                  />
+                }
               } @else {
                 <app-exercise-editor
                   [initial]="block.content"
@@ -169,10 +185,14 @@
               (keydown)="onDividerKeydown($event)"
             ></div>
 
+            <!-- Bloc texte : vrai chat d'édition (contexte block_text, instance
+                 d'état fournie par la page — la revue HITL vit dans la colonne
+                 éditeur) ; bloc exercice : placeholder, contexte non livré. -->
             <app-course-chat
               class="block-editor__chat"
               [courseId]="courseId"
               [blockId]="blockId"
+              [placeholder]="block.type !== 'text'"
               [hidden]="chatCollapsed()"
               (collapse)="toggleChat()"
             />

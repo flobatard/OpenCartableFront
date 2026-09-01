@@ -11,6 +11,7 @@ import {
   AssistantConversationDetail,
   AssistantMessage,
 } from '../../../core/course-assistant/assistant.model';
+import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
 import {
   AssistantStreamState,
   AssistantToolActivity,
@@ -106,7 +107,7 @@ describe('CourseChat', () => {
   let credentials: ReturnType<typeof mockCredentials>;
 
   async function createComponent(
-    inputs: Partial<{ blockId: string; moduleId: string }> = {},
+    inputs: Partial<{ blockId: string; moduleId: string; placeholder: boolean }> = {},
   ): Promise<ComponentFixture<CourseChat>> {
     assistant = mockAssistant();
     credentials = mockCredentials();
@@ -114,7 +115,10 @@ describe('CourseChat', () => {
       imports: [CourseChat, provideTranslocoTesting()],
       providers: [
         provideRouter([]),
+        // Même mock sous les deux tokens : le composant résout l'un ou l'autre
+        // selon son mode (root en global, instance de l'hôte en block).
         { provide: CourseAssistantService, useValue: assistant },
+        { provide: AssistantChatState, useValue: assistant },
         { provide: AiCredentialsService, useValue: credentials },
         { provide: LanguageService, useValue: { lang: () => 'fr' } },
         // Le markdown-view des réponses injecte le résolveur de ressources
@@ -140,6 +144,9 @@ describe('CourseChat', () => {
     if (inputs.moduleId) {
       fixture.componentRef.setInput('moduleId', inputs.moduleId);
     }
+    if (inputs.placeholder) {
+      fixture.componentRef.setInput('placeholder', true);
+    }
     fixture.detectChanges();
     return fixture;
   }
@@ -148,9 +155,10 @@ describe('CourseChat', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  describe('mode placeholder (hôtes éditeurs)', () => {
+  describe('mode placeholder (contextes non livrés : exercice, module)', () => {
     it('renders the header, the empty state and a disabled input', async () => {
-      const fixture = await createComponent({ blockId: 'block-1' });
+      // Un hôte éditeur sur un bloc NON texte passe blockId + placeholder.
+      const fixture = await createComponent({ blockId: 'block-1', placeholder: true });
 
       expect(el(fixture).querySelector('.course-chat__title')?.textContent).toContain('Assistant');
       expect(el(fixture).querySelector('.course-chat__badge')?.textContent).toContain('Bientôt');
@@ -164,13 +172,113 @@ describe('CourseChat', () => {
     });
 
     it('emits collapse on the collapse button click', async () => {
-      const fixture = await createComponent({ blockId: 'block-1' });
+      const fixture = await createComponent({ moduleId: 'module-1' });
       const spy = vi.fn();
       fixture.componentInstance.collapse.subscribe(spy);
 
       el(fixture).querySelector<HTMLButtonElement>('.course-chat__collapse')?.click();
 
       expect(spy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('mode block (chat ancré du bloc texte, HITL)', () => {
+    const PROPOSAL_MD = '# Nouveau contenu\n\nVersion réécrite du bloc.';
+
+    function proposalDetail(toolRow: Partial<AssistantMessage> = {}): AssistantConversationDetail {
+      return {
+        ...emptyDetail(),
+        context: 'block_text',
+        block_id: 'block-1',
+        messages: [
+          message({ id: 'u1', role: 'user', content: 'Réécris ce bloc' }),
+          message({
+            id: 'a1',
+            role: 'assistant',
+            tool_calls: [
+              {
+                id: 'p1',
+                name: 'propose_block_edit',
+                arguments: { new_markdown: PROPOSAL_MD, summary: 'Réécriture clarifiée' },
+              },
+            ],
+          }),
+          message({
+            id: 't1',
+            role: 'tool',
+            tool_call_id: 'p1',
+            content: "Le professeur a ACCEPTÉ la proposition et l'a appliquée au bloc.",
+            ...toolRow,
+          }),
+          message({ id: 'a2', role: 'assistant', content: 'Très bien.' }),
+        ],
+      };
+    }
+
+    it('loads the block-scoped conversations and enables the composer', async () => {
+      const fixture = await createComponent({ blockId: 'block-1' });
+
+      expect(assistant.loadConversations).toHaveBeenCalledWith('course-1');
+      assistant.active.set({ ...draftDetail(), context: 'block_text', block_id: 'block-1' });
+      fixture.detectChanges();
+      const textarea = el(fixture).querySelector<HTMLTextAreaElement>('.course-chat__input');
+      expect(textarea?.disabled).toBe(false);
+      expect(textarea?.placeholder).toContain('amélioration de ce bloc');
+    });
+
+    it('renders a persisted propose call as an informative card with the decision', async () => {
+      const fixture = await createComponent({ blockId: 'block-1' });
+      assistant.active.set(proposalDetail());
+      fixture.detectChanges();
+
+      const card = el(fixture).querySelector('.chat-proposal')!;
+      expect(card).toBeTruthy();
+      expect(card.textContent).toContain('Réécriture clarifiée');
+      // La décision rendue (contenu du tour tool) est affichée sur la carte…
+      expect(card.textContent).toContain('ACCEPTÉ la proposition');
+      // …jamais le markdown proposé, ni de ligne d'outil générique.
+      expect(card.textContent).not.toContain(PROPOSAL_MD);
+      expect(el(fixture).querySelector('details.chat-tool')).toBeNull();
+    });
+
+    it('a failed propose call falls back to the generic tool line (error visible)', async () => {
+      const fixture = await createComponent({ blockId: 'block-1' });
+      assistant.active.set(
+        proposalDetail({ is_error: true, content: 'Proposition trop longue (plafond 100 000).' }),
+      );
+      fixture.detectChanges();
+
+      expect(el(fixture).querySelector('.chat-proposal')).toBeNull();
+      const tool = el(fixture).querySelector('details.chat-tool')!;
+      expect(tool.classList.contains('chat-tool--error')).toBe(true);
+      expect(tool.textContent).toContain('Proposition de réécriture du bloc');
+    });
+
+    it('an awaiting proposal shows the pending hint and holds the composer', async () => {
+      const fixture = await createComponent({ blockId: 'block-1' });
+      assistant.active.set({ ...draftDetail(), context: 'block_text', block_id: 'block-1' });
+      // Flux HITL fermé sur l'interrupt : état `awaiting`, activité conservée.
+      assistant.streamState.set('awaiting');
+      assistant.toolActivity.set([
+        {
+          id: 'p1',
+          name: 'propose_block_edit',
+          status: 'running',
+          args: { new_markdown: PROPOSAL_MD },
+          result: null,
+        },
+      ]);
+      fixture.detectChanges();
+
+      const card = el(fixture).querySelector('.chat-proposal')!;
+      expect(card.classList.contains('chat-proposal--pending')).toBe(true);
+      expect(card.textContent).toContain('En attente de votre décision');
+      // Aucune action dans le fil : la revue est dans l'éditeur — et le
+      // composer attend la décision (pas de bouton Arrêter : aucun flux ouvert).
+      expect(card.querySelector('button')).toBeNull();
+      const textarea = el(fixture).querySelector<HTMLTextAreaElement>('.course-chat__input');
+      expect(textarea?.disabled).toBe(true);
+      expect(el(fixture).querySelector('.course-chat__send')?.textContent).toContain('Envoyer');
     });
   });
 

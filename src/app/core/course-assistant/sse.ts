@@ -21,6 +21,7 @@ const KNOWN_EVENTS = new Set<AssistantStreamEvent['type']>([
   'thinking',
   'tool_call',
   'tool_result',
+  'interrupt',
   'done',
   'error',
 ]);

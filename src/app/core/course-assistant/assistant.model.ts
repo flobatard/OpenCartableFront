@@ -69,10 +69,11 @@ export type AssistantStreamEvent =
       excerpt: string;
       length: number;
     }
+  | { type: 'interrupt'; tool_call_id: string; message_ids: string[] }
   | {
       type: 'done';
       usage: AssistantUsage | null;
-      user_message_id: string;
+      user_message_id: string | null;
       message_ids: string[];
       sources: AssistantSources;
       title: string | null;

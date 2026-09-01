@@ -1,0 +1,53 @@
+<section class="proposal-review" aria-live="polite">
+  <header class="proposal-review__head">
+    <h2 class="proposal-review__title">{{ 'courseChat.proposal.title' | transloco }}</h2>
+    @if (proposal().summary; as summary) {
+      <p class="proposal-review__summary">{{ summary }}</p>
+    }
+  </header>
+
+  <div class="proposal-review__legend" aria-hidden="true">
+    <span>{{ 'courseChat.proposal.original' | transloco }}</span>
+    <span>{{ 'courseChat.proposal.proposed' | transloco }}</span>
+  </div>
+
+  <ngx-monaco-diff-editor
+    class="proposal-review__diff"
+    [options]="diffOptions()"
+    [originalModel]="originalModel()"
+    [modifiedModel]="modifiedModel()"
+  />
+
+  <label class="proposal-review__comment">
+    <span class="proposal-review__comment-label">
+      {{ 'courseChat.proposal.commentLabel' | transloco }}
+    </span>
+    <textarea
+      class="proposal-review__comment-input"
+      rows="2"
+      maxlength="2000"
+      [value]="comment()"
+      [attr.placeholder]="'courseChat.proposal.commentPlaceholder' | transloco"
+      (input)="onCommentInput($event)"
+    ></textarea>
+  </label>
+
+  <footer class="proposal-review__actions">
+    @if (error()) {
+      <p class="proposal-review__error" role="alert">
+        {{ 'courseChat.proposal.decisionError' | transloco }}
+      </p>
+    }
+    <button
+      type="button"
+      class="btn btn--secondary"
+      [disabled]="busy()"
+      (click)="reject()"
+    >
+      {{ 'courseChat.proposal.reject' | transloco }}
+    </button>
+    <button type="button" class="btn btn--primary" [disabled]="busy()" (click)="accept()">
+      {{ 'courseChat.proposal.accept' | transloco }}
+    </button>
+  </footer>
+</section>

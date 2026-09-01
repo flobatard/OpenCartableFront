@@ -15,11 +15,13 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
 import { AssistantMessage } from '../../../core/course-assistant/assistant.model';
 import { CourseAssistantService } from '../../../core/course-assistant/course-assistant.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { isBlockId } from '../../../core/markdown/course-block-ref';
 import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
+import { CourseChatProposal, PROPOSE_BLOCK_EDIT } from './course-chat-proposal';
 import { CourseChatSettings } from './course-chat-settings';
 import { ChatToolView, CourseChatTool, toolResultExcerpt } from './course-chat-tool';
 
@@ -40,19 +42,29 @@ const STREAM_REVEAL_MAX_CHARS = 160;
 const SCROLL_PIN_THRESHOLD_PX = 80;
 
 /**
- * Panneau assistant IA du cours. Deux régimes, choisis par les inputs :
+ * Panneau assistant IA du cours. Trois régimes, choisis par les inputs :
  *
- * - **mode global** (`blockId` et `moduleId` absents — hôte : le panneau
- *   flottant `assistant-panel`, présent sur la page cours ET sur les pages
- *   d'édition) : chat câblé sur `CourseAssistantService` — vue d'entrée =
- *   conversation vide (brouillon local, créée côté serveur au premier
- *   message), historique des conversations derrière la flèche retour, fil
- *   streamé (texte dévoilé progressivement, thinking repliable, appels
- *   d'outils dépliables — `app-course-chat-tool`), citations `oc-block:`
- *   cliquables par délégation d'événements sur le fil ;
- * - **mode placeholder** (un `blockId`/`moduleId` est passé — hôtes
- *   block-editor/module-editor, colonne ancrée) : la coquille « bientôt »
- *   historique, réservée aux flux HITL d'édition d'un lot ultérieur.
+ * - **mode global** (aucun contexte d'édition — hôte : le panneau flottant
+ *   `assistant-panel`, présent sur la page cours ET sur les pages d'édition) :
+ *   chat câblé sur `CourseAssistantService` (l'instance root
+ *   d'`AssistantChatState`) — vue d'entrée = conversation vide (brouillon
+ *   local, créée côté serveur au premier message), historique des
+ *   conversations derrière la flèche retour, fil streamé (texte dévoilé
+ *   progressivement, thinking repliable, appels d'outils dépliables —
+ *   `app-course-chat-tool`), citations `oc-block:` cliquables par délégation
+ *   d'événements sur le fil ;
+ * - **mode block** (`blockId` passé sans `placeholder` — hôte : la colonne
+ *   ancrée de block-editor sur un bloc TEXTE) : même chat, câblé sur
+ *   l'instance d'`AssistantChatState` fournie par l'hôte (contexte
+ *   `block_text`, conversations propres au bloc) ; les appels
+ *   `propose_block_edit` du modèle deviennent des cartes de proposition
+ *   INFORMATIVES dans le fil (`app-course-chat-proposal` : résumé + décision
+ *   rendue, ou invite tant que le flux attend) — la revue (diff + décision)
+ *   vit dans l'ÉDITEUR de l'hôte (`app-proposal-review`), qui lit la même
+ *   instance d'état ;
+ * - **mode placeholder** (`placeholder` vrai ou `moduleId` passé — bloc
+ *   exercice, éditeur de module) : la coquille « bientôt » historique,
+ *   réservée aux contextes d'édition des lots ultérieurs.
  *
  * Deux régimes de rendu du texte assistant : pendant le stream,
  * `app-markdown-view` sans `courseId` (références oc-* inertes → re-rendus
@@ -62,7 +74,14 @@ const SCROLL_PIN_THRESHOLD_PX = 80;
  */
 @Component({
   selector: 'app-course-chat',
-  imports: [TranslocoPipe, MarkdownView, RouterLink, CourseChatTool, CourseChatSettings],
+  imports: [
+    TranslocoPipe,
+    MarkdownView,
+    RouterLink,
+    CourseChatProposal,
+    CourseChatTool,
+    CourseChatSettings,
+  ],
   templateUrl: './course-chat.html',
   styleUrl: './course-chat.scss',
 })
@@ -71,6 +90,13 @@ export class CourseChat {
   readonly courseId = input.required<string>();
   readonly blockId = input<string | null>(null);
   readonly moduleId = input<string | null>(null);
+  /**
+   * Force la coquille « bientôt » malgré un `blockId` : les hôtes éditeurs le
+   * posent pour les contextes d'édition PAS ENCORE livrés (bloc exercice) —
+   * sans lui, un `blockId` d'exercice basculerait en chat `block_text`
+   * invalide (422 à la création de conversation côté back).
+   */
+  readonly placeholder = input(false);
 
   /** Demande de repli du panneau ; l'hôte pilote l'affichage. */
   readonly collapse = output<void>();
@@ -81,24 +107,45 @@ export class CourseChat {
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   /**
-   * Injection PARESSEUSE : le service (et sa chaîne AuthService → OAuthService)
-   * n'est résolu qu'en mode global — un hôte éditeur (et sa spec) n'a
-   * **aucune** dépendance IA à fournir ; seule une spec montant le mode global
-   * (assistant-outlet/assistant-panel, course-chat) fournit les mocks à
-   * signaux de `testing/assistant.fixture.ts`.
+   * Régime du panneau (doc de classe) : `placeholder` prime, puis le contexte
+   * d'édition (`blockId`) choisit `block`, défaut `global`.
    */
-  #assistantRef: CourseAssistantService | null = null;
-  protected get assistant(): CourseAssistantService {
-    return (this.#assistantRef ??= this.#injector.get(CourseAssistantService));
-  }
+  protected readonly mode = computed<'global' | 'block' | 'placeholder'>(() => {
+    if (this.placeholder() || this.moduleId() !== null) {
+      return 'placeholder';
+    }
+    return this.blockId() !== null ? 'block' : 'global';
+  });
 
-  /** Mode global ⇔ aucun contexte d'édition : les éditeurs restent placeholder. */
-  protected readonly globalMode = computed(
-    () => this.blockId() === null && this.moduleId() === null,
-  );
+  /**
+   * Injection PARESSEUSE : le service (et sa chaîne AuthService → OAuthService)
+   * n'est résolu que hors placeholder — un hôte éditeur en placeholder (et sa
+   * spec) n'a **aucune** dépendance IA à fournir. Mode global → l'instance
+   * root (`CourseAssistantService`) ; mode block → l'instance
+   * d'`AssistantChatState` fournie par l'hôte (`providers` de `BlockEditor`),
+   * résolue par la chaîne d'injecteurs d'éléments. Toute spec montant un mode
+   * actif fournit les mocks à signaux de `testing/assistant.fixture.ts`.
+   */
+  #assistantRef: AssistantChatState | null = null;
+  protected get assistant(): AssistantChatState {
+    return (this.#assistantRef ??=
+      this.mode() === 'block'
+        ? this.#injector.get(AssistantChatState)
+        : this.#injector.get(CourseAssistantService));
+  }
 
   /** Conversation active = brouillon local (id vide, rien en base). */
   protected readonly activeIsDraft = computed(() => this.assistant.active()?.id === '');
+
+  /**
+   * Tour en cours : flux ouvert (`streaming`) OU proposition en attente de
+   * décision (`awaiting` — flux HITL fermé, le run est figé côté back) : le
+   * fil garde l'affichage live et le composer attend.
+   */
+  protected readonly turnActive = computed(() => {
+    const state = this.assistant.streamState();
+    return state === 'streaming' || state === 'awaiting';
+  });
 
   protected readonly draft = signal('');
   protected readonly deleteArmed = signal<string | null>(null);
@@ -160,7 +207,7 @@ export class CourseChat {
   constructor() {
     effect(() => {
       const courseId = this.courseId();
-      if (this.globalMode() && this.#isBrowser) {
+      if (this.mode() !== 'placeholder' && this.#isBrowser) {
         void this.assistant.loadConversations(courseId);
       }
     });
@@ -169,7 +216,7 @@ export class CourseChat {
     // chaque delta reçu (re)lance le tick, qui se replanifie tant qu'il reste
     // du retard à rattraper ; texte vide = tour terminé, rendu remis à zéro.
     effect(() => {
-      if (!this.globalMode()) {
+      if (this.mode() === 'placeholder') {
         return;
       }
       if (!this.assistant.streamingText()) {
@@ -183,7 +230,7 @@ export class CourseChat {
 
     // Auto-scroll : suit le flux tant que l'utilisateur est resté en bas.
     effect(() => {
-      if (!this.globalMode()) {
+      if (this.mode() === 'placeholder') {
         return;
       }
       this.assistant.active()?.messages.length;
@@ -291,7 +338,7 @@ export class CourseChat {
 
   protected send(): void {
     const content = this.draft().trim();
-    if (!content || this.assistant.streamState() === 'streaming') {
+    if (!content || this.turnActive()) {
       return;
     }
     this.draft.set('');
@@ -353,5 +400,28 @@ export class CourseChat {
   /** Date dans la locale de l'UI (pas de DatePipe : locale fr non enregistrée). */
   protected updatedOn(iso: string): string {
     return new Date(iso).toLocaleDateString(this.language.lang());
+  }
+
+  // ------------------------------------------------- propositions (mode block)
+
+  /**
+   * Vrai pour un appel `propose_block_edit` rendu en carte de proposition :
+   * mode block uniquement, `new_markdown` bien une chaîne (args malformés →
+   * ligne d'outil générique) et appel non échoué (l'échec — plafond dépassé,
+   * délai de décision… — s'explique mieux en ligne d'outil, son message
+   * d'erreur visible).
+   */
+  protected isProposal(view: ChatToolView): boolean {
+    return (
+      this.mode() === 'block' &&
+      view.name === PROPOSE_BLOCK_EDIT &&
+      view.status !== 'error' &&
+      typeof view.args['new_markdown'] === 'string'
+    );
+  }
+
+  protected proposalSummary(view: ChatToolView): string | null {
+    const summary = view.args['summary'];
+    return typeof summary === 'string' && summary ? summary : null;
   }
 }

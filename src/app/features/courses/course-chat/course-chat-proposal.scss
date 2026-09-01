@@ -1,0 +1,53 @@
+/* Carte de proposition dans le fil : cousin visuel de .chat-tool, toujours
+   visible (pas de <details>) — l'action, elle, vit dans l'éditeur. */
+:host {
+  display: block;
+}
+
+.chat-proposal {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.chat-proposal--pending {
+  border-color: var(--color-primary);
+}
+
+.chat-proposal__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-primary);
+}
+
+.chat-proposal__icon {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.chat-proposal--pending .chat-proposal__icon {
+  color: var(--color-primary);
+}
+
+.chat-proposal__title {
+  font-weight: 600;
+}
+
+.chat-proposal__summary {
+  margin: 6px 0 0;
+}
+
+.chat-proposal__pending {
+  margin: 6px 0 0;
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.chat-proposal__decision {
+  margin: 6px 0 0;
+  font-style: italic;
+  overflow-wrap: anywhere;
+}

@@ -114,4 +114,52 @@ describe('MarkdownEditor', () => {
     ]);
     expect(focus).toHaveBeenCalledOnce();
   });
+
+  it('replaceAll reports false until monaco is initialized (caller falls back)', async () => {
+    const fixture = await createHost();
+
+    expect(editorOf(fixture).replaceAll('# Proposé')).toBe(false);
+    expect(fixture.componentInstance.control.value).toBe('');
+  });
+
+  it('replaceAll edits the full range between undo stops (Ctrl-Z friendly)', async () => {
+    const fixture = await createHost();
+    const editor = editorOf(fixture);
+    const calls: string[] = [];
+    const fullRange = { startLineNumber: 1, startColumn: 1, endLineNumber: 9, endColumn: 4 };
+    const executeEdits = vi.fn(() => calls.push('edit'));
+    const pushUndoStop = vi.fn(() => calls.push('stop'));
+    (editor as unknown as MarkdownEditorInternals).onEditorInit({
+      getModel: () => ({ getFullModelRange: () => fullRange }),
+      executeEdits,
+      pushUndoStop,
+      focus: vi.fn(),
+    });
+
+    expect(editor.replaceAll('# Proposé')).toBe(true);
+
+    expect(executeEdits).toHaveBeenCalledWith('apply-proposal', [
+      { range: fullRange, text: '# Proposé', forceMoveMarkers: true },
+    ]);
+    // Une étape d'annulation UNIQUE : bornée par un undo stop de chaque côté.
+    expect(calls).toEqual(['stop', 'edit', 'stop']);
+  });
+
+  it('writeValue never forwards an already-in-place value to the wrapper', async () => {
+    const fixture = await createHost();
+    const editor = editorOf(fixture);
+    const innerSetValue = vi.spyOn(inner(fixture), 'setValue');
+
+    // Valeur nouvelle : relayée au wrapper.
+    editor.writeValue('Bonjour');
+    expect(innerSetValue).toHaveBeenCalledTimes(1);
+
+    // Écho de la même valeur : JAMAIS relayé — le writeValue du wrapper fait
+    // un editor.setValue asynchrone qui viderait la pile d'annulation.
+    editor.writeValue('Bonjour');
+    expect(innerSetValue).toHaveBeenCalledTimes(1);
+
+    editor.writeValue('Bonjour — édité');
+    expect(innerSetValue).toHaveBeenCalledTimes(2);
+  });
 });

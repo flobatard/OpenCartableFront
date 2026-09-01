@@ -1,9 +1,12 @@
 {
   "title": "Assistant",
   "soon": "Bientôt",
-  "emptyTitle": "L'assistant arrive bientôt",
-  "emptyHint": "Il pourra bientôt vous aider à rédiger et enrichir ce cours.",
+  "emptyTitle": "L'assistant d'édition arrive bientôt",
+  "emptyHint": "Il pourra bientôt vous aider à éditer ce contenu — l'assistant du cours reste disponible dans le panneau flottant.",
   "inputPlaceholder": "Posez une question sur ce cours…",
+  "blockInputPlaceholder": "Demandez une amélioration de ce bloc…",
+  "blockListEmptyHint": "Démarrez une conversation pour réécrire ou enrichir ce bloc.",
+  "blockThreadEmptyHint": "Demandez une réécriture ou une amélioration de ce bloc — l'assistant vous proposera une modification à approuver.",
   "send": "Envoyer",
   "stop": "Arrêter",
   "collapse": "Replier l'assistant",
@@ -46,7 +49,19 @@
     "read_resource_pdf": "Lecture d'un PDF de la bibliothèque",
     "read_resource_image": "Lecture d'une image de la bibliothèque",
     "read_module": "Lecture du code d'un module interactif",
+    "propose_block_edit": "Proposition de réécriture du bloc",
     "unknown": "Utilisation d'un outil"
+  },
+  "proposal": {
+    "title": "Proposition de réécriture",
+    "pendingHint": "En attente de votre décision — le comparatif est affiché dans l'éditeur.",
+    "original": "Contenu actuel",
+    "proposed": "Proposition",
+    "accept": "Accepter et appliquer",
+    "reject": "Rejeter",
+    "commentLabel": "Commentaire (optionnel, transmis à l'assistant)",
+    "commentPlaceholder": "Précisez ce que vous validez ou refusez…",
+    "decisionError": "Échec de l'envoi de la décision — réessayez."
   },
   "errors": {
     "quota": "Quota quotidien de l'IA par défaut épuisé.",

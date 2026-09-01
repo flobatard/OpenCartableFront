@@ -3,14 +3,21 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { BlockEditor } from './block-editor';
+import { AiCredentialsService } from '../../../core/ai-credentials/ai-credentials.service';
+import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
 import { CourseBlock, CourseDetail } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
 import { addQuestion, ExerciseForm } from '../../../core/courses/exercise-form';
 import { ModuleSummary } from '../../../core/modules/module.model';
 import { ModuleService } from '../../../core/modules/module.service';
 import { ResourceService } from '../../../core/resources/resource.service';
+import { MarkdownField } from '../../../shared/markdown-field/markdown-field';
 import { DocumentEditor } from '../document-editor/document-editor';
 import { ExerciseEditor } from '../exercise-editor/exercise-editor';
+import {
+  mockAiCredentialsService,
+  mockAssistantChatState,
+} from '../../../testing/assistant.fixture';
 import { COURSE_DETAIL_FIXTURE } from '../../../testing/courses.fixture';
 import { COURSE_RESOURCES_FIXTURE } from '../../../testing/resources.fixture';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
@@ -86,8 +93,12 @@ describe('BlockEditor', () => {
     ).form;
   }
 
+  /** Instance d'état du chat ancré (mock), substituée au provider du composant. */
+  let assistantState: ReturnType<typeof mockAssistantChatState>;
+
   async function configure(blockId = 'block-1'): Promise<void> {
-    await TestBed.configureTestingModule({
+    assistantState = mockAssistantChatState();
+    TestBed.configureTestingModule({
       imports: [BlockEditor, provideTranslocoTesting()],
       providers: [
         // Attrape-tout : les clics sur les liens précédent/suivant naviguent
@@ -97,12 +108,21 @@ describe('BlockEditor', () => {
         { provide: CourseService, useValue: coursesMock },
         { provide: ResourceService, useValue: resourcesMock },
         { provide: ModuleService, useValue: modulesMock },
+        // Le chat ancré d'un bloc texte est réel (mode block) : son bandeau
+        // réglages injecte AiCredentialsService.
+        { provide: AiCredentialsService, useValue: mockAiCredentialsService() },
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { paramMap: convertToParamMap({ id: 'course-1', blockId }) } },
         },
       ],
-    }).compileComponents();
+    });
+    // Remplace le `providers: [AssistantChatState]` du composant par le mock
+    // (sinon la vraie classe s'instancie : chaîne AuthService → OAuthService).
+    TestBed.overrideComponent(BlockEditor, {
+      set: { providers: [{ provide: AssistantChatState, useValue: assistantState }] },
+    });
+    await TestBed.compileComponents();
   }
 
   async function createComponent(blockId = 'block-1'): Promise<ComponentFixture<BlockEditor>> {
@@ -682,5 +702,174 @@ describe('BlockEditor', () => {
     divider.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
     fixture.detectChanges();
     expect(divider.getAttribute('aria-valuenow')).toBe('85'); // borné au max
+  });
+
+  describe('chat ancré HITL (bloc texte, contexte block_text)', () => {
+    it('configures the anchored chat state and mounts the real chat', async () => {
+      const fixture = await createComponent();
+      fixture.detectChanges();
+
+      expect(assistantState.configure).toHaveBeenCalledWith({
+        context: 'block_text',
+        blockId: 'block-1',
+      });
+      expect(assistantState.setBeforeTurn).toHaveBeenCalledTimes(1);
+      // Bloc texte : vrai chat (pas la coquille « Bientôt »), conversations
+      // du bloc chargées sur l'instance fournie par la page.
+      expect(el(fixture).querySelector('.course-chat__badge')).toBeNull();
+      expect(assistantState.loadConversations).toHaveBeenCalledWith('course-1');
+    });
+
+    it('exercise block keeps the placeholder chat (context not shipped)', async () => {
+      const fixture = await createComponent('block-3');
+      fixture.detectChanges();
+
+      const chat = el(fixture).querySelector('app-course-chat')!;
+      expect(chat.querySelector('.course-chat__badge')?.textContent).toContain('Bientôt');
+      expect(assistantState.loadConversations).not.toHaveBeenCalled();
+    });
+
+    it('pre-turn hook: flushes a dirty content immediately, no-op when clean', async () => {
+      const fixture = await createComponent();
+      const hook = assistantState.setBeforeTurn.mock.calls[0][0] as () => Promise<void>;
+
+      fixture.componentInstance.content.setValue(`${INITIAL} — brouillon`);
+      expect(coursesMock.updateBlockContent).not.toHaveBeenCalled();
+
+      await hook();
+      expect(coursesMock.updateBlockContent).toHaveBeenCalledTimes(1);
+      expect(coursesMock.updateBlockContent).toHaveBeenCalledWith('course-1', 'block-1', {
+        markdown: `${INITIAL} — brouillon`,
+      });
+
+      // Rien à sauver : le flush est un no-op (garde lastSaved).
+      coursesMock.updateBlockContent.mockClear();
+      await hook();
+      expect(coursesMock.updateBlockContent).not.toHaveBeenCalled();
+    });
+
+    async function openReview(
+      fixture: ComponentFixture<BlockEditor>,
+      markdown = '# Version proposée',
+    ): Promise<void> {
+      // Flux HITL fermé sur un interrupt : l'état porte la proposition.
+      assistantState.streamState.set('awaiting');
+      assistantState.pendingProposal.set({ id: 'call_p', markdown, summary: 'Réécriture' });
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    }
+
+    it('a pending proposal replaces the markdown field with the review (never @if)', async () => {
+      const fixture = await createComponent();
+      fixture.detectChanges();
+      expect(el(fixture).querySelector('app-proposal-review')).toBeNull();
+
+      await openReview(fixture);
+
+      // La revue occupe la colonne, le champ est MASQUÉ (Monaco survit).
+      const review = el(fixture).querySelector('app-proposal-review')!;
+      expect(review).toBeTruthy();
+      expect(review.textContent).toContain('Réécriture');
+      const field = el(fixture).querySelector('app-markdown-field')!;
+      expect(field.classList.contains('block-editor__field--reviewing')).toBe(true);
+
+      // Proposition consommée (reprise partie) : la revue disparaît.
+      assistantState.pendingProposal.set(null);
+      assistantState.streamState.set('streaming');
+      fixture.detectChanges();
+      expect(el(fixture).querySelector('app-proposal-review')).toBeNull();
+      expect(field.classList.contains('block-editor__field--reviewing')).toBe(false);
+    });
+
+    it('accept: applies the markdown to the control and resumes with the comment', async () => {
+      const fixture = await createComponent();
+      await openReview(fixture);
+
+      const comment = el(fixture).querySelector<HTMLTextAreaElement>(
+        '.proposal-review__comment-input',
+      )!;
+      comment.value = 'Très bien';
+      comment.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      el(fixture)
+        .querySelector<HTMLButtonElement>('.proposal-review__actions .btn--primary')!
+        .click();
+      await fixture.whenStable();
+
+      // jsdom : Monaco inerte → replaceAll répond false, repli setValue.
+      expect(fixture.componentInstance.content.value).toBe('# Version proposée');
+      expect(fixture.componentInstance['contentMarkdown']()).toBe('# Version proposée');
+      expect(assistantState.resumeProposal).toHaveBeenCalledWith({
+        accepted: true,
+        comment: 'Très bien',
+      });
+    });
+
+    it('accept: goes through the Monaco edit when available (Ctrl-Z friendly)', async () => {
+      const fixture = await createComponent();
+      await openReview(fixture);
+      const field = fixture.debugElement.query(By.directive(MarkdownField))
+        .componentInstance as MarkdownField;
+      const replaceAll = vi.spyOn(field, 'replaceAll').mockReturnValue(true);
+
+      el(fixture)
+        .querySelector<HTMLButtonElement>('.proposal-review__actions .btn--primary')!
+        .click();
+      await fixture.whenStable();
+
+      // L'application passe par l'édit Monaco (étape d'annulation) — jamais
+      // de setValue direct en double : la propagation CVA fera le reste.
+      expect(replaceAll).toHaveBeenCalledWith('# Version proposée');
+      expect(fixture.componentInstance.content.value).toBe(INITIAL);
+      expect(assistantState.resumeProposal).toHaveBeenCalledWith({ accepted: true });
+    });
+
+    it('reject: resumes without touching the content', async () => {
+      const fixture = await createComponent();
+      await openReview(fixture);
+
+      el(fixture)
+        .querySelector<HTMLButtonElement>('.proposal-review__actions .btn--secondary')!
+        .click();
+      await fixture.whenStable();
+
+      expect(fixture.componentInstance.content.value).toBe(INITIAL);
+      expect(assistantState.resumeProposal).toHaveBeenCalledWith({ accepted: false });
+    });
+
+    it('closing the review hands the focus back to the editor (immediate Ctrl-Z)', async () => {
+      const fixture = await createComponent();
+      await openReview(fixture);
+      const field = fixture.debugElement.query(By.directive(MarkdownField))
+        .componentInstance as MarkdownField;
+      const focus = vi.spyOn(field, 'focusEditor');
+
+      // Reprise partie : la proposition est consommée, la revue se referme.
+      assistantState.pendingProposal.set(null);
+      assistantState.streamState.set('streaming');
+      fixture.detectChanges();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(focus).toHaveBeenCalledTimes(1);
+    });
+
+    it('a failed resume keeps the review with a retryable error', async () => {
+      const fixture = await createComponent();
+      assistantState.resumeProposal.mockResolvedValue(false);
+      await openReview(fixture);
+
+      el(fixture)
+        .querySelector<HTMLButtonElement>('.proposal-review__actions .btn--secondary')!
+        .click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(el(fixture).querySelector('app-proposal-review')).toBeTruthy();
+      expect(el(fixture).querySelector('.proposal-review__error')?.textContent).toContain(
+        'Échec',
+      );
+    });
   });
 });

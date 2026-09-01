@@ -5,6 +5,7 @@ import {
   effect,
   ElementRef,
   inject,
+  input,
   PLATFORM_ID,
   signal,
   untracked,
@@ -12,23 +13,25 @@ import {
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AiCredentialsService } from '../../../core/ai-credentials/ai-credentials.service';
-import { CourseAssistantService } from '../../../core/course-assistant/course-assistant.service';
+import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
 import { AiSettingsDialog } from '../../settings/ai-settings-dialog/ai-settings-dialog';
 
 /** Ids ARIA uniques par instance (compteur de module, jamais Date.now()). */
 let uid = 0;
 
 /**
- * Bandeau des réglages IA du chat (mode global uniquement — le composant
- * n'est monté que sous la garde `globalMode` de `CourseChat`, il peut donc
- * injecter directement les services IA) : modèle en service — la config
- * personnelle si une est enregistrée, sinon l'IA par défaut du serveur avec
- * le compteur du quota quotidien — et roue crantée ouvrant un menu
- * (pattern APG menu button réduit) dont « Sélectionner un autre modèle »
- * ouvre la modale de réglages IA (`AiSettingsDialog`).
+ * Bandeau des réglages IA du chat (modes actifs de `CourseChat` — global et
+ * block, jamais le placeholder) : modèle en service — la config personnelle
+ * si une est enregistrée, sinon l'IA par défaut du serveur avec le compteur
+ * du quota quotidien — et roue crantée ouvrant un menu (pattern APG menu
+ * button réduit) dont « Sélectionner un autre modèle » ouvre la modale de
+ * réglages IA (`AiSettingsDialog`).
  *
- * Le compteur est relu à chaque fin de tour streamé servi par l'IA par
+ * L'instance d'état observée arrive par l'input `assistant` (celle du panneau
+ * hôte : root en global, fournie par l'éditeur en mode block) — le compteur
+ * est relu à chaque fin de tour streamé DE CE panneau servi par l'IA par
  * défaut (le back a consommé — ou remboursé — le quota pendant le flux).
+ * `AiCredentialsService`, singleton, reste injecté directement.
  */
 @Component({
   selector: 'app-course-chat-settings',
@@ -37,8 +40,9 @@ let uid = 0;
   styleUrl: './course-chat-settings.scss',
 })
 export class CourseChatSettings {
+  readonly assistant = input.required<AssistantChatState>();
+
   readonly #credentials = inject(AiCredentialsService);
-  readonly #assistant = inject(CourseAssistantService);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   /** Menu de la roue crantée. */
@@ -77,7 +81,7 @@ export class CourseChatSettings {
     // relecture écrit le signal credentials, qui ne doit pas re-déclencher
     // cet effect.
     effect(() => {
-      const state = this.#assistant.streamState();
+      const state = this.assistant().streamState();
       const ended = this.#wasStreaming && state !== 'streaming';
       this.#wasStreaming = state === 'streaming';
       if (!ended) {

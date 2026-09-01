@@ -1,0 +1,96 @@
+/* Revue d'une proposition : occupe la colonne éditeur du workspace (le champ
+   markdown est masqué par [hidden] à côté — Monaco survit). */
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.proposal-review {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius);
+  padding: 12px;
+  background: var(--bg-surface);
+}
+
+.proposal-review__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.proposal-review__title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.proposal-review__summary {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.proposal-review__legend {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Hauteur explicite : monaco ne mesure que ce qu'on lui donne. */
+.proposal-review__diff {
+  display: block;
+  height: min(520px, 55vh);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.proposal-review__comment {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.proposal-review__comment-label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.proposal-review__comment-input {
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 14px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.proposal-review__comment-input:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -1px;
+}
+
+.proposal-review__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.proposal-review__error {
+  margin: 0 auto 0 0;
+  color: var(--text-danger);
+  font-size: 13px;
+}

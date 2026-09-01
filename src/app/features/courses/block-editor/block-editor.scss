@@ -190,6 +190,13 @@
   min-height: 0;
 }
 
+/* Revue d'une proposition HITL : le champ markdown est MASQUÉ (jamais @if —
+   Monaco survit) pendant que app-proposal-review occupe la colonne. Classe
+   dédiée : le `:host { display: block }` du champ écraserait [hidden]. */
+.block-editor__field--reviewing {
+  display: none !important;
+}
+
 /* Repli : l'éditeur grandit pour occuper la place libérée (à côté du bouton de
    réouverture), au lieu du flex-basis figé de la poignée. */
 .block-editor__workspace--solo .block-editor__editor-col {

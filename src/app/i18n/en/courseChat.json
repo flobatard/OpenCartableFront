@@ -1,9 +1,12 @@
 {
   "title": "Assistant",
   "soon": "Soon",
-  "emptyTitle": "The assistant is coming soon",
-  "emptyHint": "It will soon help you write and enrich this course.",
+  "emptyTitle": "The editing assistant is coming soon",
+  "emptyHint": "It will soon help you edit this content — the course assistant remains available in the floating panel.",
   "inputPlaceholder": "Ask a question about this course…",
+  "blockInputPlaceholder": "Ask for an improvement of this block…",
+  "blockListEmptyHint": "Start a conversation to rewrite or enrich this block.",
+  "blockThreadEmptyHint": "Ask for a rewrite or an improvement of this block — the assistant will propose a change for you to approve.",
   "send": "Send",
   "stop": "Stop",
   "collapse": "Collapse the assistant",
@@ -46,7 +49,19 @@
     "read_resource_pdf": "Reading a library PDF",
     "read_resource_image": "Reading a library image",
     "read_module": "Reading an interactive module's code",
+    "propose_block_edit": "Proposed rewrite of the block",
     "unknown": "Using a tool"
+  },
+  "proposal": {
+    "title": "Proposed rewrite",
+    "pendingHint": "Awaiting your decision — the comparison is shown in the editor.",
+    "original": "Current content",
+    "proposed": "Proposal",
+    "accept": "Accept and apply",
+    "reject": "Reject",
+    "commentLabel": "Comment (optional, sent to the assistant)",
+    "commentPlaceholder": "Explain what you accept or refuse…",
+    "decisionError": "Sending the decision failed — try again."
   },
   "errors": {
     "quota": "Daily quota of the default AI exhausted.",

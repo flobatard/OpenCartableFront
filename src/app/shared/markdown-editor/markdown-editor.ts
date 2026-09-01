@@ -17,31 +17,10 @@ import {
 } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { editor } from 'monaco-editor';
-import {
-  EditorComponent,
-  NGX_MONACO_EDITOR_CONFIG,
-  NgxMonacoEditorConfig,
-} from 'ngx-monaco-editor-v2';
+import { EditorComponent, NGX_MONACO_EDITOR_CONFIG } from 'ngx-monaco-editor-v2';
 import { ThemeService } from '../../core/theme/theme.service';
 import { Spinner } from '../spinner/spinner';
-import { CourseMonacoApi, registerCourseMonacoLanguages } from './course-monaco-lang';
-
-/**
- * Monaco est servi en AMD depuis les assets copiés (angular.json) — jamais bundlé.
- * `onMonacoLoad` tire UNE fois, après le chargement de monaco et AVANT le premier
- * `editor.create` : c'est le point d'ancrage pour enregistrer nos langages
- * (`oc-markdown`/`latex`/`mermaid`) et thèmes (`oc-vs`/`oc-vs-dark`) une seule
- * fois, globalement. Il ne reçoit aucun argument → on lit `window.monaco`.
- */
-const MONACO_CONFIG: NgxMonacoEditorConfig = {
-  baseUrl: '/monaco/vs',
-  onMonacoLoad: () => {
-    const m = (globalThis as { monaco?: CourseMonacoApi }).monaco;
-    if (m) {
-      registerCourseMonacoLanguages(m);
-    }
-  },
-};
+import { MONACO_CONFIG } from './monaco-config';
 
 /**
  * Options figées en constante : le wrapper dispose et recrée l'éditeur à
@@ -175,11 +154,52 @@ export class MarkdownEditor implements ControlValueAccessor {
     ed.focus();
   }
 
+  /**
+   * Remplace TOUT le contenu par `text` via `executeEdits` : contrairement à
+   * un `writeValue` (dont le `setValue` de modèle VIDE la pile d'annulation),
+   * l'édit devient une étape d'undo Monaco normale — **Ctrl-Z la retire**,
+   * Ctrl-Y/Maj-Ctrl-Z la remet (flux HITL : appliquer une proposition comme
+   * n'importe quelle frappe). Bornée par des `pushUndoStop` pour former UNE
+   * étape, séparée de la frappe adjacente ; la propagation au contrôle hôte
+   * suit le même chemin qu'`insertAtCursor` (garde anti-écho comprise).
+   * Retourne `false` sans instance Monaco (SSR/jsdom, non initialisé) —
+   * l'appelant se replie sur une écriture de contrôle classique.
+   */
+  replaceAll(text: string): boolean {
+    const ed = this.#editor;
+    const model = ed?.getModel();
+    if (!ed || !model) {
+      return false;
+    }
+    ed.pushUndoStop();
+    ed.executeEdits('apply-proposal', [
+      { range: model.getFullModelRange(), text, forceMoveMarkers: true },
+    ]);
+    ed.pushUndoStop();
+    ed.focus();
+    return true;
+  }
+
+  /** Rend le focus à l'éditeur (no-op sans instance — SSR/jsdom, ou éditeur
+      masqué : le focus d'un élément `display:none` échoue en silence). */
+  focusEditor(): void {
+    this.#editor?.focus();
+  }
+
   // --- ControlValueAccessor ---------------------------------------------------
 
   writeValue(value: string | null): void {
-    this.#value = value ?? '';
-    this.inner.setValue(this.#value, { emitEvent: false });
+    const next = value ?? '';
+    if (next === this.#value) {
+      // Écho d'une valeur déjà en place : ne JAMAIS redescendre au wrapper —
+      // son writeValue fait un `editor.setValue` ASYNCHRONE (setTimeout) qui
+      // viderait la pile d'annulation, même à valeur identique (vérifié en
+      // vrai navigateur) — les édits Monaco (replaceAll, insertAtCursor)
+      // resteraient inannulables.
+      return;
+    }
+    this.#value = next;
+    this.inner.setValue(next, { emitEvent: false });
   }
 
   registerOnChange(fn: (value: string) => void): void {

@@ -35,6 +35,7 @@ import {
   payloadFromBlockContent,
   payloadFromExerciseForm,
 } from '../../../core/courses/exercise-form';
+import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
 import { CourseService } from '../../../core/courses/course.service';
 import { CourseStyleService } from '../../../core/courses/course-style.service';
 import { LanguageService } from '../../../core/i18n/language.service';
@@ -45,6 +46,7 @@ import { CourseChat } from '../course-chat/course-chat';
 import { DocumentEditor } from '../document-editor/document-editor';
 import { ExerciseEditor } from '../exercise-editor/exercise-editor';
 import { ModuleBlockEditor } from '../module-block-editor/module-block-editor';
+import { PendingProposal, ProposalReview } from './proposal-review';
 
 const AUTOSAVE_DELAY_MS = 1500;
 
@@ -71,6 +73,21 @@ type MetaSaveState = 'idle' | 'saving' | 'saved' | 'error';
  * pipeline d'autosave, mais le choix de la ressource est un PATCH immédiat
  * dédié (`updateBlockResource`), avec revert du select sur échec. Le bloc
  * `module` n'a pas d'éditeur avant le J4 (notice `unsupported`).
+ *
+ * Le chat ancré d'un bloc TEXTE est un vrai assistant d'édition (contexte
+ * `block_text`, flux HITL BLOQUANT) : la page fournit SA propre instance
+ * d'`AssistantChatState` (providers du composant — le panneau flottant global
+ * garde la sienne, root), la configure sur `(courseId, blockId)` et branche le
+ * hook avant-tour sur un flush immédiat de l'autosave (le back lit le bloc EN
+ * BASE pour bâtir son contexte). Quand le modèle appelle `propose_block_edit`,
+ * le flux SSE se fige sur la décision du prof : la page dérive la proposition
+ * en attente de l'activité d'outils du chat (`pendingProposal`), affiche
+ * `app-proposal-review` (diff + commentaire + Accepter/Rejeter) À LA PLACE du
+ * champ markdown (masqué par classe — Monaco survit), puis, à la décision,
+ * applique éventuellement le markdown au `FormControl content` (autosave, undo
+ * Monaco) et envoie la décision (`decideProposal`) — le résultat du tool est
+ * la décision, le flux reprend. Un bloc exercice garde le chat en
+ * `placeholder` (contexte `block_exercise` pas encore livré).
  */
 @Component({
   selector: 'app-block-editor',
@@ -83,7 +100,9 @@ type MetaSaveState = 'idle' | 'saving' | 'saved' | 'error';
     DocumentEditor,
     ExerciseEditor,
     ModuleBlockEditor,
+    ProposalReview,
   ],
+  providers: [AssistantChatState],
   templateUrl: './block-editor.html',
   styleUrl: './block-editor.scss',
 })
@@ -126,6 +145,36 @@ export class BlockEditor implements OnInit, OnDestroy {
    * dans monaco, les specs pilotent ce contrôle.
    */
   readonly content = new FormControl('', { nonNullable: true });
+
+  /**
+   * Miroir signal du contenu markdown (blocs texte) — « original » du diff
+   * des propositions du chat. Posé directement à l'init (le `setValue` initial
+   * n'émet pas) puis tenu en phase par `valueChanges` ; jamais
+   * `toSignal(valueChanges)` (motif module-editor).
+   */
+  protected readonly contentMarkdown = signal('');
+
+  /** Instance d'état du chat ancré (contexte `block_text`), propre à la page. */
+  readonly #assistantState = inject(AssistantChatState);
+
+  /**
+   * Proposition d'édition EN ATTENTE de décision (flux HITL fermé sur un
+   * `interrupt`, le run est figé côté back) — portée par l'instance d'état du
+   * chat ancré ; l'éditeur affiche la revue tant qu'elle est là. Consommée à
+   * la reprise (`resumeProposal`), abandonnée avec le tour (nouveau message,
+   * changement de vue).
+   */
+  protected readonly pendingProposal = computed<PendingProposal | null>(
+    () => this.#assistantState.pendingProposal(),
+  );
+
+  /** Envoi de la décision HITL en vol / en échec (réessayable). */
+  protected readonly proposalBusy = signal(false);
+  protected readonly proposalError = signal(false);
+
+  /** Champ markdown monté (blocs texte) — l'application d'une proposition HITL
+      passe par son `replaceAll` (édit Monaco annulable par Ctrl-Z). */
+  protected readonly markdownField = viewChild(MarkdownField);
 
   /** Éditeur d'exercice monté (blocs exercice) — son `form` public est piloté
       ici pour le write-back des ids et le flush à la destruction. */
@@ -202,6 +251,30 @@ export class BlockEditor implements OnInit, OnDestroy {
   #lastDraft: Record<string, unknown> | null = null;
 
   constructor() {
+    // Chat ancré (bloc texte) : portée et hook avant-tour posés une fois —
+    // params en snapshot, l'instance vit et meurt avec la page (route
+    // remountOnParamChange). Inoffensif pour les autres types (placeholder).
+    this.#assistantState.configure({ context: 'block_text', blockId: this.blockId });
+    this.#assistantState.setBeforeTurn(() => this.flushContent());
+
+    // Miroir du markdown pour le diff des propositions (l'init n'émet pas).
+    this.content.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe((value) => this.contentMarkdown.set(value));
+
+    // Revue HITL refermée (proposition consommée ou abandonnée) : le focus
+    // revient à l'éditeur, une fois le champ re-visible (setTimeout : la
+    // classe de masquage tombe au même tour de rendu) — un Ctrl-Z immédiat
+    // atteint Monaco et retire l'application sans clic préalable.
+    let reviewing = false;
+    effect(() => {
+      const pending = this.pendingProposal() !== null;
+      if (reviewing && !pending && this.#isBrowser) {
+        setTimeout(() => this.markdownField()?.focusEditor(), 0);
+      }
+      reviewing = pending;
+    });
+
     // Init UNIQUE quand le bloc à contenu éditable arrive ; jamais ré-initialisé
     // ensuite (le patch du détail après un save ne doit pas écraser la frappe).
     // Texte : le contrôle est posé ici ; exercice : l'éditeur enfant s'initialise
@@ -217,6 +290,7 @@ export class BlockEditor implements OnInit, OnDestroy {
         this.#initialized = true;
         this.#lastSaved = JSON.stringify({ markdown: initial });
         this.content.setValue(initial, { emitEvent: false });
+        this.contentMarkdown.set(initial);
       } else if (block.type === 'exercise') {
         this.#initialized = true;
         this.#lastSaved = JSON.stringify(payloadFromBlockContent(block.content));
@@ -407,6 +481,60 @@ export class BlockEditor implements OnInit, OnDestroy {
 
   protected toggleChat(): void {
     this.chatCollapsed.update((collapsed) => !collapsed);
+  }
+
+  /**
+   * Flush immédiat de l'autosave — hook avant-tour du chat ancré : le back
+   * bâtit le contexte IA depuis le bloc EN BASE, le debounce de 1,5 s ne doit
+   * pas lui faire lire un état périmé. `#save` est no-op si rien n'a changé ;
+   * un échec remonte au hook (avalé là-bas — envoi non bloquant, le badge
+   * d'erreur d'autosave signale déjà le problème).
+   */
+  async flushContent(): Promise<void> {
+    await this.#save();
+  }
+
+  /**
+   * Décision « Accepter et appliquer » : le markdown proposé est appliqué VIA
+   * l'éditeur Monaco (`MarkdownField.replaceAll` — `executeEdits`, l'édit
+   * entre dans la pile d'annulation : **Ctrl-Z le retire** comme une frappe,
+   * et la propagation CVA alimente dirty + autosave), avec repli
+   * `content.setValue` si Monaco n'est pas prêt (jsdom, éditeur en
+   * chargement — sans undo, assumé). PUIS la décision REPREND le run figé
+   * (`resumeProposal` — le résultat du tool devient « acceptée », la suite du
+   * tour streame dans le chat et la revue s'efface).
+   */
+  protected async onProposalAccept(comment: string): Promise<void> {
+    const proposal = this.pendingProposal();
+    if (!proposal) {
+      return;
+    }
+    if (!(this.markdownField()?.replaceAll(proposal.markdown) ?? false)) {
+      this.content.setValue(proposal.markdown);
+    }
+    await this.#decideProposal(true, comment);
+  }
+
+  protected async onProposalReject(comment: string): Promise<void> {
+    if (this.pendingProposal() === null) {
+      return;
+    }
+    await this.#decideProposal(false, comment);
+  }
+
+  async #decideProposal(accepted: boolean, comment: string): Promise<void> {
+    this.proposalBusy.set(true);
+    this.proposalError.set(false);
+    const resumed = await this.#assistantState.resumeProposal({
+      accepted,
+      ...(comment ? { comment } : {}),
+    });
+    this.proposalBusy.set(false);
+    if (!resumed && this.pendingProposal() !== null) {
+      // Reprise non partie mais toujours possible (échec réseau ≠ 404) :
+      // la revue reste affichée, réessayable.
+      this.proposalError.set(true);
+    }
   }
 
   #clampPct(value: number): number {
