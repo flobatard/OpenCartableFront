@@ -95,7 +95,7 @@ describe('UserProfileService', () => {
   });
 
   describe('avatar', () => {
-    const blob = () => new Blob(['x'.repeat(10)], { type: 'image/jpeg' });
+    const blob = () => new Blob(['x'.repeat(10)], { type: 'image/webp' });
 
     it('uploadAvatar chains presign → S3 PUT without implicit Bearer → confirm', async () => {
       const updated = { ...USER_PROFILE_FIXTURE, avatar_url: 'https://s3.test/get/a.jpg' };
@@ -103,14 +103,14 @@ describe('UserProfileService', () => {
 
       const presign = httpMock.expectOne(`${url}/avatar`);
       expect(presign.request.method).toBe('POST');
-      expect(presign.request.body).toEqual({ mime: 'image/jpeg', size: 10 });
+      expect(presign.request.body).toEqual({ mime: 'image/webp', size: 10 });
       presign.flush({ upload_url: 'https://s3.test/put/a.jpg', expires_in: 900 });
       await Promise.resolve(); // laisse la promesse enchaîner sur le PUT
 
       const put = httpMock.expectOne('https://s3.test/put/a.jpg');
       expect(put.request.method).toBe('PUT');
       // Content-Type strictement le mime déclaré (figé dans la signature S3).
-      expect(put.request.headers.get('Content-Type')).toBe('image/jpeg');
+      expect(put.request.headers.get('Content-Type')).toBe('image/webp');
       expect(service.avatarState().phase).toBe('uploading');
       put.flush('');
       await Promise.resolve();
@@ -124,8 +124,27 @@ describe('UserProfileService', () => {
       expect(service.avatarState()).toEqual({ phase: 'idle', progress: 0 });
     });
 
+    it('declares the mime of the blob, not WebP, when the browser fell back', async () => {
+      // `toBlob` retombe sur PNG quand le navigateur n'encode pas le WebP :
+      // presign et PUT doivent suivre, sinon le confirm du back répond 409.
+      const upload = service.uploadAvatar(new Blob(['x'.repeat(10)], { type: 'image/png' }));
+
+      const presign = httpMock.expectOne(`${url}/avatar`);
+      expect(presign.request.body).toEqual({ mime: 'image/png', size: 10 });
+      presign.flush({ upload_url: 'https://s3.test/put/a.png', expires_in: 900 });
+      await Promise.resolve();
+
+      const put = httpMock.expectOne('https://s3.test/put/a.png');
+      expect(put.request.headers.get('Content-Type')).toBe('image/png');
+      put.flush('');
+      await Promise.resolve();
+
+      httpMock.expectOne(`${url}/avatar/confirm`).flush(USER_PROFILE_FIXTURE);
+      await upload;
+    });
+
     it('locally rejects a blob above the cap, without any request', async () => {
-      const oversized = new Blob([new ArrayBuffer(5_242_881)], { type: 'image/jpeg' });
+      const oversized = new Blob([new ArrayBuffer(5_242_881)], { type: 'image/webp' });
       await expect(service.uploadAvatar(oversized)).rejects.toBeTruthy();
       expect(service.avatarState().phase).toBe('error');
       httpMock.verify(); // aucun appel réseau

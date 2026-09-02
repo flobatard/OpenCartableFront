@@ -16,7 +16,7 @@ const FRAME_FALLBACK = 320;
 /** Bornes du zoom relatif (1 = l'image couvre tout juste le cadre). */
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 4;
-/** Qualité JPEG de l'export canvas. */
+/** Qualité de l'export canvas (WebP lossy — la couche alpha survit). */
 const EXPORT_QUALITY = 0.85;
 
 /**
@@ -25,9 +25,15 @@ const EXPORT_QUALITY = 0.85;
  * L'utilisateur déplace l'image (pointer drag avec `setPointerCapture`,
  * précédent : poignée du block-editor) et zoome au slider (précédent :
  * `course-style-dialog`) dans un cadre carré ; « Valider » exporte un carré
- * `AVATAR_SIZE` en JPEG via canvas et émet `(cropped)` — la modale ferme
+ * `AVATAR_SIZE` en WebP via canvas et émet `(cropped)` — la modale ferme
  * D'ABORD puis émet (motif resource-picker). Le fichier original n'est
  * jamais uploadé : seul le blob exporté part vers S3.
+ *
+ * Le canvas est transparent par défaut et le WebP porte une couche alpha :
+ * un PNG à fond transparent le reste jusqu'à S3 (le JPEG le repeignait en
+ * noir). Le mime de sortie n'est pas garanti pour autant — `toBlob` retombe
+ * sur PNG si le navigateur n'encode pas le WebP —, d'où `avatarMimeOf` côté
+ * upload : c'est `blob.type` qui fait foi, jamais `AVATAR_MIME`.
  *
  * Toute la géométrie vit dans `avatar-crop.utils.ts` (fonctions pures,
  * testées sans canvas — jsdom ne rend ni layout ni images). Client-only
@@ -41,7 +47,7 @@ const EXPORT_QUALITY = 0.85;
   styleUrl: './avatar-crop-dialog.scss',
 })
 export class AvatarCropDialog {
-  /** Blob JPEG carré exporté après validation. */
+  /** Blob carré exporté après validation (WebP, PNG en repli navigateur). */
   readonly cropped = output<Blob>();
 
   /** Ref nommée `dialogEl` (jamais `dialog` : collision avec un signal). */
@@ -178,7 +184,7 @@ export class AvatarCropDialog {
 
   /**
    * Export : dessine le rectangle source visible dans un canvas carré
-   * `AVATAR_SIZE`, encode en JPEG, ferme puis émet le blob.
+   * `AVATAR_SIZE`, encode en WebP (alpha conservé), ferme puis émet le blob.
    */
   protected confirm(): void {
     const img = this.imageEl()?.nativeElement;

@@ -4,7 +4,8 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import {
-  AVATAR_MIME,
+  AvatarMime,
+  avatarMimeOf,
   AvatarPresign,
   MAX_AVATAR_BYTES,
   OnboardingPayload,
@@ -107,7 +108,10 @@ export class UserProfileService {
    * le mime déclaré, figé dans la signature) → confirm, dont la réponse
    * (profil complet, `avatar_url` posée) remplace le signal — motif
    * `saveProfile`, hors du cycle dirty du formulaire profil. Le blob vient
-   * de la modale de recadrage : toujours un carré JPEG.
+   * de la modale de recadrage : un carré WebP, ou PNG si le navigateur
+   * n'encode pas le WebP — le mime est donc LU sur le blob (`avatarMimeOf`)
+   * et non supposé, presign et PUT partageant la même valeur (sinon 409 au
+   * confirm, qui compare le `ContentType` de l'objet S3 au mime déclaré).
    */
   async uploadAvatar(blob: Blob): Promise<UserProfile> {
     if (blob.size > MAX_AVATAR_BYTES) {
@@ -115,17 +119,18 @@ export class UserProfileService {
       this.#avatarState.set({ phase: 'error', progress: 0 });
       throw new Error('avatar too large');
     }
+    const mime = avatarMimeOf(blob);
     this.#avatarState.set({ phase: 'presigning', progress: 0 });
     try {
       const presign = await firstValueFrom(
         this.#http.post<AvatarPresign>(`${this.#url}/avatar`, {
-          mime: AVATAR_MIME,
+          mime,
           size: blob.size,
         }),
       );
 
       this.#avatarState.set({ phase: 'uploading', progress: 0 });
-      await this.#putToS3(presign.upload_url, blob);
+      await this.#putToS3(presign.upload_url, blob, mime);
 
       this.#avatarState.set({ phase: 'confirming', progress: 100 });
       const profile = await firstValueFrom(
@@ -161,11 +166,11 @@ export class UserProfileService {
    * Duplication assumée du `#putToS3` de `ResourceService` : on ne couple
    * pas les deux services pour si peu (motif `subject.utils`).
    */
-  #putToS3(uploadUrl: string, blob: Blob): Promise<void> {
+  #putToS3(uploadUrl: string, blob: Blob, mime: AvatarMime): Promise<void> {
     return new Promise((resolve, reject) => {
       this.#http
         .put(uploadUrl, blob, {
-          headers: new HttpHeaders({ 'Content-Type': AVATAR_MIME }),
+          headers: new HttpHeaders({ 'Content-Type': mime }),
           reportProgress: true,
           observe: 'events',
           responseType: 'text',

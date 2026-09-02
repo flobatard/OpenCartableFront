@@ -75,7 +75,7 @@ describe('AvatarCropDialog', () => {
     expect(host.querySelector('img')).toBeNull();
   });
 
-  it('confirm exports a 512 JPEG square, closes THEN emits (cropped)', async () => {
+  it('confirm exports a 512 WebP square, closes THEN emits (cropped)', async () => {
     const emitted: Blob[] = [];
     component.cropped.subscribe((blob) => emitted.push(blob));
     component.open(fakeFile());
@@ -89,7 +89,7 @@ describe('AvatarCropDialog', () => {
     img.dispatchEvent(new Event('load'));
     fixture.detectChanges();
 
-    const jpeg = new Blob(['jpg'], { type: 'image/jpeg' });
+    const webp = new Blob(['webp'], { type: 'image/webp' });
     const drawImage = vi.fn();
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
       drawImage,
@@ -98,9 +98,9 @@ describe('AvatarCropDialog', () => {
       function (this: HTMLCanvasElement, callback, type, quality) {
         expect(this.width).toBe(512);
         expect(this.height).toBe(512);
-        expect(type).toBe('image/jpeg');
+        expect(type).toBe('image/webp');
         expect(quality).toBe(0.85);
-        callback(jpeg);
+        callback(webp);
       },
     );
     const close = vi.spyOn(dialogEl, 'close');
@@ -109,7 +109,7 @@ describe('AvatarCropDialog', () => {
 
     expect(drawImage).toHaveBeenCalledOnce();
     expect(close).toHaveBeenCalled();
-    expect(emitted).toEqual([jpeg]);
+    expect(emitted).toEqual([webp]);
   });
 
   it('Cancel closes without emitting', () => {

@@ -82,14 +82,18 @@
 }
 
 /* Cadre carré de recadrage : l'image le couvre toujours (géométrie clampée),
-   le rond n'est qu'un guide visuel — l'export reste carré. */
+   le rond n'est qu'un guide visuel — l'export reste carré. Fond en damier
+   (tokens de thème, pas de hex) : l'export WebP conserve la transparence,
+   un aplat uni la ferait passer pour une couleur de fond. */
 .avatar-crop__frame {
   position: relative;
   width: min(320px, 100%);
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: var(--radius);
-  background: var(--bg-subtle);
+  background-color: var(--bg-surface);
+  background-image: repeating-conic-gradient(var(--bg-subtle) 0% 25%, transparent 0% 50%);
+  background-size: 16px 16px;
   cursor: grab;
   touch-action: none; /* le drag au doigt ne doit pas scroller la page */
 }

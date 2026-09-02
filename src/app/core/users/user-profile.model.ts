@@ -66,10 +66,30 @@ export interface AvatarPresign {
 
 /**
  * Contrat d'upload de l'avatar : la modale de recadrage exporte TOUJOURS un
- * carré `AVATAR_SIZE` en JPEG (canvas), donc le mime déclaré au presign est
- * constant. `MAX_AVATAR_BYTES` est le miroir de `AVATAR_MAX_BYTES` du back
- * (garde défensive : un export canvas 512×512 reste très en dessous).
+ * carré `AVATAR_SIZE`, encodé en **WebP** — seul format de la whitelist back
+ * qui préserve la TRANSPARENCE (le JPEG l'aplatissait en noir) sans le
+ * surpoids d'un PNG 512×512. `MAX_AVATAR_BYTES` est le miroir de
+ * `AVATAR_MAX_BYTES` du back (garde défensive : un export canvas 512×512
+ * reste très en dessous).
  */
-export const AVATAR_MIME = 'image/jpeg';
+export const AVATAR_MIME = 'image/webp';
 export const AVATAR_SIZE = 512;
 export const MAX_AVATAR_BYTES = 5_242_880;
+
+/** Whitelist des mimes acceptés au presign (miroir d'`AVATAR_EXTENSIONS`, back). */
+export const AVATAR_MIMES = ['image/webp', 'image/png', 'image/jpeg'] as const;
+export type AvatarMime = (typeof AVATAR_MIMES)[number];
+
+/**
+ * Mime RÉELLEMENT produit par l'export canvas, borné à la whitelist back.
+ * `toBlob` retombe silencieusement sur PNG quand le navigateur n'encode pas
+ * le type demandé (comportement spécifié) : le mime ne peut donc pas être
+ * une constante, il se lit sur le blob — le `confirm` du back compare le
+ * `ContentType` de l'objet S3 au mime déclaré au presign et répondrait 409
+ * sur le moindre écart. Repli PNG, celui de la spec.
+ */
+export function avatarMimeOf(blob: Blob): AvatarMime {
+  return (AVATAR_MIMES as readonly string[]).includes(blob.type)
+    ? (blob.type as AvatarMime)
+    : 'image/png';
+}
