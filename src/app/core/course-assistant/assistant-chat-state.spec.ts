@@ -144,12 +144,34 @@ describe('AssistantChatState (portée block_text)', () => {
     await reachAwaiting();
     expect(state.streamState()).toBe('awaiting');
     expect(state.pendingProposal()).toEqual({
+      kind: 'block_text',
       id: 'call_p',
       markdown: '# Proposé',
       summary: 'Réécriture',
     });
     // Le tour reste affiché en l'état (activité d'outils non repliée).
     expect(state.toolActivity().map((entry) => entry.id)).toEqual(['call_p']);
+  });
+
+  it('resumeProposal awaits the beforeTurn hook (autosave flush) before the POST', async () => {
+    await reachAwaiting();
+    const resumeFetch = vi.fn().mockResolvedValue(sseResponse([DONE_EVENT]));
+    vi.stubGlobal('fetch', resumeFetch);
+    let resolveHook!: () => void;
+    const hook = vi.fn(() => new Promise<void>((resolve) => (resolveHook = resolve)));
+    state.setBeforeTurn(hook);
+
+    const promise = state.resumeProposal({ accepted: true });
+    await Promise.resolve();
+    expect(hook).toHaveBeenCalledTimes(1);
+    // Tant que le flush n'est pas fini, la décision n'est pas partie (le back
+    // relirait le bloc d'AVANT l'application).
+    expect(resumeFetch).not.toHaveBeenCalled();
+    expect(state.streamState()).toBe('streaming');
+
+    resolveHook();
+    await expect(promise).resolves.toBe(true);
+    expect(resumeFetch).toHaveBeenCalledTimes(1);
   });
 
   it('resumeProposal reopens a stream with the decision and consumes the pending', async () => {
@@ -206,5 +228,97 @@ describe('AssistantChatState (portée block_text)', () => {
     await promise;
 
     expect(state.streamState()).toBe('idle');
+  });
+});
+
+/** La portée `block_exercise` : même mécanique, propositions par question. */
+describe('AssistantChatState (portée block_exercise)', () => {
+  let state: AssistantChatState;
+  let http: HttpTestingController;
+  const EXERCISE_CONVERSATION: AssistantConversation = {
+    ...BLOCK_CONVERSATION,
+    id: 'conv-e1',
+    context: 'block_exercise',
+  };
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        AssistantChatState,
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: AuthService,
+          useValue: { isAuthenticated: () => true, accessToken: 'jwt-token' },
+        },
+      ],
+    });
+    state = TestBed.inject(AssistantChatState);
+    state.configure({ context: 'block_exercise', blockId: 'b1' });
+    http = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  async function reachInterrupt(toolCallEvent: string): Promise<void> {
+    const load = state.loadConversations('c1');
+    http.expectOne((r) => r.url === BASE).flush([EXERCISE_CONVERSATION]);
+    await load;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        sseResponse([
+          toolCallEvent,
+          'event: interrupt\ndata: {"tool_call_id":"call_p","message_ids":["m1"]}\n\n',
+        ]),
+      ),
+    );
+    const send = state.sendMessage('Complète le corrigé');
+    const req = http.expectOne((r) => r.url === BASE);
+    expect(req.request.body).toEqual({ context: 'block_exercise', block_id: 'b1' });
+    req.flush({ ...EXERCISE_CONVERSATION, id: 'conv-e2' });
+    await send;
+  }
+
+  it('lists with the block_exercise context', async () => {
+    const promise = state.loadConversations('c1');
+    const req = http.expectOne((r) => r.url === BASE);
+    expect(req.request.params.get('context')).toBe('block_exercise');
+    expect(req.request.params.get('block_id')).toBe('b1');
+    req.flush([]);
+    await promise;
+    expect(state.active()?.context).toBe('block_exercise');
+  });
+
+  it('an interrupt on an exercise tool carries the typed proposal (rewritten args)', async () => {
+    await reachInterrupt(
+      'event: tool_call\ndata: {"id":"call_p","name":"propose_question_edit",' +
+        '"args":{"question_ref":"Q2","question_id":"q-2","expected_answer":"42",' +
+        '"summary":"Corrigé ajouté"}}\n\n',
+    );
+    expect(state.streamState()).toBe('awaiting');
+    expect(state.pendingProposal()).toEqual({
+      kind: 'exercise_question_edit',
+      id: 'call_p',
+      summary: 'Corrigé ajouté',
+      questionId: 'q-2',
+      statement: null,
+      expectedAnswer: '42',
+    });
+  });
+
+  it('a malformed proposal (unresolved question) finalizes the turn without a review', async () => {
+    await reachInterrupt(
+      'event: tool_call\ndata: {"id":"call_p","name":"propose_question_delete",' +
+        '"args":{"question_ref":"Q9","question_id":null}}\n\n',
+    );
+    expect(state.pendingProposal()).toBeNull();
+    expect(state.streamState()).toBe('idle');
+    // Le tour est replié : l'appel figure dans le message assistant local.
+    expect(state.active()?.messages.at(-1)?.tool_calls.map((c) => c.name)).toEqual([
+      'propose_question_delete',
+    ]);
   });
 });

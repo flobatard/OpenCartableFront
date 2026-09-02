@@ -6,48 +6,20 @@
     }
   </header>
 
-  <div class="proposal-review__legend" aria-hidden="true">
-    <span>{{ 'courseChat.proposal.original' | transloco }}</span>
-    <span>{{ 'courseChat.proposal.proposed' | transloco }}</span>
+  <!-- Corps : le diff remplit la hauteur restante de la colonne (régime fill) ;
+       le pied de décision reste visible en bas, jamais poussé hors du cadre. -->
+  <div class="proposal-review__body">
+    <div class="proposal-review__legend" aria-hidden="true">
+      <span>{{ 'courseChat.proposal.original' | transloco }}</span>
+      <span>{{ 'courseChat.proposal.proposed' | transloco }}</span>
+    </div>
+    <app-proposal-diff [original]="original()" [modified]="proposal().markdown" />
   </div>
 
-  <ngx-monaco-diff-editor
-    class="proposal-review__diff"
-    [options]="diffOptions()"
-    [originalModel]="originalModel()"
-    [modifiedModel]="modifiedModel()"
+  <app-proposal-decision
+    [busy]="busy()"
+    [errorKey]="errorKey()"
+    (accepted)="accepted.emit($event)"
+    (rejected)="rejected.emit($event)"
   />
-
-  <label class="proposal-review__comment">
-    <span class="proposal-review__comment-label">
-      {{ 'courseChat.proposal.commentLabel' | transloco }}
-    </span>
-    <textarea
-      class="proposal-review__comment-input"
-      rows="2"
-      maxlength="2000"
-      [value]="comment()"
-      [attr.placeholder]="'courseChat.proposal.commentPlaceholder' | transloco"
-      (input)="onCommentInput($event)"
-    ></textarea>
-  </label>
-
-  <footer class="proposal-review__actions">
-    @if (error()) {
-      <p class="proposal-review__error" role="alert">
-        {{ 'courseChat.proposal.decisionError' | transloco }}
-      </p>
-    }
-    <button
-      type="button"
-      class="btn btn--secondary"
-      [disabled]="busy()"
-      (click)="reject()"
-    >
-      {{ 'courseChat.proposal.reject' | transloco }}
-    </button>
-    <button type="button" class="btn btn--primary" [disabled]="busy()" (click)="accept()">
-      {{ 'courseChat.proposal.accept' | transloco }}
-    </button>
-  </footer>
 </section>

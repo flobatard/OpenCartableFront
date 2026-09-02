@@ -9,8 +9,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
  */
 export const TOOL_RESULT_EXCERPT_CHARS = 400;
 
-/** Outils du back (`app/course_assistant/tools.py`) : libellé i18n dédié, repli
-    générique sinon. `propose_block_edit` n'apparaît ici qu'en repli (appel
+/** Outils du back (`app/course_assistant/tools.py` + tools de proposition de
+    `app/course_assistant/editing/`) : libellé i18n dédié, repli générique
+    sinon. Les tools de proposition n'apparaissent ici qu'en repli (appel
     échoué ou args malformés) — le cas nominal est rendu en carte de
     proposition (`app-course-chat-proposal`), jamais en ligne d'outil. */
 const KNOWN_TOOLS = new Set([
@@ -19,6 +20,10 @@ const KNOWN_TOOLS = new Set([
   'read_resource_image',
   'read_module',
   'propose_block_edit',
+  'propose_statement_edit',
+  'propose_question_edit',
+  'propose_question_add',
+  'propose_question_delete',
 ]);
 
 /** Un appel d'outil tel que rendu par le fil : persisté ou en cours. */

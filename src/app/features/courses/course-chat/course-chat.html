@@ -207,6 +207,7 @@
             @for (tool of toolViews(message); track tool.id) {
               @if (isProposal(tool)) {
                 <app-course-chat-proposal
+                  [toolName]="tool.name"
                   [summary]="proposalSummary(tool)"
                   [status]="tool.status"
                   [result]="tool.result"
@@ -241,6 +242,7 @@
           @for (tool of liveToolViews(); track tool.id) {
             @if (isProposal(tool)) {
               <app-course-chat-proposal
+                [toolName]="tool.name"
                 [summary]="proposalSummary(tool)"
                 [status]="tool.status"
                 [result]="tool.result"

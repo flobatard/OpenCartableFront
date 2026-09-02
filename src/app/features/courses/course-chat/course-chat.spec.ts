@@ -155,9 +155,9 @@ describe('CourseChat', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  describe('mode placeholder (contextes non livrés : exercice, module)', () => {
+  describe('mode placeholder (contexte non livré : module — garde générique)', () => {
     it('renders the header, the empty state and a disabled input', async () => {
-      // Un hôte éditeur sur un bloc NON texte passe blockId + placeholder.
+      // Un hôte éditeur dont le contexte n'est pas livré passe blockId + placeholder.
       const fixture = await createComponent({ blockId: 'block-1', placeholder: true });
 
       expect(el(fixture).querySelector('.course-chat__title')?.textContent).toContain('Assistant');
@@ -252,6 +252,83 @@ describe('CourseChat', () => {
       const tool = el(fixture).querySelector('details.chat-tool')!;
       expect(tool.classList.contains('chat-tool--error')).toBe(true);
       expect(tool.textContent).toContain('Proposition de réécriture du bloc');
+    });
+
+    it('renders an exercise proposal call as a card titled by its tool', async () => {
+      const fixture = await createComponent({ blockId: 'block-1' });
+      assistant.active.set({
+        ...emptyDetail(),
+        context: 'block_exercise',
+        block_id: 'block-1',
+        messages: [
+          message({
+            id: 'a1',
+            role: 'assistant',
+            tool_calls: [
+              {
+                id: 'p1',
+                name: 'propose_question_edit',
+                // Args réécrits par le back : l'id résolu accompagne la référence.
+                arguments: {
+                  question_ref: 'Q2',
+                  question_id: 'q-2',
+                  expected_answer: '42',
+                  summary: 'Corrigé ajouté',
+                },
+              },
+            ],
+          }),
+          message({
+            id: 't1',
+            role: 'tool',
+            tool_call_id: 'p1',
+            content: "Le professeur a ACCEPTÉ la proposition et l'a appliquée à la question.",
+          }),
+        ],
+      });
+      fixture.detectChanges();
+
+      const card = el(fixture).querySelector('.chat-proposal')!;
+      expect(card).toBeTruthy();
+      expect(card.textContent).toContain("Modification d'une question");
+      expect(card.textContent).toContain('Corrigé ajouté');
+      expect(card.textContent).toContain('ACCEPTÉ');
+      expect(el(fixture).querySelector('details.chat-tool')).toBeNull();
+    });
+
+    it('an exercise proposal call without a resolved id falls back to the tool line', async () => {
+      const fixture = await createComponent({ blockId: 'block-1' });
+      assistant.active.set({
+        ...emptyDetail(),
+        context: 'block_exercise',
+        block_id: 'block-1',
+        messages: [
+          message({
+            id: 'a1',
+            role: 'assistant',
+            tool_calls: [
+              {
+                id: 'p1',
+                name: 'propose_question_delete',
+                arguments: { question_ref: 'Q9', question_id: null },
+              },
+            ],
+          }),
+          message({
+            id: 't1',
+            role: 'tool',
+            tool_call_id: 'p1',
+            is_error: true,
+            content: 'Question introuvable dans ce cours pour « Q9 ».',
+          }),
+        ],
+      });
+      fixture.detectChanges();
+
+      expect(el(fixture).querySelector('.chat-proposal')).toBeNull();
+      const tool = el(fixture).querySelector('details.chat-tool')!;
+      expect(tool.textContent).toContain('Proposition de suppression de question');
+      expect(tool.textContent).toContain('introuvable');
     });
 
     it('an awaiting proposal shows the pending hint and holds the composer', async () => {

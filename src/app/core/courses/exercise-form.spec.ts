@@ -4,11 +4,13 @@ import {
   buildExerciseForm,
   exerciseMarkdownFromContent,
   fullExerciseMarkdown,
+  insertQuestionAfter,
   moveQuestion,
   moveQuestionTo,
   patchExerciseFormFromContent,
   payloadFromBlockContent,
   payloadFromExerciseForm,
+  questionIndexById,
   questionStatementPreview,
   removeQuestion,
 } from './exercise-form';
@@ -254,6 +256,47 @@ describe('exercise-form', () => {
         ],
       }),
     ).toBe('Q1\n\nQ3');
+  });
+
+  it('questionIndexById finds a question by its backend id', () => {
+    const form = buildExerciseForm();
+    patchExerciseFormFromContent(form, CONTENT);
+    addQuestion(form); // id null, jamais trouvée par id
+
+    expect(questionIndexById(form, 'q-2')).toBe(1);
+    expect(questionIndexById(form, 'inconnue')).toBe(-1);
+  });
+
+  it('insertQuestionAfter inserts a new (null id) question after the anchor, or at the end', () => {
+    const form = buildExerciseForm();
+    patchExerciseFormFromContent(form, CONTENT);
+    const emissions: unknown[] = [];
+    form.valueChanges.subscribe((v) => emissions.push(v));
+
+    const inserted = insertQuestionAfter(
+      form,
+      { statement: 'Entre les deux', expected_answer: 'Oui.' },
+      'q-1',
+    );
+    expect(emissions.length).toBe(1); // une émission : l'autosave part
+    expect(form.controls.questions.at(1)).toBe(inserted);
+    expect(inserted.getRawValue()).toEqual({
+      id: null,
+      statement: 'Entre les deux',
+      expectedAnswer: 'Oui.',
+    });
+    expect(payloadFromExerciseForm(form).questions.map((q) => q.id)).toEqual(['q-1', null, 'q-2']);
+
+    // Sans ancre, ou ancre inconnue (supprimée entre-temps) : en fin d'exercice.
+    insertQuestionAfter(form, { statement: 'Fin', expected_answer: '' }, null);
+    insertQuestionAfter(form, { statement: 'Fin aussi', expected_answer: '' }, 'disparue');
+    expect(payloadFromExerciseForm(form).questions.map((q) => q.statement)).toEqual([
+      'Montrer que $u_n$ converge.',
+      'Entre les deux',
+      'Donner sa limite.',
+      'Fin',
+      'Fin aussi',
+    ]);
   });
 
   it('questionStatementPreview normalizes whitespace and truncates', () => {

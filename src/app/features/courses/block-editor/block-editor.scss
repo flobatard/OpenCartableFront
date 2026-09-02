@@ -183,16 +183,20 @@
   min-height: 0;
 }
 
-/* L'éditeur d'exercice remplit la colonne (hauteur définie, contrainte du
-   drag) ; ses panneaux d'onglet gèrent leur propre défilement en interne. */
-.block-editor__editor-col app-exercise-editor {
+/* L'éditeur d'exercice et les revues de proposition remplissent la colonne
+   (hauteur définie, contrainte du drag) et gèrent leur défilement en interne
+   (panneaux d'onglet ; corps de revue défilant, pied de décision visible) :
+   sans `min-height: 0`, la revue déborderait sous la navigation de la page. */
+.block-editor__editor-col app-exercise-editor,
+.block-editor__editor-col app-proposal-review,
+.block-editor__editor-col app-exercise-proposal-review {
   flex: 1;
   min-height: 0;
 }
 
-/* Revue d'une proposition HITL : le champ markdown est MASQUÉ (jamais @if —
-   Monaco survit) pendant que app-proposal-review occupe la colonne. Classe
-   dédiée : le `:host { display: block }` du champ écraserait [hidden]. */
+/* Revue d'une proposition HITL : l'éditeur (markdown ou exercice) est MASQUÉ
+   (jamais @if — Monaco survit) pendant que la revue occupe la colonne. Classe
+   dédiée : le `:host { display }` des hôtes écraserait [hidden]. */
 .block-editor__field--reviewing {
   display: none !important;
 }

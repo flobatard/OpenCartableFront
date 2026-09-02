@@ -5,6 +5,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { BlockEditor } from './block-editor';
 import { AiCredentialsService } from '../../../core/ai-credentials/ai-credentials.service';
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
+import { AssistantPendingProposal } from '../../../core/course-assistant/proposals';
 import { CourseBlock, CourseDetail } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
 import { addQuestion, ExerciseForm } from '../../../core/courses/exercise-form';
@@ -720,15 +721,6 @@ describe('BlockEditor', () => {
       expect(assistantState.loadConversations).toHaveBeenCalledWith('course-1');
     });
 
-    it('exercise block keeps the placeholder chat (context not shipped)', async () => {
-      const fixture = await createComponent('block-3');
-      fixture.detectChanges();
-
-      const chat = el(fixture).querySelector('app-course-chat')!;
-      expect(chat.querySelector('.course-chat__badge')?.textContent).toContain('Bientôt');
-      expect(assistantState.loadConversations).not.toHaveBeenCalled();
-    });
-
     it('pre-turn hook: flushes a dirty content immediately, no-op when clean', async () => {
       const fixture = await createComponent();
       const hook = assistantState.setBeforeTurn.mock.calls[0][0] as () => Promise<void>;
@@ -754,7 +746,12 @@ describe('BlockEditor', () => {
     ): Promise<void> {
       // Flux HITL fermé sur un interrupt : l'état porte la proposition.
       assistantState.streamState.set('awaiting');
-      assistantState.pendingProposal.set({ id: 'call_p', markdown, summary: 'Réécriture' });
+      assistantState.pendingProposal.set({
+        kind: 'block_text',
+        id: 'call_p',
+        markdown,
+        summary: 'Réécriture',
+      });
       fixture.detectChanges();
       await fixture.whenStable();
       fixture.detectChanges();
@@ -787,14 +784,14 @@ describe('BlockEditor', () => {
       await openReview(fixture);
 
       const comment = el(fixture).querySelector<HTMLTextAreaElement>(
-        '.proposal-review__comment-input',
+        '.proposal-decision__comment-input',
       )!;
       comment.value = 'Très bien';
       comment.dispatchEvent(new Event('input'));
       fixture.detectChanges();
 
       el(fixture)
-        .querySelector<HTMLButtonElement>('.proposal-review__actions .btn--primary')!
+        .querySelector<HTMLButtonElement>('.proposal-decision__actions .btn--primary')!
         .click();
       await fixture.whenStable();
 
@@ -815,7 +812,7 @@ describe('BlockEditor', () => {
       const replaceAll = vi.spyOn(field, 'replaceAll').mockReturnValue(true);
 
       el(fixture)
-        .querySelector<HTMLButtonElement>('.proposal-review__actions .btn--primary')!
+        .querySelector<HTMLButtonElement>('.proposal-decision__actions .btn--primary')!
         .click();
       await fixture.whenStable();
 
@@ -831,7 +828,7 @@ describe('BlockEditor', () => {
       await openReview(fixture);
 
       el(fixture)
-        .querySelector<HTMLButtonElement>('.proposal-review__actions .btn--secondary')!
+        .querySelector<HTMLButtonElement>('.proposal-decision__actions .btn--secondary')!
         .click();
       await fixture.whenStable();
 
@@ -861,13 +858,240 @@ describe('BlockEditor', () => {
       await openReview(fixture);
 
       el(fixture)
-        .querySelector<HTMLButtonElement>('.proposal-review__actions .btn--secondary')!
+        .querySelector<HTMLButtonElement>('.proposal-decision__actions .btn--secondary')!
         .click();
       await fixture.whenStable();
       fixture.detectChanges();
 
       expect(el(fixture).querySelector('app-proposal-review')).toBeTruthy();
-      expect(el(fixture).querySelector('.proposal-review__error')?.textContent).toContain(
+      expect(el(fixture).querySelector('.proposal-decision__error')?.textContent).toContain(
+        'Échec',
+      );
+    });
+  });
+
+  describe('chat ancré HITL (bloc exercice, contexte block_exercise)', () => {
+    const NEW_ANSWER = 'Décroissante, minorée : limite 0.';
+
+    function questionEdit(
+      patch: Partial<{ statement: string | null; expectedAnswer: string | null; questionId: string }>,
+    ): AssistantPendingProposal {
+      return {
+        kind: 'exercise_question_edit',
+        id: 'call_p',
+        summary: 'Corrigé complété',
+        questionId: 'q-1',
+        statement: null,
+        expectedAnswer: NEW_ANSWER,
+        ...patch,
+      };
+    }
+
+    async function openExerciseReview(
+      fixture: ComponentFixture<BlockEditor>,
+      proposal: AssistantPendingProposal,
+    ): Promise<void> {
+      assistantState.streamState.set('awaiting');
+      assistantState.pendingProposal.set(proposal);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    }
+
+    function accept(fixture: ComponentFixture<BlockEditor>, comment = ''): void {
+      if (comment) {
+        const input = el(fixture).querySelector<HTMLTextAreaElement>(
+          '.proposal-decision__comment-input',
+        )!;
+        input.value = comment;
+        input.dispatchEvent(new Event('input'));
+        fixture.detectChanges();
+      }
+      el(fixture)
+        .querySelector<HTMLButtonElement>('.proposal-decision__actions .btn--primary')!
+        .click();
+    }
+
+    it('exercise block mounts the real chat configured on block_exercise', async () => {
+      const fixture = await createComponent('block-3');
+      fixture.detectChanges();
+
+      expect(assistantState.configure).toHaveBeenCalledWith({
+        context: 'block_exercise',
+        blockId: 'block-3',
+      });
+      // Vrai chat (plus de coquille « Bientôt »), conversations du bloc chargées…
+      expect(el(fixture).querySelector('.course-chat__badge')).toBeNull();
+      expect(assistantState.loadConversations).toHaveBeenCalledWith('course-1');
+      // …APRÈS la pose de la portée (sinon le premier chargement partirait en `course`).
+      expect(assistantState.configure.mock.invocationCallOrder[0]).toBeLessThan(
+        assistantState.loadConversations.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('a pending exercise proposal replaces the exercise editor with the structured review', async () => {
+      const fixture = await createComponent('block-3');
+      fixture.detectChanges();
+      expect(el(fixture).querySelector('app-exercise-proposal-review')).toBeNull();
+
+      await openExerciseReview(fixture, questionEdit({}));
+
+      const review = el(fixture).querySelector('app-exercise-proposal-review')!;
+      expect(review).toBeTruthy();
+      expect(review.textContent).toContain("Modification d'une question");
+      expect(review.textContent).toContain('Corrigé complété');
+      expect(review.textContent).toContain('Question 1');
+      expect(review.textContent).toContain('(inchangé)'); // énoncé non touché
+      expect(el(fixture).querySelector('app-proposal-review')).toBeNull();
+      // L'éditeur d'exercice est MASQUÉ (jamais @if : Monaco survit).
+      const editor = el(fixture).querySelector('app-exercise-editor')!;
+      expect(editor.classList.contains('block-editor__field--reviewing')).toBe(true);
+
+      assistantState.pendingProposal.set(null);
+      assistantState.streamState.set('streaming');
+      fixture.detectChanges();
+      expect(el(fixture).querySelector('app-exercise-proposal-review')).toBeNull();
+      expect(editor.classList.contains('block-editor__field--reviewing')).toBe(false);
+    });
+
+    it('accept (question edit): patches the question in the form (id kept) and resumes', async () => {
+      const fixture = await createComponent('block-3');
+      fixture.detectChanges();
+      await openExerciseReview(fixture, questionEdit({ statement: 'Énoncé réécrit.' }));
+
+      accept(fixture, 'Parfait');
+      await fixture.whenStable();
+
+      expect(exerciseForm(fixture).controls.questions.at(0).getRawValue()).toEqual({
+        id: 'q-1',
+        statement: 'Énoncé réécrit.',
+        expectedAnswer: NEW_ANSWER,
+      });
+      expect(assistantState.resumeProposal).toHaveBeenCalledWith({
+        accepted: true,
+        comment: 'Parfait',
+      });
+    });
+
+    it('accept (question add): inserts a new question and the autosave carries it', async () => {
+      await configure('block-3');
+      vi.useFakeTimers();
+      const fixture = createComponentSync();
+      fixture.detectChanges();
+      assistantState.streamState.set('awaiting');
+      assistantState.pendingProposal.set({
+        kind: 'exercise_question_add',
+        id: 'call_p',
+        summary: null,
+        statement: 'Question de synthèse ?',
+        expectedAnswer: 'Oui.',
+        afterId: 'q-1',
+      });
+      fixture.detectChanges();
+      expect(el(fixture).querySelector('app-exercise-proposal-review')!.textContent).toContain(
+        'Insérée après la question 1',
+      );
+
+      accept(fixture);
+      await vi.advanceTimersByTimeAsync(0);
+
+      const questions = exerciseForm(fixture).controls.questions;
+      expect(questions.length).toBe(2);
+      expect(questions.at(1).getRawValue()).toEqual({
+        id: null,
+        statement: 'Question de synthèse ?',
+        expectedAnswer: 'Oui.',
+      });
+      expect(assistantState.resumeProposal).toHaveBeenCalledWith({ accepted: true });
+
+      // L'application passe par le formulaire : l'autosave part avec (id null,
+      // le back en génère un — write-back au retour).
+      await vi.advanceTimersByTimeAsync(1500);
+      expect(coursesMock.updateBlockContent).toHaveBeenCalledWith('course-1', 'block-3', {
+        statement: EXERCISE_SUJET,
+        questions: [
+          Q1,
+          { id: null, statement: 'Question de synthèse ?', type: 'free_text', expected_answer: 'Oui.' },
+        ],
+      });
+    });
+
+    it('accept (statement edit / question delete): applied to the form, then resumed', async () => {
+      const fixture = await createComponent('block-3');
+      fixture.detectChanges();
+
+      await openExerciseReview(fixture, {
+        kind: 'exercise_statement',
+        id: 'call_s',
+        summary: null,
+        statement: 'Nouveau sujet.',
+      });
+      accept(fixture);
+      await fixture.whenStable();
+      expect(exerciseForm(fixture).controls.statement.value).toBe('Nouveau sujet.');
+
+      assistantState.pendingProposal.set(null);
+      fixture.detectChanges();
+      await openExerciseReview(fixture, {
+        kind: 'exercise_question_delete',
+        id: 'call_d',
+        summary: null,
+        questionId: 'q-1',
+      });
+      expect(el(fixture).querySelector('app-exercise-proposal-review')!.textContent).toContain(
+        'sera supprimée',
+      );
+      accept(fixture);
+      await fixture.whenStable();
+      expect(exerciseForm(fixture).controls.questions.length).toBe(0);
+      expect(assistantState.resumeProposal).toHaveBeenCalledTimes(2);
+    });
+
+    it('reject: leaves the form untouched and resumes with accepted false', async () => {
+      const fixture = await createComponent('block-3');
+      fixture.detectChanges();
+      await openExerciseReview(fixture, questionEdit({}));
+
+      el(fixture)
+        .querySelector<HTMLButtonElement>('.proposal-decision__actions .btn--secondary')!
+        .click();
+      await fixture.whenStable();
+
+      expect(exerciseForm(fixture).controls.questions.at(0).controls.expectedAnswer.value).toBe(
+        Q1.expected_answer,
+      );
+      expect(assistantState.resumeProposal).toHaveBeenCalledWith({ accepted: false });
+    });
+
+    it('a proposal on a vanished question: accept disabled, reject still possible', async () => {
+      const fixture = await createComponent('block-3');
+      fixture.detectChanges();
+      await openExerciseReview(fixture, questionEdit({ questionId: 'disparue' }));
+
+      const review = el(fixture).querySelector('app-exercise-proposal-review')!;
+      expect(review.textContent).toContain("n'existe plus");
+      const acceptButton = review.querySelector<HTMLButtonElement>(
+        '.proposal-decision__actions .btn--primary',
+      )!;
+      expect(acceptButton.disabled).toBe(true);
+      expect(
+        review.querySelector<HTMLButtonElement>('.proposal-decision__actions .btn--secondary')!
+          .disabled,
+      ).toBe(false);
+    });
+
+    it('a failed resume keeps the exercise review with a retryable error', async () => {
+      const fixture = await createComponent('block-3');
+      fixture.detectChanges();
+      assistantState.resumeProposal.mockResolvedValue(false);
+      await openExerciseReview(fixture, questionEdit({}));
+
+      accept(fixture);
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(el(fixture).querySelector('app-exercise-proposal-review')).toBeTruthy();
+      expect(el(fixture).querySelector('.proposal-decision__error')?.textContent).toContain(
         'Échec',
       );
     });

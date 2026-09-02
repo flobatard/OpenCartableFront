@@ -1,0 +1,35 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+/* Régime `fill` : le diff prend toute la hauteur laissée par l'hôte flex en
+   colonne (la revue texte occupe la colonne éditeur, à hauteur définie). */
+:host(.proposal-diff--fill) {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Le wrapper pose `:host { height: 200px }` et un conteneur à 98 % : la
+   hauteur se pilote sur cet élément. Monaco ne mesure que ce qu'on lui donne. */
+.proposal-diff__editor {
+  display: block;
+  height: min(520px, 55vh);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+:host(.proposal-diff--fill) .proposal-diff__editor {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+}
+
+/* Régime `auto` : repli tant que Monaco n'a pas mesuré le contenu (jsdom, SSR,
+   chargement) — la hauteur mesurée arrive ensuite en style inline. */
+.proposal-diff__editor--auto {
+  height: 220px;
+}

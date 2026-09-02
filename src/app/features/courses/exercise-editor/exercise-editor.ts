@@ -8,6 +8,7 @@ import {
   output,
   signal,
   viewChild,
+  viewChildren,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -26,10 +27,12 @@ import {
   buildExerciseForm,
   ExerciseQuestionGroup,
   fullExerciseMarkdown,
+  insertQuestionAfter,
   moveQuestion,
   moveQuestionTo,
   patchExerciseFormFromContent,
   payloadFromExerciseForm,
+  questionIndexById,
   questionStatementPreview,
   QUESTIONS_MAX,
   removeQuestion,
@@ -60,6 +63,19 @@ const TAB_ORDER: readonly ExerciseTab[] = ['statement', 'questions', 'preview'];
  * `course-blocks`). L'aperçu réutilise le pipeline de `markdown-field` (rendu
  * synchrone markdown+KaTeX puis passe Mermaid async, gardé sur l'onglet et le
  * navigateur — DOMPurify/Mermaid touchent `window`).
+ *
+ * **Application des propositions de l'assistant** (contexte `block_exercise`,
+ * HITL par question — l'hôte les applique sur acceptation via `applyStatement`,
+ * `applyQuestionEdit`, `applyQuestionAdd`, `applyQuestionDelete`) : les champs
+ * markdown (sujet, énoncés) sont écrits **via Monaco** quand il est prêt
+ * (`MarkdownField.replaceAll` — édit entre deux undo stops : Ctrl-Z le retire
+ * comme une frappe), avec repli `setValue` sinon ; le corrigé (textarea) et les
+ * ajouts/suppressions passent par le formulaire (sans undo Monaco — assumé).
+ * Toutes passent par `valueChanges` → `contentChange` (autosave de l'hôte) et
+ * **révèlent** la question visée (onglet Questions, accordéon). Retour `false`
+ * = cible introuvable (question supprimée entre-temps) : rien n'est appliqué.
+ * Les champs sont retrouvés par refs de template (`#statementField`,
+ * `#questionField` — `viewChildren` en ordre DOM = ordre de la FormArray).
  */
 @Component({
   selector: 'app-exercise-editor',
@@ -105,6 +121,11 @@ export class ExerciseEditor {
   protected readonly statementTabRef = viewChild<ElementRef<HTMLButtonElement>>('statementTab');
   protected readonly questionsTabRef = viewChild<ElementRef<HTMLButtonElement>>('questionsTab');
   protected readonly previewTabRef = viewChild<ElementRef<HTMLButtonElement>>('previewTab');
+
+  /** Champ markdown du sujet et champs d'énoncé des questions (ordre DOM =
+      ordre de la FormArray) — cibles des applications via Monaco. */
+  protected readonly statementField = viewChild('statementField', { read: MarkdownField });
+  protected readonly questionFields = viewChildren('questionField', { read: MarkdownField });
 
   /** Markdown concaténé (sujet + énoncés) alimentant l'aperçu complet ; dérivé
       du formulaire (frappe en cours), pas du `content` initial du bloc. Rendu
@@ -244,6 +265,84 @@ export class ExerciseEditor {
     event.preventDefault();
     moveQuestionTo(this.form, index, to);
     this.#syncGroups();
+  }
+
+  // ------------------------------------ application des propositions (HITL)
+
+  /** Remplace le sujet (Monaco si prêt, sinon `setValue`) et montre l'onglet Sujet. */
+  applyStatement(markdown: string): boolean {
+    if (!(this.statementField()?.replaceAll(markdown) ?? false)) {
+      this.form.controls.statement.setValue(markdown);
+    }
+    this.activeTab.set('statement');
+    return true;
+  }
+
+  /**
+   * Modifie l'énoncé et/ou le corrigé de la question `questionId` (`null` =
+   * champ conservé) ; `false` si la question n'existe plus.
+   */
+  applyQuestionEdit(
+    questionId: string,
+    patch: { statement: string | null; expectedAnswer: string | null },
+  ): boolean {
+    const index = questionIndexById(this.form, questionId);
+    if (index < 0) {
+      return false;
+    }
+    const group = this.form.controls.questions.at(index);
+    if (patch.statement !== null) {
+      const field = this.questionFields()[index];
+      if (!(field?.replaceAll(patch.statement) ?? false)) {
+        group.controls.statement.setValue(patch.statement);
+      }
+    }
+    if (patch.expectedAnswer !== null) {
+      group.controls.expectedAnswer.setValue(patch.expectedAnswer);
+    }
+    this.#reveal(group);
+    return true;
+  }
+
+  /** Ajoute une question après `afterId` (fin si `null`/inconnu) ; `false` au plafond. */
+  applyQuestionAdd(question: {
+    statement: string;
+    expectedAnswer: string;
+    afterId: string | null;
+  }): boolean {
+    if (this.form.controls.questions.length >= QUESTIONS_MAX) {
+      return false;
+    }
+    const group = insertQuestionAfter(
+      this.form,
+      { statement: question.statement, expected_answer: question.expectedAnswer },
+      question.afterId,
+    );
+    this.#reveal(group);
+    return true;
+  }
+
+  /** Supprime la question `questionId` ; `false` si elle n'existe plus. */
+  applyQuestionDelete(questionId: string): boolean {
+    const index = questionIndexById(this.form, questionId);
+    if (index < 0) {
+      return false;
+    }
+    removeQuestion(this.form, index);
+    this.#syncGroups();
+    this.activeTab.set('questions');
+    if (this.openGroup() === null) {
+      const controls = this.form.controls.questions.controls;
+      this.openGroup.set(controls[Math.min(index, controls.length - 1)] ?? null);
+    }
+    return true;
+  }
+
+  /** Onglet Questions + question dépliée : la modification appliquée est visible. */
+  #reveal(group: ExerciseQuestionGroup): void {
+    this.#syncGroups();
+    this.activeTab.set('questions');
+    this.openGroup.set(group);
   }
 
   #syncGroups(): void {

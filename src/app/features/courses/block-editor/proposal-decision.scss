@@ -1,0 +1,46 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.proposal-decision__comment {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.proposal-decision__comment-label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.proposal-decision__comment-input {
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 14px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.proposal-decision__comment-input:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -1px;
+}
+
+.proposal-decision__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.proposal-decision__error {
+  margin: 0 auto 0 0;
+  color: var(--text-danger);
+  font-size: 13px;
+}

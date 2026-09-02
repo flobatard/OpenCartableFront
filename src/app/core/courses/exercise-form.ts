@@ -150,6 +150,30 @@ export function removeQuestion(form: ExerciseForm, index: number): void {
   form.controls.questions.removeAt(index);
 }
 
+/** Index de la question portant cet id back (stable à vie) ; `-1` si absente
+    (supprimée, ou jamais encore sauvée — les nouvelles ont `id: null`). */
+export function questionIndexById(form: ExerciseForm, id: string): number {
+  return form.controls.questions.controls.findIndex((g) => g.controls.id.value === id);
+}
+
+/**
+ * Insère une NOUVELLE question (`id: null` — le back génère l'id au prochain
+ * PATCH, réécrit par `applyGeneratedIds`) après la question `afterId`, ou en
+ * fin d'exercice (`null`, ou id inconnu). Une émission (`insert` émet) : le
+ * pipeline d'autosave de l'hôte part. Retourne le groupe créé (dépliage).
+ */
+export function insertQuestionAfter(
+  form: ExerciseForm,
+  question: Pick<ExerciseQuestionPayload, 'statement' | 'expected_answer'>,
+  afterId: string | null,
+): ExerciseQuestionGroup {
+  const questions = form.controls.questions;
+  const anchor = afterId === null ? -1 : questionIndexById(form, afterId);
+  const group = buildQuestionGroup({ id: null, ...question });
+  questions.insert(anchor < 0 ? questions.length : anchor + 1, group);
+  return group;
+}
+
 /**
  * Déplace une question de `from` vers `to` (index absolu) en **réutilisant
  * l'instance de FormGroup** : le suivi `@for track group`, le signal `openGroup`

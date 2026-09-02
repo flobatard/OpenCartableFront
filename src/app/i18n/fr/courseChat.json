@@ -50,10 +50,21 @@
     "read_resource_image": "Lecture d'une image de la bibliothèque",
     "read_module": "Lecture du code d'un module interactif",
     "propose_block_edit": "Proposition de réécriture du bloc",
+    "propose_statement_edit": "Proposition de modification du sujet",
+    "propose_question_edit": "Proposition de modification d'une question",
+    "propose_question_add": "Proposition d'ajout de question",
+    "propose_question_delete": "Proposition de suppression de question",
     "unknown": "Utilisation d'un outil"
   },
   "proposal": {
     "title": "Proposition de réécriture",
+    "titles": {
+      "propose_block_edit": "Proposition de réécriture",
+      "propose_statement_edit": "Modification du sujet",
+      "propose_question_edit": "Modification d'une question",
+      "propose_question_add": "Nouvelle question",
+      "propose_question_delete": "Suppression d'une question"
+    },
     "pendingHint": "En attente de votre décision — le comparatif est affiché dans l'éditeur.",
     "original": "Contenu actuel",
     "proposed": "Proposition",
@@ -61,7 +72,19 @@
     "reject": "Rejeter",
     "commentLabel": "Commentaire (optionnel, transmis à l'assistant)",
     "commentPlaceholder": "Précisez ce que vous validez ou refusez…",
-    "decisionError": "Échec de l'envoi de la décision — réessayez."
+    "decisionError": "Échec de l'envoi de la décision — réessayez.",
+    "exercise": {
+      "statementLabel": "Sujet",
+      "questionLabel": "Question {{index}}",
+      "questionStatementLabel": "Énoncé",
+      "answerLabel": "Réponse attendue",
+      "unchanged": "(inchangé)",
+      "noAnswer": "(aucun corrigé)",
+      "positionAfter": "Insérée après la question {{index}}",
+      "positionEnd": "Ajoutée en fin d'exercice",
+      "deleteWarning": "Cette question sera supprimée de l'exercice.",
+      "targetMissing": "La question visée n'existe plus — rejetez la proposition."
+    }
   },
   "errors": {
     "quota": "Quota quotidien de l'IA par défaut épuisé.",

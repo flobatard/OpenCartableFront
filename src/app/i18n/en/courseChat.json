@@ -50,10 +50,21 @@
     "read_resource_image": "Reading a library image",
     "read_module": "Reading an interactive module's code",
     "propose_block_edit": "Proposed rewrite of the block",
+    "propose_statement_edit": "Proposed change to the subject",
+    "propose_question_edit": "Proposed change to a question",
+    "propose_question_add": "Proposed new question",
+    "propose_question_delete": "Proposed question removal",
     "unknown": "Using a tool"
   },
   "proposal": {
     "title": "Proposed rewrite",
+    "titles": {
+      "propose_block_edit": "Proposed rewrite",
+      "propose_statement_edit": "Subject change",
+      "propose_question_edit": "Question change",
+      "propose_question_add": "New question",
+      "propose_question_delete": "Question removal"
+    },
     "pendingHint": "Awaiting your decision — the comparison is shown in the editor.",
     "original": "Current content",
     "proposed": "Proposal",
@@ -61,7 +72,19 @@
     "reject": "Reject",
     "commentLabel": "Comment (optional, sent to the assistant)",
     "commentPlaceholder": "Explain what you accept or refuse…",
-    "decisionError": "Sending the decision failed — try again."
+    "decisionError": "Sending the decision failed — try again.",
+    "exercise": {
+      "statementLabel": "Subject",
+      "questionLabel": "Question {{index}}",
+      "questionStatementLabel": "Statement",
+      "answerLabel": "Expected answer",
+      "unchanged": "(unchanged)",
+      "noAnswer": "(no answer key)",
+      "positionAfter": "Inserted after question {{index}}",
+      "positionEnd": "Added at the end of the exercise",
+      "deleteWarning": "This question will be removed from the exercise.",
+      "targetMissing": "The targeted question no longer exists — reject the proposal."
+    }
   },
   "errors": {
     "quota": "Daily quota of the default AI exhausted.",

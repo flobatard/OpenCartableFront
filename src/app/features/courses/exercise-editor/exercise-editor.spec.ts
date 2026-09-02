@@ -1,12 +1,14 @@
 import { signal } from '@angular/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { ExerciseEditor } from './exercise-editor';
 import { ExerciseContentPayload } from '../../../core/courses/course.model';
-import { ExerciseQuestionGroup } from '../../../core/courses/exercise-form';
+import { ExerciseQuestionGroup, QUESTIONS_MAX } from '../../../core/courses/exercise-form';
 import { ModuleService } from '../../../core/modules/module.service';
 import { ResourceService } from '../../../core/resources/resource.service';
+import { MarkdownField } from '../../../shared/markdown-field/markdown-field';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
 
 /**
@@ -316,5 +318,164 @@ describe('ExerciseEditor', () => {
     expect(toggles[0].getAttribute('aria-expanded')).toBe('false');
     expect(toggles[1].getAttribute('aria-expanded')).toBe('false');
     expect(toggles[2].getAttribute('aria-expanded')).toBe('true');
+  });
+
+  describe('application des propositions de l’assistant (HITL par question)', () => {
+    /** Champs markdown montés : [sujet, énoncé q-1, énoncé q-2] (ordre DOM). */
+    function fields(fixture: ComponentFixture<ExerciseEditor>): MarkdownField[] {
+      return fixture.debugElement
+        .queryAll(By.directive(MarkdownField))
+        .map((d) => d.componentInstance as MarkdownField);
+    }
+
+    function expanded(fixture: ComponentFixture<ExerciseEditor>): boolean[] {
+      return Array.from(
+        el(fixture).querySelectorAll<HTMLButtonElement>('.exercise-editor__question-toggle'),
+      ).map((t) => t.getAttribute('aria-expanded') === 'true');
+    }
+
+    it('applyStatement: jsdom fallback writes the control, emits and shows the Subject tab', async () => {
+      const fixture = await createComponent();
+      const seen = emissions(fixture);
+      el(fixture).querySelectorAll<HTMLButtonElement>('.exercise-editor__tabbar .tab')[1].click();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.applyStatement('Nouveau sujet')).toBe(true);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.form.controls.statement.value).toBe('Nouveau sujet');
+      expect(seen.at(-1)?.statement).toBe('Nouveau sujet');
+      const [sujetPanel] = Array.from(el(fixture).querySelectorAll<HTMLElement>('.exercise-editor__panel'));
+      expect(sujetPanel.hidden).toBe(false);
+    });
+
+    it('applyStatement: goes through the Monaco edit when available (Ctrl-Z friendly)', async () => {
+      const fixture = await createComponent();
+      const replaceAll = vi.spyOn(fields(fixture)[0], 'replaceAll').mockReturnValue(true);
+
+      fixture.componentInstance.applyStatement('Nouveau sujet');
+
+      expect(replaceAll).toHaveBeenCalledWith('Nouveau sujet');
+      // Pas de setValue en double : la propagation CVA de Monaco fera le reste.
+      expect(fixture.componentInstance.form.controls.statement.value).toBe(
+        'Résoudre les équations suivantes.',
+      );
+    });
+
+    it('applyQuestionEdit: patches the targeted question (id kept), emits and reveals it', async () => {
+      const fixture = await createComponent();
+      const seen = emissions(fixture);
+
+      expect(
+        fixture.componentInstance.applyQuestionEdit('q-2', {
+          statement: 'Résoudre $x^3 = 27$.',
+          expectedAnswer: 'x = 3',
+        }),
+      ).toBe(true);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.form.controls.questions.at(1).getRawValue()).toEqual({
+        id: 'q-2',
+        statement: 'Résoudre $x^3 = 27$.',
+        expectedAnswer: 'x = 3',
+      });
+      expect(seen.at(-1)?.questions[1].expected_answer).toBe('x = 3');
+      // Onglet Questions actif, q-2 dépliée (q-1 repliée).
+      const [, questionsPanel] = Array.from(
+        el(fixture).querySelectorAll<HTMLElement>('.exercise-editor__panel'),
+      );
+      expect(questionsPanel.hidden).toBe(false);
+      expect(expanded(fixture)).toEqual([false, true]);
+    });
+
+    it('applyQuestionEdit: a null field is left untouched; an unknown id applies nothing', async () => {
+      const fixture = await createComponent();
+      const seen = emissions(fixture);
+
+      fixture.componentInstance.applyQuestionEdit('q-1', { statement: null, expectedAnswer: '±2' });
+      expect(fixture.componentInstance.form.controls.questions.at(0).getRawValue()).toEqual({
+        id: 'q-1',
+        statement: 'Résoudre $x^2 = 4$.',
+        expectedAnswer: '±2',
+      });
+
+      const before = seen.length;
+      expect(
+        fixture.componentInstance.applyQuestionEdit('disparue', { statement: 'x', expectedAnswer: null }),
+      ).toBe(false);
+      expect(seen.length).toBe(before);
+    });
+
+    it('applyQuestionEdit: the statement goes through the question’s Monaco when available', async () => {
+      const fixture = await createComponent();
+      const replaceAll = vi.spyOn(fields(fixture)[2], 'replaceAll').mockReturnValue(true);
+
+      fixture.componentInstance.applyQuestionEdit('q-2', { statement: 'Via Monaco', expectedAnswer: null });
+
+      expect(replaceAll).toHaveBeenCalledWith('Via Monaco');
+      expect(fixture.componentInstance.form.controls.questions.at(1).controls.statement.value).toBe(
+        'Résoudre $x^3 = 8$.',
+      );
+    });
+
+    it('applyQuestionAdd: inserts a new (null id) question after the anchor, emits and reveals it', async () => {
+      const fixture = await createComponent();
+      const seen = emissions(fixture);
+
+      expect(
+        fixture.componentInstance.applyQuestionAdd({
+          statement: 'Entre les deux',
+          expectedAnswer: 'Oui.',
+          afterId: 'q-1',
+        }),
+      ).toBe(true);
+      fixture.detectChanges();
+
+      expect(seen.at(-1)?.questions.map((q) => q.id)).toEqual(['q-1', null, 'q-2']);
+      expect(seen.at(-1)?.questions[1]).toEqual({
+        id: null,
+        statement: 'Entre les deux',
+        type: 'free_text',
+        expected_answer: 'Oui.',
+      });
+      expect(expanded(fixture)).toEqual([false, true, false]);
+
+      // Sans ancre : en fin d'exercice.
+      fixture.componentInstance.applyQuestionAdd({ statement: 'Fin', expectedAnswer: '', afterId: null });
+      expect(seen.at(-1)?.questions.map((q) => q.statement).at(-1)).toBe('Fin');
+    });
+
+    it('applyQuestionAdd: refuses beyond the question cap', async () => {
+      const fixture = await createComponent({
+        statement: '',
+        questions: Array.from({ length: QUESTIONS_MAX }, (_, i) => ({
+          id: `q-${i}`,
+          statement: `Q${i}`,
+          type: 'free_text',
+          expected_answer: '',
+        })),
+      });
+      const seen = emissions(fixture);
+
+      expect(
+        fixture.componentInstance.applyQuestionAdd({ statement: 'Trop', expectedAnswer: '', afterId: null }),
+      ).toBe(false);
+      expect(seen.length).toBe(0);
+    });
+
+    it('applyQuestionDelete: removes the question and emits; unknown id applies nothing', async () => {
+      const fixture = await createComponent();
+      const seen = emissions(fixture);
+
+      expect(fixture.componentInstance.applyQuestionDelete('q-1')).toBe(true);
+      fixture.detectChanges();
+      expect(seen.at(-1)?.questions.map((q) => q.id)).toEqual(['q-2']);
+      expect(el(fixture).querySelectorAll('.exercise-editor__question').length).toBe(1);
+      // La voisine restante est dépliée à sa place.
+      expect(expanded(fixture)).toEqual([true]);
+
+      expect(fixture.componentInstance.applyQuestionDelete('q-1')).toBe(false);
+      expect(seen.length).toBe(1);
+    });
   });
 });

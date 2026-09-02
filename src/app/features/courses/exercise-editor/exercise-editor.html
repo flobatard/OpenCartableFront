@@ -60,7 +60,11 @@
     [hidden]="activeTab() !== 'statement'"
   >
     <p class="exercise-editor__hint">{{ 'courses.editor.exercise.statementHint' | transloco }}</p>
-    <app-markdown-field [formControl]="form.controls.statement" [courseId]="courseId()" />
+    <app-markdown-field
+      #statementField
+      [formControl]="form.controls.statement"
+      [courseId]="courseId()"
+    />
   </section>
 
   <section
@@ -189,7 +193,11 @@
                 <span class="exercise-editor__label">
                   {{ 'courses.editor.exercise.questionStatementLabel' | transloco }}
                 </span>
-                <app-markdown-field [formControl]="group.controls.statement" [courseId]="courseId()" />
+                <app-markdown-field
+                  #questionField
+                  [formControl]="group.controls.statement"
+                  [courseId]="courseId()"
+                />
               </div>
 
               <label class="exercise-editor__field">

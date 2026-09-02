@@ -1,0 +1,111 @@
+/* Revue structurée d'une proposition sur un exercice : occupe la colonne
+   éditeur du workspace (hauteur définie — l'éditeur d'exercice est masqué par
+   classe à côté, Monaco survit). Colonne flex : en-tête, CORPS DÉFILANT (les
+   diffs sont ajustés à leur contenu et peuvent, empilés, dépasser la colonne),
+   pied de décision toujours visible — rien ne déborde sous la navigation. */
+:host {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.exercise-review {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 12px;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius);
+  padding: 12px;
+  background: var(--bg-surface);
+}
+
+.exercise-review__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.exercise-review__title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.exercise-review__summary,
+.exercise-review__position {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.exercise-review__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 4px; /* la barre de défilement ne colle pas aux diffs */
+}
+
+.exercise-review__question {
+  margin: 0;
+  font-weight: 600;
+}
+
+.exercise-review__field {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  gap: 6px;
+  min-width: 0;
+}
+
+.exercise-review__label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.exercise-review__legend {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.exercise-review__unchanged {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.exercise-review__rendered {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+.exercise-review__answer {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.exercise-review__warning,
+.exercise-review__missing {
+  margin: 0;
+  color: var(--text-danger);
+  font-size: 13px;
+  font-weight: 500;
+}

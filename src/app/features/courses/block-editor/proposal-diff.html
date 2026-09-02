@@ -1,0 +1,9 @@
+<ngx-monaco-diff-editor
+  class="proposal-diff__editor"
+  [class.proposal-diff__editor--auto]="size() === 'auto'"
+  [style.height.px]="measuredHeight()"
+  [options]="diffOptions()"
+  [originalModel]="originalModel()"
+  [modifiedModel]="modifiedModel()"
+  (onInit)="onEditorInit($event)"
+/>

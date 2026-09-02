@@ -18,10 +18,11 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
 import { AssistantMessage } from '../../../core/course-assistant/assistant.model';
 import { CourseAssistantService } from '../../../core/course-assistant/course-assistant.service';
+import { parseProposal, PROPOSAL_TOOLS } from '../../../core/course-assistant/proposals';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { isBlockId } from '../../../core/markdown/course-block-ref';
 import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
-import { CourseChatProposal, PROPOSE_BLOCK_EDIT } from './course-chat-proposal';
+import { CourseChatProposal } from './course-chat-proposal';
 import { CourseChatSettings } from './course-chat-settings';
 import { ChatToolView, CourseChatTool, toolResultExcerpt } from './course-chat-tool';
 
@@ -54,17 +55,18 @@ const SCROLL_PIN_THRESHOLD_PX = 80;
  *   `app-course-chat-tool`), citations `oc-block:` cliquables par délégation
  *   d'événements sur le fil ;
  * - **mode block** (`blockId` passé sans `placeholder` — hôte : la colonne
- *   ancrée de block-editor sur un bloc TEXTE) : même chat, câblé sur
- *   l'instance d'`AssistantChatState` fournie par l'hôte (contexte
- *   `block_text`, conversations propres au bloc) ; les appels
- *   `propose_block_edit` du modèle deviennent des cartes de proposition
- *   INFORMATIVES dans le fil (`app-course-chat-proposal` : résumé + décision
- *   rendue, ou invite tant que le flux attend) — la revue (diff + décision)
- *   vit dans l'ÉDITEUR de l'hôte (`app-proposal-review`), qui lit la même
- *   instance d'état ;
- * - **mode placeholder** (`placeholder` vrai ou `moduleId` passé — bloc
- *   exercice, éditeur de module) : la coquille « bientôt » historique,
- *   réservée aux contextes d'édition des lots ultérieurs.
+ *   ancrée de block-editor sur un bloc TEXTE ou EXERCICE) : même chat, câblé
+ *   sur l'instance d'`AssistantChatState` fournie par l'hôte (contexte
+ *   `block_text` ou `block_exercise`, conversations propres au bloc) ; les
+ *   appels des tools de proposition du modèle (`PROPOSAL_TOOLS`) deviennent
+ *   des cartes de proposition INFORMATIVES dans le fil
+ *   (`app-course-chat-proposal` : résumé + décision rendue, ou invite tant que
+ *   le flux attend) — la revue (diff/carte + décision) vit dans l'ÉDITEUR de
+ *   l'hôte (`app-proposal-review` / `app-exercise-proposal-review`), qui lit
+ *   la même instance d'état ;
+ * - **mode placeholder** (`placeholder` vrai ou `moduleId` passé — éditeur de
+ *   module) : la coquille « bientôt » historique, réservée aux contextes
+ *   d'édition des lots ultérieurs.
  *
  * Deux régimes de rendu du texte assistant : pendant le stream,
  * `app-markdown-view` sans `courseId` (références oc-* inertes → re-rendus
@@ -91,10 +93,11 @@ export class CourseChat {
   readonly blockId = input<string | null>(null);
   readonly moduleId = input<string | null>(null);
   /**
-   * Force la coquille « bientôt » malgré un `blockId` : les hôtes éditeurs le
-   * posent pour les contextes d'édition PAS ENCORE livrés (bloc exercice) —
-   * sans lui, un `blockId` d'exercice basculerait en chat `block_text`
-   * invalide (422 à la création de conversation côté back).
+   * Force la coquille « bientôt » malgré un `blockId` : garde générique pour
+   * un hôte dont le contexte d'édition n'est PAS livré — sans elle, le
+   * `blockId` basculerait en chat d'édition et la création de conversation
+   * échouerait (422 côté back). Plus aucun hôte ne la pose aujourd'hui (texte
+   * et exercice sont livrés ; module-editor passe par `moduleId`).
    */
   readonly placeholder = input(false);
 
@@ -405,18 +408,18 @@ export class CourseChat {
   // ------------------------------------------------- propositions (mode block)
 
   /**
-   * Vrai pour un appel `propose_block_edit` rendu en carte de proposition :
-   * mode block uniquement, `new_markdown` bien une chaîne (args malformés →
-   * ligne d'outil générique) et appel non échoué (l'échec — plafond dépassé,
-   * délai de décision… — s'explique mieux en ligne d'outil, son message
-   * d'erreur visible).
+   * Vrai pour un appel d'un tool de proposition rendu en carte : mode block
+   * uniquement, args bien formés (`parseProposal` — malformés → ligne d'outil
+   * générique) et appel non échoué (l'échec — plafond dépassé, référence
+   * inconnue… — s'explique mieux en ligne d'outil, son message d'erreur
+   * visible).
    */
   protected isProposal(view: ChatToolView): boolean {
     return (
       this.mode() === 'block' &&
-      view.name === PROPOSE_BLOCK_EDIT &&
+      PROPOSAL_TOOLS.has(view.name) &&
       view.status !== 'error' &&
-      typeof view.args['new_markdown'] === 'string'
+      parseProposal(view) !== null
     );
   }
 

@@ -143,30 +143,43 @@
             [class.block-editor__workspace--solo]="chatCollapsed()"
           >
             <div class="block-editor__editor-col" [style.--editor-basis]="editorPct() + '%'">
+              <!-- L'éditeur est MASQUÉ (jamais @if : Monaco survit) pendant la
+                   revue d'une proposition HITL, qui prend sa place. -->
               @if (block.type === 'text') {
-                <!-- Le champ est MASQUÉ (jamais @if : Monaco survit) pendant la
-                     revue d'une proposition HITL, qui prend sa place. -->
                 <app-markdown-field
                   [formControl]="content"
                   [courseId]="courseId"
-                  [class.block-editor__field--reviewing]="pendingProposal() !== null"
+                  [class.block-editor__field--reviewing]="proposals.pending() !== null"
                 />
-                @if (pendingProposal(); as proposal) {
-                  <app-proposal-review
-                    [proposal]="proposal"
-                    [original]="contentMarkdown()"
-                    [busy]="proposalBusy()"
-                    [error]="proposalError()"
-                    (accepted)="onProposalAccept($event)"
-                    (rejected)="onProposalReject($event)"
-                  />
-                }
               } @else {
                 <app-exercise-editor
                   [initial]="block.content"
                   [courseId]="courseId"
+                  [class.block-editor__field--reviewing]="proposals.pending() !== null"
                   (contentChange)="onExerciseDraft($event)"
                 />
+              }
+              @if (proposals.review(); as review) {
+                @if (review.kind === 'text') {
+                  <app-proposal-review
+                    [proposal]="review.proposal"
+                    [original]="review.original"
+                    [busy]="proposals.busy()"
+                    [errorKey]="proposalErrorKey()"
+                    (accepted)="proposals.accept($event)"
+                    (rejected)="proposals.reject($event)"
+                  />
+                } @else {
+                  <app-exercise-proposal-review
+                    [proposal]="review.proposal"
+                    [current]="review.current"
+                    [courseId]="courseId"
+                    [busy]="proposals.busy()"
+                    [errorKey]="proposalErrorKey()"
+                    (accepted)="proposals.accept($event)"
+                    (rejected)="proposals.reject($event)"
+                  />
+                }
               }
             </div>
 
@@ -185,14 +198,13 @@
               (keydown)="onDividerKeydown($event)"
             ></div>
 
-            <!-- Bloc texte : vrai chat d'édition (contexte block_text, instance
-                 d'état fournie par la page — la revue HITL vit dans la colonne
-                 éditeur) ; bloc exercice : placeholder, contexte non livré. -->
+            <!-- Chat d'édition du bloc (contexte block_text ou block_exercise
+                 selon le type, instance d'état fournie par la page — la revue
+                 HITL vit dans la colonne éditeur). -->
             <app-course-chat
               class="block-editor__chat"
               [courseId]="courseId"
               [blockId]="blockId"
-              [placeholder]="block.type !== 'text'"
               [hidden]="chatCollapsed()"
               (collapse)="toggleChat()"
             />

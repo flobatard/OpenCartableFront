@@ -1,0 +1,173 @@
+<section class="exercise-review" aria-live="polite">
+  @if (proposal(); as p) {
+    <header class="exercise-review__head">
+      <h2 class="exercise-review__title">{{ titleKey() | transloco }}</h2>
+      @if (p.summary; as summary) {
+        <p class="exercise-review__summary">{{ summary }}</p>
+      }
+    </header>
+
+    <!-- Corps DÉFILANT (plusieurs diffs ajustés à leur contenu peuvent dépasser
+         la colonne) ; le pied de décision, hors du corps, reste visible. -->
+    <div class="exercise-review__body">
+      @if (p.kind === 'exercise_statement') {
+        <div class="exercise-review__field">
+          <span class="exercise-review__label">
+            {{ 'courseChat.proposal.exercise.statementLabel' | transloco }}
+          </span>
+          <div class="exercise-review__legend" aria-hidden="true">
+            <span>{{ 'courseChat.proposal.original' | transloco }}</span>
+            <span>{{ 'courseChat.proposal.proposed' | transloco }}</span>
+          </div>
+          <app-proposal-diff
+            [original]="current().statement"
+            [modified]="p.statement"
+            size="auto"
+            [maxHeight]="480"
+          />
+        </div>
+      } @else if (p.kind === 'exercise_question_edit') {
+        @if (targetMissing()) {
+          <p class="exercise-review__missing" role="alert">
+            {{ 'courseChat.proposal.exercise.targetMissing' | transloco }}
+          </p>
+        } @else {
+          <p class="exercise-review__question">
+            {{
+              'courseChat.proposal.exercise.questionLabel'
+                | transloco: { index: targetIndex() + 1 }
+            }}
+          </p>
+          <div class="exercise-review__field">
+            <span class="exercise-review__label">
+              {{ 'courseChat.proposal.exercise.questionStatementLabel' | transloco }}
+            </span>
+            @if (p.statement !== null) {
+              <div class="exercise-review__legend" aria-hidden="true">
+                <span>{{ 'courseChat.proposal.original' | transloco }}</span>
+                <span>{{ 'courseChat.proposal.proposed' | transloco }}</span>
+              </div>
+              <app-proposal-diff
+                [original]="targetQuestion()?.statement ?? ''"
+                [modified]="p.statement"
+                size="auto"
+              />
+            } @else {
+              <span class="exercise-review__unchanged">
+                {{ 'courseChat.proposal.exercise.unchanged' | transloco }}
+              </span>
+            }
+          </div>
+          <div class="exercise-review__field">
+            <span class="exercise-review__label">
+              {{ 'courseChat.proposal.exercise.answerLabel' | transloco }}
+            </span>
+            @if (p.expectedAnswer !== null) {
+              <div class="exercise-review__legend" aria-hidden="true">
+                <span>{{ 'courseChat.proposal.original' | transloco }}</span>
+                <span>{{ 'courseChat.proposal.proposed' | transloco }}</span>
+              </div>
+              <app-proposal-diff
+                [original]="targetQuestion()?.expected_answer ?? ''"
+                [modified]="p.expectedAnswer"
+                language="plaintext"
+                size="auto"
+                [minHeight]="72"
+                [maxHeight]="240"
+              />
+            } @else {
+              <span class="exercise-review__unchanged">
+                {{ 'courseChat.proposal.exercise.unchanged' | transloco }}
+              </span>
+            }
+          </div>
+        }
+      } @else if (p.kind === 'exercise_question_add') {
+        <p class="exercise-review__position">
+          @if (afterIndex() >= 0) {
+            {{
+              'courseChat.proposal.exercise.positionAfter'
+                | transloco: { index: afterIndex() + 1 }
+            }}
+          } @else {
+            {{ 'courseChat.proposal.exercise.positionEnd' | transloco }}
+          }
+        </p>
+        <div class="exercise-review__field">
+          <span class="exercise-review__label">
+            {{ 'courseChat.proposal.exercise.questionStatementLabel' | transloco }}
+          </span>
+          <div class="exercise-review__rendered">
+            <app-markdown-view
+              [markdown]="p.statement"
+              [courseId]="courseId()"
+              [showPrint]="false"
+              [showSettings]="false"
+            />
+          </div>
+        </div>
+        <div class="exercise-review__field">
+          <span class="exercise-review__label">
+            {{ 'courseChat.proposal.exercise.answerLabel' | transloco }}
+          </span>
+          @if (p.expectedAnswer) {
+            <pre class="exercise-review__answer">{{ p.expectedAnswer }}</pre>
+          } @else {
+            <span class="exercise-review__unchanged">
+              {{ 'courseChat.proposal.exercise.noAnswer' | transloco }}
+            </span>
+          }
+        </div>
+      } @else if (p.kind === 'exercise_question_delete') {
+        @if (targetMissing()) {
+          <p class="exercise-review__missing" role="alert">
+            {{ 'courseChat.proposal.exercise.targetMissing' | transloco }}
+          </p>
+        } @else {
+          <p class="exercise-review__warning" role="alert">
+            {{ 'courseChat.proposal.exercise.deleteWarning' | transloco }}
+          </p>
+          <p class="exercise-review__question">
+            {{
+              'courseChat.proposal.exercise.questionLabel'
+                | transloco: { index: targetIndex() + 1 }
+            }}
+          </p>
+          <div class="exercise-review__field">
+            <span class="exercise-review__label">
+              {{ 'courseChat.proposal.exercise.questionStatementLabel' | transloco }}
+            </span>
+            <div class="exercise-review__rendered">
+              <app-markdown-view
+                [markdown]="targetQuestion()?.statement ?? ''"
+                [courseId]="courseId()"
+                [showPrint]="false"
+                [showSettings]="false"
+              />
+            </div>
+          </div>
+          <div class="exercise-review__field">
+            <span class="exercise-review__label">
+              {{ 'courseChat.proposal.exercise.answerLabel' | transloco }}
+            </span>
+            @if (targetQuestion()?.expected_answer; as answer) {
+              <pre class="exercise-review__answer">{{ answer }}</pre>
+            } @else {
+              <span class="exercise-review__unchanged">
+                {{ 'courseChat.proposal.exercise.noAnswer' | transloco }}
+              </span>
+            }
+          </div>
+        }
+      }
+    </div>
+
+    <app-proposal-decision
+      [busy]="busy()"
+      [errorKey]="errorKey()"
+      [acceptDisabled]="targetMissing()"
+      (accepted)="accepted.emit($event)"
+      (rejected)="rejected.emit($event)"
+    />
+  }
+</section>

@@ -5,13 +5,17 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import {
+  AssistantContext,
   AssistantConversation,
   AssistantConversationDetail,
   AssistantMessage,
   AssistantSources,
   AssistantStreamEvent,
 } from './assistant.model';
+import { AssistantPendingProposal, parseProposal } from './proposals';
 import { createSseParser } from './sse';
+
+export type { AssistantPendingProposal } from './proposals';
 
 /** Activité d'outil du tour en cours (affichage live du panneau). */
 export interface AssistantToolActivity {
@@ -29,26 +33,17 @@ export interface AssistantToolActivity {
 
 /**
  * `awaiting` : le flux s'est fermé sur une proposition d'édition (événement
- * `interrupt`, flux HITL du contexte `block_text`) — le run est figé côté back
+ * `interrupt`, flux HITL d'un contexte d'édition) — le run est figé côté back
  * jusqu'à la décision (`resumeProposal`), le composer attend.
  */
 export type AssistantStreamState = 'idle' | 'streaming' | 'awaiting' | 'error';
-
-/** Proposition d'édition en attente de décision (le run est figé côté back). */
-export interface AssistantPendingProposal {
-  /** Id de l'appel d'outil (clé de la reprise côté back). */
-  id: string;
-  /** Markdown INTÉGRAL de remplacement proposé (args du `tool_call`). */
-  markdown: string;
-  summary: string | null;
-}
 
 /**
  * Portée d'une instance d'état de chat : le contexte de conversation côté back
  * (`ai_conversations.context`) et, pour les contextes d'édition, le bloc visé.
  */
 export interface AssistantChatScope {
-  context: 'course' | 'block_text';
+  context: AssistantContext;
   blockId?: string | null;
 }
 
@@ -69,11 +64,13 @@ export interface AssistantChatScope {
  * (`isPlatformBrowser`), annulable (`AbortController`).
  *
  * La **portée** (`configure`) fixe le contexte des conversations : `course`
- * (défaut — comportement historique, aucun query param ni champ ajouté) ou
- * `block_text` (chat d'édition d'un bloc texte : liste filtrée
- * `?context=&block_id=`, création `{context, block_id}`). L'hôte éditeur peut
- * poser un hook `setBeforeTurn` awaité avant chaque tour (flush d'autosave :
- * le back lit le bloc EN BASE pour bâtir le contexte — échec non bloquant).
+ * (défaut — comportement historique, aucun query param ni champ ajouté) ou un
+ * contexte d'édition d'un bloc — `block_text`, `block_exercise` (liste
+ * filtrée `?context=&block_id=`, création `{context, block_id}`). L'hôte
+ * éditeur peut poser un hook `setBeforeTurn` awaité avant chaque tour ET avant
+ * chaque décision HITL (flush d'autosave : le back lit le bloc EN BASE pour
+ * bâtir le contexte et, à la reprise, renuméroter ce qu'une décision acceptée
+ * vient d'appliquer — échec non bloquant).
  *
  * La vue d'entrée est une conversation **brouillon** (id vide, purement
  * locale) : `active` ne vaut `null` que quand l'historique est affiché ;
@@ -93,7 +90,7 @@ export class AssistantChatState implements OnDestroy {
   protected readonly auth = inject(AuthService);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
-  #context: 'course' | 'block_text' = 'course';
+  #context: AssistantContext = 'course';
   #blockId: string | null = null;
   #beforeTurn: (() => Promise<void>) | null = null;
 
@@ -127,12 +124,13 @@ export class AssistantChatState implements OnDestroy {
   readonly toolActivity = this.#toolActivity.asReadonly();
 
   /**
-   * Proposition d'édition en attente (flux HITL, portée `block_text`) : posée
-   * à l'événement `interrupt` (le flux se ferme, `streamState` passe à
-   * `awaiting`), consommée par `resumeProposal` — l'hôte éditeur y adosse sa
-   * revue (diff + décision). Purement locale : un rechargement de page la
-   * perd (le back garde la reprise jusqu'à son TTL, mais elle n'est pas
-   * ré-offerte — assumé, rouvrir la conversation montre le round incomplet).
+   * Proposition d'édition en attente (flux HITL des contextes d'édition, typée
+   * par `parseProposal`) : posée à l'événement `interrupt` (le flux se ferme,
+   * `streamState` passe à `awaiting`), consommée par `resumeProposal` —
+   * l'hôte éditeur y adosse sa revue (diff/carte + décision). Purement
+   * locale : un rechargement de page la perd (le back garde la reprise
+   * jusqu'à son TTL, mais elle n'est pas ré-offerte — assumé, rouvrir la
+   * conversation montre le round incomplet).
    */
   readonly #pendingProposal = signal<AssistantPendingProposal | null>(null);
   readonly pendingProposal = this.#pendingProposal.asReadonly();
@@ -422,6 +420,12 @@ export class AssistantChatState implements OnDestroy {
    * dès l'ouverture du flux ; sur échec d'envoi elle reste en place
    * (réessayable), sauf 404 — reprise disparue côté back (expirée,
    * redémarrage). Retourne `false` si le flux n'a pas pu s'ouvrir.
+   *
+   * Le hook `beforeTurn` (flush d'autosave) est awaité AVANT le POST : une
+   * décision acceptée vient d'être appliquée dans l'éditeur, et la reprise
+   * recharge le bloc EN BASE (relecture par le modèle, renumérotation des
+   * questions d'un exercice) — sans flush, elle travaillerait sur l'état
+   * d'avant l'application.
    */
   async resumeProposal(decision: { accepted: boolean; comment?: string }): Promise<boolean> {
     const courseId = this.#courseId;
@@ -435,6 +439,13 @@ export class AssistantChatState implements OnDestroy {
     }
     this.#streamState.set('streaming');
     this.#streamErrorStatus.set(null);
+    if (this.#beforeTurn) {
+      try {
+        await this.#beforeTurn();
+      } catch {
+        // Non bloquant (même règle que sendMessage).
+      }
+    }
     const status = await this.#streamTurn(
       `${this.#base(courseId)}/${conversationId}/proposals/${pending.id}/decision`,
       { accepted: decision.accepted, comment: decision.comment ?? null },
@@ -552,18 +563,14 @@ export class AssistantChatState implements OnDestroy {
       }
       case 'interrupt': {
         // Proposition d'édition (HITL) : le run est figé côté back, le flux
-        // se ferme — la revue (diff + décision, hôte éditeur) s'adosse à
-        // `pendingProposal` ; le tour reste affiché en l'état (activité
+        // se ferme — la revue (diff/carte + décision, hôte éditeur) s'adosse
+        // à `pendingProposal` (typée par `parseProposal` depuis l'appel figé
+        // de l'activité d'outils) ; le tour reste affiché en l'état (activité
         // d'outils comprise), il reprendra via `resumeProposal`.
         const entry = this.#toolActivity().find((e) => e.id === event.tool_call_id);
-        const markdown = entry?.args['new_markdown'];
-        if (typeof markdown === 'string') {
-          const summaryRaw = entry?.args['summary'];
-          this.#pendingProposal.set({
-            id: event.tool_call_id,
-            markdown,
-            summary: typeof summaryRaw === 'string' && summaryRaw ? summaryRaw : null,
-          });
+        const proposal = entry ? parseProposal(entry) : null;
+        if (proposal !== null) {
+          this.#pendingProposal.set(proposal);
           this.#streamState.set('awaiting');
         } else {
           // Défensif (le back valide avant de figer) : rien à revoir.

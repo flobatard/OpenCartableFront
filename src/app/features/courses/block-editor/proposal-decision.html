@@ -1,0 +1,30 @@
+<label class="proposal-decision__comment">
+  <span class="proposal-decision__comment-label">
+    {{ 'courseChat.proposal.commentLabel' | transloco }}
+  </span>
+  <textarea
+    class="proposal-decision__comment-input"
+    rows="2"
+    maxlength="2000"
+    [value]="comment()"
+    [attr.placeholder]="'courseChat.proposal.commentPlaceholder' | transloco"
+    (input)="onCommentInput($event)"
+  ></textarea>
+</label>
+
+<footer class="proposal-decision__actions">
+  @if (errorKey(); as key) {
+    <p class="proposal-decision__error" role="alert">{{ key | transloco }}</p>
+  }
+  <button type="button" class="btn btn--secondary" [disabled]="busy()" (click)="reject()">
+    {{ 'courseChat.proposal.reject' | transloco }}
+  </button>
+  <button
+    type="button"
+    class="btn btn--primary"
+    [disabled]="busy() || acceptDisabled()"
+    (click)="accept()"
+  >
+    {{ 'courseChat.proposal.accept' | transloco }}
+  </button>
+</footer>

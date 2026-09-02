@@ -3,6 +3,13 @@
  * (`/v1/courses/{id}/assistant/*`, OpenCartableBack app/course_assistant/).
  */
 
+/**
+ * Contextes de conversation LIVRÉS (`ai_conversations.context`) : `course`
+ * (chat global) et les contextes d'édition d'un bloc — `block_text`,
+ * `block_exercise` (flux HITL, cf. `proposals.ts`).
+ */
+export type AssistantContext = 'course' | 'block_text' | 'block_exercise';
+
 export interface AssistantConversation {
   id: string;
   context: string;
