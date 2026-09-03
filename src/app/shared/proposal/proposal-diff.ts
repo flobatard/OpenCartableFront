@@ -5,8 +5,8 @@ import {
   DiffEditorModel,
   NGX_MONACO_EDITOR_CONFIG,
 } from 'ngx-monaco-editor-v2';
-import { ThemeService } from '../../../core/theme/theme.service';
-import { MONACO_CONFIG } from '../../../shared/markdown-editor/monaco-config';
+import { ThemeService } from '../../core/theme/theme.service';
+import { MONACO_CONFIG } from '../markdown-editor/monaco-config';
 
 /**
  * Options du diff figées en constante (référence stable — le wrapper recrée
@@ -42,11 +42,16 @@ const FRAME_BORDERS_PX = 2;
 
 export type ProposalDiffSize = 'fill' | 'auto';
 
+/** Langages colorisés par le diff : markdown de cours, texte simple, ou les
+ *  trois fichiers d'un module interactif (built-in Monaco). */
+export type ProposalDiffLanguage = 'oc-markdown' | 'plaintext' | 'html' | 'css' | 'javascript';
+
 /**
  * Diff Monaco côte à côte de deux textes (`ngx-monaco-diff-editor`, inerte en
- * jsdom) — brique des revues de proposition HITL : contenu courant |
- * proposition. `language` : `oc-markdown` (défaut — markdown de cours) ou
- * `plaintext` (corrigé d'une question).
+ * jsdom) — brique PARTAGÉE des revues de proposition HITL (bloc texte,
+ * exercice, module) : contenu courant | proposition. `language` :
+ * `oc-markdown` (défaut — markdown de cours), `plaintext` (corrigé d'une
+ * question) ou `html`/`css`/`javascript` (fichiers d'un module interactif).
  *
  * Deux régimes de hauteur (`size`) : **`fill`** (défaut) — le diff remplit la
  * hauteur laissée par son hôte flex en colonne (revue d'un bloc texte : un
@@ -71,7 +76,7 @@ export class ProposalDiff implements OnDestroy {
 
   readonly original = input.required<string>();
   readonly modified = input.required<string>();
-  readonly language = input<'oc-markdown' | 'plaintext'>('oc-markdown');
+  readonly language = input<ProposalDiffLanguage>('oc-markdown');
   readonly size = input<ProposalDiffSize>('fill');
   /** Bornes (px) de la hauteur en régime `auto`. */
   readonly minHeight = input(96);

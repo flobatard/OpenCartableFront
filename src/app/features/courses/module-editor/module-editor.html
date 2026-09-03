@@ -70,7 +70,13 @@
       [class.module-editor__workspace--solo]="chatCollapsed()"
     >
       <div class="module-editor__panes" [style.--editor-basis]="editorPct() + '%'">
-        <div class="module-editor__pane">
+        <!-- Revue d'une proposition : le pane éditeur est masqué par CLASSE
+             (jamais @if — les trois Monaco doivent survivre) et la revue prend
+             sa place ; le pane aperçu, lui, reste visible. -->
+        <div
+          class="module-editor__pane"
+          [class.module-editor__pane--reviewing]="proposals.review() !== null"
+        >
           <div
             class="tabs module-editor__tabbar"
             role="tablist"
@@ -102,7 +108,7 @@
             [attr.aria-labelledby]="uid + '-tab-html'"
             [hidden]="activeTab() !== 'html'"
           >
-            <app-markdown-editor language="html" [formControl]="htmlControl" />
+            <app-markdown-editor #htmlEditor language="html" [formControl]="htmlControl" />
           </div>
           <div
             role="tabpanel"
@@ -111,7 +117,7 @@
             [attr.aria-labelledby]="uid + '-tab-css'"
             [hidden]="activeTab() !== 'css'"
           >
-            <app-markdown-editor language="css" [formControl]="cssControl" />
+            <app-markdown-editor #cssEditor language="css" [formControl]="cssControl" />
           </div>
           <div
             role="tabpanel"
@@ -120,18 +126,40 @@
             [attr.aria-labelledby]="uid + '-tab-js'"
             [hidden]="activeTab() !== 'js'"
           >
-            <app-markdown-editor language="javascript" [formControl]="jsControl" />
+            <app-markdown-editor #jsEditor language="javascript" [formControl]="jsControl" />
           </div>
         </div>
 
+        @if (proposals.review(); as review) {
+          <app-module-proposal-review
+            class="module-editor__review"
+            [proposal]="review.proposal"
+            [original]="review.original"
+            [busy]="proposals.busy()"
+            [errorKey]="
+              proposals.error() === 'decision' ? 'courseChat.proposal.decisionError' : null
+            "
+            (accepted)="proposals.accept($event)"
+            (rejected)="proposals.reject($event)"
+          />
+        }
+
         <div class="module-editor__pane module-editor__pane--preview">
-          <p class="module-editor__caption">{{ 'courses.moduleEditor.preview' | transloco }}</p>
+          <p class="module-editor__caption">
+            @if (proposals.review()) {
+              <span class="module-editor__caption-proposed">
+                {{ 'courseChat.proposal.modulePreview' | transloco }}
+              </span>
+            } @else {
+              {{ 'courses.moduleEditor.preview' | transloco }}
+            }
+          </p>
           @if (previewReady()) {
             <app-module-runner
               class="module-editor__preview"
-              [html]="previewHtml()"
-              [css]="previewCss()"
-              [js]="previewJs()"
+              [html]="previewCode().html"
+              [css]="previewCode().css"
+              [js]="previewCode().js"
               [title]="title()"
             />
           }

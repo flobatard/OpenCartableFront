@@ -54,6 +54,9 @@
     "propose_question_edit": "Proposition de modification d'une question",
     "propose_question_add": "Proposition d'ajout de question",
     "propose_question_delete": "Proposition de suppression de question",
+    "propose_html_edit": "Proposition de modification du HTML",
+    "propose_css_edit": "Proposition de modification du CSS",
+    "propose_js_edit": "Proposition de modification du JavaScript",
     "unknown": "Utilisation d'un outil"
   },
   "proposal": {
@@ -63,7 +66,10 @@
       "propose_statement_edit": "Modification du sujet",
       "propose_question_edit": "Modification d'une question",
       "propose_question_add": "Nouvelle question",
-      "propose_question_delete": "Suppression d'une question"
+      "propose_question_delete": "Suppression d'une question",
+      "propose_html_edit": "Fichier HTML",
+      "propose_css_edit": "Fichier CSS",
+      "propose_js_edit": "Fichier JavaScript"
     },
     "pendingHint": "En attente de votre décision — le comparatif est affiché dans l'éditeur.",
     "original": "Contenu actuel",
@@ -84,7 +90,8 @@
       "positionEnd": "Ajoutée en fin d'exercice",
       "deleteWarning": "Cette question sera supprimée de l'exercice.",
       "targetMissing": "La question visée n'existe plus — rejetez la proposition."
-    }
+    },
+    "modulePreview": "Aperçu de la proposition"
   },
   "errors": {
     "quota": "Quota quotidien de l'IA par défaut épuisé.",

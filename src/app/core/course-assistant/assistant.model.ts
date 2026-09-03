@@ -5,10 +5,11 @@
 
 /**
  * Contextes de conversation LIVRÉS (`ai_conversations.context`) : `course`
- * (chat global) et les contextes d'édition d'un bloc — `block_text`,
- * `block_exercise` (flux HITL, cf. `proposals.ts`).
+ * (chat global) et les contextes d'édition (flux HITL, cf. `proposals.ts`) —
+ * d'un bloc (`block_text`, `block_exercise`, cible `block_id`) ou d'un module
+ * interactif (`module`, cible `module_id`).
  */
-export type AssistantContext = 'course' | 'block_text' | 'block_exercise';
+export type AssistantContext = 'course' | 'block_text' | 'block_exercise' | 'module';
 
 export interface AssistantConversation {
   id: string;

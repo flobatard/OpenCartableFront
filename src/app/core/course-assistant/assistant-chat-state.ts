@@ -40,11 +40,13 @@ export type AssistantStreamState = 'idle' | 'streaming' | 'awaiting' | 'error';
 
 /**
  * Portée d'une instance d'état de chat : le contexte de conversation côté back
- * (`ai_conversations.context`) et, pour les contextes d'édition, le bloc visé.
+ * (`ai_conversations.context`) et, pour les contextes d'édition, la cible
+ * visée — un bloc (`block_text`/`block_exercise`) ou un module (`module`).
  */
 export interface AssistantChatScope {
   context: AssistantContext;
   blockId?: string | null;
+  moduleId?: string | null;
 }
 
 /**
@@ -65,12 +67,13 @@ export interface AssistantChatScope {
  *
  * La **portée** (`configure`) fixe le contexte des conversations : `course`
  * (défaut — comportement historique, aucun query param ni champ ajouté) ou un
- * contexte d'édition d'un bloc — `block_text`, `block_exercise` (liste
- * filtrée `?context=&block_id=`, création `{context, block_id}`). L'hôte
- * éditeur peut poser un hook `setBeforeTurn` awaité avant chaque tour ET avant
- * chaque décision HITL (flush d'autosave : le back lit le bloc EN BASE pour
- * bâtir le contexte et, à la reprise, renuméroter ce qu'une décision acceptée
- * vient d'appliquer — échec non bloquant).
+ * contexte d'édition — d'un bloc (`block_text`, `block_exercise` : liste
+ * filtrée `?context=&block_id=`, création `{context, block_id}`) ou d'un
+ * module (`module`, même motif sur `module_id`). L'hôte éditeur peut poser un
+ * hook `setBeforeTurn` awaité avant chaque tour ET avant chaque décision HITL
+ * (flush d'autosave : le back lit la cible EN BASE pour bâtir le contexte et,
+ * à la reprise, relire ce qu'une décision acceptée vient d'appliquer — échec
+ * non bloquant).
  *
  * La vue d'entrée est une conversation **brouillon** (id vide, purement
  * locale) : `active` ne vaut `null` que quand l'historique est affiché ;
@@ -92,6 +95,7 @@ export class AssistantChatState implements OnDestroy {
 
   #context: AssistantContext = 'course';
   #blockId: string | null = null;
+  #moduleId: string | null = null;
   #beforeTurn: (() => Promise<void>) | null = null;
 
   #courseId: string | null = null;
@@ -158,6 +162,7 @@ export class AssistantChatState implements OnDestroy {
   configure(scope: AssistantChatScope): void {
     this.#context = scope.context;
     this.#blockId = scope.blockId ?? null;
+    this.#moduleId = scope.moduleId ?? null;
     const active = this.#active();
     if (active?.id === '' && active.messages.length === 0) {
       this.#active.set(this.#draft());
@@ -185,7 +190,7 @@ export class AssistantChatState implements OnDestroy {
       id: '',
       context: this.#context,
       block_id: this.#blockId,
-      module_id: null,
+      module_id: this.#moduleId,
       title: null,
       created_at: now,
       updated_at: now,
@@ -214,7 +219,7 @@ export class AssistantChatState implements OnDestroy {
 
   /**
    * Query params de la liste : aucun en portée `course` (défaut du back —
-   * URL historique inchangée), contexte + bloc en portée d'édition.
+   * URL historique inchangée), contexte + cible en portée d'édition.
    */
   #listParams(): Record<string, string> {
     if (this.#context === 'course') {
@@ -223,6 +228,9 @@ export class AssistantChatState implements OnDestroy {
     const params: Record<string, string> = { context: this.#context };
     if (this.#blockId) {
       params['block_id'] = this.#blockId;
+    }
+    if (this.#moduleId) {
+      params['module_id'] = this.#moduleId;
     }
     return params;
   }
@@ -273,6 +281,9 @@ export class AssistantChatState implements OnDestroy {
     const body: Record<string, unknown> = { context: this.#context };
     if (this.#context !== 'course' && this.#blockId) {
       body['block_id'] = this.#blockId;
+    }
+    if (this.#context !== 'course' && this.#moduleId) {
+      body['module_id'] = this.#moduleId;
     }
     try {
       const created = await firstValueFrom(

@@ -176,13 +176,15 @@ describe('AssistantChatState (portée block_text)', () => {
 
   it('resumeProposal reopens a stream with the decision and consumes the pending', async () => {
     await reachAwaiting();
-    const resumeFetch = vi.fn().mockResolvedValue(
-      sseResponse([
-        'event: tool_result\ndata: {"id":"call_p","name":"propose_block_edit",' +
-          '"is_error":false,"excerpt":"ACCEPTÉ","length":7}\n\n',
-        DONE_EVENT,
-      ]),
-    );
+    const resumeFetch = vi
+      .fn()
+      .mockResolvedValue(
+        sseResponse([
+          'event: tool_result\ndata: {"id":"call_p","name":"propose_block_edit",' +
+            '"is_error":false,"excerpt":"ACCEPTÉ","length":7}\n\n',
+          DONE_EVENT,
+        ]),
+      );
     vi.stubGlobal('fetch', resumeFetch);
 
     await expect(state.resumeProposal({ accepted: true, comment: 'Très bien' })).resolves.toBe(
@@ -268,12 +270,14 @@ describe('AssistantChatState (portée block_exercise)', () => {
     await load;
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
-        sseResponse([
-          toolCallEvent,
-          'event: interrupt\ndata: {"tool_call_id":"call_p","message_ids":["m1"]}\n\n',
-        ]),
-      ),
+      vi
+        .fn()
+        .mockResolvedValue(
+          sseResponse([
+            toolCallEvent,
+            'event: interrupt\ndata: {"tool_call_id":"call_p","message_ids":["m1"]}\n\n',
+          ]),
+        ),
     );
     const send = state.sendMessage('Complète le corrigé');
     const req = http.expectOne((r) => r.url === BASE);
@@ -317,8 +321,107 @@ describe('AssistantChatState (portée block_exercise)', () => {
     expect(state.pendingProposal()).toBeNull();
     expect(state.streamState()).toBe('idle');
     // Le tour est replié : l'appel figure dans le message assistant local.
-    expect(state.active()?.messages.at(-1)?.tool_calls.map((c) => c.name)).toEqual([
-      'propose_question_delete',
-    ]);
+    expect(
+      state
+        .active()
+        ?.messages.at(-1)
+        ?.tool_calls.map((c) => c.name),
+    ).toEqual(['propose_question_delete']);
+  });
+});
+
+/**
+ * La portée `module` : même mécanique, mais la cible est un module
+ * (`module_id`) et non un bloc — le contexte d'édition du code d'un module
+ * interactif (une proposition par fichier).
+ */
+describe('AssistantChatState (portée module)', () => {
+  let state: AssistantChatState;
+  let http: HttpTestingController;
+  const MODULE_CONVERSATION: AssistantConversation = {
+    id: 'conv-m1',
+    context: 'module',
+    block_id: null,
+    module_id: 'm1',
+    title: null,
+    created_at: '2026-08-31T10:00:00Z',
+    updated_at: '2026-08-31T10:00:00Z',
+  };
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        AssistantChatState,
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: AuthService,
+          useValue: { isAuthenticated: () => true, accessToken: 'jwt-token' },
+        },
+      ],
+    });
+    state = TestBed.inject(AssistantChatState);
+    state.configure({ context: 'module', moduleId: 'm1' });
+    http = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('lists with the context and module_id query params (never block_id)', async () => {
+    const promise = state.loadConversations('c1');
+    const req = http.expectOne((r) => r.url === BASE);
+    expect(req.request.params.get('context')).toBe('module');
+    expect(req.request.params.get('module_id')).toBe('m1');
+    expect(req.request.params.get('block_id')).toBeNull();
+    req.flush([MODULE_CONVERSATION]);
+    await promise;
+    expect(state.conversations()).toEqual([MODULE_CONVERSATION]);
+  });
+
+  it('creates the conversation scoped to the module at the first message', async () => {
+    const load = state.loadConversations('c1');
+    http.expectOne((r) => r.url === BASE).flush([]);
+    await load;
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(sseResponse([DONE_EVENT])));
+
+    const sent = state.sendMessage('Mets le bouton en bleu');
+    const create = http.expectOne((r) => r.url === BASE && r.method === 'POST');
+    expect(create.request.body).toEqual({ context: 'module', module_id: 'm1' });
+    create.flush(MODULE_CONVERSATION);
+    await sent;
+    expect(state.streamState()).toBe('idle');
+  });
+
+  it('an interrupt on a code tool carries the typed proposal', async () => {
+    const load = state.loadConversations('c1');
+    http.expectOne((r) => r.url === BASE).flush([MODULE_CONVERSATION]);
+    await load;
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          sseResponse([
+            'event: tool_call\ndata: {"id":"call_p","name":"propose_js_edit",' +
+              '"args":{"new_code":"const x = 1;","summary":"Compteur"}}\n\n',
+            'event: interrupt\ndata: {"tool_call_id":"call_p","message_ids":["m1"]}\n\n',
+          ]),
+        ),
+    );
+    const send = state.sendMessage('Ajoute un compteur');
+    const create = http.expectOne((r) => r.url === BASE && r.method === 'POST');
+    expect(create.request.body).toEqual({ context: 'module', module_id: 'm1' });
+    create.flush({ ...MODULE_CONVERSATION, id: 'conv-m2' });
+    await send;
+
+    expect(state.streamState()).toBe('awaiting');
+    expect(state.pendingProposal()).toEqual({
+      kind: 'module_js',
+      id: 'call_p',
+      summary: 'Compteur',
+      code: 'const x = 1;',
+    });
   });
 });

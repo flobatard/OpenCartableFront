@@ -24,6 +24,9 @@ const KNOWN_TOOLS = new Set([
   'propose_question_edit',
   'propose_question_add',
   'propose_question_delete',
+  'propose_html_edit',
+  'propose_css_edit',
+  'propose_js_edit',
 ]);
 
 /** Un appel d'outil tel que rendu par le fil : persisté ou en cours. */

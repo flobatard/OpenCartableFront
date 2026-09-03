@@ -1,9 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { AiCredentialsService } from '../../../core/ai-credentials/ai-credentials.service';
+import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
+import { AssistantPendingProposal } from '../../../core/course-assistant/proposals';
 import { ModuleDetail } from '../../../core/modules/module.model';
 import { ModuleService } from '../../../core/modules/module.service';
 import { ModuleRunner } from '../../../shared/module-runner/module-runner';
+import {
+  mockAiCredentialsService,
+  mockAssistantChatState,
+} from '../../../testing/assistant.fixture';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
 import { ModuleEditor } from './module-editor';
 
@@ -27,13 +34,18 @@ describe('ModuleEditor', () => {
     getModule: vi.fn(),
     updateModule: vi.fn(),
   };
+  let assistantState: ReturnType<typeof mockAssistantChatState>;
 
   async function configure(): Promise<void> {
-    await TestBed.configureTestingModule({
+    assistantState = mockAssistantChatState();
+    TestBed.configureTestingModule({
       imports: [ModuleEditor, provideTranslocoTesting()],
       providers: [
         provideRouter([]),
         { provide: ModuleService, useValue: modulesMock },
+        // Le chat ancré est en mode edit (contexte `module`) : son bandeau
+        // réglages injecte AiCredentialsService.
+        { provide: AiCredentialsService, useValue: mockAiCredentialsService() },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -41,7 +53,13 @@ describe('ModuleEditor', () => {
           },
         },
       ],
-    }).compileComponents();
+    });
+    // Remplace le `providers: [AssistantChatState]` du composant par le mock
+    // (sinon la vraie classe s'instancie : chaîne AuthService → OAuthService).
+    TestBed.overrideComponent(ModuleEditor, {
+      set: { providers: [{ provide: AssistantChatState, useValue: assistantState }] },
+    });
+    await TestBed.compileComponents();
   }
 
   /** Création synchrone (fake timers actifs) : microtasks flushées à la main. */
@@ -256,5 +274,143 @@ describe('ModuleEditor', () => {
     fixture.detectChanges();
     expect(modulesMock.getModule).toHaveBeenCalledTimes(2);
     expect(fixture.componentInstance.htmlControl.value).toBe(DETAIL.html);
+  });
+  // ------------------------------------------------- flux HITL (contexte module)
+
+  function proposal(
+    kind: 'module_html' | 'module_css' | 'module_js',
+    code: string,
+  ): AssistantPendingProposal {
+    return { kind, id: 'call_p', summary: 'Bouton en bleu', code };
+  }
+
+  it('scopes the anchored chat to the module and flushes autosave before each turn', async () => {
+    const fixture = await createComponent();
+    expect(assistantState.configure).toHaveBeenCalledTimes(1);
+    expect(assistantState.configure).toHaveBeenCalledWith({
+      context: 'module',
+      moduleId: 'module-1',
+    });
+
+    // Le hook avant-tour est le flush d'autosave : une frappe non persistée
+    // part AVANT que le back ne relise le module en base.
+    const [[hook]] = assistantState.setBeforeTurn.mock.calls;
+    fixture.componentInstance.cssControl.setValue('p { color: blue; }');
+    await hook();
+    expect(modulesMock.updateModule).toHaveBeenCalledWith('course-1', 'module-1', {
+      html: DETAIL.html,
+      css: 'p { color: blue; }',
+      js: DETAIL.js,
+    });
+
+    // Rien de nouveau à persister : le hook est un no-op (jamais de PATCH vide).
+    modulesMock.updateModule.mockClear();
+    await hook();
+    expect(modulesMock.updateModule).not.toHaveBeenCalled();
+  });
+
+  it('a proposal replaces the editor pane (never @if) and the preview runs the proposed code', async () => {
+    const fixture = await createComponent();
+    const pane = () => el(fixture).querySelector<HTMLElement>('.module-editor__pane')!;
+    const runner = () => fixture.debugElement.query(By.directive(ModuleRunner)).componentInstance;
+    expect(pane().classList.contains('module-editor__pane--reviewing')).toBe(false);
+    expect(runner().css()).toBe(DETAIL.css);
+
+    assistantState.pendingProposal.set(proposal('module_css', 'p { color: blue; }'));
+    fixture.detectChanges();
+
+    // Pane éditeur masqué par CLASSE (les trois Monaco survivent), revue montée.
+    expect(pane().classList.contains('module-editor__pane--reviewing')).toBe(true);
+    expect(el(fixture).querySelector('app-module-proposal-review')).not.toBeNull();
+    // Aperçu : le fichier visé prend le code proposé, les autres sont intacts.
+    expect(runner().css()).toBe('p { color: blue; }');
+    expect(runner().html()).toBe(DETAIL.html);
+    expect(runner().js()).toBe(DETAIL.js);
+
+    // Fin de revue : retour automatique au code réel.
+    assistantState.pendingProposal.set(null);
+    fixture.detectChanges();
+    expect(pane().classList.contains('module-editor__pane--reviewing')).toBe(false);
+    expect(runner().css()).toBe(DETAIL.css);
+  });
+
+  it('accepting applies the file (Monaco when ready), reveals its tab and resumes the run', async () => {
+    const fixture = await createComponent();
+    assistantState.pendingProposal.set(proposal('module_js', "console.log('v2')"));
+    fixture.detectChanges();
+
+    const comment = el(fixture).querySelector<HTMLTextAreaElement>(
+      '.proposal-decision__comment-input',
+    )!;
+    comment.value = 'Parfait';
+    comment.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    el(fixture)
+      .querySelector<HTMLButtonElement>('.proposal-decision__actions .btn--primary')!
+      .click();
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    // Monaco inerte en jsdom : repli setValue (sans undo) — le contrôle porte
+    // le code proposé, l'onglet du fichier est révélé, et la reprise est partie.
+    expect(fixture.componentInstance.jsControl.value).toBe("console.log('v2')");
+    expect(el(fixture).querySelector<HTMLElement>('[id$="-panel-js"]')!.hidden).toBe(false);
+    expect(assistantState.resumeProposal).toHaveBeenCalledWith({
+      accepted: true,
+      comment: 'Parfait',
+    });
+  });
+
+  it('accepting goes through Monaco when it is ready (undoable edit, no double write)', async () => {
+    const fixture = await createComponent();
+    const editor = fixture.componentInstance as unknown as {
+      htmlEditor: () => { replaceAll: (text: string) => boolean };
+    };
+    const replaceAll = vi.spyOn(editor.htmlEditor(), 'replaceAll').mockReturnValue(true);
+
+    assistantState.pendingProposal.set(proposal('module_html', '<p>V2</p>'));
+    fixture.detectChanges();
+    el(fixture)
+      .querySelector<HTMLButtonElement>('.proposal-decision__actions .btn--primary')!
+      .click();
+    await Promise.resolve();
+
+    expect(replaceAll).toHaveBeenCalledWith('<p>V2</p>');
+    // Le contrôle n'est PAS réécrit : la propagation CVA de l'édit Monaco
+    // suffit (un setValue viderait la pile d'annulation).
+    expect(fixture.componentInstance.htmlControl.value).toBe(DETAIL.html);
+  });
+
+  it('rejecting resumes the run without touching the code', async () => {
+    const fixture = await createComponent();
+    assistantState.pendingProposal.set(proposal('module_css', 'p { color: blue; }'));
+    fixture.detectChanges();
+
+    el(fixture)
+      .querySelector<HTMLButtonElement>('.proposal-decision__actions .btn--secondary')!
+      .click();
+    await Promise.resolve();
+
+    expect(fixture.componentInstance.cssControl.value).toBe(DETAIL.css);
+    expect(assistantState.resumeProposal).toHaveBeenCalledWith({ accepted: false });
+  });
+
+  it('a failed resume keeps the review, retryable', async () => {
+    const fixture = await createComponent();
+    assistantState.resumeProposal.mockResolvedValueOnce(false);
+    assistantState.pendingProposal.set(proposal('module_js', 'x'));
+    fixture.detectChanges();
+
+    el(fixture)
+      .querySelector<HTMLButtonElement>('.proposal-decision__actions .btn--secondary')!
+      .click();
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect(el(fixture).querySelector('app-module-proposal-review')).not.toBeNull();
+    expect(el(fixture).querySelector('.proposal-decision__error')?.textContent).toContain(
+      "Échec de l'envoi",
+    );
   });
 });

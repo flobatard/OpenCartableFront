@@ -1,0 +1,32 @@
+<section class="module-proposal-review" aria-live="polite">
+  <header class="module-proposal-review__head">
+    <h2 class="module-proposal-review__title">
+      {{ 'courseChat.proposal.title' | transloco }}
+    </h2>
+    <span class="module-proposal-review__file">{{ fileKey() | transloco }}</span>
+    @if (proposal().summary; as summary) {
+      <p class="module-proposal-review__summary">{{ summary }}</p>
+    }
+  </header>
+
+  <!-- Corps : le diff remplit la hauteur restante de la colonne (régime fill) ;
+       le pied de décision reste visible en bas, jamais poussé hors du cadre. -->
+  <div class="module-proposal-review__body">
+    <div class="module-proposal-review__legend" aria-hidden="true">
+      <span>{{ 'courseChat.proposal.original' | transloco }}</span>
+      <span>{{ 'courseChat.proposal.proposed' | transloco }}</span>
+    </div>
+    <app-proposal-diff
+      [original]="original()"
+      [modified]="proposal().code"
+      [language]="language()"
+    />
+  </div>
+
+  <app-proposal-decision
+    [busy]="busy()"
+    [errorKey]="errorKey()"
+    (accepted)="accepted.emit($event)"
+    (rejected)="rejected.emit($event)"
+  />
+</section>

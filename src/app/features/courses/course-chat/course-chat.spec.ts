@@ -155,9 +155,10 @@ describe('CourseChat', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  describe('mode placeholder (contexte non livré : module — garde générique)', () => {
+  describe("mode placeholder (garde générique d'un contexte non livré)", () => {
     it('renders the header, the empty state and a disabled input', async () => {
-      // Un hôte éditeur dont le contexte n'est pas livré passe blockId + placeholder.
+      // Plus aucun hôte ne la pose : la garde reste testée pour le jour où un
+      // nouveau contexte d'édition arrivera avant son back.
       const fixture = await createComponent({ blockId: 'block-1', placeholder: true });
 
       expect(el(fixture).querySelector('.course-chat__title')?.textContent).toContain('Assistant');
@@ -166,19 +167,73 @@ describe('CourseChat', () => {
 
       const textarea = el(fixture).querySelector<HTMLTextAreaElement>('.course-chat__input');
       expect(textarea?.disabled).toBe(true);
-      // Le câblage IA ne s'active jamais depuis un hôte éditeur.
+      // Le câblage IA ne s'active jamais depuis un hôte en placeholder.
       expect(assistant.loadConversations).not.toHaveBeenCalled();
       expect(credentials.ensureLoaded).not.toHaveBeenCalled();
     });
 
     it('emits collapse on the collapse button click', async () => {
-      const fixture = await createComponent({ moduleId: 'module-1' });
+      const fixture = await createComponent({ blockId: 'block-1', placeholder: true });
       const spy = vi.fn();
       fixture.componentInstance.collapse.subscribe(spy);
 
       el(fixture).querySelector<HTMLButtonElement>('.course-chat__collapse')?.click();
 
       expect(spy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('mode edit ancré sur un module (contexte `module`)', () => {
+    it('is a live chat, not the placeholder shell', async () => {
+      const fixture = await createComponent({ moduleId: 'module-1' });
+
+      // Coquille « bientôt » écartée : conversations chargées sur l'instance
+      // d'état fournie par l'hôte (module-editor) et composer actif.
+      expect(el(fixture).querySelector('.course-chat__badge')).toBeNull();
+      expect(assistant.loadConversations).toHaveBeenCalledWith('course-1');
+      assistant.active.set({ ...draftDetail(), context: 'module', module_id: 'module-1' });
+      fixture.detectChanges();
+      expect(el(fixture).querySelector<HTMLTextAreaElement>('.course-chat__input')?.disabled).toBe(
+        false,
+      );
+    });
+
+    it('renders a module proposal call as an informative card', async () => {
+      const fixture = await createComponent({ moduleId: 'module-1' });
+      assistant.active.set({
+        ...emptyDetail(),
+        context: 'module',
+        module_id: 'module-1',
+        messages: [
+          message({ id: 'u1', role: 'user', content: 'Mets le bouton en bleu' }),
+          message({
+            id: 'a1',
+            role: 'assistant',
+            tool_calls: [
+              {
+                id: 'p1',
+                name: 'propose_css_edit',
+                arguments: { new_code: 'button { color: blue; }', summary: 'Bouton en bleu' },
+              },
+            ],
+          }),
+          message({
+            id: 't1',
+            role: 'tool',
+            tool_call_id: 'p1',
+            content: "Le professeur a ACCEPTÉ la proposition et l'a appliquée au fichier CSS.",
+          }),
+        ],
+      });
+      fixture.detectChanges();
+
+      const card = el(fixture).querySelector('.chat-proposal');
+      expect(card).not.toBeNull();
+      expect(card?.textContent).toContain('Bouton en bleu');
+      expect(card?.textContent).toContain('ACCEPTÉ la proposition');
+      // Jamais le code proposé, ni de repli sur la ligne d'outil générique.
+      expect(card?.textContent).not.toContain('button { color: blue; }');
+      expect(el(fixture).querySelector('details.chat-tool')).toBeNull();
     });
   });
 

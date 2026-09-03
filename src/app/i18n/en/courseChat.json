@@ -54,6 +54,9 @@
     "propose_question_edit": "Proposed change to a question",
     "propose_question_add": "Proposed new question",
     "propose_question_delete": "Proposed question removal",
+    "propose_html_edit": "Proposed HTML change",
+    "propose_css_edit": "Proposed CSS change",
+    "propose_js_edit": "Proposed JavaScript change",
     "unknown": "Using a tool"
   },
   "proposal": {
@@ -63,7 +66,10 @@
       "propose_statement_edit": "Subject change",
       "propose_question_edit": "Question change",
       "propose_question_add": "New question",
-      "propose_question_delete": "Question removal"
+      "propose_question_delete": "Question removal",
+      "propose_html_edit": "HTML file",
+      "propose_css_edit": "CSS file",
+      "propose_js_edit": "JavaScript file"
     },
     "pendingHint": "Awaiting your decision — the comparison is shown in the editor.",
     "original": "Current content",
@@ -84,7 +90,8 @@
       "positionEnd": "Added at the end of the exercise",
       "deleteWarning": "This question will be removed from the exercise.",
       "targetMissing": "The targeted question no longer exists — reject the proposal."
-    }
+    },
+    "modulePreview": "Preview of the proposal"
   },
   "errors": {
     "quota": "Daily quota of the default AI exhausted.",

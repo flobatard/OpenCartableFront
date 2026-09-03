@@ -1,0 +1,69 @@
+/* Revue d'une proposition de code : occupe le pane éditeur du workspace
+   (hauteur définie — les trois Monaco sont masqués par classe à côté, ils
+   survivent). Colonne flex : en-tête, corps (le diff remplit le reste), pied
+   de décision toujours visible. Motif proposal-review du block-editor. */
+:host {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.module-proposal-review {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 10px;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius);
+  padding: 12px;
+  background: var(--bg-surface);
+}
+
+.module-proposal-review__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.module-proposal-review__title {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* Fichier visé : le prof doit voir d'un coup d'œil ce que la décision touche. */
+.module-proposal-review__file {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.module-proposal-review__summary {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.module-proposal-review__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 6px;
+}
+
+.module-proposal-review__legend {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}

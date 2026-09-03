@@ -96,10 +96,29 @@
   overflow-y: auto;
 }
 
+/* Revue d'une proposition : le pane éditeur cède sa place à la revue (masqué
+   par CLASSE — le :host display des Monaco écraserait [hidden] — pour que les
+   trois éditeurs survivent), la revue occupant la même cellule de la grille. */
+.module-editor__pane--reviewing {
+  display: none !important;
+}
+
+.module-editor__review {
+  min-width: 0;
+  min-height: 0;
+}
+
 .module-editor__caption {
   margin: 0 0 6px;
   color: var(--text-secondary);
   font-size: 0.8125rem;
+}
+
+/* Aperçu du code PROPOSÉ (pendant une revue) : signalé, sinon le prof croirait
+   regarder son module enregistré. */
+.module-editor__caption-proposed {
+  color: var(--color-primary);
+  font-weight: 600;
 }
 
 // Le panneau actif prend toute la hauteur restante sous le tabbar ; l'éditeur

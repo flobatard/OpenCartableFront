@@ -1,6 +1,7 @@
 @if (mode() === 'placeholder') {
-  <!-- Mode placeholder (bloc exercice / module-editor) : les contextes
-       d'édition restants arrivent dans des lots ultérieurs. -->
+  <!-- Mode placeholder : garde générique d'un hôte dont le contexte d'édition
+       n'est pas livré — plus aucun hôte ne la pose (texte, exercice et module
+       le sont). -->
   <header class="course-chat__header">
     <h2 class="course-chat__title">{{ 'courseChat.title' | transloco }}</h2>
     <span class="course-chat__badge">{{ 'courseChat.soon' | transloco }}</span>
@@ -125,7 +126,7 @@
           <p class="course-chat__empty-title">{{ 'courseChat.listEmptyTitle' | transloco }}</p>
           <p class="course-chat__empty-hint">
             {{
-              (mode() === 'block' ? 'courseChat.blockListEmptyHint' : 'courseChat.listEmptyHint')
+              (mode() === 'edit' ? 'courseChat.blockListEmptyHint' : 'courseChat.listEmptyHint')
                 | transloco
             }}
           </p>
@@ -192,7 +193,7 @@
           <div class="course-chat__empty course-chat__empty--list">
             <p class="course-chat__empty-hint">
               {{
-                (mode() === 'block'
+                (mode() === 'edit'
                   ? 'courseChat.blockThreadEmptyHint'
                   : 'courseChat.threadEmptyHint'
                 ) | transloco
@@ -292,7 +293,7 @@
         [value]="draft()"
         [disabled]="turnActive()"
         [attr.placeholder]="
-          (mode() === 'block' ? 'courseChat.blockInputPlaceholder' : 'courseChat.inputPlaceholder')
+          (mode() === 'edit' ? 'courseChat.blockInputPlaceholder' : 'courseChat.inputPlaceholder')
             | transloco
         "
         (input)="onDraftInput($event)"

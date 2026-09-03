@@ -1,8 +1,12 @@
 import {
+  MODULE_FILE_BY_KIND,
   parseProposal,
   PROPOSAL_TOOL_BY_KIND,
   PROPOSAL_TOOLS,
   PROPOSE_BLOCK_EDIT,
+  PROPOSE_CSS_EDIT,
+  PROPOSE_HTML_EDIT,
+  PROPOSE_JS_EDIT,
   PROPOSE_QUESTION_ADD,
   PROPOSE_QUESTION_DELETE,
   PROPOSE_QUESTION_EDIT,
@@ -18,10 +22,19 @@ describe('proposals', () => {
       PROPOSE_QUESTION_EDIT,
       PROPOSE_QUESTION_ADD,
       PROPOSE_QUESTION_DELETE,
+      PROPOSE_HTML_EDIT,
+      PROPOSE_CSS_EDIT,
+      PROPOSE_JS_EDIT,
     ]);
     for (const tool of Object.values(PROPOSAL_TOOL_BY_KIND)) {
       expect(PROPOSAL_TOOLS.has(tool)).toBe(true);
     }
+    // Chaque genre module désigne le fichier que l'éditeur doit appliquer.
+    expect(MODULE_FILE_BY_KIND).toEqual({
+      module_html: 'html',
+      module_css: 'css',
+      module_js: 'js',
+    });
   });
 
   it('parses a block text rewrite (summary optional, empty summary → null)', () => {
@@ -33,9 +46,15 @@ describe('proposals', () => {
       }),
     ).toEqual({ kind: 'block_text', id: 'c1', summary: 'Réécriture', markdown: '# Nouveau' });
     expect(
-      parseProposal({ id: 'c1', name: PROPOSE_BLOCK_EDIT, args: { new_markdown: '', summary: '' } }),
+      parseProposal({
+        id: 'c1',
+        name: PROPOSE_BLOCK_EDIT,
+        args: { new_markdown: '', summary: '' },
+      }),
     ).toEqual({ kind: 'block_text', id: 'c1', summary: null, markdown: '' });
-    expect(parseProposal({ id: 'c1', name: PROPOSE_BLOCK_EDIT, args: { new_markdown: 42 } })).toBeNull();
+    expect(
+      parseProposal({ id: 'c1', name: PROPOSE_BLOCK_EDIT, args: { new_markdown: 42 } }),
+    ).toBeNull();
   });
 
   it('parses a statement edit', () => {
@@ -70,7 +89,11 @@ describe('proposals', () => {
     ).toMatchObject({ statement: '', expectedAnswer: null });
     // Sans id résolu (référence irrésolue côté back) ou sans aucun champ : rien à revoir.
     expect(
-      parseProposal({ id: 'c3', name: PROPOSE_QUESTION_EDIT, args: { question_ref: 'Q9', statement: 'x' } }),
+      parseProposal({
+        id: 'c3',
+        name: PROPOSE_QUESTION_EDIT,
+        args: { question_ref: 'Q9', statement: 'x' },
+      }),
     ).toBeNull();
     expect(
       parseProposal({ id: 'c3', name: PROPOSE_QUESTION_EDIT, args: { question_id: 'q-2' } }),
@@ -99,7 +122,9 @@ describe('proposals', () => {
         args: { statement: 'Nouvelle ?', expected_answer: 'Oui', after_id: null },
       }),
     ).toMatchObject({ expectedAnswer: 'Oui', afterId: null });
-    expect(parseProposal({ id: 'c4', name: PROPOSE_QUESTION_ADD, args: { after_id: 'q-1' } })).toBeNull();
+    expect(
+      parseProposal({ id: 'c4', name: PROPOSE_QUESTION_ADD, args: { after_id: 'q-1' } }),
+    ).toBeNull();
   });
 
   it('parses a question delete', () => {
@@ -113,6 +138,29 @@ describe('proposals', () => {
     expect(
       parseProposal({ id: 'c5', name: PROPOSE_QUESTION_DELETE, args: { question_ref: 'Q9' } }),
     ).toBeNull();
+  });
+
+  it('parses a module code proposal, one file per tool', () => {
+    expect(
+      parseProposal({
+        id: 'c6',
+        name: PROPOSE_JS_EDIT,
+        args: { new_code: 'const x = 1;', summary: 'Compteur' },
+      }),
+    ).toEqual({ kind: 'module_js', id: 'c6', summary: 'Compteur', code: 'const x = 1;' });
+    expect(
+      parseProposal({ id: 'c6', name: PROPOSE_HTML_EDIT, args: { new_code: '<p>a</p>' } }),
+    ).toEqual({ kind: 'module_html', id: 'c6', summary: null, code: '<p>a</p>' });
+    // Vider un fichier est une proposition légitime.
+    expect(parseProposal({ id: 'c6', name: PROPOSE_CSS_EDIT, args: { new_code: '' } })).toEqual({
+      kind: 'module_css',
+      id: 'c6',
+      summary: null,
+      code: '',
+    });
+    // Args malformés : aucune revue (repli sur la ligne d'outil générique).
+    expect(parseProposal({ id: 'c6', name: PROPOSE_CSS_EDIT, args: {} })).toBeNull();
+    expect(parseProposal({ id: 'c6', name: PROPOSE_JS_EDIT, args: { new_code: 42 } })).toBeNull();
   });
 
   it('ignores non-proposal tools', () => {

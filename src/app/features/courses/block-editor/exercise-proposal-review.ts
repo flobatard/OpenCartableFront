@@ -1,16 +1,16 @@
 import { Component, computed, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
-  AssistantPendingProposal,
+  AssistantExerciseProposal,
   PROPOSAL_TOOL_BY_KIND,
 } from '../../../core/course-assistant/proposals';
 import { ExerciseContentPayload } from '../../../core/courses/course.model';
 import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
-import { ProposalDecision } from './proposal-decision';
-import { ProposalDiff } from './proposal-diff';
+import { ProposalDecision } from '../../../shared/proposal/proposal-decision';
+import { ProposalDiff } from '../../../shared/proposal/proposal-diff';
 
-/** Propositions du contexte `block_exercise` (tout sauf la réécriture d'un bloc texte). */
-export type ExerciseProposal = Exclude<AssistantPendingProposal, { kind: 'block_text' }>;
+/** Propositions du contexte `block_exercise` (alias local du type du core). */
+export type ExerciseProposal = AssistantExerciseProposal;
 
 /**
  * Revue STRUCTURÉE d'une proposition sur un exercice (flux HITL du contexte
@@ -57,7 +57,10 @@ export class ExerciseProposalReview {
   /** Index (0-based) de la question visée dans l'exercice courant ; `-1` si absente ou sans objet. */
   protected readonly targetIndex = computed(() => {
     const proposal = this.proposal();
-    if (proposal.kind !== 'exercise_question_edit' && proposal.kind !== 'exercise_question_delete') {
+    if (
+      proposal.kind !== 'exercise_question_edit' &&
+      proposal.kind !== 'exercise_question_delete'
+    ) {
       return -1;
     }
     return this.current().questions.findIndex((q) => q.id === proposal.questionId);

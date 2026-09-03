@@ -54,19 +54,20 @@ const SCROLL_PIN_THRESHOLD_PX = 80;
  *   progressivement, thinking repliable, appels d'outils dépliables —
  *   `app-course-chat-tool`), citations `oc-block:` cliquables par délégation
  *   d'événements sur le fil ;
- * - **mode block** (`blockId` passé sans `placeholder` — hôte : la colonne
- *   ancrée de block-editor sur un bloc TEXTE ou EXERCICE) : même chat, câblé
- *   sur l'instance d'`AssistantChatState` fournie par l'hôte (contexte
- *   `block_text` ou `block_exercise`, conversations propres au bloc) ; les
- *   appels des tools de proposition du modèle (`PROPOSAL_TOOLS`) deviennent
- *   des cartes de proposition INFORMATIVES dans le fil
- *   (`app-course-chat-proposal` : résumé + décision rendue, ou invite tant que
- *   le flux attend) — la revue (diff/carte + décision) vit dans l'ÉDITEUR de
- *   l'hôte (`app-proposal-review` / `app-exercise-proposal-review`), qui lit
- *   la même instance d'état ;
- * - **mode placeholder** (`placeholder` vrai ou `moduleId` passé — éditeur de
- *   module) : la coquille « bientôt » historique, réservée aux contextes
- *   d'édition des lots ultérieurs.
+ * - **mode edit** (`blockId` OU `moduleId` passé, sans `placeholder` — hôte :
+ *   la colonne ancrée de block-editor sur un bloc TEXTE ou EXERCICE, ou celle
+ *   de module-editor) : même chat, câblé sur l'instance d'`AssistantChatState`
+ *   fournie par l'hôte (contexte `block_text`, `block_exercise` ou `module`,
+ *   conversations propres à la cible) ; les appels des tools de proposition du
+ *   modèle (`PROPOSAL_TOOLS`) deviennent des cartes de proposition
+ *   INFORMATIVES dans le fil (`app-course-chat-proposal` : résumé + décision
+ *   rendue, ou invite tant que le flux attend) — la revue (diff/carte +
+ *   décision) vit dans l'ÉDITEUR de l'hôte (`app-proposal-review`,
+ *   `app-exercise-proposal-review`, `app-module-proposal-review`), qui lit la
+ *   même instance d'état ;
+ * - **mode placeholder** (`placeholder` vrai) : la coquille « bientôt »
+ *   historique, garde générique d'un hôte dont le contexte n'est pas livré —
+ *   plus aucun hôte ne la pose.
  *
  * Deux régimes de rendu du texte assistant : pendant le stream,
  * `app-markdown-view` sans `courseId` (références oc-* inertes → re-rendus
@@ -93,11 +94,11 @@ export class CourseChat {
   readonly blockId = input<string | null>(null);
   readonly moduleId = input<string | null>(null);
   /**
-   * Force la coquille « bientôt » malgré un `blockId` : garde générique pour
-   * un hôte dont le contexte d'édition n'est PAS livré — sans elle, le
-   * `blockId` basculerait en chat d'édition et la création de conversation
-   * échouerait (422 côté back). Plus aucun hôte ne la pose aujourd'hui (texte
-   * et exercice sont livrés ; module-editor passe par `moduleId`).
+   * Force la coquille « bientôt » malgré une cible : garde générique pour un
+   * hôte dont le contexte d'édition n'est PAS livré — sans elle, la cible
+   * basculerait en chat d'édition et la création de conversation échouerait
+   * (422 côté back). Plus aucun hôte ne la pose aujourd'hui : les quatre
+   * contextes (texte, exercice, module) sont livrés.
    */
   readonly placeholder = input(false);
 
@@ -110,29 +111,29 @@ export class CourseChat {
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   /**
-   * Régime du panneau (doc de classe) : `placeholder` prime, puis le contexte
-   * d'édition (`blockId`) choisit `block`, défaut `global`.
+   * Régime du panneau (doc de classe) : `placeholder` prime, puis une cible
+   * d'édition (`blockId` ou `moduleId`) choisit `edit`, défaut `global`.
    */
-  protected readonly mode = computed<'global' | 'block' | 'placeholder'>(() => {
-    if (this.placeholder() || this.moduleId() !== null) {
+  protected readonly mode = computed<'global' | 'edit' | 'placeholder'>(() => {
+    if (this.placeholder()) {
       return 'placeholder';
     }
-    return this.blockId() !== null ? 'block' : 'global';
+    return this.blockId() !== null || this.moduleId() !== null ? 'edit' : 'global';
   });
 
   /**
    * Injection PARESSEUSE : le service (et sa chaîne AuthService → OAuthService)
-   * n'est résolu que hors placeholder — un hôte éditeur en placeholder (et sa
-   * spec) n'a **aucune** dépendance IA à fournir. Mode global → l'instance
-   * root (`CourseAssistantService`) ; mode block → l'instance
-   * d'`AssistantChatState` fournie par l'hôte (`providers` de `BlockEditor`),
-   * résolue par la chaîne d'injecteurs d'éléments. Toute spec montant un mode
-   * actif fournit les mocks à signaux de `testing/assistant.fixture.ts`.
+   * n'est résolu que hors placeholder — un hôte en placeholder (et sa spec)
+   * n'a **aucune** dépendance IA à fournir. Mode global → l'instance root
+   * (`CourseAssistantService`) ; mode edit → l'instance d'`AssistantChatState`
+   * fournie par l'hôte (`providers` de `BlockEditor`/`ModuleEditor`), résolue
+   * par la chaîne d'injecteurs d'éléments. Toute spec montant un mode actif
+   * fournit les mocks à signaux de `testing/assistant.fixture.ts`.
    */
   #assistantRef: AssistantChatState | null = null;
   protected get assistant(): AssistantChatState {
     return (this.#assistantRef ??=
-      this.mode() === 'block'
+      this.mode() === 'edit'
         ? this.#injector.get(AssistantChatState)
         : this.#injector.get(CourseAssistantService));
   }
@@ -405,10 +406,10 @@ export class CourseChat {
     return new Date(iso).toLocaleDateString(this.language.lang());
   }
 
-  // ------------------------------------------------- propositions (mode block)
+  // -------------------------------------------------- propositions (mode edit)
 
   /**
-   * Vrai pour un appel d'un tool de proposition rendu en carte : mode block
+   * Vrai pour un appel d'un tool de proposition rendu en carte : mode edit
    * uniquement, args bien formés (`parseProposal` — malformés → ligne d'outil
    * générique) et appel non échoué (l'échec — plafond dépassé, référence
    * inconnue… — s'explique mieux en ligne d'outil, son message d'erreur
@@ -416,7 +417,7 @@ export class CourseChat {
    */
   protected isProposal(view: ChatToolView): boolean {
     return (
-      this.mode() === 'block' &&
+      this.mode() === 'edit' &&
       PROPOSAL_TOOLS.has(view.name) &&
       view.status !== 'error' &&
       parseProposal(view) !== null

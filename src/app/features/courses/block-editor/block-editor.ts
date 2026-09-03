@@ -47,7 +47,7 @@ import { DocumentEditor } from '../document-editor/document-editor';
 import { ExerciseEditor } from '../exercise-editor/exercise-editor';
 import { ModuleBlockEditor } from '../module-block-editor/module-block-editor';
 import { ExerciseProposal, ExerciseProposalReview } from './exercise-proposal-review';
-import { ProposalHost } from './proposal-host';
+import { buildBlockProposalHost } from './proposal-host';
 import { ProposalReview } from './proposal-review';
 
 const AUTOSAVE_DELAY_MS = 1500;
@@ -169,15 +169,15 @@ export class BlockEditor implements OnInit, OnDestroy {
    * exercice, « original » figé à l'interrupt). Les callbacks lisent les
    * éditeurs montés à l'appel (viewChild), jamais à la construction.
    */
-  protected readonly proposals = new ProposalHost({
+  protected readonly proposals = buildBlockProposalHost({
     state: this.#assistantState,
     currentMarkdown: () => this.contentMarkdown(),
     currentExercise: () => {
       const editor = this.exerciseEditor();
       return editor ? payloadFromExerciseForm(editor.form) : null;
     },
-    applyText: (markdown) => this.#applyText(markdown),
-    applyExercise: (proposal) => this.#applyExercise(proposal),
+    applyText: (markdown: string) => this.#applyText(markdown),
+    applyExercise: (proposal: ExerciseProposal) => this.#applyExercise(proposal),
   });
 
   /** Clé i18n de l'erreur de revue courante (`null` = aucune). */
@@ -680,7 +680,9 @@ export class BlockEditor implements OnInit, OnDestroy {
         this.#lastSaved = serialized;
       }
       // Frappe pendant le save en vol : on reste « dirty », le suivant est en file.
-      this.saveState.set(JSON.stringify(this.#currentPayload()) === this.#lastSaved ? 'saved' : 'dirty');
+      this.saveState.set(
+        JSON.stringify(this.#currentPayload()) === this.#lastSaved ? 'saved' : 'dirty',
+      );
     } catch {
       // Le flux survit ; retentative à la prochaine modification.
       this.saveState.set('error');

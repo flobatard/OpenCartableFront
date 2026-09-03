@@ -15,8 +15,8 @@ import {
  *
  * - `mockAssistantChatState()` : une instance d'état de chat (la forme
  *   d'`AssistantChatState`) — à fournir comme `AssistantChatState` par toute
- *   spec montant le chat ancré en mode block (override des `providers` du
- *   composant hôte, ex. `BlockEditor` sur un bloc texte).
+ *   spec montant le chat ancré en mode edit (override des `providers` du
+ *   composant hôte : `BlockEditor` sur un bloc texte/exercice, `ModuleEditor`).
  * - `mockCourseAssistantService()` : le sur-ensemble root (`panelOpen` en
  *   plus) — à fournir par toute spec qui monte le panneau flottant
  *   `app-assistant-panel` ou le chat en mode global.
