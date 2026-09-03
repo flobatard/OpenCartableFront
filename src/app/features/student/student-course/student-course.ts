@@ -35,8 +35,8 @@ const TAB_BY_PATH: Readonly<Record<string, StudentTab>> = {
  *
  * C'est elle qui **charge le cours** (une fois, elle survit aux changements
  * d'onglet) et applique le style de lecture ; les enfants lisent
- * `PublicCourseService.detail()`. Les pages pleines frères (exercice, module
- * dédié) le rechargent elles-mêmes — `loadCourse` est idempotent.
+ * `PublicCourseService.detail()`. La page pleine sœur (module dédié) le
+ * recharge elle-même — `loadCourse` est idempotent.
  *
  * Toute erreur affiche le même message générique : le back répond 404 quel que
  * soit le motif (pas d'oracle).

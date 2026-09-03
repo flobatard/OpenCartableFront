@@ -133,11 +133,15 @@ describe('CoursePreview', () => {
     );
   });
 
-  it('renders the exercise statement and question statement without the expected answer', async () => {
+  it('renders the exercise as numbered read-only questions, without the expected answer', async () => {
     const fixture = await createComponent();
     const text = el(fixture).textContent ?? '';
     expect(text).toContain('Étudier la convergence des suites suivantes.');
+    expect(text).toContain('Question 1');
     expect(text).not.toContain('Décroissante et minorée');
+    // Aperçu prof = vue élève en lecture seule : ni zone de réponse, ni CTA.
+    expect(el(fixture).querySelector('textarea')).toBeNull();
+    expect(el(fixture).querySelector('.course-preview__exercise-cta')).toBeNull();
   });
 
   it('delegates the document block to app-course-preview-document', async () => {

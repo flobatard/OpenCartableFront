@@ -25,7 +25,7 @@ export function publicCourseSegments(access: PublicAccess): string[] {
 
 /**
  * Commandes routerLink **absolues** d'une sous-page du cours élève (onglet,
- * bloc seul, exercice, module dédié) — `publicCourseLink(lang, access, 'blocks', id)`.
+ * bloc seul, module dédié) — `publicCourseLink(lang, access, 'blocks', id)`.
  *
  * Absolues et non relatives : les sous-pages sont montées à des profondeurs
  * différentes (enfants de la coquille pour les onglets, frères pour les pages

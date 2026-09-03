@@ -20,10 +20,14 @@
           />
         }
         @case ('exercise') {
-          <app-markdown-view
-            [markdown]="exerciseMarkdown(block)"
+          <app-exercise-view
+            [content]="block.content"
             [courseId]="courseId()"
-            [showSettings]="false"
+            [blockId]="block.id"
+            [mode]="exerciseMode()"
+            [correctionEnabled]="correctionEnabled()"
+            [corrections]="corrections()"
+            (correctionRequested)="correctionRequested.emit($event)"
           />
           @if (exerciseLinkFor(block); as link) {
             <p class="course-preview__exercise-cta">

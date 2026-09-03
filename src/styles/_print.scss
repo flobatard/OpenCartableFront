@@ -98,6 +98,33 @@
     break-before: page;
   }
 
+  /* Cartes de question d'un bloc exercice (ExerciseView) : la colonne suit la
+     page A4, une carte ne se coupe pas et son titre ne reste pas seul en bas de
+     page ; typographie ramenée à la base papier (l'hôte pose 16px à l'écran).
+     Les contrôles du mode solve (zones de réponse, boutons, correction) ne sont
+     jamais dans le clone imprimé (mode preview) — masqués par sécurité. */
+  #oc-print-root app-exercise-view {
+    max-width: none;
+    font-size: calc(11pt * var(--course-font-scale, 1));
+  }
+  #oc-print-root .exercise-view__question {
+    break-inside: avoid;
+  }
+  #oc-print-root .exercise-view__question-title {
+    font-size: calc(13pt * var(--course-font-scale, 1));
+    break-after: avoid;
+  }
+  #oc-print-root
+    :is(
+      .exercise-view__storage-warning,
+      .exercise-view__answer-label,
+      .exercise-view__question-actions,
+      .exercise-view__correction,
+      .exercise-view__footer
+    ) {
+    display: none !important;
+  }
+
   /* ── Typographie d'impression ─────────────────────────────────────────────
      Indépendante de l'écran, calibrée pour le papier (unités pt). C'est ici
      qu'on ajuste tailles de police et marges du PDF. */

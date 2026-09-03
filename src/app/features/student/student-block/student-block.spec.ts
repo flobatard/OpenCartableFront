@@ -98,6 +98,14 @@ describe('StudentBlock', () => {
     expect(position(fixture)).toBe('1 / 4');
   });
 
+  it('solves an exercise block in place: an answer field per question, no CTA, no expected answer', async () => {
+    const fixture = await createComponent('block-3');
+
+    expect(el(fixture).querySelectorAll('textarea.exercise-view__answer').length).toBe(1);
+    expect(el(fixture).querySelector('.course-preview__exercise-cta')).toBeNull();
+    expect(el(fixture).textContent).not.toContain('Décroissante et minorée');
+  });
+
   it('offers only a next link on the first block', async () => {
     const fixture = await createComponent('block-1');
 
@@ -160,6 +168,8 @@ describe('StudentBlock', () => {
     await fixture.whenStable();
 
     expect(position(fixture)).toBe('3 / 4');
+    // Le bloc 3 est un exercice : la vue de résolution suit le changement de bloc.
+    expect(el(fixture).querySelector('textarea.exercise-view__answer')).not.toBeNull();
   });
 
   it('shows a notice and a way back when the block id is unknown', async () => {

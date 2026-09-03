@@ -19,6 +19,11 @@ import { CourseBlocksView } from '../../../shared/course-blocks-view/course-bloc
  * aucun composant de rendu dédié, et la classe `.course-preview__block` (donc
  * la pagination d'impression) reste celle de la vue partagée.
  *
+ * Un bloc exercice s'y **résout** (mode `solve` de `CourseBlocksView` : zones
+ * de réponse par question, réponses en localStorage seul) — c'est la page de
+ * résolution, l'ancienne page pleine `exercises/:blockId` y redirige. Le slot
+ * de correction IA reste dormant (inputs non bindés = défauts).
+ *
  * ⚠ `blockId` est lu sur le **paramMap observé**, jamais en snapshot : passer
  * d'un bloc au suivant réutilise l'instance du composant (motif `DocsShell`),
  * un snapshot resterait figé sur le premier bloc.
@@ -72,10 +77,6 @@ export class StudentBlock {
   protected blockLink(block: CourseBlock): string[] {
     return publicCourseLink(this.#language.lang(), this.#courses.access(), 'blocks', block.id);
   }
-
-  /** CTA « Résoudre l'exercice » : page pleine dédiée, même régime d'accès. */
-  protected readonly exerciseLink = (blockId: string): string[] =>
-    publicCourseLink(this.#language.lang(), this.#courses.access(), 'exercises', blockId);
 
   /** Clic « Suivant » (haut ou bas) : la lecture reprend en haut de la page —
       « Précédent » conserve, lui, la position de défilement. Handler de clic :

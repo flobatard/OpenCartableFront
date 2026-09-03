@@ -112,18 +112,35 @@ export function fullExerciseMarkdown(form: ExerciseForm): string {
   return joinExerciseMarkdown(v.statement, v.questions.map((q) => q.statement));
 }
 
+/** Question telle que rendue à l'élève : id back (clé des réponses) + énoncé markdown. */
+export interface ExerciseQuestionView {
+  id: string;
+  statement: string;
+}
+
+/** Vue élève d'un bloc exercice : sujet + questions, sans jamais de corrigé. */
+export interface ExerciseViewModel {
+  statement: string;
+  questions: ExerciseQuestionView[];
+}
+
 /**
- * Variante sans form de `fullExerciseMarkdown` : construit le markdown de
- * l'exercice directement depuis le `content` JSONB d'un bloc, pour l'aperçu
- * global du cours (aucun formulaire n'est monté). Mêmes règles de
- * concaténation ; réponses attendues exclues (via `payloadFromBlockContent`).
+ * Projection « vue élève » du `content` JSONB d'un bloc exercice, pour le
+ * rendu partagé `ExerciseView` (Aperçu prof, cours entier, résolution dans le
+ * bloc). Les `expected_answer` ne sont **jamais** reportées ; une question
+ * sans `id` (jamais servie par le back, qui frappe les ids à
+ * l'enregistrement) est écartée : sans id, aucune réponse ne pourrait lui
+ * être rattachée. Tolérant au content vide ou malformé
+ * (`payloadFromBlockContent`).
  */
-export function exerciseMarkdownFromContent(content: Record<string, unknown>): string {
+export function exerciseViewFromContent(content: Record<string, unknown>): ExerciseViewModel {
   const payload = payloadFromBlockContent(content);
-  return joinExerciseMarkdown(
-    payload.statement,
-    payload.questions.map((q) => q.statement),
-  );
+  return {
+    statement: payload.statement,
+    questions: payload.questions.flatMap((q) =>
+      q.id === null ? [] : [{ id: q.id, statement: q.statement }],
+    ),
+  };
 }
 
 /** Sujet + énoncés, vides ignorés, séparés par 2 sauts de ligne. */

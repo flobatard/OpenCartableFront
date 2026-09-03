@@ -48,7 +48,6 @@
     "unavailable": "This resource is not available yet."
   },
   "exercise": {
-    "title": "Exercise",
     "question": "Question {{ number }}",
     "yourAnswer": "Your answer",
     "markDone": "Mark as done",
@@ -57,6 +56,12 @@
     "savedHint": "Your answers are saved on this device.",
     "storageUnavailable": "Your answers cannot be saved on this device (storage unavailable). You can still work, but they will be lost when you leave the page.",
     "clear": "Clear my answers",
-    "clearConfirm": "Confirm clearing"
+    "clearConfirm": "Confirm clearing",
+    "correction": {
+      "title": "Correction",
+      "request": "Ask for a correction",
+      "pending": "Correcting…",
+      "error": "The correction failed. Please try again."
+    }
   }
 }

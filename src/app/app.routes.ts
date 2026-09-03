@@ -29,10 +29,12 @@ const PUBLIC_CONTENT_PROVIDERS = [
  * partage et cours public) — c'est le `data.access` du parent qui les
  * distingue. Deux familles :
  *
- * - les **pages pleines**, déclarées d'abord : exercice, module dédié
- *   (démonstration d'un module seul) et redirection de ressource. Elles n'ont
- *   ni en-tête ni onglets, chargent le cours elles-mêmes et sont partageables
- *   telles quelles ;
+ * - les **pages pleines**, déclarées d'abord : module dédié (démonstration
+ *   d'un module seul) et redirection de ressource. Elles n'ont ni en-tête ni
+ *   onglets, chargent le cours elles-mêmes et sont partageables telles
+ *   quelles. S'y range aussi la **redirection** de l'ancienne page pleine
+ *   d'exercice (`exercises/:blockId`) vers le bloc seul, où l'exercice se
+ *   résout désormais ;
  * - la **coquille à onglets** (`path: ''`, `StudentCourse`) et ses enfants, un
  *   par onglet — Sommaire (défaut) | Ressources | Modules | Cours entier —, le
  *   bloc seul vivant sous l'onglet Sommaire. **Une route par onglet** : l'état
@@ -42,13 +44,16 @@ const PUBLIC_CONTENT_PROVIDERS = [
  * un chemin vide — déclarer les premières avant elle évite toute ambiguïté
  * entre `modules/:moduleId` (page dédiée) et `modules` (onglet).
  */
-const PUBLIC_COURSE_CHILDREN = [
+const PUBLIC_COURSE_CHILDREN: Routes = [
   {
+    // Ancienne page pleine « Résoudre l'exercice » (J2) : l'exercice se
+    // résout désormais dans le bloc seul — les liens déjà partagés restent
+    // valides. Fonction et non chaîne : @angular/ssr résout un `redirectTo`
+    // chaîne relatif en ne retirant que le dernier segment du chemin de la
+    // route (302 vers `/…/exercises/blocks/:blockId`, cassé), alors qu'une
+    // fonction est laissée au routeur navigateur (route servie en CSR).
     path: 'exercises/:blockId',
-    loadComponent: () =>
-      import('./features/student/student-exercise/student-exercise').then(
-        (m) => m.StudentExercise,
-      ),
+    redirectTo: ({ params }) => `blocks/${params['blockId']}`,
   },
   {
     // Page dédiée d'un module interactif : le prof y renvoie pour démontrer
@@ -134,10 +139,12 @@ export const routes: Routes = [
       },
       {
         // Documentation publique des langages du markdown de cours : l'entrée
-        // sans slug retombe sur la première page (KaTeX).
+        // sans slug retombe sur la première page (KaTeX). Fonction et non
+        // chaîne (cf. `exercises/:blockId`) : en chaîne, @angular/ssr répondait
+        // un 302 vers `/fr/markdown-language/markdown-language/docs/katex`.
         path: 'markdown-language/docs',
         pathMatch: 'full',
-        redirectTo: 'markdown-language/docs/katex',
+        redirectTo: () => 'markdown-language/docs/katex',
       },
       {
         // Coquille à onglets ; le composant de doc du slug est monté dynamiquement.

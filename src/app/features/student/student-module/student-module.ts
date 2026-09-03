@@ -16,7 +16,7 @@ import { Spinner } from '../../../shared/spinner/spinner';
  * renvoie pour démontrer un module seul : pas d'en-tête de cours à onglets,
  * juste le titre du module et son exécution en pleine largeur.
  *
- * Page pleine, sœur de `StudentExercise` (et non enfant de la coquille) : elle
+ * Page pleine, sœur de la coquille (et non son enfant) : elle
  * lit donc `data.access` de la route (héritage depuis le parent componentless)
  * et charge le cours elle-même — `loadCourse` est idempotent, arriver ici
  * depuis l'onglet Modules ne refait aucune requête. Le titre vient de la

@@ -74,6 +74,18 @@ describe('StudentContent', () => {
     expect(el(fixture).querySelectorAll('.course-preview__block').length).toBe(4);
   });
 
+  it('renders exercise blocks read-only, with a CTA to the block where they are solved', async () => {
+    const fixture = await createComponent();
+
+    expect(el(fixture).querySelectorAll('.exercise-view__question-title').length).toBe(1);
+    expect(el(fixture).querySelector('textarea')).toBeNull();
+    expect(
+      el(fixture)
+        .querySelector<HTMLAnchorElement>('.course-preview__exercise-cta a')
+        ?.getAttribute('href'),
+    ).toBe('/fr/p/courses/course-1/blocks/block-3');
+  });
+
   it('prints the rendered container with the public URL builder', async () => {
     const fixture = await createComponent();
     el(fixture).querySelector<HTMLButtonElement>('.student-content__actions .btn')!.click();

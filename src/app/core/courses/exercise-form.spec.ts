@@ -2,7 +2,7 @@ import {
   addQuestion,
   applyGeneratedIds,
   buildExerciseForm,
-  exerciseMarkdownFromContent,
+  exerciseViewFromContent,
   fullExerciseMarkdown,
   insertQuestionAfter,
   moveQuestion,
@@ -235,27 +235,34 @@ describe('exercise-form', () => {
     expect(fullExerciseMarkdown(form)).toBe('Q1\n\nQ3');
   });
 
-  it('exerciseMarkdownFromContent joins statement + question statements without expected answers', () => {
-    // Même sortie que fullExerciseMarkdown, mais depuis un content brut.
-    expect(exerciseMarkdownFromContent(CONTENT)).toBe(
-      '## Suites\nSoit $u_n$ une suite.\n\nMontrer que $u_n$ converge.\n\nDonner sa limite.',
-    );
-    // Les réponses attendues n'apparaissent jamais.
-    expect(exerciseMarkdownFromContent(CONTENT)).not.toContain('Par encadrement.');
-    // Content vide / malformé toléré → chaîne vide.
-    expect(exerciseMarkdownFromContent({})).toBe('');
-    expect(exerciseMarkdownFromContent({ statement: 5, questions: 'nope' })).toBe('');
-    // Vides ignorés, pas de séparateur superflu.
+  it('exerciseViewFromContent projects the student view without expected answers', () => {
+    // Sujet + questions (id back + énoncé) depuis un content brut, jamais le corrigé.
+    const view = exerciseViewFromContent(CONTENT);
+    expect(view).toEqual({
+      statement: '## Suites\nSoit $u_n$ une suite.',
+      questions: [
+        { id: 'q-1', statement: 'Montrer que $u_n$ converge.' },
+        { id: 'q-2', statement: 'Donner sa limite.' },
+      ],
+    });
+    expect(JSON.stringify(view)).not.toContain('Par encadrement.');
+    // Content vide / malformé toléré → vue vide.
+    expect(exerciseViewFromContent({})).toEqual({ statement: '', questions: [] });
+    expect(exerciseViewFromContent({ statement: 5, questions: 'nope' })).toEqual({
+      statement: '',
+      questions: [],
+    });
+    // Une question sans id (jamais servie par le back) est écartée ; un énoncé
+    // vide est conservé : c'est la numérotation qui compte à l'écran.
     expect(
-      exerciseMarkdownFromContent({
-        statement: '   ',
+      exerciseViewFromContent({
+        statement: '',
         questions: [
-          { id: null, statement: 'Q1', type: 'free_text', expected_answer: '' },
-          { id: null, statement: '  ', type: 'free_text', expected_answer: '' },
-          { id: null, statement: 'Q3', type: 'free_text', expected_answer: '' },
+          { id: null, statement: 'Sans id', type: 'free_text', expected_answer: '' },
+          { id: 'q-3', statement: '', type: 'free_text', expected_answer: '' },
         ],
-      }),
-    ).toBe('Q1\n\nQ3');
+      }).questions,
+    ).toEqual([{ id: 'q-3', statement: '' }]);
   });
 
   it('questionIndexById finds a question by its backend id', () => {

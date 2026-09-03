@@ -1,0 +1,115 @@
+@if (solving() && !storageOk()) {
+  <p class="exercise-view__storage-warning" role="alert">
+    {{ 'student.exercise.storageUnavailable' | transloco }}
+  </p>
+}
+
+@if (view().statement) {
+  <section class="exercise-view__subject">
+    <app-markdown-view
+      [markdown]="view().statement"
+      [courseId]="courseId()"
+      [showPrint]="false"
+      [showSettings]="false"
+    />
+  </section>
+}
+
+<ol class="exercise-view__questions">
+  @for (question of view().questions; track question.id; let index = $index) {
+    <li class="exercise-view__question">
+      <h3 class="exercise-view__question-title">
+        {{ 'student.exercise.question' | transloco: { number: index + 1 } }}
+        @if (solving() && isLocked(question.id)) {
+          <span class="exercise-view__done-badge">{{ 'student.exercise.done' | transloco }}</span>
+        }
+      </h3>
+      @if (question.statement) {
+        <app-markdown-view
+          [markdown]="question.statement"
+          [courseId]="courseId()"
+          [showPrint]="false"
+          [showSettings]="false"
+        />
+      }
+      @if (solving()) {
+        <label class="exercise-view__answer-label">
+          <span>{{ 'student.exercise.yourAnswer' | transloco }}</span>
+          <textarea
+            class="exercise-view__answer"
+            rows="5"
+            [value]="answerText(question.id)"
+            [readOnly]="isLocked(question.id)"
+            (input)="onAnswerInput(question.id, $any($event.target).value)"
+          ></textarea>
+        </label>
+        <div class="exercise-view__question-actions">
+          <button type="button" class="btn btn--secondary" (click)="toggleLocked(question.id)">
+            {{
+              (isLocked(question.id) ? 'student.exercise.edit' : 'student.exercise.markDone')
+                | transloco
+            }}
+          </button>
+          @if (canRequestCorrection(question.id)) {
+            <button
+              type="button"
+              class="btn btn--primary exercise-view__correction-request"
+              (click)="requestCorrection(question.id)"
+            >
+              {{ 'student.exercise.correction.request' | transloco }}
+            </button>
+          }
+        </div>
+        @if (correctionFor(question.id); as correction) {
+          <section class="exercise-view__correction" aria-live="polite">
+            <h4 class="exercise-view__correction-title">
+              {{ 'student.exercise.correction.title' | transloco }}
+            </h4>
+            @switch (correction.status) {
+              @case ('pending') {
+                <p class="exercise-view__correction-pending">
+                  <app-spinner size="sm" />
+                  {{ 'student.exercise.correction.pending' | transloco }}
+                </p>
+              }
+              @case ('done') {
+                <app-markdown-view
+                  [markdown]="correction.feedback"
+                  [courseId]="courseId()"
+                  [showPrint]="false"
+                  [showSettings]="false"
+                />
+              }
+              @case ('error') {
+                <p class="exercise-view__correction-error">
+                  {{ 'student.exercise.correction.error' | transloco }}
+                </p>
+              }
+            }
+          </section>
+        }
+      }
+    </li>
+  }
+</ol>
+
+@if (solving()) {
+  <footer class="exercise-view__footer">
+    @if (storageOk()) {
+      <p class="exercise-view__saved-hint">{{ 'student.exercise.savedHint' | transloco }}</p>
+    }
+    @if (hasAnswers()) {
+      <button
+        type="button"
+        class="btn btn--ghost exercise-view__clear"
+        [class.exercise-view__clear--armed]="clearArmed()"
+        (click)="clearAll()"
+        (blur)="disarmClear()"
+      >
+        {{
+          (clearArmed() ? 'student.exercise.clearConfirm' : 'student.exercise.clear') | transloco
+        }}
+      </button>
+    }
+  </footer>
+}

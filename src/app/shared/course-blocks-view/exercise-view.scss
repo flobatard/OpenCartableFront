@@ -1,0 +1,156 @@
+/* Colonne alignée sur celle des markdown-views : mêmes police, taille et
+   largeur que `.course-content` (_tokens.scss) — le `ch` de --course-width
+   coïncide, les cartes ne débordent pas de la colonne de lecture. Le style de
+   lecture du cours arrive par les variables posées en [style] par l'hôte. */
+:host {
+  display: block;
+  max-width: var(--course-width, 68ch);
+  font-family: var(--course-font, var(--font-sans));
+  font-size: calc(16px * var(--course-font-scale, 1));
+}
+
+.exercise-view__storage-warning {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border-left: 3px solid var(--color-accent);
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.exercise-view__subject {
+  margin-bottom: 24px;
+}
+
+/* Une carte par question (DS §Cartes) ; la numérotation est portée par le
+   titre, pas par la liste. */
+.exercise-view__questions {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.exercise-view__question {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+/* Titre de carte DS (Outfit 600 / 18 px), qui suit le facteur de taille du cours. */
+.exercise-view__question-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: calc(18px * var(--course-font-scale, 1));
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* Badge « terminé » — vert sémantique du DS (jamais l'info par la seule couleur :
+   le libellé texte porte le sens). */
+.exercise-view__done-badge {
+  padding: 2px 8px;
+  background: var(--emerald-100);
+  color: var(--emerald-700);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.exercise-view__answer-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+/* Champ natif (DS §Champs : bordure porteuse slate-500). `field-sizing` fait
+   grandir la zone avec la saisie là où il est supporté ; ailleurs, `rows` et
+   le redimensionnement manuel font le repli. */
+.exercise-view__answer {
+  width: 100%;
+  min-height: 7.5em;
+  padding: 10px 12px;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 1em;
+  line-height: 1.6;
+  resize: vertical;
+  field-sizing: content;
+}
+
+.exercise-view__answer[readonly] {
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+}
+
+.exercise-view__question-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Retour de correction IA : encadré discret sous la réponse (rendu seulement
+   quand une correction existe). */
+.exercise-view__correction {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border-left: 3px solid var(--color-primary);
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.exercise-view__correction-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1em;
+  font-weight: 600;
+}
+
+.exercise-view__correction-pending {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.exercise-view__correction-error {
+  margin: 0;
+  color: var(--text-danger);
+}
+
+.exercise-view__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.exercise-view__saved-hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+.exercise-view__clear--armed {
+  color: var(--text-danger);
+}

@@ -48,7 +48,6 @@
     "unavailable": "Cette ressource n'est pas encore disponible."
   },
   "exercise": {
-    "title": "Exercice",
     "question": "Question {{ number }}",
     "yourAnswer": "Votre réponse",
     "markDone": "Marquer comme terminé",
@@ -57,6 +56,12 @@
     "savedHint": "Vos réponses sont enregistrées sur cet appareil.",
     "storageUnavailable": "Vos réponses ne peuvent pas être enregistrées sur cet appareil (stockage indisponible). Vous pouvez quand même travailler, mais elles seront perdues en quittant la page.",
     "clear": "Effacer mes réponses",
-    "clearConfirm": "Confirmer l'effacement"
+    "clearConfirm": "Confirmer l'effacement",
+    "correction": {
+      "title": "Correction",
+      "request": "Demander une correction",
+      "pending": "Correction en cours…",
+      "error": "La correction n'a pas abouti. Réessayez."
+    }
   }
 }

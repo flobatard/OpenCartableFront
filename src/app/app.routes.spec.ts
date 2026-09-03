@@ -6,10 +6,11 @@ import { serverRoutes } from './app.routes.server';
 
 /**
  * Résolution des routes élèves — l'arbre public mélange des **pages pleines**
- * (`modules/:moduleId`, `exercises/:blockId`, `resources/:resourceId`) et les
- * **onglets** de la coquille (`modules`, `resources`, `content`), sous des
- * chemins volontairement voisins. L'ordre de déclaration est donc un
- * invariant : ces tests le gardent contre toute réorganisation.
+ * (`modules/:moduleId`, `resources/:resourceId`, et la redirection de
+ * l'ancienne page `exercises/:blockId`) et les **onglets** de la coquille
+ * (`modules`, `resources`, `content`), sous des chemins volontairement
+ * voisins. L'ordre de déclaration est donc un invariant : ces tests le
+ * gardent contre toute réorganisation.
  */
 describe('routes élèves', () => {
   /** Un seul TestBed par test, même quand un test résout plusieurs URL. */
@@ -52,9 +53,28 @@ describe('routes élèves', () => {
     // Pages pleines : sœurs de la coquille — deux segments, déclarées avant.
     ['/fr/p/courses/c1/modules/m1', ['p/courses/:courseId', 'modules/:moduleId']],
     ['/fr/p/courses/c1/resources/r1', ['p/courses/:courseId', 'resources/:resourceId']],
-    ['/fr/p/courses/c1/exercises/b1', ['p/courses/:courseId', 'exercises/:blockId']],
+    // Ancienne page pleine d'exercice : redirigée vers le bloc seul, sous la coquille.
+    ['/fr/p/courses/c1/exercises/b1', ['p/courses/:courseId', '', 'blocks/:blockId']],
   ])('resolves %s to the right route', async (url, expected) => {
     expect((await resolve(url)).slice(1)).toEqual(expected);
+  });
+
+  it('redirects the retired exercise page to the block where the exercise is solved', async () => {
+    // Les liens `exercises/:blockId` déjà partagés (J2) restent valides : URL
+    // réécrite vers le bloc, dans le même régime d'accès.
+    expect((await resolve('/fr/shared/tok/exercises/b1')).slice(1)).toEqual([
+      'shared/:token',
+      '',
+      'blocks/:blockId',
+    ]);
+    expect(router().url).toBe('/fr/shared/tok/blocks/b1');
+  });
+
+  it('redirects the docs entry without slug to the first page, client-side', async () => {
+    // Même motif (redirectTo en fonction) : en chaîne, @angular/ssr répondait
+    // un 302 mal résolu (`/fr/markdown-language/markdown-language/docs/katex`).
+    await resolve('/fr/markdown-language/docs');
+    expect(router().url).toBe('/fr/markdown-language/docs/katex');
   });
 
   it('resolves the same tree behind a share link', async () => {

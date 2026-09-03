@@ -1,13 +1,14 @@
-import { Component, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CourseBlock } from '../../core/courses/course.model';
 import { payloadFromDocumentContent } from '../../core/courses/document-form';
-import { exerciseMarkdownFromContent } from '../../core/courses/exercise-form';
 import { CourseResource } from '../../core/resources/resource.model';
+import { CorrectionRequest, QuestionCorrection } from '../../core/student/exercise-correction';
 import { MarkdownView } from '../markdown-view/markdown-view';
 import { ModuleEmbed } from '../module-runner/module-embed';
 import { CoursePreviewDocument } from './course-preview-document';
+import { ExerciseView, ExerciseViewMode } from './exercise-view';
 
 /**
  * Rendu en lecture des blocs d'un cours, dans l'ordre du back — extraction de
@@ -17,13 +18,21 @@ import { CoursePreviewDocument } from './course-preview-document';
  * par les résolveurs injectés (`COURSE_*_RESOLVER`) des composants enfants —
  * prof par défaut, publics sur les routes élèves.
  *
- * Vue élève par construction : les réponses attendues des exercices sont
- * exclues du markdown (`exerciseMarkdownFromContent`) — et côté routes
- * publiques, le back ne les sert même pas.
+ * Vue élève par construction : un bloc exercice est rendu par `ExerciseView`
+ * (sujet puis cartes « Question n »), dont la projection
+ * `exerciseViewFromContent` exclut les réponses attendues — et côté routes
+ * publiques, le back ne les sert même pas. `exerciseMode` choisit son mode :
+ * `preview` (défaut — Aperçu prof, cours entier : énoncés seuls) ou `solve`
+ * (le bloc seul de la vue élève : zones de réponse, réponses en localStorage).
  *
- * `exerciseLink` (optionnel) : commandes routerLink de l'écran de résolution
- * d'un bloc exercice — un CTA « Résoudre l'exercice » s'affiche sous le bloc.
- * `null` (défaut, contexte prof) : pas de CTA.
+ * `exerciseLink` (optionnel) : commandes routerLink de la page où l'exercice
+ * se résout (le bloc seul) — un CTA « Résoudre l'exercice » s'affiche sous le
+ * bloc. `null` (défaut : contexte prof, ou bloc déjà en mode `solve`) : pas
+ * de CTA.
+ *
+ * Slot de correction IA (dormant, relayé tel quel à `ExerciseView`) :
+ * `correctionEnabled`, `corrections` (par id de question) et
+ * `correctionRequested` — à câbler par l'hôte le jour où l'appel élève existe.
  *
  * Garde la classe `.course-preview__block` : `_print.scss` (global) s'appuie
  * dessus pour paginer l'export PDF (un bloc par page).
@@ -31,7 +40,14 @@ import { CoursePreviewDocument } from './course-preview-document';
  */
 @Component({
   selector: 'app-course-blocks-view',
-  imports: [TranslocoPipe, RouterLink, MarkdownView, CoursePreviewDocument, ModuleEmbed],
+  imports: [
+    TranslocoPipe,
+    RouterLink,
+    MarkdownView,
+    CoursePreviewDocument,
+    ModuleEmbed,
+    ExerciseView,
+  ],
   templateUrl: './course-blocks-view.html',
   styleUrl: './course-blocks-view.scss',
 })
@@ -41,17 +57,18 @@ export class CourseBlocksView {
   readonly courseId = input.required<string>();
   /** Ressources du cours (résolution des blocs document). */
   readonly resources = input<readonly CourseResource[]>([]);
-  /** Lien vers l'écran de résolution d'un exercice (`null` = pas de CTA). */
+  /** Lien vers la page où l'exercice se résout (`null` = pas de CTA). */
   readonly exerciseLink = input<((blockId: string) => string[]) | null>(null);
+  /** Mode de rendu des blocs exercice (cf. `ExerciseView`). */
+  readonly exerciseMode = input<ExerciseViewMode>('preview');
+  /** Slot de correction IA des exercices — relais dormant vers `ExerciseView`. */
+  readonly correctionEnabled = input(false);
+  readonly corrections = input<Readonly<Record<string, QuestionCorrection>>>({});
+  readonly correctionRequested = output<CorrectionRequest>();
 
   /** Markdown d'un bloc texte (`content.markdown`, gardé string). */
   protected textMarkdown(block: CourseBlock): string {
     return typeof block.content['markdown'] === 'string' ? block.content['markdown'] : '';
-  }
-
-  /** Markdown concaténé d'un bloc exercice (sujet + énoncés, réponses exclues). */
-  protected exerciseMarkdown(block: CourseBlock): string {
-    return exerciseMarkdownFromContent(block.content);
   }
 
   /** Légende éditoriale d'un bloc document (`content.caption`, gardé string). */

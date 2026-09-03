@@ -50,9 +50,9 @@ export class StudentContent {
   /** Conteneur des blocs rendus — source de l'export PDF. */
   protected readonly content = viewChild<ElementRef<HTMLElement>>('content');
 
-  /** CTA « Résoudre l'exercice » : page pleine dédiée, même régime d'accès. */
+  /** CTA « Résoudre l'exercice » : le bloc seul, où l'exercice se résout (même régime d'accès). */
   protected readonly exerciseLink = (blockId: string): string[] =>
-    publicCourseLink(this.#language.lang(), this.#courses.access(), 'exercises', blockId);
+    publicCourseLink(this.#language.lang(), this.#courses.access(), 'blocks', blockId);
 
   /** Exporte le cours entier en PDF — liens stables du régime public. */
   protected async download(): Promise<void> {
