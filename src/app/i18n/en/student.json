@@ -78,7 +78,12 @@
       "replyPlaceholder": "Reply, ask for a hint or ask a question about the course…",
       "send": "Send",
       "loginHint": "Sign in to ask the AI tutor for a correction.",
-      "login": "Sign in"
+      "login": "Sign in",
+      "clearThread": "Clear this thread",
+      "clearThreadConfirm": "Confirm clearing",
+      "clearAll": "Clear my exchanges with the tutor",
+      "clearAllConfirm": "Confirm clearing",
+      "clearError": "Clearing failed. Please try again."
     }
   }
 }

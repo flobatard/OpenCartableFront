@@ -179,6 +179,28 @@
                     ) | transloco
                   }}
                 </button>
+                @if (submissionCount(group) > 0 && group.controls.id.value; as questionId) {
+                  <button
+                    type="button"
+                    class="btn btn--ghost exercise-editor__clear-submissions"
+                    [class.exercise-editor__delete--armed]="
+                      pendingSubmissionsClear() === questionId
+                    "
+                    [attr.aria-label]="
+                      'courses.editor.exercise.submissions.clearQuestionAria'
+                        | transloco: { index: i + 1, count: submissionCount(group) }
+                    "
+                    (click)="clearSubmissions(questionId)"
+                    (blur)="disarmSubmissionsClear()"
+                  >
+                    {{
+                      (pendingSubmissionsClear() === questionId
+                        ? 'courses.editor.exercise.submissions.clearConfirm'
+                        : 'courses.editor.exercise.submissions.clearQuestion'
+                      ) | transloco: { count: submissionCount(group) }
+                    }}
+                  </button>
+                }
               </div>
             </div>
 
@@ -229,14 +251,32 @@
       </ol>
     }
 
-    <button
-      type="button"
-      class="btn btn--primary exercise-editor__add"
-      [disabled]="maxReached()"
-      (click)="add()"
-    >
-      {{ 'courses.editor.exercise.add' | transloco }}
-    </button>
+    <div class="exercise-editor__questions-actions">
+      <button
+        type="button"
+        class="btn btn--primary exercise-editor__add"
+        [disabled]="maxReached()"
+        (click)="add()"
+      >
+        {{ 'courses.editor.exercise.add' | transloco }}
+      </button>
+      @if (submissionTotal() > 0) {
+        <button
+          type="button"
+          class="btn btn--ghost exercise-editor__clear-all-submissions"
+          [class.exercise-editor__delete--armed]="pendingSubmissionsClear() === '*'"
+          (click)="clearSubmissions('*')"
+          (blur)="disarmSubmissionsClear()"
+        >
+          {{
+            (pendingSubmissionsClear() === '*'
+              ? 'courses.editor.exercise.submissions.clearConfirm'
+              : 'courses.editor.exercise.submissions.clearAll'
+            ) | transloco: { count: submissionTotal() }
+          }}
+        </button>
+      }
+    </div>
   </section>
 
   <!-- Panneau aperçu : pas de Monaco dedans → @if (patron `markdown-field`),

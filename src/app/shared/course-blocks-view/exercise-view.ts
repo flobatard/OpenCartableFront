@@ -28,6 +28,7 @@ import {
   CorrectionRequest,
   QuestionThread,
   SubmissionTurn,
+  ThreadsClearRequest,
 } from '../../core/student/exercise-correction';
 import { MarkdownView } from '../markdown-view/markdown-view';
 import { Spinner } from '../spinner/spinner';
@@ -61,8 +62,10 @@ export const ANSWER_SAVE_DEBOUNCE_MS = 500;
  * retour du tuteur en markdown, badge de verdict —, le tour en cours (spinner
  * puis texte streamé), l'erreur par statut, l'encart « Réponse attendue »
  * quand le corrigé a été révélé, et un composer « Répondre / demander de
- * l'aide » (`kind: 'message'`). Sans session (`correctionLoginHint`), une
- * notice invite à se connecter (`loginRequested`). Les citations
+ * l'aide » (`kind: 'message'`), et l'élève peut **effacer** ses échanges —
+ * un fil (« Effacer ce fil ») ou tous ceux du bloc (pied de carte), en deux
+ * temps désarmés au blur (`threadsClearRequested`). Sans session
+ * (`correctionLoginHint`), une notice invite à se connecter (`loginRequested`). Les citations
  * `oc-block:` des retours naviguent vers `blockLink(id)` quand l'hôte le
  * fournit (re-garde `isBlockId`).
  *
@@ -102,6 +105,7 @@ export class ExerciseView implements OnDestroy {
   /** Commandes de navigation vers un bloc cité (`oc-block:`), ou `null`. */
   readonly blockLink = input<((blockId: string) => string[]) | null>(null);
   readonly correctionRequested = output<CorrectionRequest>();
+  readonly threadsClearRequested = output<ThreadsClearRequest>();
   readonly loginRequested = output<void>();
 
   protected readonly view = computed(() => exerciseViewFromContent(this.content()));
@@ -119,6 +123,12 @@ export class ExerciseView implements OnDestroy {
   );
   /** Brouillons du composer « Répondre » par id de question (non persistés). */
   protected readonly replies = signal<Record<string, string>>({});
+  /** Effacement de fil armé : id de question, `'*'` pour tout le bloc, sinon `null`. */
+  protected readonly clearThreadArmed = signal<string | null>(null);
+  /** Au moins un fil persisté sur le bloc (bouton d'effacement global). */
+  protected readonly hasThreads = computed(() =>
+    Object.values(this.threads()).some((t) => t.turns.length > 0),
+  );
 
   /** localStorage, résolu paresseusement au premier besoin (mode solve, navigateur). */
   #storage: Storage | null | undefined;
@@ -147,6 +157,7 @@ export class ExerciseView implements OnDestroy {
         this.storageOk.set(storage !== null);
         this.clearArmed.set(false);
         this.replies.set({});
+        this.clearThreadArmed.set(null);
       });
     });
   }
@@ -228,6 +239,35 @@ export class ExerciseView implements OnDestroy {
       event.preventDefault();
       this.sendReply(questionId);
     }
+  }
+
+  /** Bouton d'effacement d'un fil : visible si des tours existent, hors tour en cours. */
+  protected canClearThread(questionId: string): boolean {
+    const thread = this.threadFor(questionId);
+    return (
+      this.correctionEnabled() &&
+      thread !== undefined &&
+      thread.turns.length > 0 &&
+      !this.turnActive(questionId)
+    );
+  }
+
+  /** Efface un fil (`questionId`) ou tous (`'*'`) — deux temps : arme, puis confirme. */
+  protected clearThreads(target: string): void {
+    if (this.clearThreadArmed() !== target) {
+      this.clearThreadArmed.set(target);
+      return;
+    }
+    this.clearThreadArmed.set(null);
+    this.threadsClearRequested.emit({
+      blockId: this.blockId(),
+      questionId: target === '*' ? null : target,
+    });
+  }
+
+  /** Quitter le bouton armé (focus ailleurs) annule l'effacement. */
+  protected disarmClearThreads(): void {
+    this.clearThreadArmed.set(null);
   }
 
   /** Clé i18n du badge de verdict d'un tour (`null` sans verdict évaluable). */

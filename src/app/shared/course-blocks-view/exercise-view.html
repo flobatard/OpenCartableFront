@@ -167,6 +167,22 @@
                 <p class="exercise-view__revealed-answer">{{ answer }}</p>
               </div>
             }
+            @if (canClearThread(question.id)) {
+              <button
+                type="button"
+                class="btn btn--ghost exercise-view__clear-thread"
+                [class.exercise-view__clear--armed]="clearThreadArmed() === question.id"
+                (click)="clearThreads(question.id)"
+                (blur)="disarmClearThreads()"
+              >
+                {{
+                  (clearThreadArmed() === question.id
+                    ? 'student.exercise.correction.clearThreadConfirm'
+                    : 'student.exercise.correction.clearThread'
+                  ) | transloco
+                }}
+              </button>
+            }
             @if (correctionEnabled()) {
               <div class="exercise-view__composer">
                 <textarea
@@ -211,6 +227,22 @@
       >
         {{
           (clearArmed() ? 'student.exercise.clearConfirm' : 'student.exercise.clear') | transloco
+        }}
+      </button>
+    }
+    @if (correctionEnabled() && hasThreads()) {
+      <button
+        type="button"
+        class="btn btn--ghost exercise-view__clear-threads"
+        [class.exercise-view__clear--armed]="clearThreadArmed() === '*'"
+        (click)="clearThreads('*')"
+        (blur)="disarmClearThreads()"
+      >
+        {{
+          (clearThreadArmed() === '*'
+            ? 'student.exercise.correction.clearAllConfirm'
+            : 'student.exercise.correction.clearAll'
+          ) | transloco
         }}
       </button>
     }

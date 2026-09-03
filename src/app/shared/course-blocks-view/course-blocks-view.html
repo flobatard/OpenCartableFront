@@ -30,6 +30,7 @@
             [threads]="threads()"
             [blockLink]="blockLink()"
             (correctionRequested)="correctionRequested.emit($event)"
+            (threadsClearRequested)="threadsClearRequested.emit($event)"
             (loginRequested)="loginRequested.emit()"
           />
           @if (exerciseLinkFor(block); as link) {

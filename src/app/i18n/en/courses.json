@@ -123,7 +123,15 @@
       "collapse": "Collapse question {{index}}",
       "remove": "Delete question {{index}}",
       "removeLabel": "Delete",
-      "removeConfirm": "Confirm deletion"
+      "removeConfirm": "Confirm deletion",
+      "submissions": {
+        "clearQuestion": "Student answers ({{count}}) — clear",
+        "clearQuestionAria": "Clear the {{count}} student answers of question {{index}}",
+        "clearAll": "Clear all student answers ({{count}})",
+        "clearConfirm": "Confirm clearing",
+        "cleared": "{{count}} student answer(s) cleared.",
+        "clearError": "Clearing the answers failed. Please try again."
+      }
     },
     "document": {
       "resourceLabel": "Course resource",

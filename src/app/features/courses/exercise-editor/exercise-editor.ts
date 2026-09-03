@@ -76,6 +76,13 @@ const TAB_ORDER: readonly ExerciseTab[] = ['statement', 'questions', 'preview'];
  * = cible introuvable (question supprimée entre-temps) : rien n'est appliqué.
  * Les champs sont retrouvés par refs de template (`#statementField`,
  * `#questionField` — `viewChildren` en ordre DOM = ordre de la FormArray).
+ *
+ * **Tentatives des élèves** (tuteur IA, J5) : l'hôte passe le résumé
+ * (`submissionCounts` par id de question, `submissionTotal`) ; un bouton
+ * « Effacer les réponses » par question sauvée et un pour tout l'exercice
+ * n'apparaissent que s'il y a quelque chose à effacer, en deux temps désarmés
+ * au blur, et émettent `submissionsClearRequested` (`questionId` ou `null`) —
+ * l'hôte fait l'appel et le toast. Une question nouvelle (`id: null`) n'a rien.
  */
 @Component({
   selector: 'app-exercise-editor',
@@ -99,6 +106,11 @@ export class ExerciseEditor {
       en cours ne doit pas être écrasée). */
   readonly initial = input.required<Record<string, unknown>>();
   readonly contentChange = output<ExerciseContentPayload>();
+
+  /** Tentatives des élèves par id de question (vue prof, cf. doc de classe). */
+  readonly submissionCounts = input<Readonly<Record<string, number>>>({});
+  readonly submissionTotal = input(0);
+  readonly submissionsClearRequested = output<{ questionId: string | null }>();
 
   /**
    * Cours propriétaire des ressources — descendu à chaque `app-markdown-field`
@@ -145,6 +157,9 @@ export class ExerciseEditor {
 
   /** Index de la question « armée » pour suppression (le 2e clic confirme). */
   protected readonly pendingDelete = signal<number | null>(null);
+
+  /** Effacement des tentatives armé : id de question, `'*'` (exercice entier), ou `null`. */
+  protected readonly pendingSubmissionsClear = signal<string | null>(null);
 
   protected readonly maxReached = signal(false);
 
@@ -233,6 +248,26 @@ export class ExerciseEditor {
   /** Quitter le bouton armé (focus ailleurs) annule la suppression. */
   protected disarmDelete(): void {
     this.pendingDelete.set(null);
+  }
+
+  /** Tentatives d'élèves connues sur une question sauvée (0 sinon). */
+  protected submissionCount(group: ExerciseQuestionGroup): number {
+    const id = group.controls.id.value;
+    return id === null ? 0 : (this.submissionCounts()[id] ?? 0);
+  }
+
+  /** Efface les tentatives d'une question (`id`) ou de tout l'exercice (`'*'`) — deux temps. */
+  protected clearSubmissions(target: string): void {
+    if (this.pendingSubmissionsClear() !== target) {
+      this.pendingSubmissionsClear.set(target);
+      return;
+    }
+    this.pendingSubmissionsClear.set(null);
+    this.submissionsClearRequested.emit({ questionId: target === '*' ? null : target });
+  }
+
+  protected disarmSubmissionsClear(): void {
+    this.pendingSubmissionsClear.set(null);
   }
 
   protected move(index: number, delta: 1 | -1): void {

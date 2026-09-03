@@ -8,6 +8,11 @@ import { AssistantChatState } from '../../../core/course-assistant/assistant-cha
 import { AssistantPendingProposal } from '../../../core/course-assistant/proposals';
 import { CourseBlock, CourseDetail } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
+import { NotificationService } from '../../../core/notifications/notification.service';
+import {
+  ExerciseSubmissionsService,
+  SubmissionSummary,
+} from '../../../core/courses/exercise-submissions.service';
 import { addQuestion, ExerciseForm } from '../../../core/courses/exercise-form';
 import { ModuleSummary } from '../../../core/modules/module.model';
 import { ModuleService } from '../../../core/modules/module.service';
@@ -94,6 +99,13 @@ describe('BlockEditor', () => {
     ).form;
   }
 
+  /** Résumé des tentatives des élèves (éditeur d'exercice) — mock à signaux. */
+  const submissionsMock = {
+    summary: signal<SubmissionSummary | null>(null),
+    loadSummary: vi.fn().mockResolvedValue(undefined),
+    clear: vi.fn().mockResolvedValue(2),
+  };
+
   /** Instance d'état du chat ancré (mock), substituée au provider du composant. */
   let assistantState: ReturnType<typeof mockAssistantChatState>;
 
@@ -109,6 +121,7 @@ describe('BlockEditor', () => {
         { provide: CourseService, useValue: coursesMock },
         { provide: ResourceService, useValue: resourcesMock },
         { provide: ModuleService, useValue: modulesMock },
+        { provide: ExerciseSubmissionsService, useValue: submissionsMock },
         // Le chat ancré d'un bloc texte est réel (mode block) : son bandeau
         // réglages injecte AiCredentialsService.
         { provide: AiCredentialsService, useValue: mockAiCredentialsService() },
@@ -368,6 +381,23 @@ describe('BlockEditor', () => {
     expect(form.controls.statement.value).toBe(EXERCISE_SUJET);
     expect(form.controls.questions.length).toBe(1);
     expect(form.controls.questions.at(0).controls.id.value).toBe('q-1');
+  });
+
+  it('exercise block: loads the student submissions summary and clears them with a toast', async () => {
+    submissionsMock.summary.set({ total: 2, byQuestion: { 'q-1': 2 } });
+    const fixture = await createComponent('block-3');
+
+    expect(submissionsMock.loadSummary).toHaveBeenCalledWith('course-1', 'block-3');
+    const button = el(fixture).querySelector<HTMLButtonElement>(
+      '.exercise-editor__clear-all-submissions',
+    )!;
+    expect(button).not.toBeNull();
+    button.click();
+    button.click();
+    await fixture.whenStable();
+
+    expect(submissionsMock.clear).toHaveBeenCalledWith('course-1', 'block-3', null);
+    expect(TestBed.inject(NotificationService).toasts().at(-1)?.severity).toBe('success');
   });
 
   it('exercise autosave: typing in the form → one debounced PATCH with the full payload', async () => {

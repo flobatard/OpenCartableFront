@@ -155,8 +155,11 @@
                 <app-exercise-editor
                   [initial]="block.content"
                   [courseId]="courseId"
+                  [submissionCounts]="submissionSummary()?.byQuestion ?? {}"
+                  [submissionTotal]="submissionSummary()?.total ?? 0"
                   [class.block-editor__field--reviewing]="proposals.pending() !== null"
                   (contentChange)="onExerciseDraft($event)"
+                  (submissionsClearRequested)="onSubmissionsClear($event)"
                 />
               }
               @if (proposals.review(); as review) {

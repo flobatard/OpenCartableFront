@@ -123,7 +123,15 @@
       "collapse": "Replier la question {{index}}",
       "remove": "Supprimer la question {{index}}",
       "removeLabel": "Supprimer",
-      "removeConfirm": "Confirmer la suppression"
+      "removeConfirm": "Confirmer la suppression",
+      "submissions": {
+        "clearQuestion": "Réponses d'élèves ({{count}}) — effacer",
+        "clearQuestionAria": "Effacer les {{count}} réponses d'élèves de la question {{index}}",
+        "clearAll": "Effacer toutes les réponses des élèves ({{count}})",
+        "clearConfirm": "Confirmer l'effacement",
+        "cleared": "{{count}} réponse(s) d'élèves effacée(s).",
+        "clearError": "L'effacement des réponses a échoué. Réessaie."
+      }
     },
     "document": {
       "resourceLabel": "Ressource du cours",

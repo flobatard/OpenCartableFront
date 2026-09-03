@@ -13,7 +13,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { concatMap, debounceTime, merge, Subject, tap } from 'rxjs';
 import {
   buildBlockMetaForm,
@@ -38,8 +38,10 @@ import {
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
 import { CourseService } from '../../../core/courses/course.service';
 import { CourseStyleService } from '../../../core/courses/course-style.service';
+import { ExerciseSubmissionsService } from '../../../core/courses/exercise-submissions.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { ModuleService } from '../../../core/modules/module.service';
+import { NotificationService } from '../../../core/notifications/notification.service';
 import { ResourceService } from '../../../core/resources/resource.service';
 import { MarkdownField } from '../../../shared/markdown-field/markdown-field';
 import { CourseChat } from '../course-chat/course-chat';
@@ -114,6 +116,11 @@ type MetaSaveState = 'idle' | 'saving' | 'saved' | 'error';
 export class BlockEditor implements OnInit, OnDestroy {
   readonly #courses = inject(CourseService);
   readonly #courseStyle = inject(CourseStyleService);
+  readonly #submissions = inject(ExerciseSubmissionsService);
+  readonly #notifications = inject(NotificationService);
+  readonly #transloco = inject(TranslocoService);
+  /** Tentatives des élèves sur l'exercice édité (résumé prof, boutons d'effacement). */
+  protected readonly submissionSummary = this.#submissions.summary;
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   readonly #route = inject(ActivatedRoute);
   /** Params lus en snapshot (pas de withComponentInputBinding dans ce projet). */
@@ -325,6 +332,8 @@ export class BlockEditor implements OnInit, OnDestroy {
         this.#initialized = true;
         this.#lastSaved = JSON.stringify(payloadFromBlockContent(block.content));
         this.#assistantState.configure({ context: 'block_exercise', blockId: this.blockId });
+        // Résumé des tentatives des élèves (tuteur IA) — une fois par page.
+        void this.#submissions.loadSummary(this.courseId, this.blockId);
       } else if (block.type === 'document') {
         this.#initialized = true;
         this.#lastSaved = JSON.stringify(payloadFromDocumentContent(block.content));
@@ -427,6 +436,27 @@ export class BlockEditor implements OnInit, OnDestroy {
       le pipeline d'autosave (le payload transmis ne sert que de déclencheur). */
   protected onExerciseDraft(payload: ExerciseContentPayload): void {
     this.#exerciseDrafts.next(payload);
+  }
+
+  /** Effacement des tentatives des élèves (question ou exercice entier) demandé
+      par l'éditeur d'exercice : appel puis toast (nombre effacé, ou échec). */
+  protected async onSubmissionsClear(request: { questionId: string | null }): Promise<void> {
+    try {
+      const deleted = await this.#submissions.clear(
+        this.courseId,
+        this.blockId,
+        request.questionId,
+      );
+      this.#notifications.success(
+        this.#transloco.translate('courses.editor.exercise.submissions.cleared', {
+          count: deleted,
+        }),
+      );
+    } catch {
+      this.#notifications.error(
+        this.#transloco.translate('courses.editor.exercise.submissions.clearError'),
+      );
+    }
   }
 
   /** Frappes légende/affichage du bloc document — même pipeline d'autosave. */

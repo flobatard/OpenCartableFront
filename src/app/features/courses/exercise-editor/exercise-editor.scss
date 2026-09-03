@@ -80,10 +80,14 @@
   border-radius: var(--radius);
 }
 
-.exercise-editor__hint {
-  margin: 0;
+.exercise-editor__hint,
+.exercise-editor__label {
   color: var(--text-secondary);
   font-size: 13px;
+}
+
+.exercise-editor__hint {
+  margin: 0;
 }
 
 .exercise-editor__empty {
@@ -119,11 +123,9 @@
   overflow: hidden;
 }
 
-/* Question dépliée : se dimensionne à son contenu (en-tête + éditeur à hauteur
-   fixe + réponse) ; quand les en-têtes s'accumulent, c'est la liste qui défile. */
-.exercise-editor__question--open {
-  flex: 0 0 auto;
-}
+/* Question dépliée (`--open`) : même `flex: 0 0 auto` — elle se dimensionne à
+   son contenu (en-tête + éditeur à hauteur fixe + réponse) ; quand les
+   en-têtes s'accumulent, c'est la liste qui défile. */
 
 .exercise-editor__question-head {
   display: flex;
@@ -200,6 +202,13 @@
   color: var(--text-danger);
 }
 
+/* Ajouter une question | Effacer les réponses des élèves (exercice entier). */
+.exercise-editor__questions-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 /* Flèches discrètes : atténuées au repos, révélées au survol/focus de l'en-tête
    (repli d'accessibilité du glisser-déposer). La poignée est l'utilitaire global
    `.drag-handle` (_components.scss). */
@@ -274,8 +283,6 @@
 }
 
 .exercise-editor__label {
-  color: var(--text-secondary);
-  font-size: 13px;
   font-weight: 600;
 }
 
@@ -296,6 +303,3 @@
   color: var(--text-secondary);
 }
 
-.exercise-editor__add {
-  align-self: flex-start;
-}

@@ -48,6 +48,7 @@ describe('StudentBlock', () => {
     loadError: signal(false),
     loadThreads: vi.fn().mockResolvedValue(undefined),
     submit: vi.fn().mockResolvedValue(undefined),
+    clearThreads: vi.fn().mockResolvedValue(true),
   };
 
   const moduleResolverMock = {
@@ -242,6 +243,36 @@ describe('StudentBlock', () => {
         kind: 'answer',
         content: 'Ma réponse',
       });
+    });
+
+    it('relays a thread clearing to the service', async () => {
+      authMock.isAuthenticated.set(true);
+      submissionsMock.threads.set({
+        'q-1': {
+          turns: [
+            {
+              id: 't1',
+              kind: 'answer',
+              content: '0',
+              feedback: 'Non.',
+              verdict: 'incorrect',
+              effort: 'insufficient',
+              revealed: false,
+              created_at: '',
+            },
+          ],
+          live: null,
+          error: null,
+          revealedAnswer: null,
+        },
+      });
+      const fixture = await createComponent('block-3');
+      const button = el(fixture).querySelector<HTMLButtonElement>('.exercise-view__clear-thread')!;
+      button.click();
+      button.click();
+      await fixture.whenStable();
+
+      expect(submissionsMock.clearThreads).toHaveBeenCalledWith('course-1', 'block-3', 'q-1');
     });
 
     it('does not load threads for a non-exercise block', async () => {

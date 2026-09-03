@@ -225,6 +225,36 @@ describe('StudentSubmissionService', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('clears one thread server-side then locally', async () => {
+    await load();
+    const promise = service.clearThreads('course-1', 'block-3', 'q-1');
+    const req = http.expectOne((r) => r.url === `${BASE}/submissions`);
+    expect(req.request.method).toBe('DELETE');
+    expect(req.request.params.get('question_id')).toBe('q-1');
+    req.flush({ deleted: 1 });
+
+    expect(await promise).toBe(true);
+    expect(service.threads()).toEqual({});
+  });
+
+  it('clears the whole block and reports failures', async () => {
+    access.set({ mode: 'token', key: 'tok' });
+    await load();
+    let promise = service.clearThreads('course-1', 'block-3', null);
+    let req = http.expectOne((r) => r.url === `${BASE}/submissions`);
+    expect(req.request.params.get('token')).toBe('tok');
+    expect(req.request.params.has('question_id')).toBe(false);
+    req.flush('nope', { status: 404, statusText: 'Not Found' });
+    expect(await promise).toBe(false);
+    expect(Object.keys(service.threads())).toEqual(['q-1']);
+
+    promise = service.clearThreads('course-1', 'block-3', null);
+    req = http.expectOne((r) => r.url === `${BASE}/submissions`);
+    req.flush({ deleted: 1 });
+    expect(await promise).toBe(true);
+    expect(service.threads()).toEqual({});
+  });
+
   it('purges everything when the session closes', async () => {
     await load();
     expect(Object.keys(service.threads())).toEqual(['q-1']);

@@ -7,6 +7,7 @@ import {
   CorrectionRequest,
   QuestionThread,
   SubmissionTurn,
+  ThreadsClearRequest,
 } from '../../core/student/exercise-correction';
 import { PUBLIC_COURSE_RESOURCES_FIXTURE } from '../../testing/public-courses.fixture';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
@@ -423,6 +424,50 @@ describe('ExerciseView', () => {
       fixture.componentRef.setInput('threads', { 'q-1': { ...doneThread('x'), error: 503 } });
       await fixture.whenStable();
       expect(el(fixture).querySelector('.exercise-view__correction-error a')).toBeNull();
+    });
+
+    it('clears one thread or all of them in two steps, disarmed on blur', async () => {
+      const fixture = await createComponent({
+        mode: 'solve',
+        correctionEnabled: true,
+        threads: { 'q-1': doneThread('Indice.'), 'q-2': doneThread('Autre.') },
+      });
+      const requested: ThreadsClearRequest[] = [];
+      fixture.componentInstance.threadsClearRequested.subscribe((r) => requested.push(r));
+      const threadButton = () =>
+        el(fixture).querySelector<HTMLButtonElement>('.exercise-view__clear-thread')!;
+      const allButton = () =>
+        el(fixture).querySelector<HTMLButtonElement>('.exercise-view__clear-threads')!;
+
+      threadButton().click();
+      await fixture.whenStable();
+      expect(requested).toEqual([]);
+      expect(threadButton().classList.contains('exercise-view__clear--armed')).toBe(true);
+      threadButton().dispatchEvent(new Event('blur'));
+      await fixture.whenStable();
+      expect(threadButton().classList.contains('exercise-view__clear--armed')).toBe(false);
+
+      threadButton().click();
+      threadButton().click();
+      expect(requested).toEqual([{ blockId: 'block-3', questionId: 'q-1' }]);
+
+      allButton().click();
+      allButton().click();
+      expect(requested[1]).toEqual({ blockId: 'block-3', questionId: null });
+    });
+
+    it('hides the clear buttons while a turn is running or without turns', async () => {
+      const fixture = await createComponent({
+        mode: 'solve',
+        correctionEnabled: true,
+        threads: {
+          'q-1': { ...doneThread('x'), live: { kind: 'answer', content: '7', text: '' } },
+          'q-2': { turns: [], live: null, error: null, revealedAnswer: null },
+        },
+      });
+      expect(el(fixture).querySelector('.exercise-view__clear-thread')).toBeNull();
+      // Le bloc a bien un fil persisté (q-1) : le bouton global reste offert.
+      expect(el(fixture).querySelector('.exercise-view__clear-threads')).not.toBeNull();
     });
 
     it('navigates to a cited block through blockLink (guarded by isBlockId)', async () => {

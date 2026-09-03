@@ -4,7 +4,11 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { CourseBlock } from '../../core/courses/course.model';
 import { payloadFromDocumentContent } from '../../core/courses/document-form';
 import { CourseResource } from '../../core/resources/resource.model';
-import { CorrectionRequest, QuestionThread } from '../../core/student/exercise-correction';
+import {
+  CorrectionRequest,
+  QuestionThread,
+  ThreadsClearRequest,
+} from '../../core/student/exercise-correction';
 import { MarkdownView } from '../markdown-view/markdown-view';
 import { ModuleEmbed } from '../module-runner/module-embed';
 import { CoursePreviewDocument } from './course-preview-document';
@@ -33,8 +37,8 @@ import { ExerciseView, ExerciseViewMode } from './exercise-view';
  * Tuteur IA des exercices (relayé tel quel à `ExerciseView`, câblé par
  * `StudentBlock` pour l'élève connecté) : `correctionEnabled`,
  * `correctionLoginHint`, `threads` (fils par id de question), `blockLink`
- * (navigation des citations `oc-block:`), `correctionRequested` et
- * `loginRequested`.
+ * (navigation des citations `oc-block:`), `correctionRequested`,
+ * `threadsClearRequested` et `loginRequested`.
  *
  * Garde la classe `.course-preview__block` : `_print.scss` (global) s'appuie
  * dessus pour paginer l'export PDF (un bloc par page).
@@ -69,6 +73,7 @@ export class CourseBlocksView {
   readonly threads = input<Readonly<Record<string, QuestionThread>>>({});
   readonly blockLink = input<((blockId: string) => string[]) | null>(null);
   readonly correctionRequested = output<CorrectionRequest>();
+  readonly threadsClearRequested = output<ThreadsClearRequest>();
   readonly loginRequested = output<void>();
 
   /** Markdown d'un bloc texte (`content.markdown`, gardé string). */

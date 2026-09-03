@@ -478,4 +478,42 @@ describe('ExerciseEditor', () => {
       expect(seen.length).toBe(1);
     });
   });
+
+  describe('student submissions (teacher clearing)', () => {
+    it('shows nothing without a summary', async () => {
+      const fixture = await createComponent();
+      expect(el(fixture).querySelector('.exercise-editor__clear-submissions')).toBeNull();
+      expect(el(fixture).querySelector('.exercise-editor__clear-all-submissions')).toBeNull();
+    });
+
+    it('offers per-question and whole-exercise clearing in two steps', async () => {
+      const fixture = await createComponent();
+      fixture.componentRef.setInput('submissionCounts', { 'q-1': 3 });
+      fixture.componentRef.setInput('submissionTotal', 3);
+      await fixture.whenStable();
+      const requested: { questionId: string | null }[] = [];
+      fixture.componentInstance.submissionsClearRequested.subscribe((r) => requested.push(r));
+
+      const perQuestion = el(fixture).querySelectorAll<HTMLButtonElement>(
+        '.exercise-editor__clear-submissions',
+      );
+      // Seule q-1 a des tentatives connues.
+      expect(perQuestion.length).toBe(1);
+      expect(perQuestion[0].textContent).toContain('3');
+      perQuestion[0].click();
+      expect(requested).toEqual([]);
+      perQuestion[0].click();
+      expect(requested).toEqual([{ questionId: 'q-1' }]);
+
+      const all = el(fixture).querySelector<HTMLButtonElement>(
+        '.exercise-editor__clear-all-submissions',
+      )!;
+      all.click();
+      all.dispatchEvent(new Event('blur'));
+      all.click();
+      expect(requested.length).toBe(1);
+      all.click();
+      expect(requested[1]).toEqual({ questionId: null });
+    });
+  });
 });

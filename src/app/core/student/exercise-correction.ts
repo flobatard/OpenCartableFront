@@ -51,6 +51,13 @@ export interface CorrectionRequest {
   content: string;
 }
 
+/** Effacement demandé par la vue (`threadsClearRequested`) : une question, ou tout le bloc. */
+export interface ThreadsClearRequest {
+  blockId: string;
+  /** `null` = tous les fils du bloc. */
+  questionId: string | null;
+}
+
 /** Réponse de `GET …/submissions`. */
 export interface SubmissionsRead {
   questions: Record<string, { turns: SubmissionTurn[]; revealed_answer: string | null }>;

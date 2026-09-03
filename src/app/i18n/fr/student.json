@@ -78,7 +78,12 @@
       "replyPlaceholder": "Répondre, demander un indice ou poser une question sur le cours…",
       "send": "Envoyer",
       "loginHint": "Connectez-vous pour demander une correction au tuteur IA.",
-      "login": "Se connecter"
+      "login": "Se connecter",
+      "clearThread": "Effacer ce fil",
+      "clearThreadConfirm": "Confirmer l'effacement",
+      "clearAll": "Effacer mes échanges avec le tuteur",
+      "clearAllConfirm": "Confirmer l'effacement",
+      "clearError": "L'effacement n'a pas abouti. Réessayez."
     }
   }
 }

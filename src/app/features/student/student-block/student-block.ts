@@ -1,15 +1,16 @@
 import { Component, computed, effect, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../../core/auth/auth.service';
 import { COURSE_RESOURCE_RESOLVER } from '../../../core/course-content/course-content-resolvers';
 import { CourseBlock } from '../../../core/courses/course.model';
 import { CourseStyleService } from '../../../core/courses/course-style.service';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { NotificationService } from '../../../core/notifications/notification.service';
 import { publicCourseLink } from '../../../core/public-courses/public-access';
 import { PublicCourseService } from '../../../core/public-courses/public-course.service';
-import { CorrectionRequest } from '../../../core/student/exercise-correction';
+import { CorrectionRequest, ThreadsClearRequest } from '../../../core/student/exercise-correction';
 import { StudentSubmissionService } from '../../../core/student/student-submission.service';
 import { CourseBlocksView } from '../../../shared/course-blocks-view/course-blocks-view';
 
@@ -28,7 +29,9 @@ import { CourseBlocksView } from '../../../shared/course-blocks-view/course-bloc
  * **tuteur IA** y est câblé pour l'élève **connecté** (J5) : `correctionEnabled`
  * suit `AuthService.isAuthenticated()`, les fils viennent de
  * `StudentSubmissionService` (chargés à chaque bloc exercice, imputés à la
- * config IA de l'élève), `correctionRequested` streame un tour ; sans session,
+ * config IA de l'élève), `correctionRequested` streame un tour,
+ * `threadsClearRequested` efface les tours de l'élève (question ou bloc —
+ * échec signalé par toast) ; sans session,
  * la vue affiche une invitation à se connecter (retour sur cette page).
  * `AuthService` et le service de soumission sont des services root SANS
  * rendu de contenu : l'invariant « pas de service prof dans la vue élève »
@@ -52,6 +55,8 @@ export class StudentBlock {
   readonly #router = inject(Router);
   readonly #auth = inject(AuthService);
   readonly #submissions = inject(StudentSubmissionService);
+  readonly #notifications = inject(NotificationService);
+  readonly #transloco = inject(TranslocoService);
 
   /** Réglages de style du cours — exposés au template (binding `[style]`). */
   protected readonly courseStyle = inject(CourseStyleService);
@@ -114,6 +119,19 @@ export class StudentBlock {
 
   protected onCorrectionRequested(request: CorrectionRequest): void {
     void this.#submissions.submit(this.courseId(), request);
+  }
+
+  protected async onThreadsClearRequested(request: ThreadsClearRequest): Promise<void> {
+    const ok = await this.#submissions.clearThreads(
+      this.courseId(),
+      request.blockId,
+      request.questionId,
+    );
+    if (!ok) {
+      this.#notifications.error(
+        this.#transloco.translate('student.exercise.correction.clearError'),
+      );
+    }
   }
 
   /** Connexion depuis la notice du tuteur : retour sur cette page au callback. */

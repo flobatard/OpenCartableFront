@@ -168,6 +168,50 @@ export class StudentSubmissionService {
     this.#aborts.get(questionId)?.abort();
   }
 
+  /**
+   * Efface les tours de l'élève sur une question (`questionId`) ou sur tout
+   * le bloc (`null`) — DELETE côté serveur puis purge locale (les tours en
+   * vol sur la cible sont interrompus). Vrai si l'effacement a abouti.
+   */
+  async clearThreads(
+    courseId: string,
+    blockId: string,
+    questionId: string | null,
+  ): Promise<boolean> {
+    if (!this.#isBrowser || !this.#isCurrent(courseId, blockId)) {
+      return false;
+    }
+    let params = this.#params();
+    if (questionId !== null) {
+      params = params.set('question_id', questionId);
+    }
+    try {
+      await firstValueFrom(
+        this.#http.delete<{ deleted: number }>(`${this.#base(courseId, blockId)}/submissions`, {
+          params,
+        }),
+      );
+    } catch {
+      return false;
+    }
+    if (!this.#isCurrent(courseId, blockId)) {
+      return true;
+    }
+    if (questionId === null) {
+      for (const abort of this.#aborts.values()) {
+        abort.abort();
+      }
+      this.#threads.set({});
+    } else {
+      this.#aborts.get(questionId)?.abort();
+      this.#threads.update((threads) => {
+        const { [questionId]: _removed, ...rest } = threads;
+        return rest;
+      });
+    }
+    return true;
+  }
+
   #base(courseId: string, blockId: string): string {
     return `${environment.apiUrl}/v1/student/courses/${courseId}/blocks/${blockId}`;
   }
