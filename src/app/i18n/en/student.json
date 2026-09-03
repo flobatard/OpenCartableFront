@@ -60,8 +60,25 @@
     "correction": {
       "title": "Correction",
       "request": "Ask for a correction",
-      "pending": "Correcting…",
-      "error": "The correction failed. Please try again."
+      "pending": "The tutor is thinking…",
+      "error": "The correction failed. Please try again.",
+      "quotaError": "Your daily quota for the default AI is exhausted.",
+      "configError": "Your AI configuration is missing or was refused.",
+      "settingsLink": "AI settings",
+      "yourAnswerLabel": "Your answer",
+      "yourMessageLabel": "Your message",
+      "noFeedback": "The tutor could not reply on this turn.",
+      "verdict": {
+        "correct": "Correct answer",
+        "partial": "Partially correct answer",
+        "incorrect": "Wrong answer"
+      },
+      "revealedTitle": "Expected answer",
+      "reply": "Reply to the tutor or ask for help",
+      "replyPlaceholder": "Reply, ask for a hint or ask a question about the course…",
+      "send": "Send",
+      "loginHint": "Sign in to ask the AI tutor for a correction.",
+      "login": "Sign in"
     }
   }
 }

@@ -10,13 +10,18 @@ import { AssistantStreamEvent } from './assistant.model';
  * le chunk suivant. Un bloc malformé (event inconnu, JSON invalide) est
  * ignoré silencieusement — contrat additif : un futur type d'événement ne
  * doit pas casser les clients existants.
+ *
+ * Générique sur le vocabulaire : par défaut celui de l'assistant de cours
+ * (`AssistantStreamEvent`) ; un autre flux (tuteur d'exercice élève,
+ * `core/student/`) passe son propre jeu d'événements connus et son type.
  */
-export interface SseParser {
+export interface SseParser<E extends { type: string } = AssistantStreamEvent> {
   /** Événements complets contenus dans ce chunk (et le reliquat précédent). */
-  push(chunk: string): AssistantStreamEvent[];
+  push(chunk: string): E[];
 }
 
-const KNOWN_EVENTS = new Set<AssistantStreamEvent['type']>([
+/** Événements du flux de l'assistant de cours (contrat SSE du back). */
+export const ASSISTANT_EVENTS: ReadonlySet<string> = new Set<AssistantStreamEvent['type']>([
   'token',
   'thinking',
   'tool_call',
@@ -26,10 +31,12 @@ const KNOWN_EVENTS = new Set<AssistantStreamEvent['type']>([
   'error',
 ]);
 
-export function createSseParser(): SseParser {
+export function createSseParser<E extends { type: string } = AssistantStreamEvent>(
+  knownEvents: ReadonlySet<string> = ASSISTANT_EVENTS,
+): SseParser<E> {
   let buffer = '';
 
-  function parseBlock(block: string): AssistantStreamEvent | null {
+  function parseBlock(block: string): E | null {
     let event: string | null = null;
     let data: string | null = null;
     for (const line of block.split('\n')) {
@@ -39,21 +46,21 @@ export function createSseParser(): SseParser {
         data = line.slice('data: '.length);
       }
     }
-    if (event === null || data === null || !KNOWN_EVENTS.has(event as AssistantStreamEvent['type'])) {
+    if (event === null || data === null || !knownEvents.has(event)) {
       return null;
     }
     try {
       const payload = JSON.parse(data) as Record<string, unknown>;
-      return { type: event, ...payload } as AssistantStreamEvent;
+      return { type: event, ...payload } as E;
     } catch {
       return null;
     }
   }
 
   return {
-    push(chunk: string): AssistantStreamEvent[] {
+    push(chunk: string): E[] {
       buffer += chunk;
-      const events: AssistantStreamEvent[] = [];
+      const events: E[] = [];
       let separator: number;
       while ((separator = buffer.indexOf('\n\n')) !== -1) {
         const block = buffer.slice(0, separator);

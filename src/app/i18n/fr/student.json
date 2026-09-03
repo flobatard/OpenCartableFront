@@ -60,8 +60,25 @@
     "correction": {
       "title": "Correction",
       "request": "Demander une correction",
-      "pending": "Correction en cours…",
-      "error": "La correction n'a pas abouti. Réessayez."
+      "pending": "Le tuteur réfléchit…",
+      "error": "La correction n'a pas abouti. Réessayez.",
+      "quotaError": "Votre quota quotidien d'IA par défaut est épuisé.",
+      "configError": "Votre configuration d'IA est absente ou refusée.",
+      "settingsLink": "Réglages de l'IA",
+      "yourAnswerLabel": "Votre réponse",
+      "yourMessageLabel": "Votre message",
+      "noFeedback": "Le tuteur n'a pas pu répondre à ce tour.",
+      "verdict": {
+        "correct": "Réponse juste",
+        "partial": "Réponse partiellement juste",
+        "incorrect": "Réponse fausse"
+      },
+      "revealedTitle": "Réponse attendue",
+      "reply": "Répondre au tuteur ou demander de l'aide",
+      "replyPlaceholder": "Répondre, demander un indice ou poser une question sur le cours…",
+      "send": "Envoyer",
+      "loginHint": "Connectez-vous pour demander une correction au tuteur IA.",
+      "login": "Se connecter"
     }
   }
 }

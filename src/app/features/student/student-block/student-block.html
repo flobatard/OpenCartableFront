@@ -9,12 +9,12 @@
       }}
     </span>
     @if (previous(); as target) {
-      <a class="btn btn--secondary" [routerLink]="blockLink(target)">
+      <a class="btn btn--secondary" [routerLink]="blockLinkFor(target)">
         ← {{ 'student.course.previousBlock' | transloco }}
       </a>
     }
     @if (next(); as target) {
-      <a class="btn btn--secondary" [routerLink]="blockLink(target)" (click)="scrollToTop()">
+      <a class="btn btn--secondary" [routerLink]="blockLinkFor(target)" (click)="scrollToTop()">
         {{ 'student.course.nextBlock' | transloco }} →
       </a>
     }
@@ -26,19 +26,25 @@
       [courseId]="courseId()"
       [resources]="resources()"
       exerciseMode="solve"
+      [correctionEnabled]="correctionEnabled()"
+      [correctionLoginHint]="!correctionEnabled()"
+      [threads]="threads()"
+      [blockLink]="blockLink"
+      (correctionRequested)="onCorrectionRequested($event)"
+      (loginRequested)="login()"
     />
   </div>
 
   <div class="student-block__nav student-block__nav--footer">
     @if (previous(); as target) {
-      <a class="btn btn--secondary" [routerLink]="blockLink(target)">
+      <a class="btn btn--secondary" [routerLink]="blockLinkFor(target)">
         ← {{ 'student.course.previousBlock' | transloco }}
       </a>
     } @else {
       <span></span>
     }
     @if (next(); as target) {
-      <a class="btn btn--secondary" [routerLink]="blockLink(target)" (click)="scrollToTop()">
+      <a class="btn btn--secondary" [routerLink]="blockLinkFor(target)" (click)="scrollToTop()">
         {{ 'student.course.nextBlock' | transloco }} →
       </a>
     }

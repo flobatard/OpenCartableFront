@@ -9,12 +9,20 @@
   font-size: calc(16px * var(--course-font-scale, 1));
 }
 
-.exercise-view__storage-warning {
-  margin: 0 0 16px;
+/* Encadrés de la carte (notice stockage, notice connexion, fil du tuteur) :
+   même moule, seule la couleur du liseré diffère. */
+.exercise-view__storage-warning,
+.exercise-view__login-hint,
+.exercise-view__correction {
   padding: 12px 16px;
-  border-left: 3px solid var(--color-accent);
+  border-left: 3px solid var(--color-primary);
   background: var(--bg-subtle);
   border-radius: var(--radius-sm);
+}
+
+.exercise-view__storage-warning {
+  margin: 0 0 16px;
+  border-left-color: var(--color-accent);
 }
 
 .exercise-view__subject {
@@ -75,12 +83,12 @@
   font-size: 0.9em;
 }
 
-/* Champ natif (DS §Champs : bordure porteuse slate-500). `field-sizing` fait
-   grandir la zone avec la saisie là où il est supporté ; ailleurs, `rows` et
-   le redimensionnement manuel font le repli. */
-.exercise-view__answer {
+/* Champs natifs (DS §Champs : bordure porteuse slate-500) — zone de réponse et
+   composer du fil. `field-sizing` fait grandir la zone avec la saisie là où il
+   est supporté ; ailleurs, `rows` et le redimensionnement manuel font le repli. */
+.exercise-view__answer,
+.exercise-view__reply {
   width: 100%;
-  min-height: 7.5em;
   padding: 10px 12px;
   border: 1px solid var(--border-control);
   border-radius: var(--radius);
@@ -91,6 +99,10 @@
   line-height: 1.6;
   resize: vertical;
   field-sizing: content;
+}
+
+.exercise-view__answer {
+  min-height: 7.5em;
 }
 
 .exercise-view__answer[readonly] {
@@ -104,16 +116,22 @@
   gap: 8px;
 }
 
-/* Retour de correction IA : encadré discret sous la réponse (rendu seulement
-   quand une correction existe). */
+/* Notice « connectez-vous » : le tuteur est réservé aux élèves connectés. */
+.exercise-view__login-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+/* Fil du tuteur IA : rendu seulement quand la question a été soumise une fois. */
 .exercise-view__correction {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px 16px;
-  border-left: 3px solid var(--color-primary);
-  background: var(--bg-subtle);
-  border-radius: var(--radius-sm);
+  gap: 12px;
 }
 
 .exercise-view__correction-title {
@@ -121,6 +139,81 @@
   font-family: var(--font-display);
   font-size: 1em;
   font-weight: 600;
+}
+
+.exercise-view__thread {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.exercise-view__turn {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Bulle de l'élève : sa réponse ou son message, texte brut préservé. */
+.exercise-view__student,
+.exercise-view__revealed {
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.exercise-view__student,
+.exercise-view__revealed-answer {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.exercise-view__turn-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-secondary);
+  font-size: 0.8em;
+  font-weight: 500;
+}
+
+.exercise-view__tutor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Badge de verdict — la couleur souligne, le libellé porte le sens. */
+.exercise-view__verdict {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.exercise-view__verdict--correct {
+  color: var(--text-success);
+}
+
+.exercise-view__verdict--partial {
+  color: var(--text-warning);
+}
+
+.exercise-view__verdict--incorrect {
+  color: var(--text-danger);
+}
+
+.exercise-view__no-feedback {
+  margin: 0;
+  color: var(--text-secondary);
+  font-style: italic;
 }
 
 .exercise-view__correction-pending {
@@ -134,6 +227,36 @@
 .exercise-view__correction-error {
   margin: 0;
   color: var(--text-danger);
+}
+
+/* Corrigé du professeur, révélé par le back : encart distinct du fil. */
+.exercise-view__revealed {
+  border-color: var(--text-success);
+}
+
+.exercise-view__revealed-title {
+  margin: 0 0 4px;
+  color: var(--text-success);
+  font-family: var(--font-display);
+  font-size: 0.95em;
+  font-weight: 600;
+}
+
+.exercise-view__revealed-answer {
+  margin: 0;
+}
+
+/* Composer « Répondre / demander de l'aide » : champ extensible + Envoyer. */
+.exercise-view__composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.exercise-view__reply {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.95em;
 }
 
 .exercise-view__footer {

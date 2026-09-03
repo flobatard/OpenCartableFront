@@ -63,4 +63,14 @@ describe('createSseParser', () => {
     );
     expect(events).toEqual([{ type: 'token', delta: 'ok' }]);
   });
+
+  it("accepts another vocabulary of known events (tuteur d'exercice)", () => {
+    const parser = createSseParser<{ type: 'ping' | 'done'; n?: number }>(
+      new Set(['ping', 'done']),
+    );
+    const events = parser.push(
+      'event: ping\ndata: {"n":1}\n\nevent: token\ndata: {"delta":"x"}\n\nevent: done\ndata: {}\n\n',
+    );
+    expect(events).toEqual([{ type: 'ping', n: 1 }, { type: 'done' }]);
+  });
 });

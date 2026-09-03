@@ -11,8 +11,11 @@ import {
   untracked,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { exerciseViewFromContent } from '../../core/courses/exercise-form';
+import { LanguageService } from '../../core/i18n/language.service';
+import { isBlockId } from '../../core/markdown/course-block-ref';
 import {
   answerStorage,
   answerStorageKey,
@@ -21,7 +24,11 @@ import {
   StoredAnswer,
   writeAnswers,
 } from '../../core/student/answer-storage';
-import { CorrectionRequest, QuestionCorrection } from '../../core/student/exercise-correction';
+import {
+  CorrectionRequest,
+  QuestionThread,
+  SubmissionTurn,
+} from '../../core/student/exercise-correction';
 import { MarkdownView } from '../markdown-view/markdown-view';
 import { Spinner } from '../spinner/spinner';
 
@@ -40,18 +47,24 @@ export const ANSWER_SAVE_DEBOUNCE_MS = 500;
  * - **`solve`** (le bloc seul de la vue élève, `blocks/:blockId`) : une zone de
  *   réponse par question, « Marquer comme terminé » (verrouille la zone),
  *   « Effacer mes réponses » en deux temps désarmé au blur, réponses en
- *   **localStorage uniquement** (`core/student/answer-storage`, clé
- *   `(courseId, blockId)`, une entrée par id de question) : autosave débouncé
- *   après la frappe, flush au destroy **et au changement de clé** — la vue est
- *   robuste à un changement d'inputs, même si `CourseBlocksView` la recrée par
+ *   **localStorage** (`core/student/answer-storage`, clé `(courseId, blockId)`,
+ *   une entrée par id de question) : autosave débouncé après la frappe, flush
+ *   au destroy **et au changement de clé** — la vue est robuste à un
+ *   changement d'inputs, même si `CourseBlocksView` la recrée par
  *   `track block.id`. Storage indisponible → notice, la saisie reste possible
  *   mais non persistée.
  *
- * **Slot de correction IA (dormant)** : une entrée de `corrections` par id de
- * question — `pending` (spinner) / `done` (retour en markdown) / `error` —,
- * rien de rendu sans entrée ; le bouton « Demander une correction » n'existe
- * que sous `correctionEnabled` (défaut `false` : l'appel IA élève n'est pas
- * branché, cf. TODO.md) et émet `correctionRequested`.
+ * **Tuteur IA — fil par question** (mode `solve`, élève connecté) : sous
+ * `correctionEnabled`, « Demander une correction » émet `correctionRequested`
+ * avec la réponse courante (`kind: 'answer'`) ; le fil (`threads`, une entrée
+ * par id de question, tenu par l'hôte) rend les tours — bulle de l'élève,
+ * retour du tuteur en markdown, badge de verdict —, le tour en cours (spinner
+ * puis texte streamé), l'erreur par statut, l'encart « Réponse attendue »
+ * quand le corrigé a été révélé, et un composer « Répondre / demander de
+ * l'aide » (`kind: 'message'`). Sans session (`correctionLoginHint`), une
+ * notice invite à se connecter (`loginRequested`). Les citations
+ * `oc-block:` des retours naviguent vers `blockLink(id)` quand l'hôte le
+ * fournit (re-garde `isBlockId`).
  *
  * Présentational : aucun service métier injecté (invariant vue élève —
  * `courseId`/`blockId` viennent des inputs, les `oc-resource:` des énoncés
@@ -64,12 +77,14 @@ export const ANSWER_SAVE_DEBOUNCE_MS = 500;
  */
 @Component({
   selector: 'app-exercise-view',
-  imports: [TranslocoPipe, MarkdownView, Spinner],
+  imports: [TranslocoPipe, RouterLink, MarkdownView, Spinner],
   templateUrl: './exercise-view.html',
   styleUrl: './exercise-view.scss',
 })
 export class ExerciseView implements OnDestroy {
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  readonly #router = inject(Router);
+  protected readonly language = inject(LanguageService);
 
   /** `content` JSONB du bloc exercice (forme tolérée, cf. `exerciseViewFromContent`). */
   readonly content = input.required<Record<string, unknown>>();
@@ -78,11 +93,16 @@ export class ExerciseView implements OnDestroy {
   /** Bloc rendu : clé des réponses persistées. */
   readonly blockId = input.required<string>();
   readonly mode = input<ExerciseViewMode>('preview');
-  /** Affiche le bouton « Demander une correction » (appel IA à brancher). */
+  /** Active le tuteur IA (élève connecté) : bouton de correction et composer. */
   readonly correctionEnabled = input(false);
-  /** Corrections par id de question ; aucune entrée = rien de rendu. */
-  readonly corrections = input<Readonly<Record<string, QuestionCorrection>>>({});
+  /** Sans session : notice « connectez-vous » à la place du tuteur. */
+  readonly correctionLoginHint = input(false);
+  /** Fils du tuteur par id de question ; aucune entrée = rien de rendu. */
+  readonly threads = input<Readonly<Record<string, QuestionThread>>>({});
+  /** Commandes de navigation vers un bloc cité (`oc-block:`), ou `null`. */
+  readonly blockLink = input<((blockId: string) => string[]) | null>(null);
   readonly correctionRequested = output<CorrectionRequest>();
+  readonly loginRequested = output<void>();
 
   protected readonly view = computed(() => exerciseViewFromContent(this.content()));
   protected readonly solving = computed(() => this.mode() === 'solve');
@@ -97,6 +117,8 @@ export class ExerciseView implements OnDestroy {
   protected readonly hasAnswers = computed(() =>
     Object.values(this.answers()).some((a) => a.text !== '' || a.locked),
   );
+  /** Brouillons du composer « Répondre » par id de question (non persistés). */
+  protected readonly replies = signal<Record<string, string>>({});
 
   /** localStorage, résolu paresseusement au premier besoin (mode solve, navigateur). */
   #storage: Storage | null | undefined;
@@ -124,6 +146,7 @@ export class ExerciseView implements OnDestroy {
         this.answers.set(readAnswers(storage, key).answers);
         this.storageOk.set(storage !== null);
         this.clearArmed.set(false);
+        this.replies.set({});
       });
     });
   }
@@ -143,9 +166,14 @@ export class ExerciseView implements OnDestroy {
     return this.answers()[questionId]?.locked === true;
   }
 
-  /** Correction de la question, ou `undefined` (jamais demandée). */
-  protected correctionFor(questionId: string): QuestionCorrection | undefined {
-    return this.corrections()[questionId];
+  /** Fil du tuteur sur la question, ou `undefined` (jamais sollicité). */
+  protected threadFor(questionId: string): QuestionThread | undefined {
+    return this.threads()[questionId];
+  }
+
+  /** Un tour est en cours sur la question (composer et bouton désactivés). */
+  protected turnActive(questionId: string): boolean {
+    return this.threadFor(questionId)?.live !== null && this.threadFor(questionId) !== undefined;
   }
 
   /** Bouton « Demander une correction » : activé, réponse saisie, rien en cours. */
@@ -154,7 +182,7 @@ export class ExerciseView implements OnDestroy {
       this.solving() &&
       this.correctionEnabled() &&
       this.answerText(questionId).trim() !== '' &&
-      this.correctionFor(questionId)?.status !== 'pending'
+      !this.turnActive(questionId)
     );
   }
 
@@ -162,8 +190,92 @@ export class ExerciseView implements OnDestroy {
     this.correctionRequested.emit({
       blockId: this.blockId(),
       questionId,
-      answer: this.answerText(questionId),
+      kind: 'answer',
+      content: this.answerText(questionId),
     });
+  }
+
+  protected replyText(questionId: string): string {
+    return this.replies()[questionId] ?? '';
+  }
+
+  protected onReplyInput(questionId: string, value: string): void {
+    this.replies.update((replies) => ({ ...replies, [questionId]: value }));
+  }
+
+  protected canSendReply(questionId: string): boolean {
+    return this.replyText(questionId).trim() !== '' && !this.turnActive(questionId);
+  }
+
+  /** Composer du fil : message libre au tuteur (aide, question sur le cours). */
+  protected sendReply(questionId: string): void {
+    const content = this.replyText(questionId).trim();
+    if (content === '' || this.turnActive(questionId)) {
+      return;
+    }
+    this.replies.update((replies) => ({ ...replies, [questionId]: '' }));
+    this.correctionRequested.emit({
+      blockId: this.blockId(),
+      questionId,
+      kind: 'message',
+      content,
+    });
+  }
+
+  /** Ctrl/⌘+Entrée envoie le message du composer. */
+  protected onReplyKeydown(event: KeyboardEvent, questionId: string): void {
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      this.sendReply(questionId);
+    }
+  }
+
+  /** Clé i18n du badge de verdict d'un tour (`null` sans verdict évaluable). */
+  protected verdictKey(turn: SubmissionTurn): string | null {
+    if (turn.verdict === null || turn.verdict === 'none') {
+      return null;
+    }
+    return `student.exercise.correction.verdict.${turn.verdict}`;
+  }
+
+  /** Clé i18n du message d'erreur du fil, par statut (motif course-chat). */
+  protected errorKey(status: number): string {
+    if (status === 429) {
+      return 'student.exercise.correction.quotaError';
+    }
+    if (status === 400 || status === 422) {
+      return 'student.exercise.correction.configError';
+    }
+    return 'student.exercise.correction.error';
+  }
+
+  /** Erreur qui renvoie vers les réglages IA (config absente, clé refusée, quota). */
+  protected errorNeedsSettings(status: number): boolean {
+    return status === 429 || status === 400 || status === 422;
+  }
+
+  /**
+   * Délégation des citations `oc-block:` des retours du tuteur — clic ou
+   * Entrée sur l'ancre `[data-oc-block-id]` (re-garde `isBlockId` : l'attribut
+   * peut venir de HTML brut) → navigation vers le bloc cité, si l'hôte fournit
+   * `blockLink`.
+   */
+  protected onCitation(event: Event): void {
+    const build = this.blockLink();
+    const target = event.target as HTMLElement | null;
+    const anchor = target?.closest<HTMLElement>('[data-oc-block-id]');
+    const blockId = anchor?.getAttribute('data-oc-block-id');
+    if (build === null || !blockId || !isBlockId(blockId)) {
+      return;
+    }
+    event.preventDefault();
+    void this.#router.navigate(build(blockId));
+  }
+
+  protected onCitationKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      this.onCitation(event);
+    }
   }
 
   /** Frappe dans la zone de réponse : état en mémoire + autosave débouncé. */

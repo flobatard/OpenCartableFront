@@ -26,8 +26,11 @@
             [blockId]="block.id"
             [mode]="exerciseMode()"
             [correctionEnabled]="correctionEnabled()"
-            [corrections]="corrections()"
+            [correctionLoginHint]="correctionLoginHint()"
+            [threads]="threads()"
+            [blockLink]="blockLink()"
             (correctionRequested)="correctionRequested.emit($event)"
+            (loginRequested)="loginRequested.emit()"
           />
           @if (exerciseLinkFor(block); as link) {
             <p class="course-preview__exercise-cta">

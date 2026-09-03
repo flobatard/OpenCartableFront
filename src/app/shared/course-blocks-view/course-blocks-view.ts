@@ -4,7 +4,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { CourseBlock } from '../../core/courses/course.model';
 import { payloadFromDocumentContent } from '../../core/courses/document-form';
 import { CourseResource } from '../../core/resources/resource.model';
-import { CorrectionRequest, QuestionCorrection } from '../../core/student/exercise-correction';
+import { CorrectionRequest, QuestionThread } from '../../core/student/exercise-correction';
 import { MarkdownView } from '../markdown-view/markdown-view';
 import { ModuleEmbed } from '../module-runner/module-embed';
 import { CoursePreviewDocument } from './course-preview-document';
@@ -30,9 +30,11 @@ import { ExerciseView, ExerciseViewMode } from './exercise-view';
  * bloc. `null` (défaut : contexte prof, ou bloc déjà en mode `solve`) : pas
  * de CTA.
  *
- * Slot de correction IA (dormant, relayé tel quel à `ExerciseView`) :
- * `correctionEnabled`, `corrections` (par id de question) et
- * `correctionRequested` — à câbler par l'hôte le jour où l'appel élève existe.
+ * Tuteur IA des exercices (relayé tel quel à `ExerciseView`, câblé par
+ * `StudentBlock` pour l'élève connecté) : `correctionEnabled`,
+ * `correctionLoginHint`, `threads` (fils par id de question), `blockLink`
+ * (navigation des citations `oc-block:`), `correctionRequested` et
+ * `loginRequested`.
  *
  * Garde la classe `.course-preview__block` : `_print.scss` (global) s'appuie
  * dessus pour paginer l'export PDF (un bloc par page).
@@ -61,10 +63,13 @@ export class CourseBlocksView {
   readonly exerciseLink = input<((blockId: string) => string[]) | null>(null);
   /** Mode de rendu des blocs exercice (cf. `ExerciseView`). */
   readonly exerciseMode = input<ExerciseViewMode>('preview');
-  /** Slot de correction IA des exercices — relais dormant vers `ExerciseView`. */
+  /** Tuteur IA des exercices — relais vers `ExerciseView` (cf. sa doc). */
   readonly correctionEnabled = input(false);
-  readonly corrections = input<Readonly<Record<string, QuestionCorrection>>>({});
+  readonly correctionLoginHint = input(false);
+  readonly threads = input<Readonly<Record<string, QuestionThread>>>({});
+  readonly blockLink = input<((blockId: string) => string[]) | null>(null);
   readonly correctionRequested = output<CorrectionRequest>();
+  readonly loginRequested = output<void>();
 
   /** Markdown d'un bloc texte (`content.markdown`, gardé string). */
   protected textMarkdown(block: CourseBlock): string {

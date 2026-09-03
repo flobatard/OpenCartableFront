@@ -1,13 +1,16 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { AuthService } from '../../../core/auth/auth.service';
 import { COURSE_RESOURCE_RESOLVER } from '../../../core/course-content/course-content-resolvers';
 import { CourseBlock } from '../../../core/courses/course.model';
 import { CourseStyleService } from '../../../core/courses/course-style.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { publicCourseLink } from '../../../core/public-courses/public-access';
 import { PublicCourseService } from '../../../core/public-courses/public-course.service';
+import { CorrectionRequest } from '../../../core/student/exercise-correction';
+import { StudentSubmissionService } from '../../../core/student/student-submission.service';
 import { CourseBlocksView } from '../../../shared/course-blocks-view/course-blocks-view';
 
 /**
@@ -20,9 +23,16 @@ import { CourseBlocksView } from '../../../shared/course-blocks-view/course-bloc
  * la pagination d'impression) reste celle de la vue partagée.
  *
  * Un bloc exercice s'y **résout** (mode `solve` de `CourseBlocksView` : zones
- * de réponse par question, réponses en localStorage seul) — c'est la page de
- * résolution, l'ancienne page pleine `exercises/:blockId` y redirige. Le slot
- * de correction IA reste dormant (inputs non bindés = défauts).
+ * de réponse par question, réponses en localStorage) — c'est la page de
+ * résolution, l'ancienne page pleine `exercises/:blockId` y redirige. Le
+ * **tuteur IA** y est câblé pour l'élève **connecté** (J5) : `correctionEnabled`
+ * suit `AuthService.isAuthenticated()`, les fils viennent de
+ * `StudentSubmissionService` (chargés à chaque bloc exercice, imputés à la
+ * config IA de l'élève), `correctionRequested` streame un tour ; sans session,
+ * la vue affiche une invitation à se connecter (retour sur cette page).
+ * `AuthService` et le service de soumission sont des services root SANS
+ * rendu de contenu : l'invariant « pas de service prof dans la vue élève »
+ * porte sur les résolveurs de contenu (`COURSE_*_RESOLVER`), inchangés ici.
  *
  * ⚠ `blockId` est lu sur le **paramMap observé**, jamais en snapshot : passer
  * d'un bloc au suivant réutilise l'instance du composant (motif `DocsShell`),
@@ -39,6 +49,9 @@ export class StudentBlock {
   readonly #resolver = inject(COURSE_RESOURCE_RESOLVER);
   readonly #language = inject(LanguageService);
   readonly #route = inject(ActivatedRoute);
+  readonly #router = inject(Router);
+  readonly #auth = inject(AuthService);
+  readonly #submissions = inject(StudentSubmissionService);
 
   /** Réglages de style du cours — exposés au template (binding `[style]`). */
   protected readonly courseStyle = inject(CourseStyleService);
@@ -74,8 +87,38 @@ export class StudentBlock {
     publicCourseLink(this.#language.lang(), this.#courses.access()),
   );
 
-  protected blockLink(block: CourseBlock): string[] {
-    return publicCourseLink(this.#language.lang(), this.#courses.access(), 'blocks', block.id);
+  /** Tuteur IA : réservé à l'élève connecté. */
+  protected readonly correctionEnabled = computed(() => this.#auth.isAuthenticated());
+  protected readonly threads = this.#submissions.threads;
+
+  /** Commandes vers un bloc du cours (citations `oc-block:` des retours du tuteur). */
+  protected readonly blockLink = (blockId: string): string[] =>
+    publicCourseLink(this.#language.lang(), this.#courses.access(), 'blocks', blockId);
+
+  constructor() {
+    // Fils du tuteur : chargés pour chaque bloc exercice affiché à un élève
+    // connecté (paramMap observé : le changement de bloc recharge).
+    effect(() => {
+      const block = this.block();
+      const courseId = this.courseId();
+      if (!this.correctionEnabled() || block === null || block.type !== 'exercise' || !courseId) {
+        return;
+      }
+      void this.#submissions.loadThreads(courseId, block.id);
+    });
+  }
+
+  protected blockLinkFor(block: CourseBlock): string[] {
+    return this.blockLink(block.id);
+  }
+
+  protected onCorrectionRequested(request: CorrectionRequest): void {
+    void this.#submissions.submit(this.courseId(), request);
+  }
+
+  /** Connexion depuis la notice du tuteur : retour sur cette page au callback. */
+  protected login(): void {
+    void this.#auth.login(this.#router.url);
   }
 
   /** Clic « Suivant » (haut ou bas) : la lecture reprend en haut de la page —

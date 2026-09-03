@@ -1,13 +1,22 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, ParamMap, provideRouter } from '@angular/router';
+import {
+  ActivatedRoute,
+  convertToParamMap,
+  ParamMap,
+  provideRouter,
+  Router,
+} from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
+import { AuthService } from '../../../core/auth/auth.service';
 import {
   COURSE_MODULE_RESOLVER,
   COURSE_RESOURCE_RESOLVER,
 } from '../../../core/course-content/course-content-resolvers';
 import { PublicCourseDetail } from '../../../core/public-courses/public-course.model';
 import { PublicCourseService } from '../../../core/public-courses/public-course.service';
+import { QuestionThread } from '../../../core/student/exercise-correction';
+import { StudentSubmissionService } from '../../../core/student/student-submission.service';
 import {
   PUBLIC_COURSE_DETAIL_FIXTURE,
   PUBLIC_COURSE_RESOURCES_FIXTURE,
@@ -27,6 +36,18 @@ describe('StudentBlock', () => {
     ensureList: vi.fn(),
     getDownloadUrl: vi.fn().mockResolvedValue('https://s3.test/presigned'),
     contentUrl: vi.fn(),
+  };
+
+  const authMock = {
+    isAuthenticated: signal(false),
+    login: vi.fn().mockResolvedValue(undefined),
+  };
+  const submissionsMock = {
+    threads: signal<Record<string, QuestionThread>>({}),
+    loading: signal(false),
+    loadError: signal(false),
+    loadThreads: vi.fn().mockResolvedValue(undefined),
+    submit: vi.fn().mockResolvedValue(undefined),
   };
 
   const moduleResolverMock = {
@@ -59,6 +80,9 @@ describe('StudentBlock', () => {
         // ModuleEmbed retomberait sur le résolveur PROF (donc OIDC) — c'est
         // précisément l'invariant que les pages élèves ne doivent jamais violer.
         { provide: COURSE_MODULE_RESOLVER, useValue: moduleResolverMock },
+        // Tuteur IA : services root sans rendu de contenu (pas de résolveur prof).
+        { provide: AuthService, useValue: authMock },
+        { provide: StudentSubmissionService, useValue: submissionsMock },
         {
           provide: ActivatedRoute,
           useValue: { paramMap, snapshot: { paramMap: paramMap.value } },
@@ -87,6 +111,8 @@ describe('StudentBlock', () => {
   beforeEach(() => {
     detail.set(PUBLIC_COURSE_DETAIL_FIXTURE);
     coursesMock.access.set({ mode: 'public', key: 'course-1' });
+    authMock.isAuthenticated.set(false);
+    submissionsMock.threads.set({});
     vi.clearAllMocks();
   });
 
@@ -180,5 +206,78 @@ describe('StudentBlock', () => {
     expect(
       el(fixture).querySelector<HTMLAnchorElement>('.student-block__back a')?.getAttribute('href'),
     ).toBe('/fr/p/courses/course-1');
+  });
+
+  describe('AI tutor (signed-in students only)', () => {
+    it('shows a sign-in hint and never loads threads when anonymous', async () => {
+      const fixture = await createComponent('block-3');
+
+      const hint = el(fixture).querySelector<HTMLElement>('.exercise-view__login-hint');
+      expect(hint).not.toBeNull();
+      expect(el(fixture).querySelector('.exercise-view__correction-request')).toBeNull();
+      expect(submissionsMock.loadThreads).not.toHaveBeenCalled();
+
+      hint!.querySelector('button')!.click();
+      expect(authMock.login).toHaveBeenCalledWith(TestBed.inject(Router).url);
+    });
+
+    it('loads the threads of the exercise block when signed in, and relays a request', async () => {
+      authMock.isAuthenticated.set(true);
+      const fixture = await createComponent('block-3');
+
+      expect(submissionsMock.loadThreads).toHaveBeenCalledWith('course-1', 'block-3');
+      expect(el(fixture).querySelector('.exercise-view__login-hint')).toBeNull();
+
+      const field = el(fixture).querySelector<HTMLTextAreaElement>(
+        'textarea.exercise-view__answer',
+      )!;
+      field.value = 'Ma réponse';
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+      await fixture.whenStable();
+      el(fixture).querySelector<HTMLButtonElement>('.exercise-view__correction-request')!.click();
+
+      expect(submissionsMock.submit).toHaveBeenCalledWith('course-1', {
+        blockId: 'block-3',
+        questionId: 'q-1',
+        kind: 'answer',
+        content: 'Ma réponse',
+      });
+    });
+
+    it('does not load threads for a non-exercise block', async () => {
+      authMock.isAuthenticated.set(true);
+      await createComponent('block-1');
+
+      expect(submissionsMock.loadThreads).not.toHaveBeenCalled();
+    });
+
+    it('renders the threads provided by the service', async () => {
+      authMock.isAuthenticated.set(true);
+      submissionsMock.threads.set({
+        'q-1': {
+          turns: [
+            {
+              id: 't1',
+              kind: 'answer',
+              content: '0',
+              feedback: 'Exact.',
+              verdict: 'correct',
+              effort: 'sufficient',
+              revealed: true,
+              created_at: '',
+            },
+          ],
+          live: null,
+          error: null,
+          revealedAnswer: 'Limite 0.',
+        },
+      });
+      const fixture = await createComponent('block-3');
+
+      expect(el(fixture).querySelector('.exercise-view__verdict--correct')).not.toBeNull();
+      expect(el(fixture).querySelector('.exercise-view__revealed-answer')?.textContent).toBe(
+        'Limite 0.',
+      );
+    });
   });
 });

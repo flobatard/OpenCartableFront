@@ -4,6 +4,15 @@
   </p>
 }
 
+@if (solving() && correctionLoginHint() && !correctionEnabled()) {
+  <p class="exercise-view__login-hint">
+    <span>{{ 'student.exercise.correction.loginHint' | transloco }}</span>
+    <button type="button" class="btn btn--secondary" (click)="loginRequested.emit()">
+      {{ 'student.exercise.correction.login' | transloco }}
+    </button>
+  </p>
+}
+
 @if (view().statement) {
   <section class="exercise-view__subject">
     <app-markdown-view
@@ -50,41 +59,135 @@
                 | transloco
             }}
           </button>
-          @if (canRequestCorrection(question.id)) {
+          @if (correctionEnabled() && answerText(question.id).trim() !== '') {
             <button
               type="button"
               class="btn btn--primary exercise-view__correction-request"
+              [disabled]="!canRequestCorrection(question.id)"
               (click)="requestCorrection(question.id)"
             >
               {{ 'student.exercise.correction.request' | transloco }}
             </button>
           }
         </div>
-        @if (correctionFor(question.id); as correction) {
-          <section class="exercise-view__correction" aria-live="polite">
+        @if (threadFor(question.id); as thread) {
+          <section
+            class="exercise-view__correction"
+            aria-live="polite"
+            (click)="onCitation($event)"
+            (keydown)="onCitationKeydown($event)"
+          >
             <h4 class="exercise-view__correction-title">
               {{ 'student.exercise.correction.title' | transloco }}
             </h4>
-            @switch (correction.status) {
-              @case ('pending') {
-                <p class="exercise-view__correction-pending">
-                  <app-spinner size="sm" />
-                  {{ 'student.exercise.correction.pending' | transloco }}
-                </p>
+            <ol class="exercise-view__thread">
+              @for (turn of thread.turns; track turn.id) {
+                <li class="exercise-view__turn">
+                  <p class="exercise-view__student">
+                    <span class="exercise-view__turn-label">
+                      {{
+                        (turn.kind === 'answer'
+                          ? 'student.exercise.correction.yourAnswerLabel'
+                          : 'student.exercise.correction.yourMessageLabel'
+                        ) | transloco
+                      }}
+                    </span>
+                    {{ turn.content }}
+                  </p>
+                  <div class="exercise-view__tutor">
+                    @if (verdictKey(turn); as key) {
+                      <span
+                        class="exercise-view__verdict"
+                        [class]="'exercise-view__verdict exercise-view__verdict--' + turn.verdict"
+                      >
+                        {{ key | transloco }}
+                      </span>
+                    }
+                    @if (turn.feedback !== null) {
+                      <app-markdown-view
+                        [markdown]="turn.feedback"
+                        [courseId]="courseId()"
+                        [showPrint]="false"
+                        [showSettings]="false"
+                      />
+                    } @else {
+                      <p class="exercise-view__no-feedback">
+                        {{ 'student.exercise.correction.noFeedback' | transloco }}
+                      </p>
+                    }
+                  </div>
+                </li>
               }
-              @case ('done') {
-                <app-markdown-view
-                  [markdown]="correction.feedback"
-                  [courseId]="courseId()"
-                  [showPrint]="false"
-                  [showSettings]="false"
-                />
+              @if (thread.live; as live) {
+                <li class="exercise-view__turn exercise-view__turn--live">
+                  <p class="exercise-view__student">
+                    <span class="exercise-view__turn-label">
+                      {{
+                        (live.kind === 'answer'
+                          ? 'student.exercise.correction.yourAnswerLabel'
+                          : 'student.exercise.correction.yourMessageLabel'
+                        ) | transloco
+                      }}
+                    </span>
+                    {{ live.content }}
+                  </p>
+                  <div class="exercise-view__tutor">
+                    @if (live.text === '') {
+                      <p class="exercise-view__correction-pending">
+                        <app-spinner size="sm" />
+                        {{ 'student.exercise.correction.pending' | transloco }}
+                      </p>
+                    } @else {
+                      <app-markdown-view
+                        [markdown]="live.text"
+                        [courseId]="null"
+                        [showPrint]="false"
+                        [showSettings]="false"
+                      />
+                    }
+                  </div>
+                </li>
               }
-              @case ('error') {
-                <p class="exercise-view__correction-error">
-                  {{ 'student.exercise.correction.error' | transloco }}
-                </p>
-              }
+            </ol>
+            @if (thread.error !== null) {
+              <p class="exercise-view__correction-error" role="alert">
+                {{ errorKey(thread.error) | transloco }}
+                @if (errorNeedsSettings(thread.error)) {
+                  <a [routerLink]="['/', language.lang(), 'settings', 'ai']">
+                    {{ 'student.exercise.correction.settingsLink' | transloco }}
+                  </a>
+                }
+              </p>
+            }
+            @if (thread.revealedAnswer; as answer) {
+              <div class="exercise-view__revealed">
+                <h5 class="exercise-view__revealed-title">
+                  {{ 'student.exercise.correction.revealedTitle' | transloco }}
+                </h5>
+                <p class="exercise-view__revealed-answer">{{ answer }}</p>
+              </div>
+            }
+            @if (correctionEnabled()) {
+              <div class="exercise-view__composer">
+                <textarea
+                  class="exercise-view__reply"
+                  rows="2"
+                  [placeholder]="'student.exercise.correction.replyPlaceholder' | transloco"
+                  [attr.aria-label]="'student.exercise.correction.reply' | transloco"
+                  [value]="replyText(question.id)"
+                  [disabled]="turnActive(question.id)"
+                  (input)="onReplyInput(question.id, $any($event.target).value)"
+                  (keydown)="onReplyKeydown($event, question.id)"
+                ></textarea>
+                <button
+                  type="button"
+                  class="btn btn--secondary exercise-view__send"
+                  [disabled]="!canSendReply(question.id)"
+                  (click)="sendReply(question.id)"
+                >
+                  {{ 'student.exercise.correction.send' | transloco }}
+                </button>
+              </div>
             }
           </section>
         }

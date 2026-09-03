@@ -1,24 +1,94 @@
 /**
- * Correction IA d'une réponse d'élève (J5, à brancher) — types seuls. Le
- * front réserve dès maintenant l'emplacement par question dans `ExerciseView`
- * (`shared/course-blocks-view/`) : une entrée dans la map `corrections` par
- * id de question, **aucune entrée = rien de rendu**. L'appel lui-même relève
- * du régime élève anonyme (reporté — cf. TODO.md : imputation du quota d'un
- * élève sans compte) et restera **sans persistance** (décision produit) :
- * rien ici ne touche `answer-storage.ts`.
+ * Types du tuteur IA de résolution d'exercice (côté élève, J5) — le fil par
+ * question et son contrat API (`/v1/student/courses/{id}/blocks/{id}/…`,
+ * JWT de l'élève requis : le régime anonyme n'a pas d'IA).
+ *
+ * Un fil = les **tours** persistés de l'élève sur UNE question (réponse
+ * soumise ou message d'aide, chacun avec le retour du tuteur), plus l'état
+ * vivant du tour en cours (`live`), la dernière erreur et le corrigé du
+ * professeur s'il a été révélé — révélation décidée par le BACK sur le
+ * verdict structuré du modèle, jamais par le front.
  */
 
-/** État de la correction d'une question ; absente de la map = jamais demandée. */
-export type QuestionCorrection =
-  | { status: 'pending' }
-  /** Retour du modèle, en markdown de cours (rendu par `app-markdown-view`). */
-  | { status: 'done'; feedback: string }
-  /** Échec : libellé générique côté vue, le bouton de demande sert de retry. */
-  | { status: 'error' };
+export type SubmissionKind = 'answer' | 'message';
+export type SubmissionVerdict = 'correct' | 'partial' | 'incorrect' | 'none';
+export type SubmissionEffort = 'sufficient' | 'insufficient';
 
-/** Demande émise par la vue (`correctionRequested`) : la réponse courante d'une question. */
+/** Un tour persisté (forme des lignes serveur). */
+export interface SubmissionTurn {
+  id: string;
+  kind: SubmissionKind;
+  content: string;
+  /** Retour du tuteur en markdown de cours ; `null` = jamais produit (échec). */
+  feedback: string | null;
+  verdict: SubmissionVerdict | null;
+  effort: SubmissionEffort | null;
+  revealed: boolean;
+  created_at: string;
+}
+
+/** Tour en cours : le texte du tuteur arrive token par token (vide = en attente). */
+export interface LiveTurn {
+  kind: SubmissionKind;
+  content: string;
+  text: string;
+}
+
+export interface QuestionThread {
+  turns: SubmissionTurn[];
+  live: LiveTurn | null;
+  /** Statut HTTP de la dernière erreur (0 = réseau), `null` sinon. */
+  error: number | null;
+  /** Corrigé du professeur, présent ssi un tour l'a révélé. */
+  revealedAnswer: string | null;
+}
+
+/** Demande émise par la vue (`correctionRequested`) : réponse ou message libre. */
 export interface CorrectionRequest {
   blockId: string;
   questionId: string;
-  answer: string;
+  kind: SubmissionKind;
+  content: string;
+}
+
+/** Réponse de `GET …/submissions`. */
+export interface SubmissionsRead {
+  questions: Record<string, { turns: SubmissionTurn[]; revealed_answer: string | null }>;
+}
+
+/** Événements SSE du flux du tuteur (contrat additif — mêmes noms que l'assistant). */
+export type TutorStreamEvent =
+  | { type: 'token'; delta: string }
+  | { type: 'thinking'; delta: string }
+  | { type: 'tool_call'; id: string; name: string; args: Record<string, unknown> }
+  | {
+      type: 'tool_result';
+      id: string;
+      name: string;
+      is_error: boolean;
+      excerpt: string;
+      length: number;
+    }
+  | {
+      type: 'done';
+      submission_id: string;
+      verdict: SubmissionVerdict;
+      effort: SubmissionEffort | null;
+      revealed: boolean;
+      expected_answer: string | null;
+      usage: unknown;
+    }
+  | { type: 'error'; status: number; detail: string };
+
+export const TUTOR_EVENTS: ReadonlySet<string> = new Set<TutorStreamEvent['type']>([
+  'token',
+  'thinking',
+  'tool_call',
+  'tool_result',
+  'done',
+  'error',
+]);
+
+export function emptyThread(): QuestionThread {
+  return { turns: [], live: null, error: null, revealedAnswer: null };
 }

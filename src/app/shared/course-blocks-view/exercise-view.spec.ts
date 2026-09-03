@@ -1,8 +1,13 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
 import { COURSE_RESOURCE_RESOLVER } from '../../core/course-content/course-content-resolvers';
 import { answerStorageKey, StoredBlockAnswers } from '../../core/student/answer-storage';
-import { CorrectionRequest, QuestionCorrection } from '../../core/student/exercise-correction';
+import {
+  CorrectionRequest,
+  QuestionThread,
+  SubmissionTurn,
+} from '../../core/student/exercise-correction';
 import { PUBLIC_COURSE_RESOURCES_FIXTURE } from '../../testing/public-courses.fixture';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
 import { ANSWER_SAVE_DEBOUNCE_MS, ExerciseView, ExerciseViewMode } from './exercise-view';
@@ -18,6 +23,31 @@ const CONTENT = {
 
 const KEY = answerStorageKey('course-1', 'block-3');
 
+function turn(overrides: Partial<SubmissionTurn> & { id: string }): SubmissionTurn {
+  return {
+    kind: 'answer',
+    content: '',
+    feedback: null,
+    verdict: null,
+    effort: null,
+    revealed: false,
+    created_at: '2026-09-03T10:00:00Z',
+    ...overrides,
+  };
+}
+
+function doneThread(
+  feedback: string,
+  verdict: SubmissionTurn['verdict'] = 'incorrect',
+): QuestionThread {
+  return {
+    turns: [turn({ id: 't1', content: 'Ma réponse', feedback, verdict })],
+    live: null,
+    error: null,
+    revealedAnswer: null,
+  };
+}
+
 function seed(key: string, answers: StoredBlockAnswers['answers']): void {
   localStorage.setItem(key, JSON.stringify({ version: 2, answers }));
 }
@@ -31,7 +61,9 @@ interface Inputs {
   mode: ExerciseViewMode;
   blockId: string;
   correctionEnabled: boolean;
-  corrections: Record<string, QuestionCorrection>;
+  correctionLoginHint: boolean;
+  threads: Record<string, QuestionThread>;
+  blockLink: ((blockId: string) => string[]) | null;
 }
 
 describe('ExerciseView', () => {
@@ -48,8 +80,11 @@ describe('ExerciseView', () => {
   ): Promise<ComponentFixture<ExerciseView>> {
     await TestBed.configureTestingModule({
       imports: [ExerciseView, provideTranslocoTesting()],
-      // Résolveur public : la vue ne doit jamais retomber sur l'impl. prof (OIDC).
-      providers: [{ provide: COURSE_RESOURCE_RESOLVER, useValue: resolverMock }],
+      providers: [
+        // Résolveur public : la vue ne doit jamais retomber sur l'impl. prof (OIDC).
+        { provide: COURSE_RESOURCE_RESOLVER, useValue: resolverMock },
+        provideRouter([{ path: '**', children: [] }]),
+      ],
     }).compileComponents();
     const fixture = TestBed.createComponent(ExerciseView);
     fixture.componentRef.setInput('content', CONTENT);
@@ -57,7 +92,9 @@ describe('ExerciseView', () => {
     fixture.componentRef.setInput('blockId', inputs.blockId ?? 'block-3');
     fixture.componentRef.setInput('mode', inputs.mode ?? 'preview');
     fixture.componentRef.setInput('correctionEnabled', inputs.correctionEnabled ?? false);
-    fixture.componentRef.setInput('corrections', inputs.corrections ?? {});
+    fixture.componentRef.setInput('correctionLoginHint', inputs.correctionLoginHint ?? false);
+    fixture.componentRef.setInput('threads', inputs.threads ?? {});
+    fixture.componentRef.setInput('blockLink', inputs.blockLink ?? null);
     await fixture.whenStable();
     return fixture;
   }
@@ -120,7 +157,8 @@ describe('ExerciseView', () => {
     it('renders no correction even when one is provided', async () => {
       const fixture = await createComponent({
         correctionEnabled: true,
-        corrections: { 'q-1': { status: 'done', feedback: 'Bien.' } },
+        correctionLoginHint: true,
+        threads: { 'q-1': doneThread('Bien.') },
       });
 
       expect(el(fixture).querySelector('.exercise-view__correction')).toBeNull();
@@ -241,16 +279,29 @@ describe('ExerciseView', () => {
     });
   });
 
-  describe('correction slot (dormant until the AI call exists)', () => {
-    it('renders neither a request button nor a panel by default', async () => {
+  describe('AI tutor thread per question', () => {
+    it('renders neither a request button nor a thread by default', async () => {
       seed(KEY, { 'q-1': { text: 'x', locked: false, updatedAt: '' } });
       const fixture = await createComponent({ mode: 'solve' });
 
       expect(el(fixture).querySelector('.exercise-view__correction-request')).toBeNull();
       expect(el(fixture).querySelector('.exercise-view__correction')).toBeNull();
+      expect(el(fixture).querySelector('.exercise-view__login-hint')).toBeNull();
     });
 
-    it('offers the request only when enabled and answered, and emits the request', async () => {
+    it('invites anonymous students to sign in and emits loginRequested', async () => {
+      const fixture = await createComponent({ mode: 'solve', correctionLoginHint: true });
+      const login = vi.fn();
+      fixture.componentInstance.loginRequested.subscribe(login);
+
+      const hint = el(fixture).querySelector<HTMLElement>('.exercise-view__login-hint');
+      expect(hint).not.toBeNull();
+      hint!.querySelector('button')!.click();
+      expect(login).toHaveBeenCalledTimes(1);
+      expect(el(fixture).querySelector('.exercise-view__correction-request')).toBeNull();
+    });
+
+    it('offers the request only when enabled and answered, and emits an answer turn', async () => {
       const fixture = await createComponent({ mode: 'solve', correctionEnabled: true });
       const requested: CorrectionRequest[] = [];
       fixture.componentInstance.correctionRequested.subscribe((r) => requested.push(r));
@@ -265,28 +316,147 @@ describe('ExerciseView', () => {
       expect(request()).not.toBeNull();
 
       request()!.click();
-      expect(requested).toEqual([{ blockId: 'block-3', questionId: 'q-1', answer: 'Ma réponse' }]);
+      expect(requested).toEqual([
+        { blockId: 'block-3', questionId: 'q-1', kind: 'answer', content: 'Ma réponse' },
+      ]);
     });
 
-    it('renders the correction states provided per question', async () => {
+    it('renders the turns of a thread with verdict badges, the live turn and the composer', async () => {
       const fixture = await createComponent({
         mode: 'solve',
-        corrections: {
-          'q-1': { status: 'pending' },
-          'q-2': { status: 'done', feedback: '**Bien** vu.' },
+        correctionEnabled: true,
+        threads: {
+          'q-1': {
+            turns: [
+              turn({
+                id: 't1',
+                content: '5',
+                feedback: 'Relis le **cours**.',
+                verdict: 'incorrect',
+              }),
+              turn({ id: 't2', kind: 'message', content: 'Aide', feedback: null, verdict: null }),
+            ],
+            live: { kind: 'answer', content: '7', text: '' },
+            error: null,
+            revealedAnswer: null,
+          },
         },
       });
 
-      const panels = el(fixture).querySelectorAll('.exercise-view__correction');
-      expect(panels.length).toBe(2);
-      expect(panels[0].querySelector('app-spinner')).not.toBeNull();
-      expect(panels[1].querySelector('strong')?.textContent).toBe('Bien');
+      const panel = el(fixture).querySelector('.exercise-view__correction')!;
+      const turns = panel.querySelectorAll('.exercise-view__turn');
+      expect(turns.length).toBe(3);
+      expect(turns[0].querySelector('.exercise-view__student')?.textContent).toContain('5');
+      expect(
+        turns[0].querySelector('.exercise-view__verdict--incorrect')?.textContent?.trim(),
+      ).toBe('Réponse fausse');
+      expect(turns[0].querySelector('strong')?.textContent).toBe('cours');
+      expect(turns[1].querySelector('.exercise-view__verdict')).toBeNull();
+      expect(turns[1].querySelector('.exercise-view__no-feedback')).not.toBeNull();
+      // Tour en cours : spinner tant qu'aucun texte, composer et bouton désactivés.
+      expect(turns[2].querySelector('app-spinner')).not.toBeNull();
+      expect(panel.querySelector<HTMLTextAreaElement>('.exercise-view__reply')?.disabled).toBe(
+        true,
+      );
+      expect(panel.querySelector<HTMLButtonElement>('.exercise-view__send')?.disabled).toBe(true);
 
-      fixture.componentRef.setInput('corrections', { 'q-1': { status: 'error' } });
+      // Texte streamé : rendu en markdown à la place du spinner.
+      fixture.componentRef.setInput('threads', {
+        'q-1': {
+          turns: [],
+          live: { kind: 'answer', content: '7', text: 'Presque **bien**' },
+          error: null,
+          revealedAnswer: null,
+        },
+      });
       await fixture.whenStable();
+      expect(el(fixture).querySelector('.exercise-view__turn--live app-spinner')).toBeNull();
+      expect(el(fixture).querySelector('.exercise-view__turn--live strong')?.textContent).toBe(
+        'bien',
+      );
+    });
 
-      expect(el(fixture).querySelectorAll('.exercise-view__correction').length).toBe(1);
-      expect(el(fixture).querySelector('.exercise-view__correction-error')).not.toBeNull();
+    it('sends a free message from the composer and clears it', async () => {
+      const fixture = await createComponent({
+        mode: 'solve',
+        correctionEnabled: true,
+        threads: { 'q-1': doneThread('Indice.') },
+      });
+      const requested: CorrectionRequest[] = [];
+      fixture.componentInstance.correctionRequested.subscribe((r) => requested.push(r));
+      const reply = el(fixture).querySelector<HTMLTextAreaElement>('.exercise-view__reply')!;
+      const send = el(fixture).querySelector<HTMLButtonElement>('.exercise-view__send')!;
+
+      expect(send.disabled).toBe(true);
+      type(reply, '  Je ne comprends pas  ');
+      await fixture.whenStable();
+      expect(send.disabled).toBe(false);
+
+      send.click();
+      await fixture.whenStable();
+      expect(requested).toEqual([
+        { blockId: 'block-3', questionId: 'q-1', kind: 'message', content: 'Je ne comprends pas' },
+      ]);
+      expect(reply.value).toBe('');
+    });
+
+    it('shows the revealed answer and the error with a settings link on 429', async () => {
+      const fixture = await createComponent({
+        mode: 'solve',
+        correctionEnabled: true,
+        threads: {
+          'q-1': {
+            ...doneThread('Bravo !', 'correct'),
+            error: 429,
+            revealedAnswer: 'Limite 0.',
+          },
+        },
+      });
+
+      expect(el(fixture).querySelector('.exercise-view__revealed-answer')?.textContent).toBe(
+        'Limite 0.',
+      );
+      const error = el(fixture).querySelector('.exercise-view__correction-error')!;
+      expect(error.textContent).toContain('quota');
+      expect(error.querySelector('a')?.getAttribute('href')).toBe('/fr/settings/ai');
+
+      fixture.componentRef.setInput('threads', { 'q-1': { ...doneThread('x'), error: 503 } });
+      await fixture.whenStable();
+      expect(el(fixture).querySelector('.exercise-view__correction-error a')).toBeNull();
+    });
+
+    it('navigates to a cited block through blockLink (guarded by isBlockId)', async () => {
+      const blockId = '123e4567-e89b-12d3-a456-426614174000';
+      const fixture = await createComponent({
+        mode: 'solve',
+        correctionEnabled: true,
+        blockLink: (id) => ['/', 'fr', 'p', 'courses', 'course-1', 'blocks', id],
+        threads: {
+          'q-1': doneThread(`Voir [Intro](oc-block:${blockId}) et [Faux](oc-block:pas-un-id).`),
+        },
+      });
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      // Le rendu n'émet une ancre que pour une cible en forme UUID.
+      const anchors = el(fixture).querySelectorAll<HTMLElement>('[data-oc-block-id]');
+      expect(anchors.length).toBe(1);
+
+      anchors[0].click();
+      expect(navigate).toHaveBeenCalledWith([
+        '/',
+        'fr',
+        'p',
+        'courses',
+        'course-1',
+        'blocks',
+        blockId,
+      ]);
+
+      // Re-garde `isBlockId` : un attribut forgé (HTML brut) ne navigue jamais.
+      const forged = document.createElement('span');
+      forged.setAttribute('data-oc-block-id', 'pas-un-id');
+      el(fixture).querySelector('.exercise-view__correction')!.appendChild(forged);
+      forged.click();
+      expect(navigate).toHaveBeenCalledTimes(1);
     });
   });
 });
