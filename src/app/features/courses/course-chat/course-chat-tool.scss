@@ -9,7 +9,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 0.95em;
 }
 
 .chat-tool--error {
@@ -63,7 +63,7 @@
 
 .chat-tool__heading {
   margin: 8px 0 2px;
-  font-size: 11px;
+  font-size: 0.85em;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -90,7 +90,7 @@
   margin: 0;
   overflow-wrap: anywhere;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 0.95em;
 }
 
 /* Extrait du résultat : texte brut, borné en hauteur, scrollable. */
@@ -103,7 +103,7 @@
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 0.95em;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }

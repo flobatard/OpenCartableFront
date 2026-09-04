@@ -2,10 +2,19 @@
    Le display est ré-annulé sous [hidden] car une règle d'auteur bat le [hidden] de l'UA
    (les hôtes masquent le chat via [hidden] au repli). */
 :host {
+  /* Corps du chat plus compact que l'UI générale (16px) : les réponses de
+     l'assistant sont volontairement longues (on ne borne pas la verbosité, on
+     borne la place qu'elle prend). `--chat-font` est le seul curseur : tout ce
+     qui suit est exprimé en em, et les composants enfants (outil, proposition,
+     pied de réglages) héritent de la même base. */
+  --chat-font: 13px;
+
   display: flex;
   flex-direction: column;
   min-height: 0;
   height: 100%;
+  font-size: var(--chat-font);
+  line-height: 1.55;
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -32,7 +41,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   font-family: var(--font-display);
-  font-size: 16px;
+  font-size: 1.15em;
 }
 
 .course-chat__badge {
@@ -40,7 +49,7 @@
   background: var(--bg-subtle);
   border-radius: var(--radius-full);
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 0.85em;
   font-weight: 600;
 }
 
@@ -116,13 +125,13 @@
 .course-chat__empty-hint {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: 1em;
 }
 
 .course-chat__status {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 0.95em;
 }
 
 .course-chat__alert {
@@ -130,7 +139,7 @@
   border: 1px solid var(--text-danger);
   border-radius: var(--radius);
   color: var(--text-danger);
-  font-size: 14px;
+  font-size: 1em;
 }
 
 .course-chat__alert p {
@@ -185,12 +194,12 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 1em;
 }
 
 .course-chat__conversation-date {
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 0.9em;
 }
 
 .course-chat__conversation-delete {
@@ -201,7 +210,7 @@
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
   font: inherit;
-  font-size: 12px;
+  font-size: 0.9em;
   cursor: pointer;
 }
 
@@ -219,9 +228,27 @@
   border-radius: var(--radius);
   background: var(--bg-subtle);
   color: var(--text-primary);
-  font-size: 14px;
+  font-size: 1em;
   overflow-wrap: break-word;
   white-space: pre-wrap;
+}
+
+/* Réponse de l'assistant : c'est du markdown de cours (`.course-content`, rendu
+   par app-markdown-view), donc calé sur 16px × les réglages de lecture du cours.
+   Dans le chat, ces réponses sont longues : on redescend la base à `--chat-font`
+   (le facteur du cours reste appliqué, un prof qui grossit son cours grossit
+   aussi le chat) et on resserre l'interligne. Sélecteur ::ng-deep car la règle
+   vise le conteneur d'un composant enfant — il reste borné à cet hôte par
+   l'encapsulation émulée du préfixe. */
+.course-chat__answer ::ng-deep .course-content {
+  font-size: calc(var(--chat-font) * var(--course-font-scale, 1));
+  line-height: calc(1.55 * var(--course-line-scale, 1));
+}
+
+/* Boutons du chat : le `.btn` global est figé à 14px, plus gros que le corps
+   réduit du panneau. */
+.btn {
+  font-size: 0.95em;
 }
 
 /* Les appels d'outils (lignes dépliables) vivent dans app-course-chat-tool. */
@@ -232,7 +259,7 @@
   border-radius: var(--radius);
   padding: 6px 10px;
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 0.95em;
 }
 
 .course-chat__thinking summary {
