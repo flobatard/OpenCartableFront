@@ -2,8 +2,9 @@
 # jamais buildée ici (cf. .gitea/workflows/deploy-preprod.yml).
 #
 # Pas de .env ici : la config OIDC/apiUrl du front est compile-time (gravée
-# dans le bundle par `npm run build`, cf. src/environments/environment.prod.ts
-# — à adapter au domaine réel AVANT de fusionner sur `preprod`). Seuls
+# dans le bundle par la configuration Angular "preprod", cf.
+# src/environments/environment.preprod.ts — renseigner ses placeholders AVANT
+# de fusionner sur `preprod`). Seuls
 # ALLOWED_HOSTS/TRUST_PROXY_HEADERS (protection SSRF de l'SSR, runtime) sont
 # injectés, exportés par le workflow depuis les variables Gitea
 # PREPROD_ALLOWED_HOSTS / PREPROD_TRUST_PROXY_HEADERS avant `docker compose up`.

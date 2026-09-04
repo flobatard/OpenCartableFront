@@ -4,8 +4,11 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
-# Configuration production par défaut : les environnements sont figés au build.
-RUN npm run build
+# Les environnements sont figés au BUILD (fileReplacements d'angular.json) :
+# la cible est donc choisie ici. Défaut "production" ; le workflow de preprod
+# passe --build-arg BUILD_CONFIGURATION=preprod (environment.preprod.ts).
+ARG BUILD_CONFIGURATION=production
+RUN npm run build -- --configuration "$BUILD_CONFIGURATION"
 
 # Étage 2 : runtime — server.mjs est auto-porté (Express bundlé par le builder),
 # aucun node_modules requis.

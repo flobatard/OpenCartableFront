@@ -15,9 +15,10 @@
 #   PRIVATE_SSH_KEY                   → clé privée SSH de l'utilisateur de déploiement (PEM, multiline)
 #
 # Pas de secret .env ici : la config OIDC/apiUrl du front est compile-time,
-# gravée dans le bundle par `npm run build` (configuration "production" par
-# défaut, cf. angular.json → src/environments/environment.prod.ts) — à adapter
-# au domaine réel de preprod AVANT de fusionner sur la branche `preprod`.
+# gravée dans le bundle au `docker build` par la configuration Angular
+# "preprod" (cf. angular.json → src/environments/environment.preprod.ts, passée
+# au Dockerfile via --build-arg BUILD_CONFIGURATION) — renseigner ses
+# placeholders AVANT de fusionner sur la branche `preprod`.
 
 name: Deploy PREPROD
 
@@ -123,11 +124,12 @@ jobs:
       #
       # Tags : "preprod" plutôt que "latest" — pour ne pas préempter le nom
       # "latest" le jour où un pipeline de prod poussera sur la même image.
-      # Pas de --build-arg : le Dockerfile ne déclare aucun ARG (la config
-      # est gravée depuis environment.prod.ts, cf. en-tête de ce fichier).
+      # --build-arg BUILD_CONFIGURATION=preprod : c'est CE flag qui grave
+      # environment.preprod.ts dans le bundle (cf. en-tête de ce fichier).
       - name: Build and push Docker image
         run: |
           docker buildx build \
+            --build-arg BUILD_CONFIGURATION=preprod \
             --cache-from "type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE }}:buildcache" \
             --cache-to "type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE }}:buildcache,mode=max" \
             -t "${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ github.sha }}" \
