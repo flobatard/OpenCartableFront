@@ -7,7 +7,7 @@ import {
 } from '../../../core/course-content/course-content-resolvers';
 import { PublicCourseDetail } from '../../../core/public-courses/public-course.model';
 import { PublicCourseService } from '../../../core/public-courses/public-course.service';
-import { PrintService } from '../../../core/print/print.service';
+import { PrintService } from '../../../shared/print/print.service';
 import {
   PUBLIC_COURSE_DETAIL_FIXTURE,
   PUBLIC_COURSE_RESOURCES_FIXTURE,

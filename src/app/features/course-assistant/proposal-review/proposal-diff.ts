@@ -5,8 +5,8 @@ import {
   DiffEditorModel,
   NGX_MONACO_EDITOR_CONFIG,
 } from 'ngx-monaco-editor-v2';
-import { ThemeService } from '../../core/theme/theme.service';
-import { MONACO_CONFIG } from '../markdown-editor/monaco-config';
+import { ThemeService } from '../../../core/theme/theme.service';
+import { MONACO_CONFIG } from '../../../shared/markdown-editor/monaco-config';
 
 /**
  * Options du diff figées en constante (référence stable — le wrapper recrée

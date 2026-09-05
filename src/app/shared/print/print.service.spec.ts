@@ -7,7 +7,7 @@ import {
   keepHeadingsWithContent,
   transformForPrint,
 } from './print.service';
-import { courseContentUrl, resourceContentUrl } from '../resources/resource.utils';
+import { courseContentUrl, resourceContentUrl } from '../../core/resources/resource.utils';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
 
 /** Fragment DOM détaché à partir d'un HTML (jsdom). */

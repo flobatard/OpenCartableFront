@@ -14,7 +14,7 @@ import { CourseStyleService } from '../../../core/courses/course-style.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { publicCourseLink } from '../../../core/public-courses/public-access';
 import { PublicCourseService } from '../../../core/public-courses/public-course.service';
-import { PrintService } from '../../../core/print/print.service';
+import { PrintService } from '../../../shared/print/print.service';
 import { CourseBlocksView } from '../../../shared/course-blocks-view/course-blocks-view';
 
 /**

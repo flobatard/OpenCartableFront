@@ -1,8 +1,8 @@
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { TranslocoService } from '@jsverse/transloco';
-import { LanguageService } from '../i18n/language.service';
-import { resourceContentUrl } from '../resources/resource.utils';
+import { LanguageService } from '../../core/i18n/language.service';
+import { resourceContentUrl } from '../../core/resources/resource.utils';
 import {
   keepHeadingsWithContent,
   ResourceUrlBuilder,

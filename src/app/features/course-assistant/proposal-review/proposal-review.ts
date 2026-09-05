@@ -1,7 +1,7 @@
 import { Component, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { ProposalDecision } from '../../../shared/proposal/proposal-decision';
-import { ProposalDiff } from '../../../shared/proposal/proposal-diff';
+import { ProposalDecision } from './proposal-decision';
+import { ProposalDiff } from './proposal-diff';
 
 /**
  * Une proposition de réécriture EN ATTENTE de décision (vue de l'hôte),

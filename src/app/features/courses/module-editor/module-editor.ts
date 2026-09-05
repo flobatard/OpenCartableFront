@@ -31,8 +31,8 @@ import { MarkdownEditor } from '../../../shared/markdown-editor/markdown-editor'
 import { ModuleRunner } from '../../../shared/module-runner/module-runner';
 import { ResizeHandle } from '../../../shared/resize-handle/resize-handle.directive';
 import { Tablist } from '../../../shared/tabs/tablist.directive';
-import { CourseChat } from '../course-chat/course-chat';
-import { ModuleProposalReview } from './module-proposal-review';
+import { CourseChat } from '../../course-assistant/course-chat/course-chat';
+import { ModuleProposalReview } from '../../course-assistant/proposal-review/module-proposal-review';
 
 /** Frappe → preview : un peu plus large que le playground (400 ms) car chaque
  *  recomposition RECHARGE l'iframe sandbox (srcdoc), pas juste un re-rendu. */

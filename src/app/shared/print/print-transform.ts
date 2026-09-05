@@ -1,13 +1,13 @@
-import { AppLang } from '../i18n/language.service';
-import { MODULE_REF_ATTR } from '../markdown/course-module-ref';
-import { RESOURCE_REF_ATTR } from '../markdown/course-resource-ref';
+import { AppLang } from '../../core/i18n/language.service';
+import { MODULE_REF_ATTR } from '../../core/markdown/course-module-ref';
+import { RESOURCE_REF_ATTR } from '../../core/markdown/course-resource-ref';
 // Seule source de vérité des attributs posés par la passe placeholder des
 // extensions (module pur sans Angular).
 import {
   EXTENSION_ATTR,
   EXTENSION_PRINTABLE_ATTR,
-} from '../../shared/markdown-extensions/extension-placeholders';
-import { courseContentUrl, resourceContentUrl } from '../resources/resource.utils';
+} from '../markdown-extensions/extension-placeholders';
+import { courseContentUrl, resourceContentUrl } from '../../core/resources/resource.utils';
 
 /**
  * Transformations PURES (DOM en place, testées en jsdom) d'un clone de

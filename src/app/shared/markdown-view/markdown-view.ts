@@ -28,7 +28,7 @@ import {
   ResolvedResource,
   resolveCourseResources,
 } from '../../core/markdown/course-resource-pass';
-import { PrintService } from '../../core/print/print.service';
+import { PrintService } from '../print/print.service';
 import {
   applyExtensionPlaceholders,
   EXTENSION_ATTR,

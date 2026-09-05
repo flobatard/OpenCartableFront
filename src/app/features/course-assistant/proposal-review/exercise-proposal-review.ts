@@ -6,8 +6,8 @@ import {
 } from '../../../core/course-assistant/proposals';
 import { ExerciseContentPayload } from '../../../core/courses/course.model';
 import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
-import { ProposalDecision } from '../../../shared/proposal/proposal-decision';
-import { ProposalDiff } from '../../../shared/proposal/proposal-diff';
+import { ProposalDecision } from './proposal-decision';
+import { ProposalDiff } from './proposal-diff';
 
 /** Propositions du contexte `block_exercise` (alias local du type du core). */
 export type ExerciseProposal = AssistantExerciseProposal;

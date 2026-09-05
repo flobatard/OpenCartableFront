@@ -12,7 +12,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CourseService } from '../../../core/courses/course.service';
 import { CourseStyleService } from '../../../core/courses/course-style.service';
-import { PrintService } from '../../../core/print/print.service';
+import { PrintService } from '../../../shared/print/print.service';
 import { ResourceService } from '../../../core/resources/resource.service';
 import { CourseBlocksView } from '../../../shared/course-blocks-view/course-blocks-view';
 import { CourseStyleDialog } from '../../../shared/course-style-dialog/course-style-dialog';

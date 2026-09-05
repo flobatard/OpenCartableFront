@@ -4,8 +4,8 @@ import {
   AssistantModuleProposal,
   PROPOSAL_TOOL_BY_KIND,
 } from '../../../core/course-assistant/proposals';
-import { ProposalDecision } from '../../../shared/proposal/proposal-decision';
-import { ProposalDiff, ProposalDiffLanguage } from '../../../shared/proposal/proposal-diff';
+import { ProposalDecision } from './proposal-decision';
+import { ProposalDiff, ProposalDiffLanguage } from './proposal-diff';
 
 /** Langage Monaco du diff, par fichier visé. */
 const DIFF_LANGUAGE: Readonly<Record<AssistantModuleProposal['kind'], ProposalDiffLanguage>> = {

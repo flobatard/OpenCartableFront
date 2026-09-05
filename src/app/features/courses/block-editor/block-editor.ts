@@ -40,14 +40,17 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { ResourceService } from '../../../core/resources/resource.service';
 import { MarkdownField } from '../../../shared/markdown-field/markdown-field';
 import { ResizeHandle } from '../../../shared/resize-handle/resize-handle.directive';
-import { CourseChat } from '../course-chat/course-chat';
+import { CourseChat } from '../../course-assistant/course-chat/course-chat';
 import { DocumentEditor } from '../document-editor/document-editor';
 import { ExerciseEditor } from '../exercise-editor/exercise-editor';
 import { ModuleBlockEditor } from '../module-block-editor/module-block-editor';
+import { buildBlockProposalHost } from '../../course-assistant/proposal-review/block-proposal-host';
+import {
+  ExerciseProposal,
+  ExerciseProposalReview,
+} from '../../course-assistant/proposal-review/exercise-proposal-review';
+import { ProposalReview } from '../../course-assistant/proposal-review/proposal-review';
 import { BlockMetaEditor } from './block-meta-editor';
-import { ExerciseProposal, ExerciseProposalReview } from './exercise-proposal-review';
-import { buildBlockProposalHost } from './proposal-host';
-import { ProposalReview } from './proposal-review';
 
 /**
  * Coquille-page d'édition d'un bloc : en-tête et navigation entre blocs,

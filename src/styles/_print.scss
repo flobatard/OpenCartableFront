@@ -1,4 +1,4 @@
-/* Impression / export PDF (cf. core/print/print.service.ts).
+/* Impression / export PDF (cf. shared/print/print.service.ts).
 
    Le service pose le contenu de cours cloné dans #oc-print-root (enfant direct
    de <body>). Hors impression, ce conteneur est rendu mais hors-écran — pas
