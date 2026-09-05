@@ -8,6 +8,7 @@ import { COURSE_DETAIL_FIXTURE } from '../../../testing/courses.fixture';
 import { COURSE_RESOURCES_FIXTURE } from '../../../testing/resources.fixture';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
 import { CoursePreview } from './course-preview';
+import { mockResourceService } from '../../../testing/service-mocks';
 
 /** Bloc module ajouté au mix : rendu par app-module-embed (vue élève). */
 const MODULE_BLOCK: CourseBlock = {
@@ -29,12 +30,10 @@ const DETAIL_WITH_MODULE: CourseDetail = {
 describe('CoursePreview', () => {
   const detail = signal<CourseDetail | null>(DETAIL_WITH_MODULE);
   const coursesMock = { detail };
-  const resourcesMock = {
-    list: signal(COURSE_RESOURCES_FIXTURE),
-    listLoading: signal(false),
-    loadList: vi.fn(),
-    getDownloadUrl: vi.fn().mockResolvedValue('https://s3.example/presigned'),
-  };
+  const resourcesMock = mockResourceService(
+    COURSE_RESOURCES_FIXTURE,
+    'https://s3.example/presigned',
+  );
   const modulesMock = {
     list: signal([]),
     listLoading: signal(false),

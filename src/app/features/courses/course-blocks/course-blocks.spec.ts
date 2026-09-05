@@ -6,7 +6,6 @@ import { CourseBlocks } from './course-blocks';
 import { CourseBlock, CourseDetail } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
 import { EducationLevelService } from '../../../core/education-levels/education-level.service';
-import { ModuleSummary } from '../../../core/modules/module.model';
 import { ModuleService } from '../../../core/modules/module.service';
 import { ResourceService } from '../../../core/resources/resource.service';
 import { ShareLink } from '../../../core/share/share-link.model';
@@ -14,10 +13,8 @@ import { ShareLinkService } from '../../../core/share/share-link.service';
 import { SubjectService } from '../../../core/subjects/subject.service';
 import { UserProfileService } from '../../../core/users/user-profile.service';
 import { COURSE_DETAIL_FIXTURE } from '../../../testing/courses.fixture';
-import { EDUCATION_LEVELS_FIXTURE } from '../../../testing/education-levels.fixture';
-import { COURSE_RESOURCES_FIXTURE } from '../../../testing/resources.fixture';
-import { SUBJECTS_FIXTURE } from '../../../testing/subjects.fixture';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
+import { mockEducationLevelService, mockModuleService, mockResourceService, mockSubjectService } from '../../../testing/service-mocks';
 
 describe('CourseBlocks', () => {
   const detail = signal<CourseDetail | null>(COURSE_DETAIL_FIXTURE);
@@ -33,46 +30,12 @@ describe('CourseBlocks', () => {
     reorderBlocks: vi.fn(),
     deleteCourse: vi.fn(),
   };
-  const subjectsMock = {
-    tree: signal(SUBJECTS_FIXTURE),
-    loading: signal(false),
-    error: signal(false),
-    load: vi.fn(),
-    reload: vi.fn(),
-  };
-  const levelsMock = {
-    tree: signal(EDUCATION_LEVELS_FIXTURE),
-    loading: signal(false),
-    error: signal(false),
-    load: vi.fn(),
-    reload: vi.fn(),
-  };
-  const resourcesMock = {
-    list: signal(COURSE_RESOURCES_FIXTURE),
-    listLoading: signal(false),
-    listError: signal(false),
-    uploadState: signal({ phase: 'idle' as const, progress: 0 }),
-    loadList: vi.fn(),
-    upload: vi.fn(),
-    rename: vi.fn(),
-    deleteResource: vi.fn(),
-    // Résolue : l'onglet Aperçu présigne le PDF du bloc document dès le montage
-    // (un vi.fn() nu renverrait undefined → TypeError sur le .then de l'effect).
-    getDownloadUrl: vi.fn().mockResolvedValue('https://s3.test/get/x'),
-  };
-  const modulesMock = {
-    list: signal<ModuleSummary[]>([
-      { id: 'module-1', title: 'Quiz interactif', created_at: '2026-07-01', updated_at: '2026-07-01' },
-    ]),
-    listLoading: signal(false),
-    listError: signal(false),
-    loadList: vi.fn(),
-    createModule: vi.fn(),
-    renameModule: vi.fn(),
-    updateModule: vi.fn(),
-    deleteModule: vi.fn(),
-    getModule: vi.fn(),
-  };
+  const subjectsMock = mockSubjectService();
+  const levelsMock = mockEducationLevelService();
+  const resourcesMock = mockResourceService();
+  const modulesMock = mockModuleService([
+    { id: 'module-1', title: 'Quiz interactif', created_at: '2026-07-01', updated_at: '2026-07-01' },
+  ]);
   const shareLinksMock = {
     list: signal<ShareLink[]>([]),
     listLoading: signal(false),

@@ -4,11 +4,11 @@ import { provideRouter } from '@angular/router';
 import { By } from '@angular/platform-browser';
 import { MarkdownField } from './markdown-field';
 import { MarkdownEditor } from '../markdown-editor/markdown-editor';
-import { ModuleSummary } from '../../core/modules/module.model';
 import { ModuleService } from '../../core/modules/module.service';
 import { ResourceService } from '../../core/resources/resource.service';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
 import { COURSE_RESOURCES_FIXTURE } from '../../testing/resources.fixture';
+import { mockModuleService, mockResourceService } from '../../testing/service-mocks';
 
 /**
  * Monaco reste inerte en jsdom (loader AMD non chargé) : les specs pilotent le
@@ -17,20 +17,13 @@ import { COURSE_RESOURCES_FIXTURE } from '../../testing/resources.fixture';
  * `ModuleService` (picker de module) sont mockés.
  */
 describe('MarkdownField', () => {
-  const resourcesMock = {
-    list: signal(COURSE_RESOURCES_FIXTURE),
-    listLoading: signal(false),
-    loadList: vi.fn(),
-    getDownloadUrl: vi.fn().mockResolvedValue('https://s3.example/presigned'),
-  };
-  const modulesMock = {
-    list: signal<ModuleSummary[]>([
-      { id: 'module-1', title: 'Quiz interactif', created_at: '', updated_at: '' },
-    ]),
-    listLoading: signal(false),
-    loadList: vi.fn(),
-    getModule: vi.fn(),
-  };
+  const resourcesMock = mockResourceService(
+    COURSE_RESOURCES_FIXTURE,
+    'https://s3.example/presigned',
+  );
+  const modulesMock = mockModuleService([
+    { id: 'module-1', title: 'Quiz interactif', created_at: '', updated_at: '' },
+  ]);
 
   async function configure(): Promise<void> {
     await TestBed.configureTestingModule({

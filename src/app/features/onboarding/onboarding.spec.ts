@@ -8,30 +8,16 @@ import { EducationLevelService } from '../../core/education-levels/education-lev
 import { SubjectService } from '../../core/subjects/subject.service';
 import { UserProfileService } from '../../core/users/user-profile.service';
 import { EDUCATION_LEVELS_MULTI_SYSTEM_FIXTURE } from '../../testing/education-levels.fixture';
-import { SUBJECTS_FIXTURE } from '../../testing/subjects.fixture';
 import {
   USER_PROFILE_FIXTURE,
   USER_PROFILE_ONBOARDED_FIXTURE,
 } from '../../testing/user-profile.fixture';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
+import { mockEducationLevelService, mockSubjectService } from '../../testing/service-mocks';
 
 describe('Onboarding', () => {
-  const levelsMock = {
-    tree: signal(EDUCATION_LEVELS_MULTI_SYSTEM_FIXTURE),
-    loading: signal(false),
-    error: signal(false),
-    load: vi.fn(),
-    reload: vi.fn(),
-    tree$: vi.fn(),
-  };
-  const subjectsMock = {
-    tree: signal(SUBJECTS_FIXTURE),
-    loading: signal(false),
-    error: signal(false),
-    load: vi.fn(),
-    reload: vi.fn(),
-    tree$: vi.fn(),
-  };
+  const levelsMock = mockEducationLevelService(EDUCATION_LEVELS_MULTI_SYSTEM_FIXTURE);
+  const subjectsMock = mockSubjectService();
 
   let ensureLoaded: ReturnType<typeof vi.fn>;
   let saveProfile: ReturnType<typeof vi.fn>;

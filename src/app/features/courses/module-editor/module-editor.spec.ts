@@ -13,6 +13,7 @@ import {
 } from '../../../testing/assistant.fixture';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
 import { ModuleEditor } from './module-editor';
+import { mockModuleService } from '../../../testing/service-mocks';
 
 const DETAIL: ModuleDetail = {
   id: 'module-1',
@@ -30,10 +31,7 @@ const DETAIL: ModuleDetail = {
  * fake timers de vitest (debounce 1500 ms / 500 ms).
  */
 describe('ModuleEditor', () => {
-  const modulesMock = {
-    getModule: vi.fn(),
-    updateModule: vi.fn(),
-  };
+  const modulesMock = mockModuleService();
   let assistantState: ReturnType<typeof mockAssistantChatState>;
 
   async function configure(): Promise<void> {

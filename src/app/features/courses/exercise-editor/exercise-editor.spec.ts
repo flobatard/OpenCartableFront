@@ -10,6 +10,7 @@ import { ModuleService } from '../../../core/modules/module.service';
 import { ResourceService } from '../../../core/resources/resource.service';
 import { MarkdownField } from '../../../shared/markdown-field/markdown-field';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
+import { mockModuleService, mockResourceService } from '../../../testing/service-mocks';
 
 /**
  * Composant présentationnel : `initial` posé avant le premier detectChanges,
@@ -26,19 +27,9 @@ describe('ExerciseEditor', () => {
   };
 
   // markdown-field (picker) et markdown-view (aperçu) injectent ResourceService.
-  const resourcesMock = {
-    list: signal([]),
-    listLoading: signal(false),
-    loadList: vi.fn(),
-    getDownloadUrl: vi.fn(),
-  };
+  const resourcesMock = mockResourceService([]);
   // markdown-field injecte aussi ModuleService (picker de module).
-  const modulesMock = {
-    list: signal([]),
-    listLoading: signal(false),
-    loadList: vi.fn(),
-    getModule: vi.fn(),
-  };
+  const modulesMock = mockModuleService();
 
   async function createComponent(
     initial: Record<string, unknown> = CONTENT,

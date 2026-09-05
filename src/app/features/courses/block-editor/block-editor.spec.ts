@@ -14,7 +14,6 @@ import {
   SubmissionSummary,
 } from '../../../core/courses/exercise-submissions.service';
 import { addQuestion, ExerciseForm } from '../../../core/courses/exercise-form';
-import { ModuleSummary } from '../../../core/modules/module.model';
 import { ModuleService } from '../../../core/modules/module.service';
 import { ResourceService } from '../../../core/resources/resource.service';
 import { MarkdownField } from '../../../shared/markdown-field/markdown-field';
@@ -25,8 +24,8 @@ import {
   mockAssistantChatState,
 } from '../../../testing/assistant.fixture';
 import { COURSE_DETAIL_FIXTURE } from '../../../testing/courses.fixture';
-import { COURSE_RESOURCES_FIXTURE } from '../../../testing/resources.fixture';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
+import { mockModuleService, mockResourceService } from '../../../testing/service-mocks';
 
 /**
  * Monaco n'est jamais chargé en jsdom (le loader AMD reste inerte) : les
@@ -47,30 +46,8 @@ describe('BlockEditor', () => {
     updateBlockResource: vi.fn(),
     updateBlockModule: vi.fn(),
   };
-  const modulesMock = {
-    list: signal<ModuleSummary[]>([]),
-    listLoading: signal(false),
-    listError: signal(false),
-    loadList: vi.fn(),
-    getModule: vi.fn().mockResolvedValue(null),
-    createModule: vi.fn(),
-    renameModule: vi.fn(),
-    updateModule: vi.fn(),
-    deleteModule: vi.fn(),
-  };
-  const resourcesMock = {
-    list: signal(COURSE_RESOURCES_FIXTURE),
-    listLoading: signal(false),
-    listError: signal(false),
-    uploadState: signal({ phase: 'idle' as const, progress: 0 }),
-    loadList: vi.fn(),
-    upload: vi.fn(),
-    rename: vi.fn(),
-    deleteResource: vi.fn(),
-    // Résolue : l'aperçu embarqué du DocumentEditor présigne dès le montage
-    // (un vi.fn() nu renverrait undefined → TypeError sur le .then de l'effect).
-    getDownloadUrl: vi.fn().mockResolvedValue('https://s3.test/get/x'),
-  };
+  const modulesMock = mockModuleService();
+  const resourcesMock = mockResourceService();
 
   const INITIAL = 'Introduction aux suites'; // content.markdown du block-1 de la fixture
 

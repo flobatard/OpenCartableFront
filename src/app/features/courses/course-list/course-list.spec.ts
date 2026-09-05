@@ -6,9 +6,8 @@ import { CourseService } from '../../../core/courses/course.service';
 import { EducationLevelService } from '../../../core/education-levels/education-level.service';
 import { SubjectService } from '../../../core/subjects/subject.service';
 import { COURSES_FIXTURE } from '../../../testing/courses.fixture';
-import { EDUCATION_LEVELS_FIXTURE } from '../../../testing/education-levels.fixture';
-import { SUBJECTS_FIXTURE } from '../../../testing/subjects.fixture';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
+import { mockEducationLevelService, mockSubjectService } from '../../../testing/service-mocks';
 
 describe('CourseList', () => {
   const list = signal(COURSES_FIXTURE);
@@ -24,20 +23,8 @@ describe('CourseList', () => {
     importState,
     importCourse: vi.fn(),
   };
-  const subjectsMock = {
-    tree: signal(SUBJECTS_FIXTURE),
-    loading: signal(false),
-    error: signal(false),
-    load: vi.fn(),
-    reload: vi.fn(),
-  };
-  const levelsMock = {
-    tree: signal(EDUCATION_LEVELS_FIXTURE),
-    loading: signal(false),
-    error: signal(false),
-    load: vi.fn(),
-    reload: vi.fn(),
-  };
+  const subjectsMock = mockSubjectService();
+  const levelsMock = mockEducationLevelService();
 
   async function createComponent(): Promise<ComponentFixture<CourseList>> {
     await TestBed.configureTestingModule({

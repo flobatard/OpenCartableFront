@@ -4,14 +4,10 @@ import { signal } from '@angular/core';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
 import { ResourceService } from '../../core/resources/resource.service';
 import { MarkdownPlayground } from './markdown-playground';
+import { mockResourceService } from '../../testing/service-mocks';
 
 /** MarkdownView (réel) injecte ResourceService : mock signaux, jamais de HTTP. */
-const resourcesMock = {
-  list: signal([]),
-  listLoading: signal(false),
-  loadList: vi.fn(),
-  getDownloadUrl: vi.fn(),
-};
+const resourcesMock = mockResourceService([]);
 
 function createPlayground(initial: string) {
   const fixture = TestBed.createComponent(MarkdownPlayground);

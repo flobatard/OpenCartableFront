@@ -9,28 +9,15 @@ import { SubjectService } from '../../../core/subjects/subject.service';
 import { UserProfileService } from '../../../core/users/user-profile.service';
 import { EducationLevelPicker } from '../../../shared/education-level-picker/education-level-picker';
 import { COURSES_FIXTURE } from '../../../testing/courses.fixture';
-import { EDUCATION_LEVELS_FIXTURE } from '../../../testing/education-levels.fixture';
-import { SUBJECTS_FIXTURE } from '../../../testing/subjects.fixture';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
 import { USER_PROFILE_ONBOARDED_FIXTURE } from '../../../testing/user-profile.fixture';
+import { mockEducationLevelService, mockSubjectService } from '../../../testing/service-mocks';
 
 describe('CourseCreate', () => {
   const coursesMock = { createCourse: vi.fn() };
   const profilesMock = { ensureLoaded: vi.fn() };
-  const subjectsMock = {
-    tree: signal(SUBJECTS_FIXTURE),
-    loading: signal(false),
-    error: signal(false),
-    load: vi.fn(),
-    reload: vi.fn(),
-  };
-  const levelsMock = {
-    tree: signal(EDUCATION_LEVELS_FIXTURE),
-    loading: signal(false),
-    error: signal(false),
-    load: vi.fn(),
-    reload: vi.fn(),
-  };
+  const subjectsMock = mockSubjectService();
+  const levelsMock = mockEducationLevelService();
 
   async function createComponent(): Promise<ComponentFixture<CourseCreate>> {
     await TestBed.configureTestingModule({

@@ -5,10 +5,9 @@ import { PublicEducationLevelService } from '../../core/education-levels/public-
 import { SearchPage } from '../../core/search/search.model';
 import { SEARCH_PAGE_SIZE, SearchService } from '../../core/search/search.service';
 import { PublicSubjectService } from '../../core/subjects/public-subject.service';
-import { EDUCATION_LEVELS_FIXTURE } from '../../testing/education-levels.fixture';
-import { SUBJECTS_FIXTURE } from '../../testing/subjects.fixture';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
 import { Search } from './search';
+import { mockEducationLevelService, mockSubjectService } from '../../testing/service-mocks';
 
 const COURSE = {
   id: 'c1',
@@ -44,20 +43,8 @@ describe('Search', () => {
     searchCourses: vi.fn(),
     searchTeachers: vi.fn(),
   };
-  const subjectsMock = {
-    tree: signal(SUBJECTS_FIXTURE),
-    loading: signal(false),
-    error: signal(false),
-    load: vi.fn(),
-    reload: vi.fn(),
-  };
-  const levelsMock = {
-    tree: signal(EDUCATION_LEVELS_FIXTURE),
-    loading: signal(false),
-    error: signal(false),
-    load: vi.fn(),
-    reload: vi.fn(),
-  };
+  const subjectsMock = mockSubjectService();
+  const levelsMock = mockEducationLevelService();
 
   beforeEach(() => {
     searchMock.coursesPage.set(null);
