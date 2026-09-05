@@ -1,6 +1,7 @@
-import { Component, ElementRef, inject, viewChild } from '@angular/core';
+import { Component, inject, viewChild } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { COURSE_STYLE_BOUNDS, CourseStyleService } from '../../core/courses/course-style.service';
+import { NativeDialog } from '../dialog/native-dialog.directive';
 
 /** Compteur de module : ids ARIA uniques par instance (jamais Date.now/Math.random). */
 let uid = 0;
@@ -18,13 +19,12 @@ let uid = 0;
  */
 @Component({
   selector: 'app-course-style-dialog',
-  imports: [TranslocoPipe],
+  imports: [NativeDialog, TranslocoPipe],
   templateUrl: './course-style-dialog.html',
   styleUrl: './course-style-dialog.scss',
 })
 export class CourseStyleDialog {
-  /** viewChild sur champ `protected` (jamais `#`) ; ref `dialogEl` (≠ signal `dialog`). */
-  protected readonly dialog = viewChild<ElementRef<HTMLDialogElement>>('dialogEl');
+  protected readonly dialog = viewChild(NativeDialog);
 
   /** Source de vérité + bornes des curseurs, exposées au template. */
   protected readonly service = inject(CourseStyleService);
@@ -34,18 +34,11 @@ export class CourseStyleDialog {
   protected readonly titleId = `course-style-title-${(uid += 1)}`;
 
   open(): void {
-    this.dialog()?.nativeElement.showModal();
+    this.dialog()?.open();
   }
 
   close(): void {
-    this.dialog()?.nativeElement.close();
-  }
-
-  /** Clic sur le fond : le backdrop d'un `<dialog>` cible l'élément lui-même. */
-  protected onBackdropClick(event: MouseEvent): void {
-    if (event.target === this.dialog()?.nativeElement) {
-      this.close();
-    }
+    this.dialog()?.close();
   }
 
   /** Valeur numérique d'un `<input type="range">` (évite `$any` dans le template). */

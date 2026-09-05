@@ -1,7 +1,8 @@
-import { Component, ElementRef, input, output, viewChild } from '@angular/core';
+import { Component, input, output, viewChild } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CourseResource } from '../../core/resources/resource.model';
 import { resourceTypeLabelKey } from '../../core/resources/resource.utils';
+import { NativeDialog } from '../dialog/native-dialog.directive';
 
 /**
  * Modale de choix d'une ressource de la bibliothèque du cours à insérer dans le
@@ -11,7 +12,7 @@ import { resourceTypeLabelKey } from '../../core/resources/resource.utils';
  */
 @Component({
   selector: 'app-resource-picker-dialog',
-  imports: [TranslocoPipe],
+  imports: [NativeDialog, TranslocoPipe],
   templateUrl: './resource-picker-dialog.html',
   styleUrl: './resource-picker-dialog.scss',
 })
@@ -22,8 +23,7 @@ export class ResourcePickerDialog {
   /** Ressource choisie par l'utilisateur. */
   readonly pick = output<CourseResource>();
 
-  /** Ref nommée `dialogEl` (jamais `dialog` : collision avec un signal). */
-  protected readonly dialog = viewChild<ElementRef<HTMLDialogElement>>('dialogEl');
+  protected readonly dialog = viewChild(NativeDialog);
 
   /** Clé i18n du badge de type (badge « PDF » dédié parmi les documents). */
   protected typeKey(resource: CourseResource): string {
@@ -31,11 +31,11 @@ export class ResourcePickerDialog {
   }
 
   open(): void {
-    this.dialog()?.nativeElement.showModal();
+    this.dialog()?.open();
   }
 
   close(): void {
-    this.dialog()?.nativeElement.close();
+    this.dialog()?.close();
   }
 
   /**
@@ -46,12 +46,5 @@ export class ResourcePickerDialog {
   protected select(resource: CourseResource): void {
     this.close();
     this.pick.emit(resource);
-  }
-
-  /** Clic sur le fond : le backdrop d'un `<dialog>` cible l'élément lui-même. */
-  protected onBackdropClick(event: MouseEvent): void {
-    if (event.target === this.dialog()?.nativeElement) {
-      this.close();
-    }
   }
 }

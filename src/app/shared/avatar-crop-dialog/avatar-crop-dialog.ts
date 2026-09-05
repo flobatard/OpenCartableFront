@@ -1,6 +1,7 @@
 import { Component, computed, ElementRef, output, signal, viewChild } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AVATAR_MIME, AVATAR_SIZE } from '../../core/users/user-profile.model';
+import { NativeDialog } from '../dialog/native-dialog.directive';
 import {
   centeredOffset,
   clampOffset,
@@ -21,7 +22,7 @@ const EXPORT_QUALITY = 0.85;
 
 /**
  * Modale de recadrage de la photo de profil — `<dialog>` natif (patron
- * `MarkdownHelpDialog` : `open()`/`close()` publics, ref `#dialogEl`).
+ * `MarkdownHelpDialog` : `open()`/`close()` publics, directive `ocDialog`).
  * L'utilisateur déplace l'image (pointer drag avec `setPointerCapture`,
  * précédent : poignée du block-editor) et zoome au slider (précédent :
  * `course-style-dialog`) dans un cadre carré ; « Valider » exporte un carré
@@ -42,7 +43,7 @@ const EXPORT_QUALITY = 0.85;
  */
 @Component({
   selector: 'app-avatar-crop-dialog',
-  imports: [TranslocoPipe],
+  imports: [NativeDialog, TranslocoPipe],
   templateUrl: './avatar-crop-dialog.html',
   styleUrl: './avatar-crop-dialog.scss',
 })
@@ -50,8 +51,7 @@ export class AvatarCropDialog {
   /** Blob carré exporté après validation (WebP, PNG en repli navigateur). */
   readonly cropped = output<Blob>();
 
-  /** Ref nommée `dialogEl` (jamais `dialog` : collision avec un signal). */
-  protected readonly dialog = viewChild<ElementRef<HTMLDialogElement>>('dialogEl');
+  protected readonly dialog = viewChild(NativeDialog);
   protected readonly frameEl = viewChild<ElementRef<HTMLElement>>('frameEl');
   protected readonly imageEl = viewChild<ElementRef<HTMLImageElement>>('imageEl');
 
@@ -90,11 +90,11 @@ export class AvatarCropDialog {
     this.offset.set({ x: 0, y: 0 });
     this.#objectUrl = URL.createObjectURL(file);
     this.src.set(this.#objectUrl);
-    this.dialog()?.nativeElement.showModal();
+    this.dialog()?.open();
   }
 
   close(): void {
-    this.dialog()?.nativeElement.close();
+    this.dialog()?.close();
   }
 
   /** `(close)` natif du dialog : Échap/backdrop/boutons — purge l'état. */
@@ -104,13 +104,6 @@ export class AvatarCropDialog {
     this.natural.set(null);
     this.badImage.set(false);
     this.#dragStart = null;
-  }
-
-  /** Clic sur le fond : le backdrop d'un `<dialog>` cible l'élément lui-même. */
-  protected onBackdropClick(event: MouseEvent): void {
-    if (event.target === this.dialog()?.nativeElement) {
-      this.close();
-    }
   }
 
   /** `(load)` de l'image : mesure le cadre, centre l'image au zoom minimal. */

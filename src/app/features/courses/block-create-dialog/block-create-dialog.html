@@ -1,8 +1,7 @@
 <dialog
-  #dialogEl
+  ocDialog
   class="block-dialog"
   aria-labelledby="block-dialog-title"
-  (click)="onBackdropClick($event)"
 >
   <form class="block-dialog__inner" [formGroup]="form" (ngSubmit)="submit()">
     <header class="block-dialog__head">

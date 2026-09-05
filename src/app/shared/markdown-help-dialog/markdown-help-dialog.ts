@@ -1,7 +1,8 @@
-import { Component, ElementRef, inject, viewChild } from '@angular/core';
+import { Component, inject, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../core/i18n/language.service';
+import { NativeDialog } from '../dialog/native-dialog.directive';
 
 /**
  * Modale d'aide à la mise en forme (markdown + LaTeX/KaTeX + Mermaid +
@@ -17,15 +18,12 @@ import { LanguageService } from '../../core/i18n/language.service';
  */
 @Component({
   selector: 'app-markdown-help-dialog',
-  imports: [RouterLink, TranslocoPipe],
+  imports: [NativeDialog, RouterLink, TranslocoPipe],
   templateUrl: './markdown-help-dialog.html',
   styleUrl: './markdown-help-dialog.scss',
 })
 export class MarkdownHelpDialog {
-  /** viewChild sur un champ `protected` (jamais `#` — incompatibles). Ref
-      nommée `dialogEl` et non `dialog` (une ref de template ne doit pas
-      collisionner avec un signal du composant). */
-  protected readonly dialog = viewChild<ElementRef<HTMLDialogElement>>('dialogEl');
+  protected readonly dialog = viewChild(NativeDialog);
 
   protected readonly language = inject(LanguageService);
 
@@ -44,17 +42,10 @@ export class MarkdownHelpDialog {
   protected readonly tikzExample = '```tikz\n\\draw (0,0) -- (4,0) -- (0,3) -- cycle;\n```';
 
   open(): void {
-    this.dialog()?.nativeElement.showModal();
+    this.dialog()?.open();
   }
 
   close(): void {
-    this.dialog()?.nativeElement.close();
-  }
-
-  /** Clic sur le fond : le backdrop d'un `<dialog>` cible l'élément lui-même. */
-  protected onBackdropClick(event: MouseEvent): void {
-    if (event.target === this.dialog()?.nativeElement) {
-      this.close();
-    }
+    this.dialog()?.close();
   }
 }

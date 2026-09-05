@@ -1,4 +1,4 @@
-import { Component, ElementRef, output, signal, viewChild } from '@angular/core';
+import { Component, output, signal, viewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
@@ -6,6 +6,7 @@ import {
   payloadFromBlockMetaForm,
 } from '../../../core/courses/block-meta-form';
 import { BlockMetaPayload, BlockType } from '../../../core/courses/course.model';
+import { NativeDialog } from '../../../shared/dialog/native-dialog.directive';
 
 /**
  * Modale de création d'un bloc : saisie facultative du titre et de la description
@@ -16,13 +17,12 @@ import { BlockMetaPayload, BlockType } from '../../../core/courses/course.model'
  */
 @Component({
   selector: 'app-block-create-dialog',
-  imports: [ReactiveFormsModule, TranslocoPipe],
+  imports: [NativeDialog, ReactiveFormsModule, TranslocoPipe],
   templateUrl: './block-create-dialog.html',
   styleUrl: './block-create-dialog.scss',
 })
 export class BlockCreateDialog {
-  /** viewChild `protected` (jamais `#`) ; ref template `#dialogEl` ≠ signal `dialog`. */
-  protected readonly dialog = viewChild<ElementRef<HTMLDialogElement>>('dialogEl');
+  protected readonly dialog = viewChild(NativeDialog);
 
   /** Type du bloc en cours de création (affiché dans le titre de la modale). */
   protected readonly type = signal<BlockType | null>(null);
@@ -34,11 +34,11 @@ export class BlockCreateDialog {
   open(type: BlockType): void {
     this.type.set(type);
     this.form.reset({ title: '', description: '' });
-    this.dialog()?.nativeElement.showModal();
+    this.dialog()?.open();
   }
 
   close(): void {
-    this.dialog()?.nativeElement.close();
+    this.dialog()?.close();
   }
 
   protected submit(): void {
@@ -48,12 +48,5 @@ export class BlockCreateDialog {
     }
     this.create.emit({ type, meta: payloadFromBlockMetaForm(this.form) });
     this.close();
-  }
-
-  /** Clic sur le fond : le backdrop d'un `<dialog>` cible l'élément lui-même. */
-  protected onBackdropClick(event: MouseEvent): void {
-    if (event.target === this.dialog()?.nativeElement) {
-      this.close();
-    }
   }
 }

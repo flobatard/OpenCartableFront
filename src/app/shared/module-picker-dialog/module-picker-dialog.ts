@@ -1,6 +1,7 @@
-import { Component, ElementRef, input, output, viewChild } from '@angular/core';
+import { Component, input, output, viewChild } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ModuleSummary } from '../../core/modules/module.model';
+import { NativeDialog } from '../dialog/native-dialog.directive';
 
 /**
  * Modale de choix d'un module interactif de la bibliothèque du cours à
@@ -11,7 +12,7 @@ import { ModuleSummary } from '../../core/modules/module.model';
  */
 @Component({
   selector: 'app-module-picker-dialog',
-  imports: [TranslocoPipe],
+  imports: [NativeDialog, TranslocoPipe],
   templateUrl: './module-picker-dialog.html',
   styleUrl: './module-picker-dialog.scss',
 })
@@ -22,15 +23,14 @@ export class ModulePickerDialog {
   /** Module choisi par l'utilisateur. */
   readonly pick = output<ModuleSummary>();
 
-  /** Ref nommée `dialogEl` (jamais `dialog` : collision avec un signal). */
-  protected readonly dialog = viewChild<ElementRef<HTMLDialogElement>>('dialogEl');
+  protected readonly dialog = viewChild(NativeDialog);
 
   open(): void {
-    this.dialog()?.nativeElement.showModal();
+    this.dialog()?.open();
   }
 
   close(): void {
-    this.dialog()?.nativeElement.close();
+    this.dialog()?.close();
   }
 
   /**
@@ -41,12 +41,5 @@ export class ModulePickerDialog {
   protected select(module: ModuleSummary): void {
     this.close();
     this.pick.emit(module);
-  }
-
-  /** Clic sur le fond : le backdrop d'un `<dialog>` cible l'élément lui-même. */
-  protected onBackdropClick(event: MouseEvent): void {
-    if (event.target === this.dialog()?.nativeElement) {
-      this.close();
-    }
   }
 }

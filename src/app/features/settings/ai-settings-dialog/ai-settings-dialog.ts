@@ -1,6 +1,7 @@
-import { Component, ElementRef, signal, viewChild } from '@angular/core';
+import { Component, signal, viewChild } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AiSettings } from '../ai-settings/ai-settings';
+import { NativeDialog } from '../../../shared/dialog/native-dialog.directive';
 
 /** Suffixe d'ids ARIA uniques par instance (compteur de module, jamais Date/Random). */
 let sequence = 0;
@@ -8,7 +9,7 @@ let sequence = 0;
 /**
  * Modale « Réglages IA » du panneau assistant : change le modèle à la volée
  * sans quitter le cours. Élément `<dialog>` natif au motif `CourseStyleDialog`
- * (`open()`/`close()`, ref `#dialogEl`, backdrop) qui ENCASTRE l'écran de
+ * (`open()`/`close()`, directive `ocDialog`) qui ENCASTRE l'écran de
  * réglages complet (`app-ai-settings [embedded]`) — une seule source de
  * vérité : toute sauvegarde passe par `AiCredentialsService`, dont le signal
  * met à jour le panneau assistant immédiatement.
@@ -20,13 +21,12 @@ let sequence = 0;
  */
 @Component({
   selector: 'app-ai-settings-dialog',
-  imports: [TranslocoPipe, AiSettings],
+  imports: [NativeDialog, TranslocoPipe, AiSettings],
   templateUrl: './ai-settings-dialog.html',
   styleUrl: './ai-settings-dialog.scss',
 })
 export class AiSettingsDialog {
-  /** viewChild `protected` (jamais `#`) ; ref template `#dialogEl` ≠ signal `dialog`. */
-  protected readonly dialog = viewChild<ElementRef<HTMLDialogElement>>('dialogEl');
+  protected readonly dialog = viewChild(NativeDialog);
 
   /** Préfixe d'ids ARIA propre à l'instance. */
   protected readonly uid = `ai-settings-dialog-${sequence++}`;
@@ -36,17 +36,10 @@ export class AiSettingsDialog {
 
   open(): void {
     this.opened.set(true);
-    this.dialog()?.nativeElement.showModal();
+    this.dialog()?.open();
   }
 
   close(): void {
-    this.dialog()?.nativeElement.close();
-  }
-
-  /** Clic sur le fond : le backdrop d'un `<dialog>` cible l'élément lui-même. */
-  protected onBackdropClick(event: MouseEvent): void {
-    if (event.target === this.dialog()?.nativeElement) {
-      this.close();
-    }
+    this.dialog()?.close();
   }
 }

@@ -1,7 +1,8 @@
-import { Component, ElementRef, input, signal, viewChild } from '@angular/core';
+import { Component, input, signal, viewChild } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CourseResource } from '../../core/resources/resource.model';
 import { CoursePreviewDocument } from '../course-blocks-view/course-preview-document';
+import { NativeDialog } from '../dialog/native-dialog.directive';
 
 /**
  * Modale d'aperçu d'une ressource (bouton « Voir » de l'onglet Ressources).
@@ -17,37 +18,29 @@ import { CoursePreviewDocument } from '../course-blocks-view/course-preview-docu
  */
 @Component({
   selector: 'app-resource-preview-dialog',
-  imports: [TranslocoPipe, CoursePreviewDocument],
+  imports: [NativeDialog, TranslocoPipe, CoursePreviewDocument],
   templateUrl: './resource-preview-dialog.html',
   styleUrl: './resource-preview-dialog.scss',
 })
 export class ResourcePreviewDialog {
   readonly courseId = input.required<string>();
 
-  /** Ref nommée `dialogEl` (jamais `dialog` : collision avec un signal). */
-  protected readonly dialog = viewChild<ElementRef<HTMLDialogElement>>('dialogEl');
+  protected readonly dialog = viewChild(NativeDialog);
 
   /** Ressource affichée (`null` = modale fermée, embed démonté). */
   protected readonly current = signal<CourseResource | null>(null);
 
   open(resource: CourseResource): void {
     this.current.set(resource);
-    this.dialog()?.nativeElement.showModal();
+    this.dialog()?.open();
   }
 
   close(): void {
-    this.dialog()?.nativeElement.close();
+    this.dialog()?.close();
   }
 
   /** `close` natif (Escape compris) : démonte l'embed. */
   protected onClosed(): void {
     this.current.set(null);
-  }
-
-  /** Clic sur le fond : le backdrop d'un `<dialog>` cible l'élément lui-même. */
-  protected onBackdropClick(event: MouseEvent): void {
-    if (event.target === this.dialog()?.nativeElement) {
-      this.close();
-    }
   }
 }
