@@ -5,7 +5,11 @@ import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { ExerciseEditor } from './exercise-editor';
 import { ExerciseContentPayload } from '../../../core/courses/course.model';
-import { ExerciseQuestionGroup, QUESTIONS_MAX } from '../../../core/courses/exercise-form';
+import {
+  buildQuestionGroup,
+  ExerciseQuestionGroup,
+  QUESTIONS_MAX,
+} from '../../../core/courses/exercise-form';
 import { ModuleService } from '../../../core/modules/module.service';
 import { ResourceService } from '../../../core/resources/resource.service';
 import { MarkdownField } from '../../../shared/markdown-field/markdown-field';
@@ -437,15 +441,14 @@ describe('ExerciseEditor', () => {
     });
 
     it('applyQuestionAdd: refuses beyond the question cap', async () => {
-      const fixture = await createComponent({
-        statement: '',
-        questions: Array.from({ length: QUESTIONS_MAX }, (_, i) => ({
-          id: `q-${i}`,
-          statement: `Q${i}`,
-          type: 'free_text',
-          expected_answer: '',
-        })),
-      });
+      // Le plafond se lit sur la FormArray, pas sur le DOM : on complète le
+      // formulaire sans rendre (50 markdown-field montés en jsdom dépassent le
+      // timeout sur la Pi).
+      const fixture = await createComponent();
+      const questions = fixture.componentInstance.form.controls.questions;
+      while (questions.length < QUESTIONS_MAX) {
+        questions.push(buildQuestionGroup(), { emitEvent: false });
+      }
       const seen = emissions(fixture);
 
       expect(
