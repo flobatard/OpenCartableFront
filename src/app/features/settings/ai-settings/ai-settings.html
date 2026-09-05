@@ -74,10 +74,10 @@
             class="btn btn--primary ai-settings__use-default"
             [disabled]="deleting()"
             (click)="removeConfig()"
-            (blur)="disarmDelete()"
+            (blur)="deleteArmed.disarm()"
           >
             {{
-              (deleteArmed() ? 'settings.ai.mode.useDefaultConfirm' : 'settings.ai.mode.useDefault')
+              (deleteArmed.isArmed(true) ? 'settings.ai.mode.useDefaultConfirm' : 'settings.ai.mode.useDefault')
                 | transloco
             }}
           </button>
@@ -234,12 +234,12 @@
           <button
             type="button"
             class="btn btn--ghost ai-settings__delete"
-            [class.ai-settings__delete--armed]="deleteArmed()"
+            [class.ai-settings__delete--armed]="deleteArmed.isArmed(true)"
             [disabled]="deleting() || saving()"
             (click)="removeConfig()"
-            (blur)="disarmDelete()"
+            (blur)="deleteArmed.disarm()"
           >
-            {{ (deleteArmed() ? 'settings.ai.deleteConfirm' : 'settings.ai.delete') | transloco }}
+            {{ (deleteArmed.isArmed(true) ? 'settings.ai.deleteConfirm' : 'settings.ai.delete') | transloco }}
           </button>
         }
         <button

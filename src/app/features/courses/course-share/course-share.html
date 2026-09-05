@@ -114,12 +114,12 @@
                 <button
                   type="button"
                   class="btn btn--ghost course-share__revoke"
-                  [class.course-share__revoke--armed]="pendingRevoke() === link.id"
+                  [class.course-share__revoke--armed]="pendingRevoke.isArmed(link.id)"
                   (click)="revoke(link)"
-                  (blur)="disarmRevoke()"
+                  (blur)="pendingRevoke.disarm()"
                 >
                   {{
-                    (pendingRevoke() === link.id
+                    (pendingRevoke.isArmed(link.id)
                       ? 'courses.share.links.revokeConfirm'
                       : 'courses.share.links.revoke'
                     ) | transloco

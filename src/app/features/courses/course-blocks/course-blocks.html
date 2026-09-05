@@ -41,13 +41,13 @@
           <button
             type="button"
             class="btn btn--ghost course-blocks__delete-course"
-            [class.course-blocks__delete-course--armed]="pendingCourseDelete()"
+            [class.course-blocks__delete-course--armed]="pendingCourseDelete.isArmed(true)"
             [disabled]="mutating()"
             (click)="removeCourse()"
-            (blur)="disarmCourseDelete()"
+            (blur)="pendingCourseDelete.disarm()"
           >
             {{
-              (pendingCourseDelete()
+              (pendingCourseDelete.isArmed(true)
                 ? 'courses.blocks.confirmDeleteCourse'
                 : 'courses.blocks.deleteCourse'
               ) | transloco
@@ -275,13 +275,13 @@
                 <button
                   type="button"
                   class="btn btn--ghost course-blocks__delete"
-                  [class.course-blocks__delete--armed]="pendingDelete() === block.id"
+                  [class.course-blocks__delete--armed]="pendingDelete.isArmed(block.id)"
                   [disabled]="mutating()"
                   (click)="remove(block)"
-                  (blur)="disarmDelete()"
+                  (blur)="pendingDelete.disarm()"
                 >
                   {{
-                    (pendingDelete() === block.id
+                    (pendingDelete.isArmed(block.id)
                       ? 'courses.blocks.confirmDelete'
                       : 'courses.blocks.delete'
                     ) | transloco

@@ -25,6 +25,7 @@ import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
 import { CourseChatProposal } from './course-chat-proposal';
 import { CourseChatSettings } from './course-chat-settings';
 import { ChatToolView, CourseChatTool, toolResultExcerpt } from './course-chat-tool';
+import { armedAction } from '../../../core/editing/armed';
 
 /**
  * Dévoilement progressif du texte streamé : un tick toutes les 40 ms
@@ -152,7 +153,7 @@ export class CourseChat {
   });
 
   protected readonly draft = signal('');
-  protected readonly deleteArmed = signal<string | null>(null);
+  protected readonly deleteArmed = armedAction<string>();
 
   /** Texte streamé dévoilé progressivement pour le rendu (le brut vit au service). */
   protected readonly streamingRender = signal('');
@@ -368,18 +369,11 @@ export class CourseChat {
     this.assistant.closeConversation();
   }
 
-  /** Suppression en deux temps, désarmée au blur (motif course-resources). */
+  /** Suppression en deux temps, désarmée au blur. */
   protected requestDelete(id: string): void {
-    if (this.deleteArmed() === id) {
-      this.deleteArmed.set(null);
+    if (this.deleteArmed.confirm(id)) {
       void this.assistant.deleteConversation(id);
-    } else {
-      this.deleteArmed.set(id);
     }
-  }
-
-  protected disarmDelete(): void {
-    this.deleteArmed.set(null);
   }
 
   /**

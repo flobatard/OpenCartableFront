@@ -32,6 +32,7 @@ import { CoursePreview } from '../course-preview/course-preview';
 import { CourseResources } from '../course-resources/course-resources';
 import { CourseShare } from '../course-share/course-share';
 import { moveIdTo } from './course-blocks.utils';
+import { armedAction } from '../../../core/editing/armed';
 
 /** Types proposés à l'ajout — tous créables. */
 const CREATABLE_TYPES: readonly BlockType[] = ['text', 'exercise', 'document', 'module'];
@@ -118,9 +119,9 @@ export class CourseBlocks implements OnInit {
   protected readonly mutating = signal(false);
   protected readonly mutationError = signal(false);
   /** Id du bloc « armé » pour suppression (le 2e clic confirme). */
-  protected readonly pendingDelete = signal<string | null>(null);
+  protected readonly pendingDelete = armedAction<string>();
   /** Cours « armé » pour suppression (le 2e clic confirme, puis retour à la liste). */
-  protected readonly pendingCourseDelete = signal(false);
+  protected readonly pendingCourseDelete = armedAction();
   /** Export d'archive en vol (fige le bouton Exporter). */
   protected readonly exporting = signal(false);
 
@@ -305,8 +306,7 @@ export class CourseBlocks implements OnInit {
     if (this.mutating()) {
       return;
     }
-    if (this.pendingDelete() !== block.id) {
-      this.pendingDelete.set(block.id);
+    if (!this.pendingDelete.confirm(block.id)) {
       return;
     }
     this.#startMutation();
@@ -319,18 +319,12 @@ export class CourseBlocks implements OnInit {
     }
   }
 
-  /** Quitter le bouton armé (focus ailleurs) annule la suppression. */
-  protected disarmDelete(): void {
-    this.pendingDelete.set(null);
-  }
-
   /** Supprime le cours entier (deux temps) puis revient à « Mes cours ». */
   protected async removeCourse(): Promise<void> {
     if (this.mutating()) {
       return;
     }
-    if (!this.pendingCourseDelete()) {
-      this.pendingCourseDelete.set(true);
+    if (!this.pendingCourseDelete.confirm(true)) {
       return;
     }
     this.#startMutation();
@@ -342,11 +336,6 @@ export class CourseBlocks implements OnInit {
       this.mutationError.set(true);
       this.mutating.set(false);
     }
-  }
-
-  /** Quitter le bouton armé (focus ailleurs) annule la suppression du cours. */
-  protected disarmCourseDelete(): void {
-    this.pendingCourseDelete.set(false);
   }
 
   /**
@@ -373,7 +362,7 @@ export class CourseBlocks implements OnInit {
   #startMutation(): void {
     this.mutating.set(true);
     this.mutationError.set(false);
-    this.pendingDelete.set(null);
-    this.pendingCourseDelete.set(false);
+    this.pendingDelete.disarm();
+    this.pendingCourseDelete.disarm();
   }
 }

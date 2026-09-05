@@ -18,6 +18,7 @@ import {
 } from '../../../core/ai-credentials/ai-credentials-form';
 import { AI_PROVIDERS } from '../../../core/ai-credentials/ai-credentials.model';
 import { AiCredentialsService } from '../../../core/ai-credentials/ai-credentials.service';
+import { armedAction } from '../../../core/editing/armed';
 
 /** Ids DOM uniques par instance (datalist des modèles) — jamais Date.now(). */
 let nextId = 0;
@@ -70,7 +71,7 @@ export class AiSettings implements OnInit {
   /** Clé i18n de l'erreur de sauvegarde (`null` = pas d'erreur). */
   protected readonly saveErrorKey = signal<string | null>(null);
   protected readonly deleting = signal(false);
-  protected readonly deleteArmed = signal(false);
+  protected readonly deleteArmed = armedAction();
   protected readonly deleteSuccess = signal(false);
   protected readonly testing = signal(false);
   protected readonly testSuccess = signal(false);
@@ -322,23 +323,20 @@ export class AiSettings implements OnInit {
   /** Bascule de vue par les radios ; efface les messages de l'action précédente. */
   protected selectMode(mode: 'default' | 'custom'): void {
     this.mode.set(mode);
-    this.deleteArmed.set(false);
+    this.deleteArmed.disarm();
     this.saveSuccess.set(false);
     this.deleteSuccess.set(false);
     this.saveErrorKey.set(null);
   }
 
   /**
-   * Suppression en deux temps sans modale, désarmée au blur (motif
-   * ressources). Sert aussi de « Utiliser l'IA par défaut » : sans config
+   * Suppression en deux temps sans modale, désarmée au blur. Sert aussi de « Utiliser l'IA par défaut » : sans config
    * enregistrée, l'IA par défaut s'applique — la vue reste donc sur ce mode.
    */
   protected async removeConfig(): Promise<void> {
-    if (!this.deleteArmed()) {
-      this.deleteArmed.set(true);
+    if (!this.deleteArmed.confirm(true)) {
       return;
     }
-    this.deleteArmed.set(false);
     this.deleting.set(true);
     this.saveErrorKey.set(null);
     try {
@@ -352,10 +350,6 @@ export class AiSettings implements OnInit {
     } finally {
       this.deleting.set(false);
     }
-  }
-
-  protected disarmDelete(): void {
-    this.deleteArmed.set(false);
   }
 
   #errorKey(error: unknown): string {

@@ -153,12 +153,12 @@
               <button
                 type="button"
                 class="course-chat__conversation-delete"
-                [class.course-chat__conversation-delete--armed]="deleteArmed() === conversation.id"
+                [class.course-chat__conversation-delete--armed]="deleteArmed.isArmed(conversation.id)"
                 (click)="requestDelete(conversation.id)"
-                (blur)="disarmDelete()"
+                (blur)="deleteArmed.disarm()"
               >
                 {{
-                  (deleteArmed() === conversation.id
+                  (deleteArmed.isArmed(conversation.id)
                     ? 'courseChat.deleteConfirm'
                     : 'courseChat.delete'
                   ) | transloco

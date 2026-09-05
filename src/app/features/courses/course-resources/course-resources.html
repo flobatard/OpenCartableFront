@@ -107,13 +107,13 @@
             <button
               type="button"
               class="btn btn--ghost course-resources__delete"
-              [class.course-resources__delete--armed]="pendingDelete() === resource.id"
+              [class.course-resources__delete--armed]="pendingDelete.isArmed(resource.id)"
               [disabled]="mutating()"
               (click)="remove(resource)"
-              (blur)="disarmDelete()"
+              (blur)="pendingDelete.disarm()"
             >
               {{
-                (pendingDelete() === resource.id
+                (pendingDelete.isArmed(resource.id)
                   ? 'courses.resources.confirmDelete'
                   : 'courses.resources.delete'
                 ) | transloco

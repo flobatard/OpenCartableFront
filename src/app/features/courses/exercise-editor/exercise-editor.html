@@ -167,13 +167,13 @@
                 <button
                   type="button"
                   class="btn btn--ghost exercise-editor__delete"
-                  [class.exercise-editor__delete--armed]="pendingDelete() === i"
+                  [class.exercise-editor__delete--armed]="pendingDelete.isArmed(i)"
                   [attr.aria-label]="'courses.editor.exercise.remove' | transloco: { index: i + 1 }"
                   (click)="remove(i)"
-                  (blur)="disarmDelete()"
+                  (blur)="pendingDelete.disarm()"
                 >
                   {{
-                    (pendingDelete() === i
+                    (pendingDelete.isArmed(i)
                       ? 'courses.editor.exercise.removeConfirm'
                       : 'courses.editor.exercise.removeLabel'
                     ) | transloco
@@ -184,17 +184,17 @@
                     type="button"
                     class="btn btn--ghost exercise-editor__clear-submissions"
                     [class.exercise-editor__delete--armed]="
-                      pendingSubmissionsClear() === questionId
+                      pendingSubmissionsClear.isArmed(questionId)
                     "
                     [attr.aria-label]="
                       'courses.editor.exercise.submissions.clearQuestionAria'
                         | transloco: { index: i + 1, count: submissionCount(group) }
                     "
                     (click)="clearSubmissions(questionId)"
-                    (blur)="disarmSubmissionsClear()"
+                    (blur)="pendingSubmissionsClear.disarm()"
                   >
                     {{
-                      (pendingSubmissionsClear() === questionId
+                      (pendingSubmissionsClear.isArmed(questionId)
                         ? 'courses.editor.exercise.submissions.clearConfirm'
                         : 'courses.editor.exercise.submissions.clearQuestion'
                       ) | transloco: { count: submissionCount(group) }
@@ -264,12 +264,12 @@
         <button
           type="button"
           class="btn btn--ghost exercise-editor__clear-all-submissions"
-          [class.exercise-editor__delete--armed]="pendingSubmissionsClear() === '*'"
+          [class.exercise-editor__delete--armed]="pendingSubmissionsClear.isArmed('*')"
           (click)="clearSubmissions('*')"
-          (blur)="disarmSubmissionsClear()"
+          (blur)="pendingSubmissionsClear.disarm()"
         >
           {{
-            (pendingSubmissionsClear() === '*'
+            (pendingSubmissionsClear.isArmed('*')
               ? 'courses.editor.exercise.submissions.clearConfirm'
               : 'courses.editor.exercise.submissions.clearAll'
             ) | transloco: { count: submissionTotal() }

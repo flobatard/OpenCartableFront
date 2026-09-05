@@ -39,6 +39,7 @@ import {
 } from '../../../core/courses/exercise-form';
 import { MarkdownField } from '../../../shared/markdown-field/markdown-field';
 import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
+import { armedAction } from '../../../core/editing/armed';
 
 /** Suffixe d'ids uniques par instance (tablist ARIA — motif `markdown-field`).
     Compteur de module, jamais Date/Random. */
@@ -156,10 +157,10 @@ export class ExerciseEditor {
   protected readonly openGroup = signal<ExerciseQuestionGroup | null>(null);
 
   /** Index de la question « armée » pour suppression (le 2e clic confirme). */
-  protected readonly pendingDelete = signal<number | null>(null);
+  protected readonly pendingDelete = armedAction<number>();
 
   /** Effacement des tentatives armé : id de question, `'*'` (exercice entier), ou `null`. */
-  protected readonly pendingSubmissionsClear = signal<string | null>(null);
+  protected readonly pendingSubmissionsClear = armedAction<string>();
 
   protected readonly maxReached = signal(false);
 
@@ -232,8 +233,7 @@ export class ExerciseEditor {
 
   /** Supprime en deux temps : le premier clic arme, le second confirme. */
   protected remove(index: number): void {
-    if (this.pendingDelete() !== index) {
-      this.pendingDelete.set(index);
+    if (!this.pendingDelete.confirm(index)) {
       return;
     }
     removeQuestion(this.form, index);
@@ -245,11 +245,6 @@ export class ExerciseEditor {
     }
   }
 
-  /** Quitter le bouton armé (focus ailleurs) annule la suppression. */
-  protected disarmDelete(): void {
-    this.pendingDelete.set(null);
-  }
-
   /** Tentatives d'élèves connues sur une question sauvée (0 sinon). */
   protected submissionCount(group: ExerciseQuestionGroup): number {
     const id = group.controls.id.value;
@@ -258,16 +253,10 @@ export class ExerciseEditor {
 
   /** Efface les tentatives d'une question (`id`) ou de tout l'exercice (`'*'`) — deux temps. */
   protected clearSubmissions(target: string): void {
-    if (this.pendingSubmissionsClear() !== target) {
-      this.pendingSubmissionsClear.set(target);
+    if (!this.pendingSubmissionsClear.confirm(target)) {
       return;
     }
-    this.pendingSubmissionsClear.set(null);
     this.submissionsClearRequested.emit({ questionId: target === '*' ? null : target });
-  }
-
-  protected disarmSubmissionsClear(): void {
-    this.pendingSubmissionsClear.set(null);
   }
 
   protected move(index: number, delta: 1 | -1): void {
@@ -381,7 +370,7 @@ export class ExerciseEditor {
   }
 
   #syncGroups(): void {
-    this.pendingDelete.set(null);
+    this.pendingDelete.disarm();
     const groups = [...this.form.controls.questions.controls];
     this.questionGroups.set(groups);
     this.maxReached.set(this.form.controls.questions.length >= QUESTIONS_MAX);

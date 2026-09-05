@@ -5,6 +5,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { ModuleSummary } from '../../../core/modules/module.model';
 import { ModuleService } from '../../../core/modules/module.service';
+import { armedAction } from '../../../core/editing/armed';
 
 /**
  * Onglet « Modules » d'un cours : bibliothèque des modules interactifs
@@ -41,7 +42,7 @@ export class CourseModules implements OnInit {
   protected readonly mutating = signal(false);
   protected readonly mutationError = signal(false);
   /** Id du module « armé » pour suppression (le 2e clic confirme). */
-  protected readonly pendingDelete = signal<string | null>(null);
+  protected readonly pendingDelete = armedAction<string>();
   /** Id du module en cours de renommage inline (`null` = aucun). */
   protected readonly renamingId = signal<string | null>(null);
 
@@ -125,8 +126,7 @@ export class CourseModules implements OnInit {
     if (this.mutating()) {
       return;
     }
-    if (this.pendingDelete() !== module.id) {
-      this.pendingDelete.set(module.id);
+    if (!this.pendingDelete.confirm(module.id)) {
       return;
     }
     this.#startMutation();
@@ -140,14 +140,9 @@ export class CourseModules implements OnInit {
     }
   }
 
-  /** Quitter le bouton armé (focus ailleurs) annule la suppression. */
-  protected disarmDelete(): void {
-    this.pendingDelete.set(null);
-  }
-
   #startMutation(): void {
     this.mutating.set(true);
     this.mutationError.set(false);
-    this.pendingDelete.set(null);
+    this.pendingDelete.disarm();
   }
 }

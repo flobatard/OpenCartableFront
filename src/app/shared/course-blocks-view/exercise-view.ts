@@ -32,6 +32,7 @@ import {
 } from '../../core/student/exercise-correction';
 import { MarkdownView } from '../markdown-view/markdown-view';
 import { Spinner } from '../spinner/spinner';
+import { armedAction } from '../../core/editing/armed';
 
 /** Rendu d'un bloc exercice : aperçu en lecture seule, ou résolution par l'élève. */
 export type ExerciseViewMode = 'preview' | 'solve';
@@ -116,7 +117,7 @@ export class ExerciseView implements OnDestroy {
   /** Persistance indisponible (navigation privée stricte, quota) : notice. */
   protected readonly storageOk = signal(true);
   /** « Effacer mes réponses » armé (deux temps, désarmé au blur). */
-  protected readonly clearArmed = signal(false);
+  protected readonly clearArmed = armedAction();
   /** Vrai dès qu'au moins une réponse est enregistrée sur l'appareil. */
   protected readonly hasAnswers = computed(() =>
     Object.values(this.answers()).some((a) => a.text !== '' || a.locked),
@@ -124,7 +125,7 @@ export class ExerciseView implements OnDestroy {
   /** Brouillons du composer « Répondre » par id de question (non persistés). */
   protected readonly replies = signal<Record<string, string>>({});
   /** Effacement de fil armé : id de question, `'*'` pour tout le bloc, sinon `null`. */
-  protected readonly clearThreadArmed = signal<string | null>(null);
+  protected readonly clearThreadArmed = armedAction<string>();
   /** Au moins un fil persisté sur le bloc (bouton d'effacement global). */
   protected readonly hasThreads = computed(() =>
     Object.values(this.threads()).some((t) => t.turns.length > 0),
@@ -155,9 +156,9 @@ export class ExerciseView implements OnDestroy {
         const storage = this.#resolveStorage();
         this.answers.set(readAnswers(storage, key).answers);
         this.storageOk.set(storage !== null);
-        this.clearArmed.set(false);
+        this.clearArmed.disarm();
         this.replies.set({});
-        this.clearThreadArmed.set(null);
+        this.clearThreadArmed.disarm();
       });
     });
   }
@@ -254,20 +255,13 @@ export class ExerciseView implements OnDestroy {
 
   /** Efface un fil (`questionId`) ou tous (`'*'`) — deux temps : arme, puis confirme. */
   protected clearThreads(target: string): void {
-    if (this.clearThreadArmed() !== target) {
-      this.clearThreadArmed.set(target);
+    if (!this.clearThreadArmed.confirm(target)) {
       return;
     }
-    this.clearThreadArmed.set(null);
     this.threadsClearRequested.emit({
       blockId: this.blockId(),
       questionId: target === '*' ? null : target,
     });
-  }
-
-  /** Quitter le bouton armé (focus ailleurs) annule l'effacement. */
-  protected disarmClearThreads(): void {
-    this.clearThreadArmed.set(null);
   }
 
   /** Clé i18n du badge de verdict d'un tour (`null` sans verdict évaluable). */
@@ -347,21 +341,14 @@ export class ExerciseView implements OnDestroy {
 
   /** Efface tout (deux temps : premier clic arme, second confirme). */
   protected clearAll(): void {
-    if (!this.clearArmed()) {
-      this.clearArmed.set(true);
+    if (!this.clearArmed.confirm(true)) {
       return;
     }
-    this.clearArmed.set(false);
     this.#cancelScheduledSave();
     this.answers.set({});
     if (this.#restoredKey !== null) {
       clearAnswers(this.#resolveStorage(), this.#restoredKey);
     }
-  }
-
-  /** Désarme la confirmation d'effacement quand le bouton perd le focus. */
-  protected disarmClear(): void {
-    this.clearArmed.set(false);
   }
 
   #resolveStorage(): Storage | null {

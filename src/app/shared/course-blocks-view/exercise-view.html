@@ -171,12 +171,12 @@
               <button
                 type="button"
                 class="btn btn--ghost exercise-view__clear-thread"
-                [class.exercise-view__clear--armed]="clearThreadArmed() === question.id"
+                [class.exercise-view__clear--armed]="clearThreadArmed.isArmed(question.id)"
                 (click)="clearThreads(question.id)"
-                (blur)="disarmClearThreads()"
+                (blur)="clearThreadArmed.disarm()"
               >
                 {{
-                  (clearThreadArmed() === question.id
+                  (clearThreadArmed.isArmed(question.id)
                     ? 'student.exercise.correction.clearThreadConfirm'
                     : 'student.exercise.correction.clearThread'
                   ) | transloco
@@ -221,12 +221,12 @@
       <button
         type="button"
         class="btn btn--ghost exercise-view__clear"
-        [class.exercise-view__clear--armed]="clearArmed()"
+        [class.exercise-view__clear--armed]="clearArmed.isArmed(true)"
         (click)="clearAll()"
-        (blur)="disarmClear()"
+        (blur)="clearArmed.disarm()"
       >
         {{
-          (clearArmed() ? 'student.exercise.clearConfirm' : 'student.exercise.clear') | transloco
+          (clearArmed.isArmed(true) ? 'student.exercise.clearConfirm' : 'student.exercise.clear') | transloco
         }}
       </button>
     }
@@ -234,12 +234,12 @@
       <button
         type="button"
         class="btn btn--ghost exercise-view__clear-threads"
-        [class.exercise-view__clear--armed]="clearThreadArmed() === '*'"
+        [class.exercise-view__clear--armed]="clearThreadArmed.isArmed('*')"
         (click)="clearThreads('*')"
-        (blur)="disarmClearThreads()"
+        (blur)="clearThreadArmed.disarm()"
       >
         {{
-          (clearThreadArmed() === '*'
+          (clearThreadArmed.isArmed('*')
             ? 'student.exercise.correction.clearAllConfirm'
             : 'student.exercise.correction.clearAll'
           ) | transloco

@@ -10,6 +10,7 @@ import {
   resourceTypeLabelKey,
 } from '../../../core/resources/resource.utils';
 import { ResourcePreviewDialog } from '../../../shared/resource-preview-dialog/resource-preview-dialog';
+import { armedAction } from '../../../core/editing/armed';
 
 /**
  * Onglet « Ressources » d'un cours : bibliothèque des fichiers S3 rattachés au
@@ -49,7 +50,7 @@ export class CourseResources implements OnInit {
   protected readonly mutating = signal(false);
   protected readonly mutationError = signal(false);
   /** Id de la ressource « armée » pour suppression (le 2e clic confirme). */
-  protected readonly pendingDelete = signal<string | null>(null);
+  protected readonly pendingDelete = armedAction<string>();
   /** Id de la ressource en cours de renommage inline (`null` = aucune). */
   protected readonly renamingId = signal<string | null>(null);
 
@@ -155,8 +156,7 @@ export class CourseResources implements OnInit {
     if (this.mutating()) {
       return;
     }
-    if (this.pendingDelete() !== resource.id) {
-      this.pendingDelete.set(resource.id);
+    if (!this.pendingDelete.confirm(resource.id)) {
       return;
     }
     this.#startMutation();
@@ -170,14 +170,9 @@ export class CourseResources implements OnInit {
     }
   }
 
-  /** Quitter le bouton armé (focus ailleurs) annule la suppression. */
-  protected disarmDelete(): void {
-    this.pendingDelete.set(null);
-  }
-
   #startMutation(): void {
     this.mutating.set(true);
     this.mutationError.set(false);
-    this.pendingDelete.set(null);
+    this.pendingDelete.disarm();
   }
 }

@@ -9,6 +9,7 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { ShareLink } from '../../../core/share/share-link.model';
 import { ShareLinkService } from '../../../core/share/share-link.service';
 import { UserProfileService } from '../../../core/users/user-profile.service';
+import { armedAction } from '../../../core/editing/armed';
 
 /** Ordre d'affichage des trois régimes (cartes radio). */
 const VISIBILITIES: readonly CourseVisibility[] = ['draft', 'private', 'public'];
@@ -62,7 +63,7 @@ export class CourseShare {
   protected readonly createError = signal(false);
 
   /** Lien « armé » pour révocation (le 2e clic confirme). */
-  protected readonly pendingRevoke = signal<string | null>(null);
+  protected readonly pendingRevoke = armedAction<string>();
   protected readonly revokeError = signal(false);
 
   /** URL du catalogue public du prof (affichée quand le cours est `public`). */
@@ -141,22 +142,15 @@ export class CourseShare {
 
   /** Révoque un lien (deux temps : premier clic arme, second confirme). */
   protected async revoke(link: ShareLink): Promise<void> {
-    if (this.pendingRevoke() !== link.id) {
-      this.pendingRevoke.set(link.id);
+    if (!this.pendingRevoke.confirm(link.id)) {
       return;
     }
-    this.pendingRevoke.set(null);
     this.revokeError.set(false);
     try {
       await this.#links.revokeLink(this.courseId(), link.id);
     } catch {
       this.revokeError.set(true);
     }
-  }
-
-  /** Quitter le bouton armé (focus ailleurs) annule la révocation. */
-  protected disarmRevoke(): void {
-    this.pendingRevoke.set(null);
   }
 
   /** Date d'expiration lisible dans la langue active. */
