@@ -1,38 +1,43 @@
 # OpenCartableFront
 
-Front Angular d'**OpenCartable**, plateforme pédagogique libre et auto-hébergée : un enseignant compose ses cours et les partage à ses élèves par simple lien public. Voir [Descriptions.md](Descriptions.md) (cadrage) et [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) (design system).
+Front Angular d'**OpenCartable**, plateforme pédagogique libre et auto-hébergée : un enseignant compose ses cours par blocs et les partage à ses élèves par simple lien, sans compte ; un élève connecté dispose d'un tuteur IA. Voir [Descriptions.md](Descriptions.md) (cadrage) et [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) (design system) ; l'architecture est décrite dans [docs/architecture.md](docs/architecture.md).
 
-Stack : Angular 22 (zoneless, SSR + prerender), [Transloco](https://jsverse.gitbook.io/transloco) (fr/en), [angular-oauth2-oidc](https://github.com/manfredsteyer/angular-oauth2-oidc) (OIDC Code + PKCE vers Zitadel), polices auto-hébergées via @fontsource.
+Stack : Angular 22 (zoneless, SSR + prerender), [Transloco](https://jsverse.gitbook.io/transloco) (fr/en), [angular-oauth2-oidc](https://github.com/manfredsteyer/angular-oauth2-oidc) (OIDC Code + PKCE vers Zitadel), [Monaco Editor](https://microsoft.github.io/monaco-editor/), [marked](https://marked.js.org/) + [KaTeX](https://katex.org/) + [Mermaid](https://mermaid.js.org/) + DOMPurify, polices auto-hébergées via @fontsource.
 
 ## Fonctionnalités
 
-- **Matières** (`/<lang>/subjects`, réservé au prof authentifié) : navigation dans la taxonomie hiérarchique des disciplines en treeview (déplier/replier, recherche filtrante, compteur d'enfants et niveau). Alimentée par `SubjectService` (`src/app/core/subjects/`) — un fetch unique de `GET /api/v1/subjects/tree` mis en cache. Composant réutilisable `SubjectPicker` (`src/app/shared/subject-picker/`) pour sélectionner une matière dans un formulaire (`ControlValueAccessor`, accessible clavier + ARIA).
-- **Mes cours** (`/<lang>/courses`) : liste des cours du prof (cartes avec badges matières/niveaux, compteur de blocs, dernière modification), création (`/courses/new` — titre, description, matières, niveaux filtrés par le système scolaire du profil) et **espace blocs** (`/courses/:id`) : ajout par type (texte, exercice, lien — `ressource` arrivera avec le stockage S3), réordonnancement par boutons, suppression avec confirmation en deux temps.
-- **Éditeur de bloc texte** (`/courses/:id/blocks/:blockId`) : [Monaco Editor](https://microsoft.github.io/monaco-editor/) auto-hébergé (assets copiés au build sous `/monaco/vs`, thème clair/sombre suivi), onglets **Éditeur / Aperçu**, **enregistrement automatique** débouncé. Le markdown peut embarquer des **formules LaTeX** — `$…$` en ligne, `$$…$$` centrée — rendues par [KaTeX](https://katex.org/) dans l'aperçu (HTML sanitisé par DOMPurify via `renderCourseMarkdown`, `src/app/core/markdown/`).
+- **Mes cours** (`/<lang>/courses`) : liste, création (matières et niveaux du système scolaire du profil), page cours à onglets Blocs | Ressources | Modules | Aperçu | Partage — quatre types de blocs (texte, exercice, document, module), réordonnancement par glisser-déposer, bibliothèque de fichiers (upload direct vers S3), bibliothèque de modules interactifs (HTML/CSS/JS exécutés en iframe sandbox), aperçu « vue élève », régime d'accès et liens de partage, export/import d'un cours en `.zip`.
+- **Éditeurs** : bloc texte et exercice (Monaco, markdown avec formules LaTeX, diagrammes Mermaid, figures GeoGebra/JSXGraph/TikZ, ressources et modules intégrés, autosave), bloc document, bloc module, éditeur de module (trois Monaco + aperçu live). Style de lecture paramétrable par cours.
+- **Assistant IA** : panneau de chat par cours (lecture des blocs, ressources et modules) et chats d'édition qui proposent des modifications revues dans l'éditeur (diff, accepter/rejeter, Ctrl-Z) — provider et clé IA choisis par l'enseignant dans **Paramètres › IA**, ou IA par défaut de la plateforme sous quota.
+- **Pages élèves** (`/<lang>/shared/:token`, `/<lang>/p/courses/:id`, `/<lang>/p/:teacherId`) : sommaire, blocs, ressources, modules, cours entier et export PDF, résolution des exercices (réponses conservées sur l'appareil) et, pour un élève connecté, correction par un tuteur IA question par question.
+- **Recherche publique** (`/<lang>/search`) : cours publics et enseignants qui ont choisi d'être visibles, avec facettes matière et niveau.
+- **Documentation** des langages du markdown de cours (`/<lang>/markdown-language/docs`), avec bacs à sable.
+- Onboarding, profil (avatar, nom public), thème clair/sombre, interface fr/en.
 
 ## Développement
 
 ```bash
-npm install
+npm install        # postinstall : prépare le runtime TikZJax (.tikzjax/, gitignoré)
 npm start          # http://localhost:4200
 ```
 
-Les réglages de dev (URL de l'API, OIDC) vivent dans `src/environments/environment.development.ts` ; les valeurs de production dans `src/environments/environment.prod.ts` (figées au build, cf. `fileReplacements` d'angular.json).
+Les réglages de dev (URL de l'API, OIDC) vivent dans `src/environments/environment.development.ts` ; ceux de preprod et de production dans `environment.preprod.ts` / `environment.prod.ts` (figés au build, cf. `fileReplacements` d'angular.json). L'API doit émettre des JWT (Zitadel : access tokens au format JWT) et accepter l'audience du client OIDC configuré ici.
 
 ## Tests
 
 ```bash
-npm test           # vitest (jsdom), specs colocalisées src/**/*.spec.ts
+npm test                                           # vitest (jsdom), specs colocalisées src/**/*.spec.ts
+npm test -- --include src/app/app.routes.spec.ts   # un seul fichier
 ```
 
 ## Build & rendu
 
 ```bash
-npm run build                          # build production, home prerendered
+npm run build                          # build production, home prerendue (fr, en)
 npm run serve:ssr:OpenCartableFront    # sert dist/ via le serveur SSR Express (port 4000)
 ```
 
-Rendu par route (`src/app/app.routes.server.ts`) : `/` prerendered au build, `/auth/callback` client uniquement, les routes protégées par authentification (ex. `/<lang>/subjects`) en rendu client, le reste en SSR.
+Rendu par route (`src/app/app.routes.server.ts`) : home prerendue au build, pages élèves, recherche, documentation et espace enseignant rendus côté client, le reste en SSR.
 
 ## Docker
 
@@ -48,7 +53,7 @@ Variables d'environnement du conteneur :
 | `ALLOWED_HOSTS` | `localhost,127.0.0.1` | Hôtes acceptés (protection SSRF d'Angular SSR) — en production, le domaine public |
 | `TRUST_PROXY_HEADERS` | *(aucun)* | En-têtes `X-Forwarded-*` à accepter derrière le reverse proxy, ex. `x-forwarded-host,x-forwarded-proto` |
 
-Le reverse proxy nginx (TLS, routage `/api`) est fourni par l'infra, hors périmètre de ce repo.
+L'image se construit pour la cible choisie par `ARG BUILD_CONFIGURATION` (`production` par défaut, `preprod` possible). Le reverse proxy nginx (TLS, routage `/api`) est fourni par l'infra, hors périmètre de ce repo.
 
 ## Licence
 
