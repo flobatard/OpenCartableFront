@@ -5,23 +5,10 @@ import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../auth/auth.service';
 import { PublicCourseService } from '../public-courses/public-course.service';
 import { StudentSubmissionService } from './student-submission.service';
+import { sseResponse } from '../../testing/sse.fixture';
 
 const BASE = 'http://localhost:8000/api/v1/student/courses/course-1/blocks/block-3';
 const STREAM = `${BASE}/questions/q-1/submissions/stream`;
-
-/** Réponse fetch streamant les chunks donnés (motif assistant-chat-state.spec). */
-function sseResponse(chunks: string[], status = 200): Response {
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream<Uint8Array>({
-    start(controller) {
-      for (const chunk of chunks) {
-        controller.enqueue(encoder.encode(chunk));
-      }
-      controller.close();
-    },
-  });
-  return new Response(stream, { status, headers: { 'Content-Type': 'text/event-stream' } });
-}
 
 const DONE =
   'event: done\ndata: {"submission_id":"s1","verdict":"correct","effort":"sufficient",' +

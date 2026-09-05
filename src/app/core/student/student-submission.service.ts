@@ -4,7 +4,7 @@ import { effect, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../auth/auth.service';
-import { createSseParser } from '../course-assistant/sse';
+import { postSseStream } from '../course-assistant/sse';
 import { PublicCourseService } from '../public-courses/public-course.service';
 import {
   CorrectionRequest,
@@ -23,10 +23,8 @@ import {
  *
  * Deux transports, comme l'assistant de cours : le fil se lit par
  * `HttpClient` (URL sous `apiUrl` hors `/v1/public/` → Bearer attaché par
- * l'intercepteur OIDC) ; un tour se **streame** en `fetch` + `ReadableStream`
- * (hors intercepteur : `Authorization` posée depuis `AuthService.accessToken`,
- * seule couche qui connaît le token), parseur SSE partagé
- * (`createSseParser` au vocabulaire `TUTOR_EVENTS`). L'accès au cours reste
+ * l'intercepteur OIDC) ; un tour se **streame** par `postSseStream` (client
+ * fetch-SSE partagé, vocabulaire `TUTOR_EVENTS`). L'accès au cours reste
  * celui du régime public : le token de partage voyage en `?token=` depuis
  * `PublicCourseService.access()`.
  *
@@ -123,33 +121,19 @@ export class StudentSubmissionService {
     try {
       const url = `${this.#base(courseId, blockId)}/questions/${encodeURIComponent(questionId)}/submissions/stream`;
       const query = this.#params().toString();
-      const response = await fetch(query ? `${url}?${query}` : url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'text/event-stream',
-          Authorization: `Bearer ${this.#auth.accessToken}`,
-        },
-        body: JSON.stringify({ kind, content }),
+      const outcome = await postSseStream<TutorStreamEvent>({
+        url: query ? `${url}?${query}` : url,
+        body: { kind, content },
+        accessToken: this.#auth.accessToken,
         signal: abort.signal,
+        events: TUTOR_EVENTS,
+        onEvent: (event) => (closed = this.#handleEvent(questionId, event) || closed),
       });
-      if (!response.ok || response.body === null) {
-        this.#fail(questionId, response.status);
+      if ('status' in outcome) {
+        this.#fail(questionId, outcome.status);
         return;
       }
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      const parser = createSseParser<TutorStreamEvent>(TUTOR_EVENTS);
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) {
-          break;
-        }
-        for (const event of parser.push(decoder.decode(value, { stream: true }))) {
-          closed = this.#handleEvent(questionId, event) || closed;
-        }
-      }
-      if (!closed) {
+      if (!outcome.closed) {
         this.#fail(questionId, 0); // flux coupé sans done/error
       }
     } catch {

@@ -13,7 +13,7 @@ import {
   AssistantStreamEvent,
 } from './assistant.model';
 import { AssistantPendingProposal, parseProposal } from './proposals';
-import { createSseParser } from './sse';
+import { postSseStream } from './sse';
 
 export type { AssistantPendingProposal } from './proposals';
 
@@ -50,19 +50,16 @@ export interface AssistantChatScope {
 }
 
 /**
- * État d'UN chat assistant (conversations + flux SSE) — la classe extraite de
- * `CourseAssistantService`, désormais instanciable par hôte : le service root
- * (`CourseAssistantService`, panneau flottant global) l'étend, et le chat
- * ancré d'un éditeur en fournit SA propre instance (`providers` du composant
- * hôte, ex. `BlockEditor`) — les deux chats coexistent sur la même page sans
- * se marcher dessus.
+ * État d'UN chat assistant (conversations + flux SSE), instanciable par hôte :
+ * le service root (`CourseAssistantService`, panneau flottant global) l'étend,
+ * et le chat ancré d'un éditeur en fournit SA propre instance (`providers` du
+ * composant hôte, ex. `BlockEditor`) — les deux chats coexistent sur la même
+ * page sans se marcher dessus.
  *
- * Variante mutable du patron (motif `CourseService`) plus le **premier client
- * SSE du projet** : le CRUD des conversations passe par `HttpClient` (Bearer
- * automatique, URLs sous `apiUrl`), mais le flux de réponse est un `fetch` +
- * `ReadableStream` — hors du pipeline HttpClient, donc hors intercepteur
- * OIDC : l'`Authorization` est posée à la main depuis `AuthService.accessToken`
- * (seule couche qui connaît le token). Navigateur uniquement
+ * Variante mutable du patron des services de données : le CRUD des
+ * conversations passe par `HttpClient` (Bearer automatique, URLs sous
+ * `apiUrl`), le flux de réponse par `postSseStream` (`fetch` +
+ * `ReadableStream`, Bearer posé à la main). Navigateur uniquement
  * (`isPlatformBrowser`), annulable (`AbortController`).
  *
  * La **portée** (`configure`) fixe le contexte des conversations : `course`
@@ -473,45 +470,29 @@ export class AssistantChatState implements OnDestroy {
   }
 
   /**
-   * POST + consommation d'un flux SSE de tour (envoi de message ou reprise
-   * HITL) : Bearer posé à la main (doc de classe), abort partagé, repli du
-   * partiel sur coupure. Retourne le status HTTP d'une réponse non-2xx (flux
-   * jamais ouvert — l'appelant décide), `null` sinon (flux consommé ou abort,
-   * états déjà posés). `onOpen` est appelé dès la réponse 2xx, avant lecture.
+   * Flux SSE d'un tour (envoi de message ou reprise HITL) via `postSseStream`,
+   * abort partagé, repli du partiel sur coupure. Retourne le status HTTP d'une
+   * réponse non-2xx (flux jamais ouvert — l'appelant décide), `null` sinon
+   * (flux consommé ou abort, états déjà posés). `onOpen` est appelé dès la
+   * réponse 2xx, avant lecture.
    */
   async #streamTurn(url: string, body: unknown, onOpen?: () => void): Promise<number | null> {
     const abort = new AbortController();
     this.#abort = abort;
 
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'text/event-stream',
-          Authorization: `Bearer ${this.auth.accessToken}`,
-        },
-        body: JSON.stringify(body),
+      const outcome = await postSseStream<AssistantStreamEvent>({
+        url,
+        body,
+        accessToken: this.auth.accessToken,
         signal: abort.signal,
+        onOpen,
+        onEvent: (event) => this.#handleEvent(event),
       });
-      if (!response.ok || response.body === null) {
-        return response.status;
+      if ('status' in outcome) {
+        return outcome.status;
       }
-      onOpen?.();
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      const parser = createSseParser();
-      let closed = false;
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) {
-          break;
-        }
-        for (const event of parser.push(decoder.decode(value, { stream: true }))) {
-          closed = this.#handleEvent(event) || closed;
-        }
-      }
-      if (!closed) {
+      if (!outcome.closed) {
         // Flux coupé sans done/error (proxy, réseau) : replier le partiel.
         this.#finalizeTurn(null, null);
         this.#failStream(0);

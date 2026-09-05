@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import { AssistantChatState } from './assistant-chat-state';
 import { AssistantConversation } from './assistant.model';
+import { sseResponse } from '../../testing/sse.fixture';
 
 const BASE = `${environment.apiUrl}/v1/courses/c1/assistant/conversations`;
 
@@ -17,20 +18,6 @@ const BLOCK_CONVERSATION: AssistantConversation = {
   created_at: '2026-08-31T10:00:00Z',
   updated_at: '2026-08-31T10:00:00Z',
 };
-
-/** Réponse fetch streamant les chunks donnés (motif course-assistant.service.spec). */
-function sseResponse(chunks: string[], status = 200): Response {
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream<Uint8Array>({
-    start(controller) {
-      for (const chunk of chunks) {
-        controller.enqueue(encoder.encode(chunk));
-      }
-      controller.close();
-    },
-  });
-  return new Response(stream, { status, headers: { 'Content-Type': 'text/event-stream' } });
-}
 
 const DONE_EVENT =
   'event: done\ndata: {"usage":null,"user_message_id":"u1","message_ids":["m1"],' +

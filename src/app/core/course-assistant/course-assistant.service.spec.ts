@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import { AssistantConversation, AssistantConversationDetail } from './assistant.model';
 import { CourseAssistantService } from './course-assistant.service';
+import { sseResponse } from '../../testing/sse.fixture';
 
 const BASE = `${environment.apiUrl}/v1/courses/c1/assistant/conversations`;
 
@@ -19,23 +20,6 @@ const CONVERSATION: AssistantConversation = {
 };
 
 const DETAIL: AssistantConversationDetail = { ...CONVERSATION, messages: [] };
-
-/** Réponse fetch streamant les chunks donnés (découpables mi-événement). */
-function sseResponse(chunks: string[], status = 200): Response {
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream<Uint8Array>({
-    start(controller) {
-      for (const chunk of chunks) {
-        controller.enqueue(encoder.encode(chunk));
-      }
-      controller.close();
-    },
-  });
-  return new Response(stream, {
-    status,
-    headers: { 'Content-Type': 'text/event-stream' },
-  });
-}
 
 describe('CourseAssistantService', () => {
   let service: CourseAssistantService;

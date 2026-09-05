@@ -1,7 +1,7 @@
 import { AssistantStreamEvent } from './assistant.model';
 
 /**
- * Parseur SSE incrémental — premier client Server-Sent Events du projet.
+ * Parseur SSE incrémental.
  *
  * Le back émet des blocs `event: <nom>\ndata: <json>\n\n` (JSON compact,
  * flux clos après `done` ou `error`). Le réseau livre des chunks arbitraires,
@@ -14,6 +14,7 @@ import { AssistantStreamEvent } from './assistant.model';
  * Générique sur le vocabulaire : par défaut celui de l'assistant de cours
  * (`AssistantStreamEvent`) ; un autre flux (tuteur d'exercice élève,
  * `core/student/`) passe son propre jeu d'événements connus et son type.
+ * Le transport (`postSseStream`, ci-dessous) est partagé de même.
  */
 export interface SseParser<E extends { type: string } = AssistantStreamEvent> {
   /** Événements complets contenus dans ce chunk (et le reliquat précédent). */
@@ -75,4 +76,60 @@ export function createSseParser<E extends { type: string } = AssistantStreamEven
       return events;
     },
   };
+}
+
+export interface SseStreamRequest<E extends { type: string }> {
+  url: string;
+  body: unknown;
+  accessToken: string | null;
+  signal: AbortSignal;
+  /** Vocabulaire d'événements connus (défaut : celui de l'assistant). */
+  events?: ReadonlySet<string>;
+  /** Appelé dès la réponse 2xx, avant la lecture du flux. */
+  onOpen?: () => void;
+  /** Traite un événement ; `true` = événement terminal (`done`/`error`/`interrupt`). */
+  onEvent: (event: E) => boolean;
+}
+
+export type SseStreamOutcome = { status: number } | { closed: boolean };
+
+/**
+ * POST + lecture d'un flux SSE — hors du pipeline `HttpClient`, donc hors
+ * intercepteur OIDC : c'est le SEUL endroit du front qui pose l'`Authorization`
+ * à la main (depuis `AuthService.accessToken`, seule couche qui connaît le
+ * token). `{ status }` : réponse non-2xx, flux jamais ouvert ; `{ closed }` :
+ * flux consommé, `false` s'il s'est coupé sans événement terminal. Un abort
+ * ou une erreur réseau lèvent : l'appelant décide du repli.
+ */
+export async function postSseStream<E extends { type: string }>(
+  request: SseStreamRequest<E>,
+): Promise<SseStreamOutcome> {
+  const response = await fetch(request.url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'text/event-stream',
+      Authorization: `Bearer ${request.accessToken}`,
+    },
+    body: JSON.stringify(request.body),
+    signal: request.signal,
+  });
+  if (!response.ok || response.body === null) {
+    return { status: response.status };
+  }
+  request.onOpen?.();
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  const parser = createSseParser<E>(request.events);
+  let closed = false;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    for (const event of parser.push(decoder.decode(value, { stream: true }))) {
+      closed = request.onEvent(event) || closed;
+    }
+  }
+  return { closed };
 }
