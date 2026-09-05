@@ -5,6 +5,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angul
 import { CourseBlocks } from './course-blocks';
 import { CourseBlock, CourseDetail } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
+import { CourseTransferService } from '../../../core/courses/course-transfer.service';
 import { EducationLevelService } from '../../../core/education-levels/education-level.service';
 import { ModuleService } from '../../../core/modules/module.service';
 import { ResourceService } from '../../../core/resources/resource.service';
@@ -55,6 +56,7 @@ describe('CourseBlocks', () => {
       providers: [
         provideRouter([]),
         { provide: CourseService, useValue: coursesMock },
+        { provide: CourseTransferService, useValue: { exportCourse: vi.fn() } },
         { provide: SubjectService, useValue: subjectsMock },
         { provide: EducationLevelService, useValue: levelsMock },
         { provide: ResourceService, useValue: resourcesMock },

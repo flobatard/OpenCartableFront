@@ -2,7 +2,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { provideRouter, Router } from '@angular/router';
-import { CourseService, ImportState } from '../../../core/courses/course.service';
+import {
+  CourseTransferService,
+  ImportState,
+} from '../../../core/courses/course-transfer.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
@@ -28,7 +31,7 @@ describe('CourseImportDialog', () => {
       providers: [
         provideRouter([]),
         {
-          provide: CourseService,
+          provide: CourseTransferService,
           useValue: { importState: importState.asReadonly(), importCourse },
         },
         { provide: LanguageService, useValue: { lang: signal('fr').asReadonly() } },

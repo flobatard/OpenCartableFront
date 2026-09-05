@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { CourseService } from '../../../core/courses/course.service';
+import { CourseTransferService } from '../../../core/courses/course-transfer.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { formatBytes } from '../../../core/resources/resource.utils';
@@ -15,12 +15,11 @@ export const MAX_IMPORT_BYTES = 524_288_000;
 let sequence = 0;
 
 /**
- * Modale d'import d'une archive de cours (.zip d'export). Élément `<dialog>`
- * natif calqué sur `BlockCreateDialog` (`open()`/`close()`,
- * directive `ocDialog`). Contrairement à elle, la modale appelle le service elle-même
- * (motif `CourseResources`/`ResourceService`) : choix du fichier, pré-contrôle
- * de taille, progression d'envoi (`importState`), erreurs par statut HTTP
- * (413/422/503), puis navigation vers le cours importé.
+ * Modale d'import d'une archive de cours (.zip d'export) — `<dialog>` natif
+ * (`open()`/`close()`, directive `ocDialog`) qui appelle le service
+ * elle-même : choix du fichier, pré-contrôle de taille, progression d'envoi
+ * (`importState`), erreurs par statut HTTP (413/422/503), puis navigation
+ * vers le cours importé.
  */
 @Component({
   selector: 'app-course-import-dialog',
@@ -29,7 +28,7 @@ let sequence = 0;
   styleUrl: './course-import-dialog.scss',
 })
 export class CourseImportDialog {
-  readonly #courses = inject(CourseService);
+  readonly #transfer = inject(CourseTransferService);
   readonly #router = inject(Router);
   readonly #language = inject(LanguageService);
   readonly #notifications = inject(NotificationService);
@@ -45,7 +44,7 @@ export class CourseImportDialog {
   /** Clé i18n de l'erreur courante (sous `courses.import.*`), `null` sinon. */
   protected readonly errorKey = signal<string | null>(null);
 
-  protected readonly state = this.#courses.importState;
+  protected readonly state = this.#transfer.importState;
   protected readonly busy = computed(
     () => this.state().phase === 'uploading' || this.state().phase === 'processing',
   );
@@ -89,7 +88,7 @@ export class CourseImportDialog {
     }
     this.errorKey.set(null);
     try {
-      const course = await this.#courses.importCourse(file);
+      const course = await this.#transfer.importCourse(file);
       this.dialog()?.close();
       this.#notifications.success(this.#transloco.translate('courses.import.success'));
       await this.#router.navigate(['/', this.#language.lang(), 'courses', course.id]);

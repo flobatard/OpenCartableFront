@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { CourseList } from './course-list';
 import { CourseService } from '../../../core/courses/course.service';
+import { CourseTransferService } from '../../../core/courses/course-transfer.service';
 import { EducationLevelService } from '../../../core/education-levels/education-level.service';
 import { SubjectService } from '../../../core/subjects/subject.service';
 import { COURSES_FIXTURE } from '../../../testing/courses.fixture';
@@ -13,14 +14,15 @@ describe('CourseList', () => {
   const list = signal(COURSES_FIXTURE);
   const listLoading = signal(false);
   const listError = signal(false);
-  // importState/importCourse : consommés par la modale d'import montée par la page.
-  const importState = signal({ phase: 'idle' as const, progress: 0 });
   const coursesMock = {
     list,
     listLoading,
     listError,
     loadList: vi.fn(),
-    importState,
+  };
+  // Consommé par la modale d'import montée par la page.
+  const transferMock = {
+    importState: signal({ phase: 'idle' as const, progress: 0 }),
     importCourse: vi.fn(),
   };
   const subjectsMock = mockSubjectService();
@@ -32,6 +34,7 @@ describe('CourseList', () => {
       providers: [
         provideRouter([]),
         { provide: CourseService, useValue: coursesMock },
+        { provide: CourseTransferService, useValue: transferMock },
         { provide: SubjectService, useValue: subjectsMock },
         { provide: EducationLevelService, useValue: levelsMock },
       ],

@@ -17,6 +17,7 @@ import {
   downloadBlob,
 } from '../../../core/courses/course-transfer.utils';
 import { CourseService } from '../../../core/courses/course.service';
+import { CourseTransferService } from '../../../core/courses/course-transfer.service';
 import { EducationLevelService } from '../../../core/education-levels/education-level.service';
 import {
   findById as findLevelById,
@@ -80,6 +81,7 @@ const TAB_ORDER: readonly CourseTab[] = ['blocks', 'resources', 'modules', 'prev
 })
 export class CourseBlocks implements OnInit {
   readonly #courses = inject(CourseService);
+  readonly #transfer = inject(CourseTransferService);
   readonly #subjects = inject(SubjectService);
   readonly #levels = inject(EducationLevelService);
   readonly #notifications = inject(NotificationService);
@@ -321,8 +323,7 @@ export class CourseBlocks implements OnInit {
 
   /**
    * Télécharge l'archive .zip d'export du cours (blob → `<a download>`, nom
-   * dérivé du titre côté front). Échec signalé en toast — message traduit par
-   * l'appelant, motif `CourseShare.copy()`.
+   * dérivé du titre côté front). Échec signalé en toast (message traduit ici).
    */
   protected async exportCourse(): Promise<void> {
     const detail = this.detail();
@@ -331,7 +332,7 @@ export class CourseBlocks implements OnInit {
     }
     this.exporting.set(true);
     try {
-      const blob = await this.#courses.exportCourse(this.#courseId);
+      const blob = await this.#transfer.exportCourse(this.#courseId);
       downloadBlob(blob, courseExportFilename(detail.title));
     } catch {
       this.#notifications.error(this.#transloco.translate('courses.blocks.exportError'));

@@ -1,4 +1,4 @@
-import { HttpClient, HttpEventType } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { effect, inject, Injectable, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -13,23 +13,13 @@ import {
   CourseVisibility,
 } from './course.model';
 
-/** État de l'import d'une archive de cours (un import à la fois, motif `UploadState`). */
-export interface ImportState {
-  /** `uploading` = corps en cours d'envoi ; `processing` = corps reçu, le back
-      parse l'archive et pousse les binaires vers S3 (réponse pas encore là). */
-  phase: 'idle' | 'uploading' | 'processing' | 'error';
-  /** Progression d'envoi 0-100 (phase `uploading`). */
-  progress: number;
-}
-
-const IMPORT_IDLE: ImportState = { phase: 'idle', progress: 0 };
-
 /**
  * Cours du prof courant — variante MUTABLE du patron `SubjectService` (comme
  * `UserProfileService`) : signaux source de vérité, refetch à chaque entrée
  * de page (les données changent au fil des mutations, pas de `shareReplay`
  * figé), mutations de blocs qui mettent à jour le signal `detail` localement
  * à partir de la réponse du back. Tout est purgé quand la session OIDC tombe.
+ * L'export/import d'archives vit dans `CourseTransferService`.
  *
  * Le Bearer est attaché automatiquement par l'intercepteur OIDC (URL sous
  * `environment.apiUrl`) ; le service n'est sollicité que depuis des pages
@@ -61,16 +51,11 @@ export class CourseService {
   readonly #detailError = signal(false);
   readonly detailError = this.#detailError.asReadonly();
 
-  readonly #importState = signal<ImportState>(IMPORT_IDLE);
-  /** État de l'import d'archive en cours (consommé par la modale d'import). */
-  readonly importState = this.#importState.asReadonly();
-
   constructor() {
     effect(() => {
       if (!this.#auth.isAuthenticated()) {
         this.#list.set([]);
         this.#detail.set(null);
-        this.#importState.set(IMPORT_IDLE);
       }
     });
   }
@@ -116,60 +101,9 @@ export class CourseService {
     return firstValueFrom(this.#http.post<CourseSummary>(this.#url, payload));
   }
 
-  /**
-   * Archive `.zip` d'export du cours (manifest + ressources + modules).
-   * Premier `responseType: 'blob'` du projet : l'endpoint exige le Bearer
-   * (attaché par l'intercepteur, URL sous `apiUrl`) — impossible de passer
-   * par `window.open` comme pour les URL S3 présignées. Le téléchargement
-   * effectif passe par `downloadBlob` (course-transfer.utils).
-   */
-  exportCourse(courseId: string): Promise<Blob> {
-    return firstValueFrom(
-      this.#http.get(`${this.#url}/${courseId}/export`, { responseType: 'blob' }),
-    );
-  }
-
-  /**
-   * Importe une archive d'export : le back recrée un cours complet (nouveaux
-   * ids). Premier POST `FormData` multipart du projet — ne JAMAIS poser de
-   * `Content-Type` manuel, le navigateur écrit lui-même le boundary.
-   * `reportProgress` alimente le signal `importState` ; le cours créé est
-   * inséré en tête de `list` (tri « modifié récemment » du back).
-   */
-  async importCourse(file: File): Promise<CourseSummary> {
-    const form = new FormData();
-    form.append('file', file, file.name);
-    this.#importState.set({ phase: 'uploading', progress: 0 });
-    try {
-      const course = await new Promise<CourseSummary>((resolve, reject) => {
-        this.#http
-          .post<CourseSummary>(`${this.#url}/import`, form, {
-            reportProgress: true,
-            observe: 'events',
-          })
-          .subscribe({
-            next: (event) => {
-              if (event.type === HttpEventType.UploadProgress && event.total) {
-                const progress = Math.round((event.loaded / event.total) * 100);
-                this.#importState.set({
-                  // Corps entièrement envoyé : le back travaille (parse + S3).
-                  phase: progress >= 100 ? 'processing' : 'uploading',
-                  progress,
-                });
-              } else if (event.type === HttpEventType.Response) {
-                resolve(event.body as CourseSummary);
-              }
-            },
-            error: reject,
-          });
-      });
-      this.#list.update((courses) => [course, ...courses]);
-      this.#importState.set(IMPORT_IDLE);
-      return course;
-    } catch (error) {
-      this.#importState.set({ phase: 'error', progress: 0 });
-      throw error;
-    }
+  /** Insère un cours en tête de la liste (cours importé — tri « modifié récemment » du back). */
+  prependToList(course: CourseSummary): void {
+    this.#list.update((courses) => [course, ...courses]);
   }
 
   /**
@@ -295,9 +229,9 @@ export class CourseService {
   }
 
   /**
-   * Change le régime d'accès élève du cours (J2) et patche localement les
-   * signaux `detail` et `list` — passer en `draft` suspend les liens de
-   * partage côté back, rien d'autre à rafraîchir ici.
+   * Change le régime d'accès élève du cours et patche localement les signaux
+   * `detail` et `list` — passer en `draft` suspend les liens de partage côté
+   * back, rien d'autre à rafraîchir ici.
    */
   async updateVisibility(courseId: string, visibility: CourseVisibility): Promise<void> {
     await firstValueFrom(
