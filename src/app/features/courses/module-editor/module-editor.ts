@@ -15,7 +15,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { concatMap, debounceTime, merge, tap } from 'rxjs';
+import { debounceTime, merge } from 'rxjs';
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
 import { ProposalHost } from '../../../core/course-assistant/proposal-host';
 import {
@@ -23,17 +23,16 @@ import {
   MODULE_FILE_BY_KIND,
   ModuleProposalFile,
 } from '../../../core/course-assistant/proposals';
+import { createAutosave } from '../../../core/editing/autosave';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { ModuleUpdatePayload } from '../../../core/modules/module.model';
 import { ModuleService } from '../../../core/modules/module.service';
 import { MarkdownEditor } from '../../../shared/markdown-editor/markdown-editor';
 import { ModuleRunner } from '../../../shared/module-runner/module-runner';
+import { ResizeHandle } from '../../../shared/resize-handle/resize-handle.directive';
+import { Tablist } from '../../../shared/tabs/tablist.directive';
 import { CourseChat } from '../course-chat/course-chat';
 import { ModuleProposalReview } from './module-proposal-review';
-import { Tablist } from '../../../shared/tabs/tablist.directive';
-import { ResizeHandle } from '../../../shared/resize-handle/resize-handle.directive';
-
-const AUTOSAVE_DELAY_MS = 1500;
 
 /** Frappe → preview : un peu plus large que le playground (400 ms) car chaque
  *  recomposition RECHARGE l'iframe sandbox (srcdoc), pas juste un re-rendu. */
@@ -50,46 +49,34 @@ interface ModuleReviewView {
   original: string;
 }
 
-type SaveState = 'idle' | 'dirty' | 'saving' | 'saved' | 'error';
-
 /** Ids ARIA uniques par instance (compteur de module, jamais Date.now()). */
 let sequence = 0;
 
 /**
  * Éditeur d'un module interactif (`courses/:id/modules/:moduleId`) : trois
- * Monaco HTML | CSS | JS commutés par tabs (panneaux masqués par `[hidden]`,
- * jamais `@if` — Monaco vit dans les trois) et preview live sandboxée
- * (`app-module-runner`) côte à côte (grid 50/50 motif markdown-playground,
- * empilé <900px), alimentée par la frappe débouncée. Cette grille et le
- * panneau assistant (`app-course-chat` en mode edit, contexte `module`)
- * composent un espace de travail redimensionnable au motif block-editor :
- * poignée `separator` pilotant `--editor-basis`, repli `[hidden]` (les panes
- * reprennent toute la largeur), bouton de réouverture sous 900px. Autosave
- * débouncé unique (motif block-editor : `merge → debounceTime → concatMap`,
- * payload relu à l'ENVOI, flush fire-and-forget au destroy) via le PATCH
- * partiel `updateModule` (code sans titre — le renommage vit dans l'onglet
- * Modules).
+ * Monaco HTML | CSS | JS commutés par onglets (panneaux masqués par `[hidden]`,
+ * jamais `@if` — Monaco vit dans les trois) et aperçu live sandboxé
+ * (`app-module-runner`) alimenté par la frappe débouncée, composés avec le
+ * chat d'édition (contexte `module`) dans un espace de travail redimensionnable
+ * au motif block-editor. Autosave unique (`createAutosave`) par le PATCH
+ * partiel `updateModule` — le renommage vit dans l'onglet Modules.
  *
- * **Chat d'édition HITL** (contexte back `module`) : instance
- * d'`AssistantChatState` dédiée (`providers`), portée posée au constructeur
- * (params en snapshot — la route `remountOnParamChange` recrée la page avec
- * son état) et `setBeforeTurn(flushContent)` pour que le back lise le module
- * EN BASE à chaque tour et à chaque décision. Quand l'IA propose un fichier,
- * `ProposalHost` dérive `review` et la revue REMPLACE le pane éditeur (masqué
- * par classe, jamais `@if` : Monaco survit) tandis que le pane **aperçu
- * exécute déjà le code proposé** (`previewCode` — c'est l'atout du contexte
- * module : on voit le résultat avant d'accepter). L'acceptation applique le
- * fichier via Monaco (édit entre undo stops : **Ctrl-Z l'annule**, repli
- * `setValue` sans undo si Monaco n'est pas prêt), l'autosave persiste.
+ * Chat d'édition HITL : instance d'`AssistantChatState` dédiée, portée posée
+ * au constructeur (params en snapshot, route `remountOnParamChange`), flush
+ * d'autosave avant chaque tour et chaque décision. Une proposition de fichier
+ * remplace le pane éditeur par sa revue (masqué par classe : Monaco survit)
+ * tandis que l'aperçu **exécute déjà le code proposé** (`previewCode`) ;
+ * l'acceptation applique le fichier via Monaco (édit annulable par Ctrl-Z,
+ * repli `setValue` sans undo si Monaco n'est pas prêt).
  *
  * Les trois `FormControl` sont publics (exception à la convention
- * `protected`) : jsdom ne peut pas taper dans Monaco, les specs les
- * pilotent. Route en RenderMode.Client (Monaco + iframe), params en
- * snapshot.
+ * `protected`) : jsdom ne peut pas taper dans Monaco, les specs les pilotent.
  */
 @Component({
   selector: 'app-module-editor',
-  imports: [ResizeHandle, Tablist, 
+  imports: [
+    ResizeHandle,
+    Tablist,
     ReactiveFormsModule,
     RouterLink,
     TranslocoPipe,
@@ -136,7 +123,18 @@ export class ModuleEditor implements OnInit, OnDestroy {
   /** La preview ne monte l'iframe qu'une fois le module chargé. */
   protected readonly previewReady = signal(false);
 
-  protected readonly saveState = signal<SaveState>('idle');
+  /** Autosave des trois fichiers par le PATCH partiel (code sans titre). */
+  readonly #autosave = createAutosave<ModuleUpdatePayload>({
+    triggers: merge(
+      this.htmlControl.valueChanges,
+      this.cssControl.valueChanges,
+      this.jsControl.valueChanges,
+    ),
+    current: () => this.#currentPayload(),
+    save: (payload) =>
+      this.#modules.updateModule(this.courseId, this.moduleId, payload).then(() => undefined),
+  });
+  protected readonly saveState = this.#autosave.state;
 
   /** Les trois Monaco, par fichier (application d'une proposition par édit
    *  annulable ; `undefined` tant que la vue n'est pas rendue). */
@@ -179,20 +177,13 @@ export class ModuleEditor implements OnInit, OnDestroy {
 
   /** Partage de largeur panes/chat piloté par la poignée (drag), en % de
       l'espace de travail ; `dragging` désactive la sélection pendant le glissé.
-      Motif block-editor — défaut plus large ici : la colonne porte DEUX panes. */
+      Défaut plus large qu'au block-editor : la colonne porte DEUX panes. */
   protected readonly editorPct = signal(68);
   protected readonly dragging = signal(false);
   /** Repli du panneau assistant : les panes reprennent toute la largeur. */
   protected readonly chatCollapsed = signal(false);
 
   #initialized = false;
-  /** JSON du dernier payload persisté (référence dirty/idle). */
-  #lastSaved = '';
-  /** PATCH d'autosave en vol (concatMap n'en laisse qu'un à la fois) — le
-   *  flush du destroy s'enchaîne derrière lui, sinon deux écritures
-   *  concurrentes dont l'ordre serveur n'est pas garanti pourraient persister
-   *  l'ancien code. Toujours résolue (jamais rejetée). */
-  #inFlightSave: Promise<void> = Promise.resolve();
 
   constructor() {
     // Portée du chat ancré posée AVANT tout chargement (l'enfant `app-course-chat`
@@ -226,21 +217,6 @@ export class ModuleEditor implements OnInit, OnDestroy {
         .pipe(debounceTime(PREVIEW_DEBOUNCE_MS), takeUntilDestroyed())
         .subscribe((value) => preview.set(value));
     }
-    merge(this.htmlControl.valueChanges, this.cssControl.valueChanges, this.jsControl.valueChanges)
-      .pipe(
-        tap(() => {
-          this.saveState.set(
-            JSON.stringify(this.#currentPayload()) === this.#lastSaved ? 'idle' : 'dirty',
-          );
-        }),
-        debounceTime(AUTOSAVE_DELAY_MS),
-        // concatMap sérialise les PATCH (promesse non annulable — switchMap
-        // laisserait une réponse périmée écraser la plus récente). Le payload
-        // est relu à l'ENVOI, les émissions ne sont que des déclencheurs.
-        concatMap(() => this.#save()),
-        takeUntilDestroyed(),
-      )
-      .subscribe();
   }
 
   ngOnInit(): void {
@@ -252,17 +228,8 @@ export class ModuleEditor implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     // Sortie avant la fin du debounce : flush fire-and-forget (service root),
-    // enchaîné derrière l'éventuel PATCH en vol pour garantir l'ordre serveur
-    // (takeUntilDestroyed annule la file du concatMap, pas la requête partie).
-    if (!this.#initialized) {
-      return;
-    }
-    const payload = this.#currentPayload();
-    if (JSON.stringify(payload) !== this.#lastSaved) {
-      void this.#inFlightSave.then(() =>
-        this.#modules.updateModule(this.courseId, this.moduleId, payload).catch(() => undefined),
-      );
-    }
+    // enchaîné derrière l'éventuel PATCH en vol.
+    this.#autosave.flushOnDestroy();
   }
 
   protected reload(): void {
@@ -276,7 +243,7 @@ export class ModuleEditor implements OnInit, OnDestroy {
         // ensuite (un patch du cache post-save n'écrase pas la frappe).
         if (!this.#initialized) {
           this.#initialized = true;
-          this.#lastSaved = JSON.stringify({ html: module.html, css: module.css, js: module.js });
+          this.#autosave.init({ html: module.html, css: module.css, js: module.js });
           this.htmlControl.setValue(module.html, { emitEvent: false });
           this.cssControl.setValue(module.css, { emitEvent: false });
           this.jsControl.setValue(module.js, { emitEvent: false });
@@ -305,7 +272,6 @@ export class ModuleEditor implements OnInit, OnDestroy {
       this.selectTab(key as CodeTab);
     }
   }
-
 
   protected toggleChat(): void {
     this.chatCollapsed.update((collapsed) => !collapsed);
@@ -343,7 +309,7 @@ export class ModuleEditor implements OnInit, OnDestroy {
    * n'empêche pas l'envoi (le hook n'est jamais bloquant).
    */
   async flushContent(): Promise<void> {
-    await this.#save();
+    await this.#autosave.flush();
   }
 
   /** Code courant des trois contrôles (payload du PATCH partiel, sans titre). */
@@ -353,34 +319,5 @@ export class ModuleEditor implements OnInit, OnDestroy {
       css: this.cssControl.value,
       js: this.jsControl.value,
     };
-  }
-
-  async #save(): Promise<void> {
-    if (!this.#initialized) {
-      return;
-    }
-    const payload = this.#currentPayload();
-    const serialized = JSON.stringify(payload);
-    if (serialized === this.#lastSaved) {
-      // Émission en file devenue redondante (frappe annulée ou déjà persistée).
-      return;
-    }
-    this.saveState.set('saving');
-    try {
-      const request = this.#modules.updateModule(this.courseId, this.moduleId, payload);
-      this.#inFlightSave = request.then(
-        () => undefined,
-        () => undefined,
-      );
-      await request;
-      this.#lastSaved = serialized;
-      // Frappe pendant le save en vol : on reste « dirty », le suivant est en file.
-      this.saveState.set(
-        JSON.stringify(this.#currentPayload()) === this.#lastSaved ? 'saved' : 'dirty',
-      );
-    } catch {
-      // Le flux survit ; retentative à la prochaine modification.
-      this.saveState.set('error');
-    }
   }
 }

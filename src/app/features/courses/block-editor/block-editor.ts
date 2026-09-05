@@ -14,7 +14,7 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { concatMap, debounceTime, merge, Subject, tap } from 'rxjs';
+import { merge, Subject } from 'rxjs';
 import {
   buildBlockMetaForm,
   patchBlockMetaForm,
@@ -39,11 +39,13 @@ import { AssistantChatState } from '../../../core/course-assistant/assistant-cha
 import { CourseService } from '../../../core/courses/course.service';
 import { CourseStyleService } from '../../../core/courses/course-style.service';
 import { ExerciseSubmissionsService } from '../../../core/courses/exercise-submissions.service';
+import { createAutosave } from '../../../core/editing/autosave';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { ModuleService } from '../../../core/modules/module.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { ResourceService } from '../../../core/resources/resource.service';
 import { MarkdownField } from '../../../shared/markdown-field/markdown-field';
+import { ResizeHandle } from '../../../shared/resize-handle/resize-handle.directive';
 import { CourseChat } from '../course-chat/course-chat';
 import { DocumentEditor } from '../document-editor/document-editor';
 import { ExerciseEditor } from '../exercise-editor/exercise-editor';
@@ -51,50 +53,36 @@ import { ModuleBlockEditor } from '../module-block-editor/module-block-editor';
 import { ExerciseProposal, ExerciseProposalReview } from './exercise-proposal-review';
 import { buildBlockProposalHost } from './proposal-host';
 import { ProposalReview } from './proposal-review';
-import { ResizeHandle } from '../../../shared/resize-handle/resize-handle.directive';
 
-const AUTOSAVE_DELAY_MS = 1500;
-
-type SaveState = 'idle' | 'dirty' | 'saving' | 'saved' | 'error';
 type MetaSaveState = 'idle' | 'saving' | 'saved' | 'error';
 
 /**
- * Coquille-page d'édition d'un bloc : en-tête, formulaire titre/description
- * (tous types, enregistrement explicite), et — pour les blocs texte et
- * exercice — indicateur d'autosave et espace de travail redimensionnable
- * (éditeur de contenu + assistant). Le contenu est délégué par type :
- * `app-markdown-field` (texte), `app-exercise-editor` (exercice) ; l'autosave
- * débouncé reste ici, dans un pipeline unique. Le payload est construit **à
- * l'envoi** (état courant du formulaire, ids de questions déjà réécrits) —
- * jamais à l'émission — et les ids générés par le back sont réécrits après
- * chaque save sur un snapshot des groupes capturé à l'envoi (sinon l'autosave
- * suivant renverrait `id: null` et casserait la stabilité des ids).
- * Les blocs document ont une section simple (pas d'espace redimensionnable ni
- * de chat) : `app-document-editor` — légende/affichage passent par le même
- * pipeline d'autosave, mais le choix de la ressource est un PATCH immédiat
- * dédié (`updateBlockResource`), avec revert du select sur échec. Le bloc
- * `module` n'a pas d'éditeur avant le J4 (notice `unsupported`).
+ * Coquille-page d'édition d'un bloc : en-tête et navigation entre blocs,
+ * formulaire titre/description (tous types, enregistrement explicite), et un
+ * espace de travail redimensionnable éditeur | chat d'édition pour les blocs
+ * texte et exercice. Le contenu est délégué par type — `app-markdown-field`
+ * (texte), `app-exercise-editor` (exercice), `app-document-editor` (document :
+ * légende/affichage autosauvés, ressource pointée en PATCH immédiat),
+ * `app-module-block-editor` (module pointé, PATCH immédiat) — et l'autosave
+ * (`createAutosave`) reste ici, dans un pipeline unique dont le payload est
+ * relu à l'envoi. Pour un exercice, les ids de questions générés par le back
+ * sont réécrits après chaque save sur un snapshot des groupes capturé à
+ * l'envoi : sans ça l'autosave suivant renverrait `id: null` et casserait la
+ * stabilité des ids.
  *
- * Le chat ancré d'un bloc TEXTE ou EXERCICE est un vrai assistant d'édition
- * (contextes `block_text` / `block_exercise`, flux HITL BLOQUANT) : la page
- * fournit SA propre instance d'`AssistantChatState` (providers du composant —
- * le panneau flottant global garde la sienne, root), la configure selon le
- * TYPE du bloc à l'init-once (avant le montage du chat enfant) et branche le
- * hook avant-tour sur un flush immédiat de l'autosave (le back lit le bloc EN
- * BASE pour bâtir son contexte — et à chaque décision HITL). Quand le modèle
- * appelle un tool de proposition, le flux SSE se fige sur la décision du
- * prof : `ProposalHost` (`proposals`) dérive la revue de la proposition en
- * attente et l'affiche À LA PLACE de l'éditeur (masqué par classe — Monaco
- * survit) — `app-proposal-review` (diff du markdown d'un bloc texte) ou
- * `app-exercise-proposal-review` (carte par opération : sujet, question,
- * ajout, suppression) — puis, à l'acceptation, applique dans l'éditeur (texte :
- * édit Monaco annulable ; exercice : `applyStatement`/`applyQuestionEdit`/
- * `applyQuestionAdd`/`applyQuestionDelete` de l'éditeur d'exercice, autosave)
- * et envoie la décision — le résultat du tool est la décision, le flux reprend.
+ * Chat d'édition HITL (contextes `block_text` / `block_exercise`) : la page
+ * fournit sa propre instance d'`AssistantChatState`, configurée selon le type
+ * du bloc à l'init-once, et branche le hook avant-tour sur un flush immédiat
+ * de l'autosave (le back lit le bloc EN BASE). Une proposition en attente
+ * remplace l'éditeur par sa revue (`ProposalHost`, éditeur masqué par classe :
+ * Monaco survit) ; à l'acceptation, l'application passe par l'éditeur (texte :
+ * édit Monaco annulable ; exercice : API `apply*` de l'éditeur d'exercice),
+ * puis la décision reprend le flux.
  */
 @Component({
   selector: 'app-block-editor',
-  imports: [ResizeHandle, 
+  imports: [
+    ResizeHandle,
     ReactiveFormsModule,
     RouterLink,
     TranslocoPipe,
@@ -139,7 +127,7 @@ export class BlockEditor implements OnInit, OnDestroy {
   /** Blocs du cours dans l'ordre du back (navigation précédent/suivant). */
   protected readonly blocks = computed<CourseBlock[]>(() => this.detail()?.blocks ?? []);
 
-  /** Rang 1-indexé du bloc édité (0 si introuvable) — motif `StudentBlock`. */
+  /** Rang 1-indexé du bloc édité (0 si introuvable). */
   protected readonly blockIndex = computed(() => {
     const block = this.block();
     return block === null ? 0 : this.blocks().indexOf(block) + 1;
@@ -159,7 +147,7 @@ export class BlockEditor implements OnInit, OnDestroy {
    * Miroir signal du contenu markdown (blocs texte) — « original » du diff
    * des propositions du chat. Posé directement à l'init (le `setValue` initial
    * n'émet pas) puis tenu en phase par `valueChanges` ; jamais
-   * `toSignal(valueChanges)` (motif module-editor).
+   * `toSignal(valueChanges)`.
    */
   protected readonly contentMarkdown = signal('');
 
@@ -217,7 +205,13 @@ export class BlockEditor implements OnInit, OnDestroy {
   /** Frappes de l'éditeur de document (légende/affichage), même pipeline. */
   readonly #documentDrafts = new Subject<DocumentContentPayload>();
 
-  protected readonly saveState = signal<SaveState>('idle');
+  /** Autosave du contenu (texte, exercice, document) : un pipeline pour les trois. */
+  readonly #autosave = createAutosave<Record<string, unknown>>({
+    triggers: merge(this.content.valueChanges, this.#exerciseDrafts, this.#documentDrafts),
+    current: () => this.#currentPayload(),
+    save: (payload) => this.#persist(payload),
+  });
+  protected readonly saveState = this.#autosave.state;
 
   readonly #resources = inject(ResourceService);
   /** Ressources `available` du cours, proposées au picker du bloc document. */
@@ -269,10 +263,6 @@ export class BlockEditor implements OnInit, OnDestroy {
   protected readonly chatCollapsed = signal(false);
 
   #initialized = false;
-  /** JSON du dernier payload persisté (référence dirty/idle, tous types). */
-  #lastSaved = '';
-  /** Dernier payload frappé — repli du flush si l'éditeur enfant est déjà détruit. */
-  #lastDraft: Record<string, unknown> | null = null;
 
   constructor() {
     // Chat ancré : hook avant-tour posé une fois (flush d'autosave — l'instance
@@ -321,19 +311,19 @@ export class BlockEditor implements OnInit, OnDestroy {
         const markdown = block.content['markdown'];
         const initial = typeof markdown === 'string' ? markdown : '';
         this.#initialized = true;
-        this.#lastSaved = JSON.stringify({ markdown: initial });
+        this.#autosave.init({ markdown: initial });
         this.content.setValue(initial, { emitEvent: false });
         this.contentMarkdown.set(initial);
         this.#assistantState.configure({ context: 'block_text', blockId: this.blockId });
       } else if (block.type === 'exercise') {
         this.#initialized = true;
-        this.#lastSaved = JSON.stringify(payloadFromBlockContent(block.content));
+        this.#autosave.init(payloadFromBlockContent(block.content));
         this.#assistantState.configure({ context: 'block_exercise', blockId: this.blockId });
         // Résumé des tentatives des élèves (tuteur IA) — une fois par page.
         void this.#submissions.loadSummary(this.courseId, this.blockId);
       } else if (block.type === 'document') {
         this.#initialized = true;
-        this.#lastSaved = JSON.stringify(payloadFromDocumentContent(block.content));
+        this.#autosave.init(payloadFromDocumentContent(block.content));
       }
     });
 
@@ -371,23 +361,6 @@ export class BlockEditor implements OnInit, OnDestroy {
       }
     });
 
-    merge(this.content.valueChanges, this.#exerciseDrafts, this.#documentDrafts)
-      .pipe(
-        tap(() => {
-          const payload = this.#currentPayload();
-          this.#lastDraft = payload ?? this.#lastDraft;
-          this.saveState.set(JSON.stringify(payload) === this.#lastSaved ? 'idle' : 'dirty');
-        }),
-        debounceTime(AUTOSAVE_DELAY_MS),
-        // concatMap sérialise les PATCH : la promesse n'est pas annulable,
-        // switchMap laisserait une réponse périmée écraser la plus récente.
-        // Le payload est relu à l'ENVOI (état courant, ids à jour) — les
-        // émissions ne servent que de déclencheur.
-        concatMap(() => this.#save()),
-        takeUntilDestroyed(),
-      )
-      .subscribe();
-
     // Init UNIQUE du formulaire méta (tous types) depuis le bloc chargé ; la
     // référence de complétude est figée au même instant.
     effect(() => {
@@ -418,15 +391,7 @@ export class BlockEditor implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     // Sortie avant la fin du debounce : flush fire-and-forget (le service
     // root survit au composant).
-    if (!this.#initialized) {
-      return;
-    }
-    const payload = this.#currentPayload() ?? this.#lastDraft;
-    if (payload !== null && JSON.stringify(payload) !== this.#lastSaved) {
-      void this.#courses
-        .updateBlockContent(this.courseId, this.blockId, payload)
-        .catch(() => undefined);
-    }
+    this.#autosave.flushOnDestroy();
   }
 
   /** Relayé par le template : chaque frappe de l'éditeur d'exercice alimente
@@ -543,13 +508,13 @@ export class BlockEditor implements OnInit, OnDestroy {
 
   /**
    * Flush immédiat de l'autosave — hook avant-tour du chat ancré : le back
-   * bâtit le contexte IA depuis le bloc EN BASE, le debounce de 1,5 s ne doit
-   * pas lui faire lire un état périmé. `#save` est no-op si rien n'a changé ;
-   * un échec remonte au hook (avalé là-bas — envoi non bloquant, le badge
-   * d'erreur d'autosave signale déjà le problème).
+   * bâtit le contexte IA depuis le bloc EN BASE, le debounce ne doit pas lui
+   * faire lire un état périmé. No-op si rien n'a changé ; un échec remonte au
+   * hook (avalé là-bas — envoi non bloquant, le badge d'autosave signale déjà
+   * le problème).
    */
   async flushContent(): Promise<void> {
-    await this.#save();
+    await this.#autosave.flush();
   }
 
   /**
@@ -613,41 +578,20 @@ export class BlockEditor implements OnInit, OnDestroy {
     return null;
   }
 
-  async #save(): Promise<void> {
-    const isExercise = this.block()?.type === 'exercise';
-    const editor = this.exerciseEditor();
-    const payload = this.#currentPayload();
-    if (payload === null) {
-      return;
-    }
-    const serialized = JSON.stringify(payload);
-    if (serialized === this.#lastSaved) {
-      // Émission en file devenue redondante (frappe annulée ou déjà persistée).
-      return;
-    }
-    // Snapshot des groupes aligné 1:1 sur le payload envoyé : le write-back
-    // des ids reste correct même si des questions bougent pendant le vol.
-    const groups = isExercise && editor ? [...editor.form.controls.questions.controls] : [];
-    this.saveState.set('saving');
-    try {
-      const saved = await this.#courses.updateBlockContent(this.courseId, this.blockId, payload);
-      if (isExercise) {
-        // Sans ce write-back, l'autosave suivant renverrait `id: null` et le
-        // back régénérerait des ids censés être stables à vie.
-        const savedPayload = payloadFromBlockContent(saved.content);
-        applyGeneratedIds(groups, savedPayload);
-        this.#lastSaved = JSON.stringify(savedPayload);
-        this.#lastDraft = this.#currentPayload() ?? this.#lastDraft;
-      } else {
-        this.#lastSaved = serialized;
-      }
-      // Frappe pendant le save en vol : on reste « dirty », le suivant est en file.
-      this.saveState.set(
-        JSON.stringify(this.#currentPayload()) === this.#lastSaved ? 'saved' : 'dirty',
-      );
-    } catch {
-      // Le flux survit ; retentative à la prochaine modification.
-      this.saveState.set('error');
+  /**
+   * Envoi d'un payload par l'autosave. Pour un exercice, les ids générés par
+   * le back sont réécrits sur un snapshot des groupes capturé à l'envoi
+   * (aligné 1:1 sur le payload, même si des questions bougent pendant le vol)
+   * et le payload canonique persisté devient la référence de l'autosave.
+   */
+  async #persist(payload: Record<string, unknown>): Promise<Record<string, unknown> | void> {
+    const editor = this.block()?.type === 'exercise' ? this.exerciseEditor() : undefined;
+    const groups = editor ? [...editor.form.controls.questions.controls] : [];
+    const saved = await this.#courses.updateBlockContent(this.courseId, this.blockId, payload);
+    if (editor) {
+      const savedPayload = payloadFromBlockContent(saved.content);
+      applyGeneratedIds(groups, savedPayload);
+      return savedPayload;
     }
   }
 }
