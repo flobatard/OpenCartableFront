@@ -213,20 +213,6 @@
   min-height: 0;
 }
 
-.block-editor__divider {
-  flex: 0 0 6px;
-  align-self: stretch;
-  background: var(--border);
-  border-radius: var(--radius-full);
-  cursor: col-resize;
-  touch-action: none; /* le drag tactile ne déclenche pas le scroll de page */
-}
-
-.block-editor__divider:hover,
-.block-editor__divider:focus-visible {
-  background: var(--border-control);
-}
-
 .block-editor__workspace--dragging {
   cursor: col-resize;
   user-select: none;

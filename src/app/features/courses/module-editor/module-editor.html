@@ -168,19 +168,15 @@
         </div>
       </div>
 
-      <!-- Poignée de redimensionnement panes/chat (separator WAI-ARIA, motif block-editor). -->
+      <!-- Poignée de redimensionnement panes/chat (directive ocResizeHandle). -->
       <div
-        class="module-editor__divider"
-        role="separator"
-        tabindex="0"
+        class="module-editor__divider resize-handle"
+        ocResizeHandle=".module-editor__workspace"
+        [(value)]="editorPct"
+        (dragging)="dragging.set($event)"
         aria-orientation="vertical"
         [attr.aria-label]="'courses.editor.resize' | transloco"
-        [attr.aria-valuenow]="editorPct()"
-        aria-valuemin="15"
-        aria-valuemax="85"
         [hidden]="chatCollapsed()"
-        (pointerdown)="startDrag($event)"
-        (keydown)="onDividerKeydown($event)"
       ></div>
 
       <app-course-chat

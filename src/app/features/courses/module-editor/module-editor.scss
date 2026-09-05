@@ -150,20 +150,6 @@
   min-height: 0;
 }
 
-.module-editor__divider {
-  flex: 0 0 6px;
-  align-self: stretch;
-  background: var(--border);
-  border-radius: var(--radius-full);
-  cursor: col-resize;
-  touch-action: none; // le drag tactile ne déclenche pas le scroll de page
-
-  &:hover,
-  &:focus-visible {
-    background: var(--border-control);
-  }
-}
-
 .module-editor__workspace--dragging {
   cursor: col-resize;
   user-select: none;

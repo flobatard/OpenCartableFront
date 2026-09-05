@@ -186,19 +186,15 @@
               }
             </div>
 
-            <!-- Poignée de redimensionnement éditeur/chat (separator WAI-ARIA). -->
+            <!-- Poignée de redimensionnement éditeur/chat (directive ocResizeHandle). -->
             <div
-              class="block-editor__divider"
-              role="separator"
-              tabindex="0"
+              class="block-editor__divider resize-handle"
+              ocResizeHandle=".block-editor__workspace"
+              [(value)]="editorPct"
+              (dragging)="dragging.set($event)"
               aria-orientation="vertical"
               [attr.aria-label]="'courses.editor.resize' | transloco"
-              [attr.aria-valuenow]="editorPct()"
-              aria-valuemin="15"
-              aria-valuemax="85"
               [hidden]="chatCollapsed()"
-              (pointerdown)="startDrag($event)"
-              (keydown)="onDividerKeydown($event)"
             ></div>
 
             <!-- Chat d'édition du bloc (contexte block_text ou block_exercise

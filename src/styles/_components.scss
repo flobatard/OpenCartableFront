@@ -145,6 +145,23 @@
   cursor: grabbing;
 }
 
+/* Poignée de redimensionnement entre deux colonnes (directive ocResizeHandle,
+   separator WAI-ARIA). Le curseur row-resize de l'empilement mobile reste au
+   composant hôte, qui connaît son breakpoint. */
+.resize-handle {
+  flex: 0 0 6px;
+  align-self: stretch;
+  background: var(--border);
+  border-radius: var(--radius-full);
+  cursor: col-resize;
+  touch-action: none; /* le drag tactile ne déclenche pas le scroll de page */
+}
+
+.resize-handle:hover,
+.resize-handle:focus-visible {
+  background: var(--border-control);
+}
+
 .cdk-drag-preview {
   box-shadow: var(--shadow-md);
   border-radius: var(--radius-lg);

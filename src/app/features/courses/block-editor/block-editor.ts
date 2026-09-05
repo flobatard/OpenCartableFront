@@ -51,12 +51,9 @@ import { ModuleBlockEditor } from '../module-block-editor/module-block-editor';
 import { ExerciseProposal, ExerciseProposalReview } from './exercise-proposal-review';
 import { buildBlockProposalHost } from './proposal-host';
 import { ProposalReview } from './proposal-review';
+import { ResizeHandle } from '../../../shared/resize-handle/resize-handle.directive';
 
 const AUTOSAVE_DELAY_MS = 1500;
-
-/** Bornes du partage éditeur/chat (en % de largeur de la colonne éditeur). */
-const MIN_EDITOR_PCT = 15;
-const MAX_EDITOR_PCT = 85;
 
 type SaveState = 'idle' | 'dirty' | 'saving' | 'saved' | 'error';
 type MetaSaveState = 'idle' | 'saving' | 'saved' | 'error';
@@ -97,7 +94,7 @@ type MetaSaveState = 'idle' | 'saving' | 'saved' | 'error';
  */
 @Component({
   selector: 'app-block-editor',
-  imports: [
+  imports: [ResizeHandle, 
     ReactiveFormsModule,
     RouterLink,
     TranslocoPipe,
@@ -597,71 +594,6 @@ export class BlockEditor implements OnInit, OnDestroy {
       case 'exercise_question_delete':
         return editor.applyQuestionDelete(proposal.questionId);
     }
-  }
-
-  #clampPct(value: number): number {
-    return Math.min(MAX_EDITOR_PCT, Math.max(MIN_EDITOR_PCT, value));
-  }
-
-  /**
-   * Redimensionne la colonne éditeur via la poignée. On capture le pointeur sur
-   * le divider (monaco ne vole pas les events pendant le glissé) et on dérive
-   * l'axe du flex-direction réel : row (desktop) → X, column (mobile empilé) → Y.
-   */
-  protected startDrag(event: PointerEvent): void {
-    event.preventDefault();
-    const divider = event.currentTarget as HTMLElement;
-    const container = divider.closest('.block-editor__workspace') as HTMLElement | null;
-    if (!container) {
-      return;
-    }
-    const isVertical = getComputedStyle(container).flexDirection === 'column';
-    this.dragging.set(true);
-    divider.setPointerCapture(event.pointerId);
-
-    const onMove = (e: PointerEvent): void => {
-      const rect = container.getBoundingClientRect();
-      const pct = isVertical
-        ? ((e.clientY - rect.top) / rect.height) * 100
-        : ((e.clientX - rect.left) / rect.width) * 100;
-      this.editorPct.set(this.#clampPct(pct));
-    };
-    const onUp = (): void => {
-      this.dragging.set(false);
-      if (divider.hasPointerCapture(event.pointerId)) {
-        divider.releasePointerCapture(event.pointerId);
-      }
-      divider.removeEventListener('pointermove', onMove);
-      divider.removeEventListener('pointerup', onUp);
-      divider.removeEventListener('pointercancel', onUp);
-    };
-    divider.addEventListener('pointermove', onMove);
-    divider.addEventListener('pointerup', onUp);
-    divider.addEventListener('pointercancel', onUp);
-  }
-
-  /** Clavier sur la poignée (separator WAI-ARIA) : ± un pas, ou extrêmes. */
-  protected onDividerKeydown(event: KeyboardEvent): void {
-    const step = 2;
-    switch (event.key) {
-      case 'ArrowLeft':
-      case 'ArrowUp':
-        this.editorPct.set(this.#clampPct(this.editorPct() - step));
-        break;
-      case 'ArrowRight':
-      case 'ArrowDown':
-        this.editorPct.set(this.#clampPct(this.editorPct() + step));
-        break;
-      case 'Home':
-        this.editorPct.set(MIN_EDITOR_PCT);
-        break;
-      case 'End':
-        this.editorPct.set(MAX_EDITOR_PCT);
-        break;
-      default:
-        return;
-    }
-    event.preventDefault();
   }
 
   /** Payload de contenu courant selon le type du bloc (`null` = pas d'éditeur). */
