@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+import { CanActivateFn, Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
 import {
   COURSE_MODULE_RESOLVER,
@@ -13,7 +13,16 @@ import {
 import { onboardingGuard } from './core/users/onboarding.guard';
 
 /**
- * Providers des sous-arbres élèves (J2) : substituent les résolveurs publics
+ * Guards de l'espace prof — **dans cet ordre** : `onboardingGuard` laisse
+ * passer les non-authentifiés, c'est `authGuard` qui les renvoie au login.
+ * Toute route sous ces guards est en `RenderMode.Client` (le guard renvoie
+ * `false` au serveur — jamais authentifiée au SSR, donc jamais prerendable),
+ * cf. `app.routes.server.ts`.
+ */
+const TEACHER_GUARDS: CanActivateFn[] = [authGuard, onboardingGuard];
+
+/**
+ * Providers des sous-arbres élèves : substituent les résolveurs publics
  * (endpoints /v1/public/*, sans Bearer) aux impl. prof par défaut dans les
  * composants de rendu partagés (markdown-view, module-embed, …).
  */
@@ -34,7 +43,7 @@ const PUBLIC_CONTENT_PROVIDERS = [
  *   onglets, chargent le cours elles-mêmes et sont partageables telles
  *   quelles. S'y range aussi la **redirection** de l'ancienne page pleine
  *   d'exercice (`exercises/:blockId`) vers le bloc seul, où l'exercice se
- *   résout désormais ;
+ *   résout ;
  * - la **coquille à onglets** (`path: ''`, `StudentCourse`) et ses enfants, un
  *   par onglet — Sommaire (défaut) | Ressources | Modules | Cours entier —, le
  *   bloc seul vivant sous l'onglet Sommaire. **Une route par onglet** : l'état
@@ -42,16 +51,17 @@ const PUBLIC_CONTENT_PROVIDERS = [
  *
  * L'ordre compte : les pages pleines portent toutes deux segments, la coquille
  * un chemin vide — déclarer les premières avant elle évite toute ambiguïté
- * entre `modules/:moduleId` (page dédiée) et `modules` (onglet).
+ * entre `modules/:moduleId` (page dédiée) et `modules` (onglet). Gardé par
+ * `app.routes.spec.ts`.
  */
 const PUBLIC_COURSE_CHILDREN: Routes = [
   {
-    // Ancienne page pleine « Résoudre l'exercice » (J2) : l'exercice se
-    // résout désormais dans le bloc seul — les liens déjà partagés restent
-    // valides. Fonction et non chaîne : @angular/ssr résout un `redirectTo`
-    // chaîne relatif en ne retirant que le dernier segment du chemin de la
-    // route (302 vers `/…/exercises/blocks/:blockId`, cassé), alors qu'une
-    // fonction est laissée au routeur navigateur (route servie en CSR).
+    // Ancienne page pleine « Résoudre l'exercice » : l'exercice se résout dans
+    // le bloc seul — les liens déjà partagés restent valides. Fonction et non
+    // chaîne : @angular/ssr résout un `redirectTo` chaîne relatif en ne
+    // retirant que le dernier segment du chemin de la route (302 vers
+    // `/…/exercises/blocks/:blockId`, cassé), alors qu'une fonction est
+    // laissée au routeur navigateur (route servie en CSR).
     path: 'exercises/:blockId',
     redirectTo: ({ params }) => `blocks/${params['blockId']}`,
   },
@@ -153,15 +163,15 @@ export const routes: Routes = [
           import('./features/docs/docs-shell/docs-shell').then((m) => m.DocsShell),
       },
       {
-        // Vue élève d'un cours partagé par LIEN (J2) : token opaque dans
-        // l'URL, aucune auth — les guards prof n'ont rien à faire ici.
+        // Vue élève d'un cours partagé par LIEN : token opaque dans l'URL,
+        // aucune auth — les guards prof n'ont rien à faire ici.
         path: 'shared/:token',
         data: { access: 'token' },
         providers: PUBLIC_CONTENT_PROVIDERS,
         children: PUBLIC_COURSE_CHILDREN,
       },
       {
-        // Vue élève d'un cours PUBLIC (J2) : accès direct par id, sans token.
+        // Vue élève d'un cours PUBLIC : accès direct par id, sans token.
         // Déclaré avant `p/:teacherId` : `courses` doit matcher le segment
         // littéral, pas un id de prof (convention `courses/new`).
         path: 'p/courses/:courseId',
@@ -170,7 +180,7 @@ export const routes: Routes = [
         children: PUBLIC_COURSE_CHILDREN,
       },
       {
-        // Catalogue public d'un prof (J2) : ses cours `public` uniquement.
+        // Catalogue public d'un prof : ses cours `public` uniquement.
         path: 'p/:teacherId',
         loadComponent: () =>
           import('./features/student/student-catalog/student-catalog').then(
@@ -178,15 +188,15 @@ export const routes: Routes = [
           ),
       },
       {
-        // Recherche publique (J3) : cours publics et profs opt-in, sans compte
-        // ni guard — l'état (q, onglet, facettes, page) vit dans les query params.
+        // Recherche publique : cours publics et profs opt-in, sans compte ni
+        // guard — l'état (q, onglet, facettes, page) vit dans les query params.
         path: 'search',
         loadComponent: () => import('./features/search/search').then((m) => m.Search),
       },
       {
         // Réservé au prof authentifié ; jamais rendu authentifié au serveur (cf. authGuard).
         path: 'subjects',
-        canActivate: [authGuard, onboardingGuard],
+        canActivate: TEACHER_GUARDS,
         loadComponent: () => import('./features/subjects/subjects').then((m) => m.Subjects),
       },
       {
@@ -198,9 +208,9 @@ export const routes: Routes = [
       },
       {
         // Hub « Paramètres » : coquille à menu latéral, sous-pages enfants
-        // (profil, réglages IA). Guards sur le parent — dans cet ordre.
+        // (profil, réglages IA). Guards sur le parent.
         path: 'settings',
-        canActivate: [authGuard, onboardingGuard],
+        canActivate: TEACHER_GUARDS,
         loadComponent: () =>
           import('./features/settings/settings-shell/settings-shell').then(
             (m) => m.SettingsShell,
@@ -208,7 +218,6 @@ export const routes: Routes = [
         children: [
           { path: '', pathMatch: 'full', redirectTo: 'profile' },
           {
-            // Consultation/édition du profil — composant historique inchangé.
             path: 'profile',
             loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
           },
@@ -228,30 +237,31 @@ export const routes: Routes = [
       {
         // Espace prof « Mes cours » : liste des cours, entrée vers création et blocs.
         path: 'courses',
-        canActivate: [authGuard, onboardingGuard],
+        canActivate: TEACHER_GUARDS,
         loadComponent: () =>
           import('./features/courses/course-list/course-list').then((m) => m.CourseList),
       },
       {
         // Déclaré avant `courses/:id` : « new » doit matcher le segment littéral.
         path: 'courses/new',
-        canActivate: [authGuard, onboardingGuard],
+        canActivate: TEACHER_GUARDS,
         loadComponent: () =>
           import('./features/courses/course-create/course-create').then((m) => m.CourseCreate),
       },
       {
-        // Espace blocs d'un cours (structure seule ; les éditeurs de contenu viendront).
+        // Page cours à onglets (blocs, ressources, modules, aperçu, partage).
         path: 'courses/:id',
-        canActivate: [authGuard, onboardingGuard],
+        canActivate: TEACHER_GUARDS,
         loadComponent: () =>
           import('./features/courses/course-blocks/course-blocks').then((m) => m.CourseBlocks),
       },
       {
-        // Éditeur du contenu d'un bloc (texte pour l'instant — monaco charge au navigateur).
-        // Params en snapshot → remontage forcé quand blockId change (une citation
-        // oc-block: de l'assistant peut naviguer d'un éditeur de bloc à un autre).
+        // Éditeur d'un bloc (texte, exercice, document, module — Monaco charge
+        // au navigateur). Params en snapshot → remontage forcé quand blockId
+        // change (une citation oc-block: de l'assistant peut naviguer d'un
+        // éditeur de bloc à un autre).
         path: 'courses/:id/blocks/:blockId',
-        canActivate: [authGuard, onboardingGuard],
+        canActivate: TEACHER_GUARDS,
         data: { remountOnParamChange: true },
         loadComponent: () =>
           import('./features/courses/block-editor/block-editor').then((m) => m.BlockEditor),
@@ -259,9 +269,9 @@ export const routes: Routes = [
       {
         // Éditeur d'un module interactif (3 Monaco HTML/CSS/JS + preview
         // sandbox — charge au navigateur). Params en snapshot → remontage
-        // forcé quand moduleId change (motif block-editor).
+        // forcé quand moduleId change (même motif que l'éditeur de bloc).
         path: 'courses/:id/modules/:moduleId',
-        canActivate: [authGuard, onboardingGuard],
+        canActivate: TEACHER_GUARDS,
         data: { remountOnParamChange: true },
         loadComponent: () =>
           import('./features/courses/module-editor/module-editor').then((m) => m.ModuleEditor),
@@ -270,7 +280,7 @@ export const routes: Routes = [
         // Cible des liens de ressource des PDF exportés : présigne (authentifié)
         // puis redirige le navigateur vers l'URL S3 inline.
         path: 'courses/:id/resources/:resourceId',
-        canActivate: [authGuard, onboardingGuard],
+        canActivate: TEACHER_GUARDS,
         loadComponent: () =>
           import('./features/courses/resource-view/resource-view').then((m) => m.ResourceView),
       },
