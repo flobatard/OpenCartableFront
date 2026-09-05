@@ -23,6 +23,7 @@
   "threadEmptyHint": "Posez votre première question sur ce cours.",
   "thinking": "Raisonnement de l'assistant",
   "generating": "L'assistant rédige…",
+  "working": "L'assistant travaille…",
   "delete": "Supprimer",
   "deleteConfirm": "Confirmer ?",
   "toolRunning": "en cours…",

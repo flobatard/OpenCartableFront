@@ -263,10 +263,6 @@
                 [showSettings]="false"
               />
             </div>
-          } @else if (assistant.streamState() === 'streaming') {
-            <p class="course-chat__status" role="status">
-              {{ 'courseChat.generating' | transloco }}
-            </p>
           }
         }
 
@@ -284,6 +280,17 @@
         }
       }
     </div>
+
+    <!-- Indicateur d'activité épinglé entre le fil et le composer : visible quel
+         que soit le défilement du fil, et surtout AVANT le premier token
+         (raisonnement, appels d'outils), où le bouton Arrêter était jusqu'ici le
+         seul signe de vie. -->
+    @if (assistant.streamState() === 'streaming') {
+      <p class="course-chat__activity">
+        <app-spinner size="sm" />
+        {{ activityKey() | transloco }}
+      </p>
+    }
 
     <div class="course-chat__composer">
       <textarea

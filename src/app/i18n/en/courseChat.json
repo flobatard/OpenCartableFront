@@ -23,6 +23,7 @@
   "threadEmptyHint": "Ask your first question about this course.",
   "thinking": "Assistant reasoning",
   "generating": "The assistant is writing…",
+  "working": "The assistant is working…",
   "delete": "Delete",
   "deleteConfirm": "Confirm?",
   "toolRunning": "running…",

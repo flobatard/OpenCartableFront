@@ -272,6 +272,19 @@
   font-family: inherit;
 }
 
+/* Indicateur d'activité du tour : hors du fil scrollable, donc visible même
+   quand l'utilisateur a remonté l'historique. Le spinner se fige en mouvement
+   réduit (règle globale) — le libellé porte alors seul l'information. */
+.course-chat__activity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 10px 16px 0;
+  color: var(--text-secondary);
+}
+
 /* Composer en ligne : champ extensible, bouton Envoyer/Arrêter à sa droite,
    centré verticalement sur le champ multi-lignes. */
 .course-chat__composer {

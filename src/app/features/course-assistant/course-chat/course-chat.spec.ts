@@ -527,6 +527,38 @@ describe('CourseChat', () => {
       expect(assistant.stopStreaming).toHaveBeenCalled();
     });
 
+    it('pins an activity indicator above the composer while the turn runs', async () => {
+      vi.useFakeTimers();
+      try {
+        const fixture = await createComponent();
+        assistant.active.set(emptyDetail());
+        fixture.detectChanges();
+        const activity = () => el(fixture).querySelector('.course-chat__activity');
+        expect(activity()).toBeNull();
+
+        // Flux ouvert, aucun token encore reçu : le spinner porte seul le signal.
+        assistant.streamState.set('streaming');
+        fixture.detectChanges();
+        expect(activity()?.querySelector('app-spinner')).toBeTruthy();
+        expect(activity()?.textContent).toContain('travaille');
+
+        // Dès qu'un texte est dévoilé, le libellé bascule sur la rédaction.
+        assistant.streamingText.set('Bonjour');
+        fixture.detectChanges();
+        vi.advanceTimersByTime(STREAM_REVEAL_TICK_MS);
+        fixture.detectChanges();
+        expect(activity()?.textContent).toContain('rédige');
+
+        // Proposition en attente de décision : plus rien ne tourne côté IA.
+        assistant.streamState.set('awaiting');
+        assistant.streamingText.set('');
+        fixture.detectChanges();
+        expect(activity()).toBeNull();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
     it('maps a 429 stream error to the quota message with a settings link', async () => {
       const fixture = await createComponent();
       assistant.active.set(emptyDetail());

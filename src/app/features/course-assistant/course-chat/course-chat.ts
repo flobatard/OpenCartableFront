@@ -23,6 +23,7 @@ import { armedAction } from '../../../core/editing/armed';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { BlockCitations } from '../../../shared/block-citations/block-citations.directive';
 import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
+import { Spinner } from '../../../shared/spinner/spinner';
 import { CourseChatProposal } from './course-chat-proposal';
 import { CourseChatSettings } from './course-chat-settings';
 import { ChatToolView, CourseChatTool, toolRowsById, toolViewsFor } from './course-chat-tool';
@@ -73,6 +74,7 @@ const SCROLL_PIN_THRESHOLD_PX = 80;
     CourseChatProposal,
     CourseChatTool,
     CourseChatSettings,
+    Spinner,
   ],
   templateUrl: './course-chat.html',
   styleUrl: './course-chat.scss',
@@ -146,6 +148,15 @@ export class CourseChat {
   protected readonly streamingRender = progressiveReveal(
     () => this.assistant.streamingText(),
     () => this.mode() !== 'placeholder',
+  );
+
+  /**
+   * Libellé de l'indicateur d'activité épinglé au-dessus du composer : « rédige »
+   * dès qu'un texte est dévoilé, « travaille » tant que le tour n'a produit que
+   * du raisonnement ou des appels d'outils.
+   */
+  protected readonly activityKey = computed(() =>
+    this.streamingRender() ? 'courseChat.generating' : 'courseChat.working',
   );
 
   /** Tours `tool` de la conversation, indexés par id d'appel (résultats persistés). */
