@@ -15,6 +15,7 @@ import { allIds, visibleRows } from '../../core/subjects/subject.utils';
 import { PublicCourseCard } from '../../shared/public-course-card/public-course-card';
 import { Spinner } from '../../shared/spinner/spinner';
 import { UserAvatar } from '../../shared/user-avatar/user-avatar';
+import { Tablist } from '../../shared/tabs/tablist.directive';
 
 /** Suffixe d'ids ARIA uniques par instance (compteur de module, jamais Date/Random). */
 let sequence = 0;
@@ -52,7 +53,7 @@ function indent(label: string, depth: number): string {
  */
 @Component({
   selector: 'app-search',
-  imports: [TranslocoPipe, ReactiveFormsModule, RouterLink, PublicCourseCard, Spinner, UserAvatar],
+  imports: [Tablist, TranslocoPipe, ReactiveFormsModule, RouterLink, PublicCourseCard, Spinner, UserAvatar],
   templateUrl: './search.html',
   styleUrl: './search.scss',
 })
@@ -160,18 +161,12 @@ export class Search {
     this.#runActive();
   }
 
-  /** Flèches gauche/droite : cycle d'onglet + déplacement du focus (APG tabs). */
-  protected onTablistKeydown(event: KeyboardEvent): void {
-    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
-      return;
+
+  /** Onglet atteint au clavier (directive `ocTablist`). */
+  protected onTabKey(key: string): void {
+    if ((TAB_ORDER as readonly string[]).includes(key)) {
+      this.selectTab(key as SearchTab);
     }
-    event.preventDefault();
-    const delta = event.key === 'ArrowRight' ? 1 : -1;
-    const current = TAB_ORDER.indexOf(this.activeTab());
-    const next = TAB_ORDER[(current + delta + TAB_ORDER.length) % TAB_ORDER.length];
-    this.selectTab(next);
-    const target = document.getElementById(`${this.uid}-tab-${next}`);
-    target?.focus();
   }
 
   protected onSubjectChange(event: Event): void {

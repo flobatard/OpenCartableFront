@@ -3,10 +3,11 @@
     class="markdown-field__tabbar tabs"
     role="tablist"
     [attr.aria-label]="'markdownField.tabs.label' | transloco"
-    (keydown)="onTablistKeydown($event)"
+    ocTablist
+    (tabChange)="onTabKey($event)"
   >
     <button
-      #editorTab
+      data-tab="editor"
       type="button"
       role="tab"
       class="tab"
@@ -20,7 +21,7 @@
       {{ 'markdownField.tabs.editor' | transloco }}
     </button>
     <button
-      #previewTab
+      data-tab="preview"
       type="button"
       role="tab"
       class="tab"

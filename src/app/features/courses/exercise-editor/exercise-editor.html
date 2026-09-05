@@ -3,10 +3,11 @@
     class="exercise-editor__tabbar tabs"
     role="tablist"
     [attr.aria-label]="'courses.editor.exercise.tabsLabel' | transloco"
-    (keydown)="onTablistKeydown($event)"
+    ocTablist
+    (tabChange)="onTabKey($event)"
   >
     <button
-      #statementTab
+      data-tab="statement"
       type="button"
       role="tab"
       class="tab"
@@ -20,7 +21,7 @@
       {{ 'courses.editor.exercise.statementLabel' | transloco }}
     </button>
     <button
-      #questionsTab
+      data-tab="questions"
       type="button"
       role="tab"
       class="tab"
@@ -35,7 +36,7 @@
       <span class="exercise-editor__tab-count">{{ questionGroups().length }}</span>
     </button>
     <button
-      #previewTab
+      data-tab="preview"
       type="button"
       role="tab"
       class="tab"

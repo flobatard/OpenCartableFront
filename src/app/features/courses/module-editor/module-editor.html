@@ -81,13 +81,15 @@
             class="tabs module-editor__tabbar"
             role="tablist"
             [attr.aria-label]="'courses.moduleEditor.tabs.label' | transloco"
-            (keydown)="onTablistKeydown($event)"
+            ocTablist
+            (tabChange)="onTabKey($event)"
           >
             @for (tab of tabs; track tab) {
               <button
                 type="button"
                 role="tab"
                 class="tab"
+                [attr.data-tab]="tab"
                 [id]="uid + '-tab-' + tab"
                 [class.tab--active]="activeTab() === tab"
                 [attr.aria-selected]="activeTab() === tab"

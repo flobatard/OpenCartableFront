@@ -33,6 +33,7 @@ import { CourseResources } from '../course-resources/course-resources';
 import { CourseShare } from '../course-share/course-share';
 import { moveIdTo } from './course-blocks.utils';
 import { armedAction } from '../../../core/editing/armed';
+import { Tablist } from '../../../shared/tabs/tablist.directive';
 
 /** Types proposés à l'ajout — tous créables. */
 const CREATABLE_TYPES: readonly BlockType[] = ['text', 'exercise', 'document', 'module'];
@@ -62,7 +63,7 @@ const TAB_ORDER: readonly CourseTab[] = ['blocks', 'resources', 'modules', 'prev
  */
 @Component({
   selector: 'app-course-blocks',
-  imports: [
+  imports: [Tablist, 
     RouterLink,
     TranslocoPipe,
     BlockCreateDialog,
@@ -103,11 +104,6 @@ export class CourseBlocks implements OnInit {
     this.#tabFromParam(inject(ActivatedRoute).snapshot.queryParamMap.get('tab')),
   );
 
-  protected readonly blocksTabRef = viewChild<ElementRef<HTMLButtonElement>>('blocksTab');
-  protected readonly resourcesTabRef = viewChild<ElementRef<HTMLButtonElement>>('resourcesTab');
-  protected readonly modulesTabRef = viewChild<ElementRef<HTMLButtonElement>>('modulesTab');
-  protected readonly previewTabRef = viewChild<ElementRef<HTMLButtonElement>>('previewTab');
-  protected readonly shareTabRef = viewChild<ElementRef<HTMLButtonElement>>('shareTab');
 
   protected readonly detail = this.#courses.detail;
   protected readonly loading = this.#courses.detailLoading;
@@ -149,27 +145,12 @@ export class CourseBlocks implements OnInit {
     });
   }
 
-  /** Flèches gauche/droite : cycle d'onglet + déplacement du focus (APG tabs). */
-  protected onTablistKeydown(event: KeyboardEvent): void {
-    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
-      return;
+
+  /** Onglet atteint au clavier (directive `ocTablist`). */
+  protected onTabKey(key: string): void {
+    if ((TAB_ORDER as readonly string[]).includes(key)) {
+      this.selectTab(key as CourseTab);
     }
-    event.preventDefault();
-    const delta = event.key === 'ArrowRight' ? 1 : -1;
-    const current = TAB_ORDER.indexOf(this.activeTab());
-    const next = TAB_ORDER[(current + delta + TAB_ORDER.length) % TAB_ORDER.length];
-    this.selectTab(next);
-    const ref =
-      next === 'blocks'
-        ? this.blocksTabRef()
-        : next === 'resources'
-          ? this.resourcesTabRef()
-          : next === 'modules'
-            ? this.modulesTabRef()
-            : next === 'preview'
-              ? this.previewTabRef()
-              : this.shareTabRef();
-    ref?.nativeElement.focus();
   }
 
   /** Onglet dérivé du param `?tab=` : seuls les non-défaut connus sont acceptés. */

@@ -30,6 +30,7 @@ import { MarkdownEditor } from '../../../shared/markdown-editor/markdown-editor'
 import { ModuleRunner } from '../../../shared/module-runner/module-runner';
 import { CourseChat } from '../course-chat/course-chat';
 import { ModuleProposalReview } from './module-proposal-review';
+import { Tablist } from '../../../shared/tabs/tablist.directive';
 
 const AUTOSAVE_DELAY_MS = 1500;
 
@@ -91,7 +92,7 @@ let sequence = 0;
  */
 @Component({
   selector: 'app-module-editor',
-  imports: [
+  imports: [Tablist, 
     ReactiveFormsModule,
     RouterLink,
     TranslocoPipe,
@@ -301,18 +302,13 @@ export class ModuleEditor implements OnInit, OnDestroy {
     this.activeTab.set(tab);
   }
 
-  /** Cyclage ←/→ du tablist APG (roving tabindex, motif markdown-field). */
-  protected onTablistKeydown(event: KeyboardEvent): void {
-    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
-      return;
+  /** Onglet atteint au clavier (directive `ocTablist`). */
+  protected onTabKey(key: string): void {
+    if ((TAB_ORDER as readonly string[]).includes(key)) {
+      this.selectTab(key as CodeTab);
     }
-    event.preventDefault();
-    const index = TAB_ORDER.indexOf(this.activeTab());
-    const delta = event.key === 'ArrowLeft' ? -1 : 1;
-    const next = TAB_ORDER[(index + delta + TAB_ORDER.length) % TAB_ORDER.length];
-    this.activeTab.set(next);
-    (document.getElementById(`${this.uid}-tab-${next}`) as HTMLButtonElement | null)?.focus();
   }
+
 
   protected toggleChat(): void {
     this.chatCollapsed.update((collapsed) => !collapsed);

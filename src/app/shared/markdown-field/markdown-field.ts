@@ -27,6 +27,7 @@ import { MarkdownHelpDialog } from '../markdown-help-dialog/markdown-help-dialog
 import { MarkdownView } from '../markdown-view/markdown-view';
 import { ModulePickerDialog } from '../module-picker-dialog/module-picker-dialog';
 import { ResourcePickerDialog } from '../resource-picker-dialog/resource-picker-dialog';
+import { Tablist } from '../tabs/tablist.directive';
 
 /** Suffixe d'ids uniques par instance (le tablist ARIA doit être unique — un
     écran peut monter plusieurs champs). Compteur de module, jamais Date/Random. */
@@ -47,7 +48,7 @@ type FieldTab = 'editor' | 'preview';
  */
 @Component({
   selector: 'app-markdown-field',
-  imports: [
+  imports: [Tablist, 
     ReactiveFormsModule,
     TranslocoPipe,
     MarkdownEditor,
@@ -76,8 +77,6 @@ export class MarkdownField implements ControlValueAccessor {
   protected readonly activeTab = signal<FieldTab>('editor');
   protected readonly disabled = signal(false);
 
-  protected readonly editorTabRef = viewChild<ElementRef<HTMLButtonElement>>('editorTab');
-  protected readonly previewTabRef = viewChild<ElementRef<HTMLButtonElement>>('previewTab');
   protected readonly help = viewChild(MarkdownHelpDialog);
   protected readonly editorRef = viewChild(MarkdownEditor);
   protected readonly picker = viewChild(ResourcePickerDialog);
@@ -153,17 +152,13 @@ export class MarkdownField implements ControlValueAccessor {
     this.activeTab.set(tab);
   }
 
-  /** Flèches gauche/droite : bascule d'onglet + déplacement du focus (APG tabs). */
-  protected onTablistKeydown(event: KeyboardEvent): void {
-    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
-      return;
+  /** Onglet atteint au clavier (directive `ocTablist`). */
+  protected onTabKey(key: string): void {
+    if (key === 'editor' || key === 'preview') {
+      this.selectTab(key);
     }
-    event.preventDefault();
-    const next: FieldTab = this.activeTab() === 'editor' ? 'preview' : 'editor';
-    this.activeTab.set(next);
-    const ref = next === 'editor' ? this.editorTabRef() : this.previewTabRef();
-    ref?.nativeElement.focus();
   }
+
 
   protected openHelp(): void {
     this.help()?.open();

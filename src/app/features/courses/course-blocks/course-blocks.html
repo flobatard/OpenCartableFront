@@ -72,10 +72,11 @@
         class="course-blocks__tabbar tabs"
         role="tablist"
         [attr.aria-label]="'courses.tabs.label' | transloco"
-        (keydown)="onTablistKeydown($event)"
+        ocTablist
+        (tabChange)="onTabKey($event)"
       >
         <button
-          #blocksTab
+          data-tab="blocks"
           type="button"
           class="tab"
           role="tab"
@@ -89,7 +90,7 @@
           {{ 'courses.tabs.blocks' | transloco }}
         </button>
         <button
-          #resourcesTab
+          data-tab="resources"
           type="button"
           class="tab"
           role="tab"
@@ -103,7 +104,7 @@
           {{ 'courses.tabs.resources' | transloco }}
         </button>
         <button
-          #modulesTab
+          data-tab="modules"
           type="button"
           class="tab"
           role="tab"
@@ -117,7 +118,7 @@
           {{ 'courses.tabs.modules' | transloco }}
         </button>
         <button
-          #previewTab
+          data-tab="preview"
           type="button"
           class="tab"
           role="tab"
@@ -131,7 +132,7 @@
           {{ 'courses.tabs.preview' | transloco }}
         </button>
         <button
-          #shareTab
+          data-tab="share"
           type="button"
           class="tab"
           role="tab"

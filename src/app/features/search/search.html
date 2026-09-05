@@ -55,12 +55,14 @@
       class="tabs search__tabbar"
       role="tablist"
       [attr.aria-label]="'search.tabs.label' | transloco"
-      (keydown)="onTablistKeydown($event)"
+      ocTablist
+      (tabChange)="onTabKey($event)"
     >
       <button
         type="button"
         class="tab"
         role="tab"
+        data-tab="courses"
         [id]="uid + '-tab-courses'"
         [class.tab--active]="activeTab() === 'courses'"
         [attr.aria-selected]="activeTab() === 'courses'"
@@ -77,6 +79,7 @@
         type="button"
         class="tab"
         role="tab"
+        data-tab="teachers"
         [id]="uid + '-tab-teachers'"
         [class.tab--active]="activeTab() === 'teachers'"
         [attr.aria-selected]="activeTab() === 'teachers'"

@@ -40,6 +40,7 @@ import {
 import { MarkdownField } from '../../../shared/markdown-field/markdown-field';
 import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
 import { armedAction } from '../../../core/editing/armed';
+import { Tablist } from '../../../shared/tabs/tablist.directive';
 
 /** Suffixe d'ids uniques par instance (tablist ARIA — motif `markdown-field`).
     Compteur de module, jamais Date/Random. */
@@ -87,7 +88,7 @@ const TAB_ORDER: readonly ExerciseTab[] = ['statement', 'questions', 'preview'];
  */
 @Component({
   selector: 'app-exercise-editor',
-  imports: [
+  imports: [Tablist, 
     ReactiveFormsModule,
     TranslocoPipe,
     MarkdownField,
@@ -131,9 +132,6 @@ export class ExerciseEditor {
   protected readonly uid = `exercise-editor-${sequence++}`;
 
   protected readonly activeTab = signal<ExerciseTab>('statement');
-  protected readonly statementTabRef = viewChild<ElementRef<HTMLButtonElement>>('statementTab');
-  protected readonly questionsTabRef = viewChild<ElementRef<HTMLButtonElement>>('questionsTab');
-  protected readonly previewTabRef = viewChild<ElementRef<HTMLButtonElement>>('previewTab');
 
   /** Champ markdown du sujet et champs d'énoncé des questions (ordre DOM =
       ordre de la FormArray) — cibles des applications via Monaco. */
@@ -190,24 +188,13 @@ export class ExerciseEditor {
     this.activeTab.set(tab);
   }
 
-  /** Flèches gauche/droite : cycle d'onglet + déplacement du focus (APG tabs). */
-  protected onTablistKeydown(event: KeyboardEvent): void {
-    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
-      return;
+  /** Onglet atteint au clavier (directive `ocTablist`). */
+  protected onTabKey(key: string): void {
+    if ((TAB_ORDER as readonly string[]).includes(key)) {
+      this.selectTab(key as ExerciseTab);
     }
-    event.preventDefault();
-    const delta = event.key === 'ArrowRight' ? 1 : -1;
-    const current = TAB_ORDER.indexOf(this.activeTab());
-    const next = TAB_ORDER[(current + delta + TAB_ORDER.length) % TAB_ORDER.length];
-    this.activeTab.set(next);
-    const ref =
-      next === 'statement'
-        ? this.statementTabRef()
-        : next === 'questions'
-          ? this.questionsTabRef()
-          : this.previewTabRef();
-    ref?.nativeElement.focus();
   }
+
 
   /** Accordéon : déplie la question ; recliquer sur celle ouverte la replie. */
   protected toggleQuestion(group: ExerciseQuestionGroup): void {
