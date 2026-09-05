@@ -11,7 +11,12 @@ import { isPlatformBrowser } from '@angular/common';
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { BlockMetaPayload, BlockType, CourseBlock } from '../../../core/courses/course.model';
+import {
+  BlockMetaPayload,
+  BlockType,
+  CourseBlock,
+  CourseUpdatePayload,
+} from '../../../core/courses/course.model';
 import {
   courseExportFilename,
   downloadBlob,
@@ -28,6 +33,7 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { SubjectService } from '../../../core/subjects/subject.service';
 import { findById as findSubjectById } from '../../../core/subjects/subject.utils';
 import { BlockCreateDialog } from '../block-create-dialog/block-create-dialog';
+import { CourseEditDialog } from '../course-edit-dialog/course-edit-dialog';
 import { CourseModules } from '../course-modules/course-modules';
 import { CoursePreview } from '../course-preview/course-preview';
 import { CourseResources } from '../course-resources/course-resources';
@@ -48,7 +54,9 @@ type CourseTab = 'blocks' | 'resources' | 'modules' | 'preview' | 'share';
 const TAB_ORDER: readonly CourseTab[] = ['blocks', 'resources', 'modules', 'preview', 'share'];
 
 /**
- * Page d'un cours, à onglets (tablist APG) :
+ * Page d'un cours, à onglets (tablist APG). L'en-tête porte le titre du cours —
+ * éditable, avec sa description, par une modale (`CourseEditDialog`) — puis
+ * l'export et la suppression du cours. Les onglets :
  * « Blocs » — liste ordonnée des blocs, ajout par type (via une modale
  * titre/description puis redirection vers l'éditeur du bloc créé),
  * réordonnancement par glisser-déposer (poignée CDK) ou flèches discrètes — la
@@ -69,6 +77,7 @@ const TAB_ORDER: readonly CourseTab[] = ['blocks', 'resources', 'modules', 'prev
     RouterLink,
     TranslocoPipe,
     BlockCreateDialog,
+    CourseEditDialog,
     CourseModules,
     CourseResources,
     CoursePreview,
@@ -97,6 +106,9 @@ export class CourseBlocks implements OnInit {
 
   /** Modale de création (saisie titre/description avant l'ajout du bloc). */
   protected readonly createDialog = viewChild(BlockCreateDialog);
+
+  /** Modale d'édition du cours (titre/description). */
+  protected readonly editDialog = viewChild(CourseEditDialog);
 
   /** Préfixe d'ids ARIA du tablist, propre à l'instance. */
   protected readonly uid = `course-tabs-${sequence++}`;
@@ -298,6 +310,29 @@ export class CourseBlocks implements OnInit {
       this.mutationError.set(true);
     } finally {
       this.mutating.set(false);
+    }
+  }
+
+  /** Ouvre la modale d'édition du cours, pré-remplie du titre et de la description. */
+  protected openEdit(): void {
+    const course = this.detail();
+    if (course) {
+      this.editDialog()?.open(course);
+    }
+  }
+
+  /**
+   * Enregistre le titre / la description saisis. Le service patche `detail` et
+   * `list` depuis la réponse ; sur échec, la modale reste ouverte avec la
+   * saisie intacte et l'erreur part en toast (message traduit ici).
+   */
+  protected async confirmEdit(payload: CourseUpdatePayload): Promise<void> {
+    try {
+      await this.#courses.updateCourse(this.#courseId, payload);
+      this.editDialog()?.close();
+    } catch {
+      this.editDialog()?.failed();
+      this.#notifications.error(this.#transloco.translate('courses.blocks.editDialog.error'));
     }
   }
 

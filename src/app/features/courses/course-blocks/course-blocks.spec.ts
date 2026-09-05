@@ -30,6 +30,7 @@ describe('CourseBlocks', () => {
     deleteBlock: vi.fn(),
     reorderBlocks: vi.fn(),
     deleteCourse: vi.fn(),
+    updateCourse: vi.fn(),
   };
   const subjectsMock = mockSubjectService();
   const levelsMock = mockEducationLevelService();
@@ -306,6 +307,58 @@ describe('CourseBlocks', () => {
     addButtons[0].click(); // Texte → ouvre la modale, ne crée pas directement
     expect(showModal).toHaveBeenCalledOnce();
     expect(coursesMock.addBlock).not.toHaveBeenCalled();
+  });
+
+  it('the header Edit button opens the course dialog prefilled with title and description', async () => {
+    const fixture = await createComponent();
+    const editDialog = el(fixture).querySelector('.course-edit-dialog') as HTMLDialogElement;
+    const showModal = vi.spyOn(editDialog, 'showModal').mockImplementation(() => {});
+
+    el(fixture).querySelector<HTMLButtonElement>('.course-blocks__edit-course')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(showModal).toHaveBeenCalledOnce();
+    expect(
+      editDialog.querySelector<HTMLInputElement>('[formControlName="title"]')!.value,
+    ).toBe(COURSE_DETAIL_FIXTURE.title);
+    expect(
+      editDialog.querySelector<HTMLTextAreaElement>('[formControlName="description"]')!.value,
+    ).toBe(COURSE_DETAIL_FIXTURE.description ?? '');
+  });
+
+  it('saving the course dialog PATCHes the course then closes the dialog', async () => {
+    const fixture = await createComponent();
+    coursesMock.updateCourse.mockResolvedValue({
+      id: 'course-1',
+      title: 'Suites et limites',
+      description: null,
+      subject_ids: COURSE_DETAIL_FIXTURE.subject_ids,
+      education_level_ids: COURSE_DETAIL_FIXTURE.education_level_ids,
+      updated_at: '2026-07-08T11:00:00Z',
+    });
+    const editDialog = el(fixture).querySelector('.course-edit-dialog') as HTMLDialogElement;
+    vi.spyOn(editDialog, 'showModal').mockImplementation(() => {});
+    const close = vi.spyOn(editDialog, 'close').mockImplementation(() => {});
+
+    el(fixture).querySelector<HTMLButtonElement>('.course-blocks__edit-course')!.click();
+    fixture.detectChanges();
+
+    const title = editDialog.querySelector<HTMLInputElement>('[formControlName="title"]')!;
+    title.value = '  Suites et limites  ';
+    title.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    editDialog.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
+    await fixture.whenStable();
+
+    expect(coursesMock.updateCourse).toHaveBeenCalledWith('course-1', {
+      title: 'Suites et limites',
+      description: COURSE_DETAIL_FIXTURE.description,
+      // Classement inchangé, renvoyé tel quel (sémantique de remplacement).
+      subject_ids: COURSE_DETAIL_FIXTURE.subject_ids,
+      education_level_ids: COURSE_DETAIL_FIXTURE.education_level_ids,
+    });
+    expect(close).toHaveBeenCalledOnce();
   });
 
   it('confirming the dialog creates the block with its meta then redirects to the editor', async () => {

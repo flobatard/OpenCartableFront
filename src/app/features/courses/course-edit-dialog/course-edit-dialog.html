@@ -1,0 +1,77 @@
+<dialog ocDialog class="course-edit-dialog" aria-labelledby="course-edit-dialog-title">
+  <form class="course-edit-dialog__inner" [formGroup]="form" (ngSubmit)="submit()">
+    <header class="course-edit-dialog__head">
+      <h2 id="course-edit-dialog-title" class="course-edit-dialog__title">
+        {{ 'courses.blocks.editDialog.title' | transloco }}
+      </h2>
+      <button
+        type="button"
+        class="course-edit-dialog__close"
+        [attr.aria-label]="'courses.blocks.editDialog.close' | transloco"
+        (click)="close()"
+      >
+        ×
+      </button>
+    </header>
+
+    <div class="course-edit-dialog__body">
+      <label class="course-edit-dialog__field">
+        <span class="course-edit-dialog__label">
+          {{ 'courses.blocks.editDialog.titleLabel' | transloco }}
+        </span>
+        <input
+          type="text"
+          class="course-edit-dialog__input"
+          formControlName="title"
+          maxlength="300"
+          required
+          [placeholder]="'courses.blocks.editDialog.titlePlaceholder' | transloco"
+        />
+      </label>
+
+      <label class="course-edit-dialog__field">
+        <span class="course-edit-dialog__label">
+          {{ 'courses.blocks.editDialog.descriptionLabel' | transloco }}
+        </span>
+        <textarea
+          class="course-edit-dialog__input course-edit-dialog__textarea"
+          formControlName="description"
+          maxlength="2000"
+          rows="3"
+        ></textarea>
+        <span class="course-edit-dialog__hint">
+          {{ 'courses.blocks.editDialog.descriptionHint' | transloco }}
+        </span>
+      </label>
+
+      <div class="course-edit-dialog__field">
+        <h3 class="course-edit-dialog__label">
+          {{ 'courses.blocks.editDialog.subjectsLabel' | transloco }}
+        </h3>
+        <app-subject-multi-picker [formControl]="form.controls.subjectIds" />
+      </div>
+
+      <div class="course-edit-dialog__field">
+        <h3 class="course-edit-dialog__label">
+          {{ 'courses.blocks.editDialog.levelsLabel' | transloco }}
+        </h3>
+        <app-education-level-picker
+          [system]="system()"
+          [formControl]="form.controls.educationLevelIds"
+        />
+      </div>
+    </div>
+
+    <footer class="course-edit-dialog__foot">
+      <button type="button" class="btn btn--ghost" (click)="close()">
+        {{ 'courses.blocks.editDialog.cancel' | transloco }}
+      </button>
+      <button type="submit" class="btn btn--primary" [disabled]="!complete() || saving()">
+        {{
+          (saving() ? 'courses.blocks.editDialog.saving' : 'courses.blocks.editDialog.submit')
+            | transloco
+        }}
+      </button>
+    </footer>
+  </form>
+</dialog>

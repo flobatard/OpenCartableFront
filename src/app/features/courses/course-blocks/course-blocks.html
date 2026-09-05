@@ -30,6 +30,13 @@
           </span>
           <button
             type="button"
+            class="btn btn--ghost course-blocks__edit-course"
+            (click)="openEdit()"
+          >
+            {{ 'courses.blocks.editCourse' | transloco }}
+          </button>
+          <button
+            type="button"
             class="btn btn--ghost course-blocks__export-course"
             [disabled]="exporting()"
             (click)="exportCourse()"
@@ -321,5 +328,6 @@
   }
 
   <app-block-create-dialog (create)="confirmCreate($event)" />
+  <app-course-edit-dialog (save)="confirmEdit($event)" />
 
 </section>

@@ -9,7 +9,9 @@ import {
   CourseBlock,
   CourseCreatePayload,
   CourseDetail,
+  CourseMeta,
   CourseSummary,
+  CourseUpdatePayload,
   CourseVisibility,
 } from './course.model';
 
@@ -99,6 +101,32 @@ export class CourseService {
   /** Crée un cours ; la liste sera refetchée à la prochaine visite. */
   createCourse(payload: CourseCreatePayload): Promise<CourseSummary> {
     return firstValueFrom(this.#http.post<CourseSummary>(this.#url, payload));
+  }
+
+  /**
+   * Édite le cours : titre, description, classement matières/niveaux (PATCH
+   * partiel — une clé absente laisse le champ intact côté back). Patche les
+   * signaux `detail` et `list` depuis la réponse — `updated_at` inclus, le
+   * cours vient de remonter en tête de la liste servie par le back ; les
+   * listes de classement ne sont recopiées que si le PATCH les portait
+   * (`null` = inchangées, cf. `CourseMeta`).
+   */
+  async updateCourse(courseId: string, payload: CourseUpdatePayload): Promise<CourseMeta> {
+    const meta = await firstValueFrom(
+      this.#http.patch<CourseMeta>(`${this.#url}/${courseId}`, payload),
+    );
+    const edited: Partial<CourseSummary> = {
+      title: meta.title,
+      description: meta.description,
+      updated_at: meta.updated_at,
+      ...(meta.subject_ids ? { subject_ids: meta.subject_ids } : {}),
+      ...(meta.education_level_ids ? { education_level_ids: meta.education_level_ids } : {}),
+    };
+    this.#patchDetail(courseId, (detail) => ({ ...detail, ...edited }));
+    this.#list.update((courses) =>
+      courses.map((course) => (course.id === courseId ? { ...course, ...edited } : course)),
+    );
+    return meta;
   }
 
   /** Insère un cours en tête de la liste (cours importé — tri « modifié récemment » du back). */

@@ -123,3 +123,33 @@ export interface CourseCreatePayload {
   subject_ids: string[];
   education_level_ids: string[];
 }
+
+/**
+ * Corps du `PATCH /courses/{id}` : édition partielle du cours. Une clé absente
+ * laisse le champ inchangé côté back ; `description: null` l'efface. Le titre
+ * ne s'efface jamais (colonne NOT NULL). Les deux listes de classement ont une
+ * sémantique de remplacement : la liste fournie devient le classement, `[]` le
+ * vide — jamais `null` (refusé par le back).
+ */
+export interface CourseUpdatePayload {
+  title?: string;
+  description?: string | null;
+  subject_ids?: string[];
+  education_level_ids?: string[];
+}
+
+/**
+ * Réponse du `PATCH /courses/{id}` : les champs édités, plus `updated_at` (le
+ * cours vient de remonter en tête de la liste du back). Volontairement plus
+ * étroit qu'un `CourseSummary` — rien d'autre n'a bougé. Les listes de
+ * classement valent `null` quand le PATCH ne les portait pas (inchangées),
+ * jamais `[]`, qui signifie « classement vidé ».
+ */
+export interface CourseMeta {
+  id: string;
+  title: string;
+  description: string | null;
+  subject_ids: string[] | null;
+  education_level_ids: string[] | null;
+  updated_at: string;
+}

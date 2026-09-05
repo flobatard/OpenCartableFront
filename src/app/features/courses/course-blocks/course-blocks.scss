@@ -39,14 +39,16 @@
   font-family: var(--font-display);
 }
 
-/* Le margin-left auto d'Exporter groupe titre + badge à gauche, actions à droite. */
+/* Le margin-left auto de Modifier (1re action) groupe titre + badge à gauche,
+   actions à droite. */
+.course-blocks__edit-course,
 .course-blocks__export-course,
 .course-blocks__delete-course,
 .course-blocks__type {
   flex: 0 0 auto;
 }
 
-.course-blocks__export-course {
+.course-blocks__edit-course {
   margin-left: auto;
 }
 

@@ -96,6 +96,83 @@ describe('CourseService', () => {
     expect(await create).toEqual(COURSES_FIXTURE[0]);
   });
 
+  it('updateCourse PATCHes the payload and patches the list and the detail', async () => {
+    service.loadList();
+    httpMock.expectOne(url).flush(COURSES_FIXTURE);
+    loadDetail(); // détail = course-1
+
+    const update = service.updateCourse(COURSE_DETAIL_FIXTURE.id, {
+      title: 'Suites et limites',
+      description: null,
+      subject_ids: ['francais-grammaire'],
+      education_level_ids: [],
+    });
+    const req = httpMock.expectOne(`${url}/${COURSE_DETAIL_FIXTURE.id}`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({
+      title: 'Suites et limites',
+      description: null,
+      subject_ids: ['francais-grammaire'],
+      education_level_ids: [],
+    });
+    req.flush({
+      id: COURSE_DETAIL_FIXTURE.id,
+      title: 'Suites et limites',
+      description: null,
+      subject_ids: ['francais-grammaire'],
+      education_level_ids: [],
+      updated_at: '2026-07-08T11:00:00Z',
+    });
+    await update;
+
+    const summary = service.list().find((c) => c.id === COURSE_DETAIL_FIXTURE.id)!;
+    expect(summary.title).toBe('Suites et limites');
+    expect(summary.description).toBeNull();
+    expect(summary.updated_at).toBe('2026-07-08T11:00:00Z');
+    expect(summary.subject_ids).toEqual(['francais-grammaire']);
+    expect(summary.education_level_ids).toEqual([]);
+    // Le détail suit ; les blocs, eux, ne sont pas dans la réponse étroite.
+    expect(service.detail()?.title).toBe('Suites et limites');
+    expect(service.detail()?.subject_ids).toEqual(['francais-grammaire']);
+    expect(service.detail()?.blocks).toEqual(COURSE_DETAIL_FIXTURE.blocks);
+  });
+
+  it('updateCourse leaves the classification untouched when the response omits it', async () => {
+    service.loadList();
+    httpMock.expectOne(url).flush(COURSES_FIXTURE);
+
+    const update = service.updateCourse(COURSE_DETAIL_FIXTURE.id, { title: 'Renommé' });
+    httpMock.expectOne(`${url}/${COURSE_DETAIL_FIXTURE.id}`).flush({
+      id: COURSE_DETAIL_FIXTURE.id,
+      title: 'Renommé',
+      description: COURSE_DETAIL_FIXTURE.description,
+      subject_ids: null, // le PATCH ne portait pas le classement
+      education_level_ids: null,
+      updated_at: '2026-07-08T11:00:00Z',
+    });
+    await update;
+
+    const summary = service.list().find((c) => c.id === COURSE_DETAIL_FIXTURE.id)!;
+    expect(summary.title).toBe('Renommé');
+    expect(summary.subject_ids).toEqual(COURSES_FIXTURE[0].subject_ids); // intact
+  });
+
+  it('updateCourse leaves the displayed detail of another course untouched', async () => {
+    loadDetail(); // détail = course-1
+    const update = service.updateCourse('course-2', { title: 'Autre titre' });
+    httpMock.expectOne(`${url}/course-2`).flush({
+      id: 'course-2',
+      title: 'Autre titre',
+      description: null,
+      subject_ids: null,
+      education_level_ids: null,
+      updated_at: '2026-07-08T11:00:00Z',
+    });
+    await update;
+
+    expect(service.detail()).toEqual(COURSE_DETAIL_FIXTURE); // intact
+  });
+
   it('addBlock appends the returned block to the detail', async () => {
     loadDetail();
     const created: CourseBlock = {

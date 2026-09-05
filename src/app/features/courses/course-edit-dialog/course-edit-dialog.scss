@@ -1,0 +1,113 @@
+/* Modale d'édition d'un cours — titre, description, classement (élément <dialog>
+   natif : focus trap, Escape, backdrop). Chrome calqué sur `block-create-dialog`,
+   un peu plus large pour loger les pickers matières / niveaux. */
+
+.course-edit-dialog {
+  width: min(600px, calc(100vw - 32px));
+  max-height: calc(100dvh - 64px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.course-edit-dialog::backdrop {
+  background: rgb(15 23 42 / 55%);
+}
+
+.course-edit-dialog__inner {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 64px);
+}
+
+.course-edit-dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.course-edit-dialog__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+.course-edit-dialog__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.course-edit-dialog__close:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.course-edit-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.course-edit-dialog__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.course-edit-dialog__label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.course-edit-dialog__input {
+  height: 40px;
+  padding: 0 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.course-edit-dialog__textarea {
+  height: auto;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.course-edit-dialog__input::placeholder {
+  color: var(--text-secondary);
+}
+
+.course-edit-dialog__foot {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.course-edit-dialog__hint {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
