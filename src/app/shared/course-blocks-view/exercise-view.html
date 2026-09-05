@@ -74,8 +74,8 @@
           <section
             class="exercise-view__correction"
             aria-live="polite"
-            (click)="onCitation($event)"
-            (keydown)="onCitationKeydown($event)"
+            ocBlockCitations
+            (blockCitation)="onCitation($event)"
           >
             <h4 class="exercise-view__correction-title">
               {{ 'student.exercise.correction.title' | transloco }}

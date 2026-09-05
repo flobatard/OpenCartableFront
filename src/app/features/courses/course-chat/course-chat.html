@@ -177,8 +177,8 @@
       role="log"
       aria-live="polite"
       (scroll)="onLogScroll()"
-      (click)="onCitation($event)"
-      (keydown)="onCitationKeydown($event)"
+      ocBlockCitations
+      (blockCitation)="goToBlock($event)"
     >
       @if (assistant.activeLoading()) {
         <p class="course-chat__status" role="status">

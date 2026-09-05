@@ -2,7 +2,6 @@ import { isPlatformBrowser } from '@angular/common';
 import {
   Component,
   computed,
-  DestroyRef,
   effect,
   ElementRef,
   inject,
@@ -20,25 +19,16 @@ import { AssistantMessage } from '../../../core/course-assistant/assistant.model
 import { CourseAssistantService } from '../../../core/course-assistant/course-assistant.service';
 import { parseProposal, PROPOSAL_TOOLS } from '../../../core/course-assistant/proposals';
 import { LanguageService } from '../../../core/i18n/language.service';
-import { isBlockId } from '../../../core/markdown/course-block-ref';
+import { progressiveReveal } from '../../../core/course-assistant/stream-reveal';
+import { BlockCitations } from '../../../shared/block-citations/block-citations.directive';
 import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
 import { CourseChatProposal } from './course-chat-proposal';
 import { CourseChatSettings } from './course-chat-settings';
 import { ChatToolView, CourseChatTool, toolResultExcerpt } from './course-chat-tool';
 import { armedAction } from '../../../core/editing/armed';
 
-/**
- * Dévoilement progressif du texte streamé : un tick toutes les 40 ms
- * (≈ 25 rendus markdown/s — fluide à l'œil, sans saturer le thread principal)
- * qui rattrape une PART du retard accumulé (avec un plancher et un plafond de
- * caractères par tick). Les rafales du réseau ou du provider sont ainsi
- * lissées en un défilement régulier, au lieu des sauts de l'ancien rendu
- * débouncé à 400 ms.
- */
-export const STREAM_REVEAL_TICK_MS = 40;
-const STREAM_REVEAL_CATCH_UP = 0.3;
-const STREAM_REVEAL_MIN_CHARS = 3;
-const STREAM_REVEAL_MAX_CHARS = 160;
+export { STREAM_REVEAL_TICK_MS } from '../../../core/course-assistant/stream-reveal';
+
 
 /** Distance au bas (px) sous laquelle l'auto-scroll reste accroché. */
 const SCROLL_PIN_THRESHOLD_PX = 80;
@@ -66,9 +56,9 @@ const SCROLL_PIN_THRESHOLD_PX = 80;
  *   décision) vit dans l'ÉDITEUR de l'hôte (`app-proposal-review`,
  *   `app-exercise-proposal-review`, `app-module-proposal-review`), qui lit la
  *   même instance d'état ;
- * - **mode placeholder** (`placeholder` vrai) : la coquille « bientôt »
- *   historique, garde générique d'un hôte dont le contexte n'est pas livré —
- *   plus aucun hôte ne la pose.
+ * - **mode placeholder** (`placeholder` vrai) : coquille « bientôt », garde
+ *   générique d'un hôte dont le contexte d'édition n'existerait pas côté back
+ *   (aucun hôte ne la pose aujourd'hui).
  *
  * Deux régimes de rendu du texte assistant : pendant le stream,
  * `app-markdown-view` sans `courseId` (références oc-* inertes → re-rendus
@@ -79,6 +69,7 @@ const SCROLL_PIN_THRESHOLD_PX = 80;
 @Component({
   selector: 'app-course-chat',
   imports: [
+    BlockCitations,
     TranslocoPipe,
     MarkdownView,
     RouterLink,
@@ -156,8 +147,10 @@ export class CourseChat {
   protected readonly deleteArmed = armedAction<string>();
 
   /** Texte streamé dévoilé progressivement pour le rendu (le brut vit au service). */
-  protected readonly streamingRender = signal('');
-  #revealTimer: ReturnType<typeof setTimeout> | null = null;
+  protected readonly streamingRender = progressiveReveal(
+    () => this.assistant.streamingText(),
+    () => this.mode() !== 'placeholder',
+  );
 
   /** Tours `tool` de la conversation, indexés par id d'appel (résultats persistés). */
   readonly #toolRowsById = computed(() => {
@@ -217,22 +210,6 @@ export class CourseChat {
       }
     });
 
-    // Dévoilement progressif du texte streamé (constantes STREAM_REVEAL_*) :
-    // chaque delta reçu (re)lance le tick, qui se replanifie tant qu'il reste
-    // du retard à rattraper ; texte vide = tour terminé, rendu remis à zéro.
-    effect(() => {
-      if (this.mode() === 'placeholder') {
-        return;
-      }
-      if (!this.assistant.streamingText()) {
-        this.#cancelReveal();
-        this.streamingRender.set('');
-        return;
-      }
-      this.#scheduleReveal();
-    });
-    inject(DestroyRef).onDestroy(() => this.#cancelReveal());
-
     // Auto-scroll : suit le flux tant que l'utilisateur est resté en bas.
     effect(() => {
       if (this.mode() === 'placeholder') {
@@ -245,45 +222,6 @@ export class CourseChat {
         setTimeout(() => this.#scrollToBottom(), 0);
       }
     });
-  }
-
-  #scheduleReveal(): void {
-    if (this.#revealTimer !== null) {
-      return;
-    }
-    this.#revealTimer = setTimeout(() => {
-      this.#revealTimer = null;
-      this.#revealStep();
-    }, STREAM_REVEAL_TICK_MS);
-  }
-
-  #cancelReveal(): void {
-    if (this.#revealTimer !== null) {
-      clearTimeout(this.#revealTimer);
-      this.#revealTimer = null;
-    }
-  }
-
-  /** Un tick : avance vers le texte reçu, se replanifie s'il reste du retard. */
-  #revealStep(): void {
-    const target = this.assistant.streamingText();
-    const shown = this.streamingRender();
-    const base = target.startsWith(shown) ? shown.length : 0;
-    const backlog = target.length - base;
-    if (backlog <= 0) {
-      return;
-    }
-    const step = Math.min(
-      backlog,
-      Math.max(
-        STREAM_REVEAL_MIN_CHARS,
-        Math.min(STREAM_REVEAL_MAX_CHARS, Math.ceil(backlog * STREAM_REVEAL_CATCH_UP)),
-      ),
-    );
-    this.streamingRender.set(target.slice(0, base + step));
-    if (base + step < target.length) {
-      this.#scheduleReveal();
-    }
   }
 
   #scrollToBottom(): void {
@@ -301,19 +239,9 @@ export class CourseChat {
     }
   }
 
-  /**
-   * Délégation des citations `oc-block:` — clic ou Entrée sur l'ancre
-   * `[data-oc-block-id]` (re-garde `isBlockId` : l'attribut peut venir de
-   * HTML brut) → navigation vers l'éditeur du bloc cité.
-   */
-  protected onCitation(event: Event): void {
-    const target = event.target as HTMLElement | null;
-    const anchor = target?.closest<HTMLElement>('[data-oc-block-id]');
-    const blockId = anchor?.getAttribute('data-oc-block-id');
-    if (!blockId || !isBlockId(blockId)) {
-      return;
-    }
-    event.preventDefault();
+  /** Citation `oc-block:` cliquée dans le fil (directive `ocBlockCitations`) :
+      navigation vers l'éditeur du bloc cité. */
+  protected goToBlock(blockId: string): void {
     void this.#router.navigate([
       '/',
       this.language.lang(),
@@ -322,12 +250,6 @@ export class CourseChat {
       'blocks',
       blockId,
     ]);
-  }
-
-  protected onCitationKeydown(event: KeyboardEvent): void {
-    if (event.key === 'Enter') {
-      this.onCitation(event);
-    }
   }
 
   protected onDraftInput(event: Event): void {

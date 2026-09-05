@@ -15,7 +15,7 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { exerciseViewFromContent } from '../../core/courses/exercise-form';
 import { LanguageService } from '../../core/i18n/language.service';
-import { isBlockId } from '../../core/markdown/course-block-ref';
+import { BlockCitations } from '../block-citations/block-citations.directive';
 import {
   answerStorage,
   answerStorageKey,
@@ -68,7 +68,7 @@ export const ANSWER_SAVE_DEBOUNCE_MS = 500;
  * temps désarmés au blur (`threadsClearRequested`). Sans session
  * (`correctionLoginHint`), une notice invite à se connecter (`loginRequested`). Les citations
  * `oc-block:` des retours naviguent vers `blockLink(id)` quand l'hôte le
- * fournit (re-garde `isBlockId`).
+ * fournit (directive `ocBlockCitations`).
  *
  * Présentational : aucun service métier injecté (invariant vue élève —
  * `courseId`/`blockId` viennent des inputs, les `oc-resource:` des énoncés
@@ -81,7 +81,7 @@ export const ANSWER_SAVE_DEBOUNCE_MS = 500;
  */
 @Component({
   selector: 'app-exercise-view',
-  imports: [TranslocoPipe, RouterLink, MarkdownView, Spinner],
+  imports: [BlockCitations, TranslocoPipe, RouterLink, MarkdownView, Spinner],
   templateUrl: './exercise-view.html',
   styleUrl: './exercise-view.scss',
 })
@@ -288,27 +288,12 @@ export class ExerciseView implements OnDestroy {
     return status === 429 || status === 400 || status === 422;
   }
 
-  /**
-   * Délégation des citations `oc-block:` des retours du tuteur — clic ou
-   * Entrée sur l'ancre `[data-oc-block-id]` (re-garde `isBlockId` : l'attribut
-   * peut venir de HTML brut) → navigation vers le bloc cité, si l'hôte fournit
-   * `blockLink`.
-   */
-  protected onCitation(event: Event): void {
+  /** Citation `oc-block:` d'un retour du tuteur (directive `ocBlockCitations`) :
+      navigation vers le bloc cité, si l'hôte fournit `blockLink`. */
+  protected onCitation(blockId: string): void {
     const build = this.blockLink();
-    const target = event.target as HTMLElement | null;
-    const anchor = target?.closest<HTMLElement>('[data-oc-block-id]');
-    const blockId = anchor?.getAttribute('data-oc-block-id');
-    if (build === null || !blockId || !isBlockId(blockId)) {
-      return;
-    }
-    event.preventDefault();
-    void this.#router.navigate(build(blockId));
-  }
-
-  protected onCitationKeydown(event: KeyboardEvent): void {
-    if (event.key === 'Enter') {
-      this.onCitation(event);
+    if (build !== null) {
+      void this.#router.navigate(build(blockId));
     }
   }
 
