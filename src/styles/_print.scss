@@ -21,7 +21,7 @@
 }
 
 /* Extension markdown interactive non imprimable (iframe GeoGebra…) substituée
-   par transformForPrint — motif de la note média. */
+   par transformForPrint — comme la note média. */
 .oc-print__extension-note {
   margin-block: 0 1.5em;
   font-size: 0.9em;
@@ -75,7 +75,7 @@
   /* .course-content redéclare --text-secondary/--link (et le fait en version
      sombre sous [data-theme=dark]) : on les rétablit clairs, spécificité > au
      sélecteur de thème. On y ré-ancre aussi la typographie d'impression : le bloc
-     global .course-content pose désormais une base d'écran (16px / interligne 1.7)
+     global .course-content pose une base d'écran (16px / interligne 1.7)
      qu'on ramène à la base papier (11pt / 1.5) — les facteurs de réglage restent
      appliqués. La largeur de lecture est neutralisée : la page A4 l'impose. */
   #oc-print-root .course-content {

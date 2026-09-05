@@ -6,7 +6,7 @@ import { AuthService } from '../auth/auth.service';
 import { CourseSummary } from './course.model';
 import { CourseService } from './course.service';
 
-/** État de l'import d'une archive de cours (un import à la fois, motif `UploadState`). */
+/** État de l'import d'une archive de cours (un import à la fois, comme `UploadState`). */
 export interface ImportState {
   /** `uploading` = corps en cours d'envoi ; `processing` = corps reçu, le back
       parse l'archive et pousse les binaires vers S3 (réponse pas encore là). */

@@ -9,9 +9,9 @@ import { armedAction } from '../../../core/editing/armed';
 
 /**
  * Onglet « Modules » d'un cours : bibliothèque des modules interactifs
- * HTML/CSS/JS, indépendante des blocs (motif `CourseResources`, sans upload —
+ * HTML/CSS/JS, indépendante des blocs (comme `CourseResources`, sans upload —
  * le code vit en base). Création inline (titre seul) suivie d'une
- * REDIRECTION vers l'éditeur du module créé (motif `confirmCreate` des
+ * REDIRECTION vers l'éditeur du module créé (comme `confirmCreate` des
  * blocs), renommage inline (Échap annule), lien « Modifier » vers l'éditeur
  * et suppression en deux temps désarmée au blur. Après une suppression,
  * l'output `deleted` prévient la page : les blocs `module` pointeurs ont été

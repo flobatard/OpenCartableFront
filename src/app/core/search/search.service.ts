@@ -13,9 +13,9 @@ import {
 export const SEARCH_PAGE_SIZE = 20;
 
 /**
- * Recherche publique (J3) — endpoints `/api/v1/public/search/*`.
+ * Recherche publique — endpoints `/api/v1/public/search/*`.
  *
- * Pendant ANONYME (motif `PublicCourseService`) : n'injecte pas `AuthService`,
+ * Pendant ANONYME (comme `PublicCourseService`) : n'injecte pas `AuthService`,
  * ne purge rien à la déconnexion, et le Bearer est exclu de `/v1/public/` par
  * la `customUrlValidation` d'`app.config.ts` — même un prof connecté cherche
  * en anonyme. Un compteur de requête (stale-guard) garantit que seule la

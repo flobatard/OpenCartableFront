@@ -39,7 +39,7 @@ type FieldTab = 'editor' | 'preview';
  * Champ markdown réutilisable (`ControlValueAccessor`, valeur = string) :
  * onglets Éditeur | Aperçu, éditeur Monaco (`app-markdown-editor`), aperçu
  * rendu par `app-markdown-view` (markdown + KaTeX puis Mermaid) et modale
- * d'aide à la mise en forme. C'est l'unité que composeront les futurs éditeurs
+ * d'aide à la mise en forme. C'est l'unité que composent les éditeurs
  * (bloc texte, exercice…). Composition d'un `FormControl` interne — patron
  * `SubjectMultiPicker`.
  *

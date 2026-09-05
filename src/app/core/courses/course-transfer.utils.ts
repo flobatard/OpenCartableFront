@@ -19,8 +19,8 @@ export function courseExportFilename(title: string): string {
 }
 
 /**
- * Déclenche le téléchargement d'un blob — premier usage du motif
- * `URL.createObjectURL` + `<a download>` du projet : l'endpoint d'export exige
+ * Déclenche le téléchargement d'un blob (`URL.createObjectURL` +
+ * `<a download>`) : l'endpoint d'export exige
  * le Bearer, donc pas de `window.open` possible (contrairement aux downloads
  * de ressources, qui passent par une URL S3 présignée). Browser-only.
  */

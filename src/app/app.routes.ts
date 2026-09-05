@@ -269,7 +269,7 @@ export const routes: Routes = [
       {
         // Éditeur d'un module interactif (3 Monaco HTML/CSS/JS + preview
         // sandbox — charge au navigateur). Params en snapshot → remontage
-        // forcé quand moduleId change (même motif que l'éditeur de bloc).
+        // forcé quand moduleId change (comme l'éditeur de bloc).
         path: 'courses/:id/modules/:moduleId',
         canActivate: TEACHER_GUARDS,
         data: { remountOnParamChange: true },

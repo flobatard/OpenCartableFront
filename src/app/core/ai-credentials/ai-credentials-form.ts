@@ -10,7 +10,7 @@ import {
 } from './ai-credentials.model';
 
 /**
- * Helpers purs du formulaire de credential IA (motif `profile-form.ts`).
+ * Helpers purs du formulaire de credential IA (comme `profile-form.ts`).
  *
  * Contrat clé API : elle n'est JAMAIS renvoyée par l'API, donc jamais
  * patchée dans le formulaire ; un champ laissé vide signifie « conserver la

@@ -30,7 +30,7 @@ type OnboardingStep =
  * 6 pour prof + élève. Un profil déjà complet est renvoyé vers `next`
  * (chemin interne validé) ou la page matières.
  *
- * Premier usage des Reactive Forms typés du projet ; en zoneless, la
+ * Reactive Forms typés ; en zoneless, la
  * réactivité du template passe par `toSignal(form.valueChanges)`.
  */
 @Component({

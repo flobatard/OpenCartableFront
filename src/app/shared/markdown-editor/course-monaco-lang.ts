@@ -13,7 +13,7 @@
  * robustesse (on ne dépend que de l'API publique d'embarquement `register` +
  * `setMonarchTokensProvider` + `nextEmbedded`, pas d'un ordre interne de monaco)
  * et isolation (pas de `conf` à demi-écrasé, `markdown` reste disponible pour un
- * futur consommateur). Le Mermaid, lui, ne demande aucune modification de la
+ * autre consommateur). Le Mermaid, lui, ne demande aucune modification de la
  * grammaire markdown : la règle de fence GitHub intégrée délègue déjà
  * ` ```lang ` au langage embarqué `lang` via `nextEmbedded: "$1"` — enregistrer
  * l'id `mermaid` suffit.

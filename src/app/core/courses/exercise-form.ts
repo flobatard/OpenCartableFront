@@ -195,7 +195,7 @@ export function insertQuestionAfter(
  * Déplace une question de `from` vers `to` (index absolu) en **réutilisant
  * l'instance de FormGroup** : le suivi `@for track group`, le signal `openGroup`
  * et le write-back `applyGeneratedIds` (matching par instance) en dépendent —
- * reconstruire un groupe régénérerait des ids censés être stables à vie (J2).
+ * reconstruire un groupe régénérerait des ids censés être stables à vie.
  * Une seule émission (deux mutations silencieuses). No-op aux bornes ou si égal.
  */
 export function moveQuestionTo(form: ExerciseForm, from: number, to: number): void {

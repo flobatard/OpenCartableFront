@@ -118,7 +118,7 @@
 
 /* Glisser-déposer (Angular CDK) — poignée + états visuels partagés (liste des
    blocs, liste des questions). La poignée `.drag-handle` est un utilitaire
-   global (motif `.tabs`/`.pill`) ; l'aperçu flottant est détaché dans <body>,
+   global (comme `.tabs`/`.pill`) ; l'aperçu flottant est détaché dans <body>,
    hors de toute vue de composant : ces styles doivent être globaux. Le
    mouvement dégrade tout seul via le @media prefers-reduced-motion global. */
 
@@ -181,7 +181,7 @@
 
 /* Sections des pages de documentation des langages markdown (docs-shell +
    composants de doc — katex-doc, mermaid-doc, geogebra-doc, jsxgraph-doc…).
-   Utilitaires globaux (motif .tabs/.pill) : les composants de doc sont
+   Utilitaires globaux (comme .tabs/.pill) : les composants de doc sont
    distincts mais partagent cette anatomie. */
 
 .doc-intro {

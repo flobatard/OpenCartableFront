@@ -142,7 +142,7 @@ export class Profile implements OnInit {
 
   /**
    * Fichier choisi → modale de recadrage. L'input est vidé aussitôt pour
-   * permettre de re-choisir le même fichier (motif course-resources) ; le
+   * permettre de re-choisir le même fichier (comme course-resources) ; le
    * type est laissé au navigateur (`accept`) et au décodage de la modale
    * (échec → message badImage) : l'export canvas re-encode en JPEG de toute
    * façon.

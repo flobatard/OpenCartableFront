@@ -8,7 +8,7 @@ let sequence = 0;
 
 /**
  * Modale « Réglages IA » du panneau assistant : change le modèle à la volée
- * sans quitter le cours. Élément `<dialog>` natif au motif `CourseStyleDialog`
+ * sans quitter le cours. Élément `<dialog>` natif comme `CourseStyleDialog`
  * (`open()`/`close()`, directive `ocDialog`) qui ENCASTRE l'écran de
  * réglages complet (`app-ai-settings [embedded]`) — une seule source de
  * vérité : toute sauvegarde passe par `AiCredentialsService`, dont le signal

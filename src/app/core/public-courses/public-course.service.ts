@@ -12,7 +12,7 @@ import {
 } from './public-course.model';
 
 /**
- * Accès élève aux cours partagés (J2) — endpoints `/api/v1/public/*`.
+ * Accès élève aux cours partagés — endpoints `/api/v1/public/*`.
  *
  * Ce service est le pendant ANONYME de `CourseService` : il n'injecte pas
  * `AuthService` (les pages élèves ne parlent jamais à Zitadel) et ne purge
@@ -55,7 +55,7 @@ export class PublicCourseService {
    * Accès dont `detail` est le reflet — garde des sous-requêtes. Exposé en
    * signal : les sous-pages du cours (onglets, bloc seul, module dédié) en
    * dérivent leurs liens sans relire `data.access` de la route. Elles ne
-   * peuvent pas le faire elles-mêmes — leur route parente porte désormais un
+   * peuvent pas le faire elles-mêmes — leur route parente porte un
    * composant (la coquille), ce qui coupe l'héritage de `data` par défaut.
    */
   readonly #accessSignal = signal<PublicAccess | null>(null);
@@ -63,7 +63,7 @@ export class PublicCourseService {
   /** Détail en vol, partagé (la route ressource et la page cours le réutilisent). */
   #inflight: Promise<PublicCourseDetail | null> | null = null;
 
-  /** Code des modules déjà résolus (promesses partagées, motif `ModuleService`). */
+  /** Code des modules déjà résolus (promesses partagées, comme `ModuleService`). */
   #moduleCache = new Map<string, Promise<ModuleDetail>>();
 
   /**

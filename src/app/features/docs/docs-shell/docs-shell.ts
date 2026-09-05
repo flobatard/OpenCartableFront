@@ -15,11 +15,11 @@ type DocsShellState = 'loading' | 'ready' | 'notFound' | 'error';
 /**
  * Coquille des pages de documentation des langages markdown
  * (`/:lang/markdown-language/docs/:slug`, publique, RenderMode.Client) :
- * onglets de navigation (un lien router par langage — motif visuel `.tabs`,
+ * onglets de navigation (un lien router par langage — utilitaires `.tabs`,
  * PAS un tablist APG : ce sont de vraies navigations) et corps monté
- * dynamiquement via NgComponentOutlet (premier usage du projet).
+ * dynamiquement via NgComponentOutlet.
  *
- * PREMIER composant du projet à survivre à un changement de param de chemin
+ * Survit à un changement de param de chemin
  * (nav onglet→onglet réutilise l'instance) : le paramMap est OBSERVÉ via
  * `toSignal`, jamais lu en snapshot seul — un snapshot figerait la première page.
  */

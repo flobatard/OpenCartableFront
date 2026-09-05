@@ -6,8 +6,8 @@
  * `<iframe sandbox="allow-scripts allow-forms allow-modals">` SANS
  * `allow-same-origin` — origine opaque (`'null'`) : le JS du prof n'a accès
  * ni aux cookies, ni au localStorage (lève une exception), ni au DOM/tokens
- * de l'app. Le réseau sortant est **bloqué par CSP** (`MODULE_CSP`, décision
- * actée — révise le « CDN autorisés » du cadrage initial) : un module est
+ * de l'app. Le réseau sortant est **bloqué par CSP** (`MODULE_CSP`,
+ * cf. docs/decisions.md) : un module est
  * self-contained, ses assets passent en `data:`/`blob:`. Seul un pont
  * postMessage contrôlé relie le module à la page.
  */
@@ -64,7 +64,7 @@ const MODULE_BRIDGE = `(function () {
  * default-src) ferme l'exfiltration par soumission de formulaire — les
  * formulaires gérés en JS (preventDefault) continuent de marcher.
  *
- * `'unsafe-eval'` est autorisé (décision actée) : les modules pédagogiques
+ * `'unsafe-eval'` est autorisé (cf. docs/decisions.md) : les modules pédagogiques
  * évaluent des expressions saisies (`new Function`/`eval` — ex. grapheur de
  * `f(x)`). Dans CE contexte, eval n'accorde aucune capacité nouvelle (tout
  * le JS du module est déjà du code arbitraire du prof) et ne rouvre ni le

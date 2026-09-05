@@ -73,7 +73,7 @@ export class MarkdownEditor implements ControlValueAccessor {
   protected readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   /**
-   * Langage monaco de l'instance — `oc-markdown` (défaut historique) ou un
+   * Langage monaco de l'instance — `oc-markdown` (défaut) ou un
    * langage BUILT-IN de monaco (`html`/`css`/`javascript`, éditeur de module).
    * STATIQUE par instance : le wrapper détruit et recrée l'éditeur à chaque
    * changement de référence de `[options]` — ne jamais binder un langage

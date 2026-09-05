@@ -9,7 +9,7 @@
   --text-warning: var(--amber-800);
   --text-danger: var(--red-800);
   /* Typographie paramétrable par cours (CourseStyleService pose ces variables en
-     [style] inline sur le conteneur de rendu ; défauts = valeurs historiques, donc
+     [style] inline sur le conteneur de rendu ; défauts = valeurs de base, donc
      aucune régression tant qu'aucune variable n'est posée). Les dimensions dont le
      défaut diffère entre écran et papier sont des FACTEURS d'échelle (défaut 1) :
      chaque média garde sa base propre × le même facteur, si bien que les mêmes

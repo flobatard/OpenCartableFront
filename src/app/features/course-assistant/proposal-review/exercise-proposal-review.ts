@@ -14,7 +14,7 @@ export type ExerciseProposal = AssistantExerciseProposal;
 
 /**
  * Revue STRUCTURÉE d'une proposition sur un exercice (flux HITL du contexte
- * `block_exercise`, une opération par proposition — décision actée) : montée
+ * `block_exercise`, une opération par proposition) : montée
  * par `BlockEditor` À LA PLACE de l'éditeur d'exercice (masqué par classe —
  * Monaco survit) dès qu'une proposition attend. Une carte par opération :
  *

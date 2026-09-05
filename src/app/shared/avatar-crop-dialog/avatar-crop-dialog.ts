@@ -27,7 +27,7 @@ const EXPORT_QUALITY = 0.85;
  * précédent : poignée du block-editor) et zoome au slider (précédent :
  * `course-style-dialog`) dans un cadre carré ; « Valider » exporte un carré
  * `AVATAR_SIZE` en WebP via canvas et émet `(cropped)` — la modale ferme
- * D'ABORD puis émet (motif resource-picker). Le fichier original n'est
+ * D'ABORD puis émet (comme resource-picker). Le fichier original n'est
  * jamais uploadé : seul le blob exporté part vers S3.
  *
  * Le canvas est transparent par défaut et le WebP porte une couche alpha :

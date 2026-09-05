@@ -48,7 +48,7 @@ type CourseTab = 'blocks' | 'resources' | 'modules' | 'preview' | 'share';
 const TAB_ORDER: readonly CourseTab[] = ['blocks', 'resources', 'modules', 'preview', 'share'];
 
 /**
- * Page d'un cours, à deux onglets (tablist APG, motif `markdown-field`) :
+ * Page d'un cours, à onglets (tablist APG) :
  * « Blocs » — liste ordonnée des blocs, ajout par type (via une modale
  * titre/description puis redirection vers l'éditeur du bloc créé),
  * réordonnancement par glisser-déposer (poignée CDK) ou flèches discrètes — la
@@ -64,7 +64,8 @@ const TAB_ORDER: readonly CourseTab[] = ['blocks', 'resources', 'modules', 'prev
  */
 @Component({
   selector: 'app-course-blocks',
-  imports: [Tablist, 
+  imports: [
+    Tablist,
     RouterLink,
     TranslocoPipe,
     BlockCreateDialog,
@@ -106,7 +107,6 @@ export class CourseBlocks implements OnInit {
     this.#tabFromParam(inject(ActivatedRoute).snapshot.queryParamMap.get('tab')),
   );
 
-
   protected readonly detail = this.#courses.detail;
   protected readonly loading = this.#courses.detailLoading;
   protected readonly loadError = this.#courses.detailError;
@@ -146,7 +146,6 @@ export class CourseBlocks implements OnInit {
       replaceUrl: true,
     });
   }
-
 
   /** Onglet atteint au clavier (directive `ocTablist`). */
   protected onTabKey(key: string): void {

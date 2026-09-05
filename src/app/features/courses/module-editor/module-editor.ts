@@ -58,7 +58,7 @@ let sequence = 0;
  * jamais `@if` — Monaco vit dans les trois) et aperçu live sandboxé
  * (`app-module-runner`) alimenté par la frappe débouncée, composés avec le
  * chat d'édition (contexte `module`) dans un espace de travail redimensionnable
- * au motif block-editor. Autosave unique (`createAutosave`) par le PATCH
+ * comme block-editor. Autosave unique (`createAutosave`) par le PATCH
  * partiel `updateModule` — le renommage vit dans l'onglet Modules.
  *
  * Chat d'édition HITL : instance d'`AssistantChatState` dédiée, portée posée

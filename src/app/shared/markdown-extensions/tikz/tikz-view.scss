@@ -8,7 +8,7 @@
 .tikz-view__container {
   display: flex;
   justify-content: center;
-  // Planche claire FIXE dans les deux thèmes (motif des tokens de lecture
+  // Planche claire FIXE dans les deux thèmes (comme les tokens de lecture
   // forcés clairs de _print.scss) : TikZ trace en noir par défaut, un fond
   // thémé sombre rendrait la figure invisible. La bordure délimite la
   // planche en thème sombre.

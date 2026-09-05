@@ -23,12 +23,12 @@ export interface UserProfile {
   /** Code du système scolaire (`fr`, `uk`, …), `null` avant onboarding. */
   school_system: string | null;
   /**
-   * Nom d'affichage des pages publiques (catalogue de cours, J2) — seule
+   * Nom d'affichage des pages publiques (catalogue de cours) — seule
    * donnée d'identité montrée aux élèves ; `null` = catalogue anonyme.
    */
   public_name: string | null;
   /**
-   * Opt-in à la recherche publique de professeurs (J3). Le flag seul ne
+   * Opt-in à la recherche publique de professeurs. Le flag seul ne
    * suffit pas à remonter : il faut aussi un `public_name` et ≥1 cours public
    * (règle portée par le back).
    */
@@ -58,7 +58,7 @@ export interface OnboardingPayload {
   learning: ProfileContext | null;
 }
 
-/** Réponse du `POST /api/v1/users/me/avatar` (motif `ResourcePresign`, réduit). */
+/** Réponse du `POST /api/v1/users/me/avatar` (`ResourcePresign` réduit). */
 export interface AvatarPresign {
   upload_url: string;
   expires_in: number;

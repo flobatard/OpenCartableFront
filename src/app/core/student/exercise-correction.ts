@@ -1,5 +1,5 @@
 /**
- * Types du tuteur IA de résolution d'exercice (côté élève, J5) — le fil par
+ * Types du tuteur IA de résolution d'exercice (côté élève) — le fil par
  * question et son contrat API (`/v1/student/courses/{id}/blocks/{id}/…`,
  * JWT de l'élève requis : le régime anonyme n'a pas d'IA).
  *

@@ -16,7 +16,7 @@ const DIFF_LANGUAGE: Readonly<Record<AssistantModuleProposal['kind'], ProposalDi
 
 /**
  * Revue d'une proposition de code d'un module (flux HITL du contexte
- * `module`, UN fichier par proposition — décision actée) : montée par
+ * `module`, UN fichier par proposition) : montée par
  * `ModuleEditor` À LA PLACE du pane éditeur (masqué par classe — les trois
  * Monaco survivent), le pane **aperçu restant visible et exécutant déjà le
  * code proposé**. En-tête (titre + fichier visé + résumé du modèle), diff

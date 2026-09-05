@@ -15,7 +15,7 @@ import { armedAction } from '../../../core/editing/armed';
 const VISIBILITIES: readonly CourseVisibility[] = ['draft', 'private', 'public'];
 
 /**
- * Onglet « Partage » de la page cours (J2) : régime d'accès élève du cours
+ * Onglet « Partage » de la page cours : régime d'accès élève du cours
  * (trois cartes radio — En cours de rédaction / Lien privé / Public — PUT
  * immédiat ; l'état affiché dérive du signal `detail`, un échec le laisse
  * donc inchangé) et gestion des liens de partage (création avec libellé

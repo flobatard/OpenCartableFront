@@ -63,7 +63,7 @@ export class StudentResources {
     this.previewDialog()?.open(resource);
   }
 
-  /** Présigne puis ouvre dans un onglet — motif `CourseResources.download`. */
+  /** Présigne puis ouvre dans un onglet — comme `CourseResources.download`. */
   protected async download(resource: CourseResource): Promise<void> {
     if (this.downloading() !== null) {
       return;

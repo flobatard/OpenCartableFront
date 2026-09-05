@@ -10,7 +10,7 @@ import { resourceContentUrl } from '../resources/resource.utils';
  * Abstraction des accès « contenu de cours » des composants de rendu partagés
  * (`markdown-view`, `course-preview-document`, `module-embed`,
  * `course-blocks-view`) : le même rendu sert le prof authentifié ET l'élève
- * anonyme (J2), seule la source des données change.
+ * anonyme, seule la source des données change.
  *
  * - Côté prof, les tokens résolvent par défaut vers `ResourceService`/
  *   `ModuleService` (Bearer automatique) — **aucun provider à déclarer**.
@@ -74,8 +74,8 @@ export class ProfResourceResolver implements CourseResourceResolver {
     resourceId: string,
     disposition?: 'attachment' | 'inline',
   ): Promise<string> {
-    // Le défaut reste celui de ResourceService (forme d'appel historique,
-    // contrat des specs existantes) : on ne le matérialise pas ici.
+    // Le défaut reste celui de ResourceService (forme d'appel de référence,
+    // assertée par ses specs) : on ne le matérialise pas ici.
     return disposition === undefined
       ? this.#resources.getDownloadUrl(courseId, resourceId)
       : this.#resources.getDownloadUrl(courseId, resourceId, disposition);

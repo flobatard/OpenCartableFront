@@ -9,7 +9,7 @@ import { AssistantPanel } from './assistant-panel';
  * `/:lang/courses/:id[/…]` de l'espace prof — jamais `courses/new` (segment
  * littéral, pas un id) ni les pages publiques `/p/courses/…` (le préfixe `p/`
  * ne matche pas). Charset restreint : l'id extrait finit interpolé dans les
- * URL de l'API assistant (garde de forme, motif `isModuleId`).
+ * URL de l'API assistant (garde de forme, comme `isModuleId`).
  */
 const COURSE_URL_PATTERN = /^\/[a-z]{2}\/courses\/([A-Za-z0-9-]+)(?:[/?#;]|$)/;
 
@@ -21,14 +21,14 @@ export function courseIdFromUrl(url: string): string | null {
 
 /**
  * Hôte UNIQUE du panneau assistant flottant, monté dans le shell `App` (hors
- * du `router-outlet`, motif `app-snackbar`) : le cours courant est dérivé de
+ * du `router-outlet`, comme `app-snackbar`) : le cours courant est dérivé de
  * l'URL (`NavigationEnd`), pas du montage des pages — l'instance du panneau
  * (et son DOM : fil affiché, scroll, saisie en cours) **survit donc aux
  * navigations** entre la page cours et les éditeurs de bloc/module, sans
  * flash de remontage. Quitter l'espace du cours démonte le panneau (le
  * `@if`) ; l'état vit de toute façon dans `CourseAssistantService`.
  *
- * Le `@defer` (premier du projet) garde la chaîne du chat (markdown-view →
+ * Le `@defer` garde la chaîne du chat (markdown-view →
  * marked/KaTeX/DOMPurify…) HORS du bundle initial : `App` est eager, le
  * panneau ne se charge qu'à la première entrée authentifiée dans un cours.
  */

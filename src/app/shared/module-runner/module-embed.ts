@@ -10,7 +10,7 @@ import { ModuleRunner } from './module-runner';
  * code via `ModuleService.getModule` (cache partagé — un GET par module
  * affiché) puis délègue l'exécution sandbox à `ModuleRunner`. États : pas de
  * module choisi (bloc vide), module supprimé/injoignable (note « manquant »,
- * motif `.course-resource--missing`), résolu (iframe). Consommé par l'aperçu
+ * comme `.course-resource--missing`), résolu (iframe). Consommé par l'aperçu
  * d'un bloc `module` (éditeur + vue élève) et monté dynamiquement par
  * `markdown-view` sur les références `oc-module:` du markdown.
  *

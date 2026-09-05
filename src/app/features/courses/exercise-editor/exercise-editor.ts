@@ -42,7 +42,7 @@ import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
 import { armedAction } from '../../../core/editing/armed';
 import { Tablist } from '../../../shared/tabs/tablist.directive';
 
-/** Suffixe d'ids uniques par instance (tablist ARIA — motif `markdown-field`).
+/** Suffixe d'ids uniques par instance (tablist ARIA).
     Compteur de module, jamais Date/Random. */
 let sequence = 0;
 
@@ -79,7 +79,7 @@ const TAB_ORDER: readonly ExerciseTab[] = ['statement', 'questions', 'preview'];
  * Les champs sont retrouvés par refs de template (`#statementField`,
  * `#questionField` — `viewChildren` en ordre DOM = ordre de la FormArray).
  *
- * **Tentatives des élèves** (tuteur IA, J5) : l'hôte passe le résumé
+ * **Tentatives des élèves** (tuteur IA) : l'hôte passe le résumé
  * (`submissionCounts` par id de question, `submissionTotal`) ; un bouton
  * « Effacer les réponses » par question sauvée et un pour tout l'exercice
  * n'apparaissent que s'il y a quelque chose à effacer, en deux temps désarmés

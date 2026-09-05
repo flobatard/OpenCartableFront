@@ -5,7 +5,7 @@
   margin: 12px 0 0;
 }
 
-// Premier breakpoint du motif : sous 900px (précédent block-editor), empilement.
+// Sous 900px : empilement.
 @media (max-width: 900px) {
   .markdown-playground {
     grid-template-columns: 1fr;

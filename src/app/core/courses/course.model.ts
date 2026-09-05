@@ -23,7 +23,7 @@ export interface CourseBlock {
   title: string | null;
   /** Description commune facultative (tous types), distincte du `content`. */
   description: string | null;
-  /** Contenu JSONB, contrat applicatif par type — rempli par les futurs éditeurs. */
+  /** Contenu JSONB, contrat applicatif par type (`app/models/block.py` côté back). */
   content: Record<string, unknown>;
   /**
    * Blocs `document` uniquement : ressource du cours pointée, `null` = bloc
@@ -52,14 +52,14 @@ export type DocumentContentPayload = {
 /**
  * Question d'un bloc exercice telle qu'échangée avec le back.
  * `id: null` = nouvelle question : le back génère un uuid4 **stable à vie**
- * (les soumissions élèves J2 référenceront `(block_id, question_id)`) — le
+ * (les soumissions élèves référencent `(block_id, question_id)`) — le
  * front doit réécrire dans son formulaire les ids retournés par le PATCH.
  */
 export type ExerciseQuestionPayload = {
   id: string | null;
   /** Énoncé markdown (mêmes règles que le bloc texte). */
   statement: string;
-  /** Seul type admis aujourd'hui (extensible : QCM…). */
+  /** Seul type admis (extensible : QCM…). */
   type: 'free_text';
   /** Corrigé du prof, texte simple — jamais montré aux élèves. */
   expected_answer: string;
@@ -87,7 +87,7 @@ export interface BlockMetaPayload {
 }
 
 /**
- * Régime d'accès élève d'un cours (J2) : `public` = URL directe + catalogue
+ * Régime d'accès élève d'un cours : `public` = URL directe + catalogue
  * public du prof ; `private` = liens de partage à token uniquement ; `draft`
  * (défaut) = inaccessible publiquement, liens suspendus.
  */

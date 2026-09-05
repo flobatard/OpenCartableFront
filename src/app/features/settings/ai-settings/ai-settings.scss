@@ -95,7 +95,7 @@
   max-width: 420px;
 }
 
-/* Champs natifs stylés localement (motif profile__public-name, DS §8). */
+/* Champs natifs stylés localement (comme profile__public-name, DS §8). */
 .ai-settings__field {
   display: flex;
   flex-direction: column;
@@ -118,7 +118,7 @@
   font-size: 14px;
 }
 
-/* Combobox du champ modèle : suggestions chargées au focus (motif visuel
+/* Combobox du champ modèle : suggestions chargées au focus (apparence
    du dropdown de subject-picker, en local — pas un CVA, un seul usage). */
 .ai-settings__combobox {
   position: relative;

@@ -3,7 +3,7 @@ import type { CourseStyleSettings } from '../courses/course-style.service';
 import type { ResourceType } from '../resources/resource.model';
 
 /**
- * Contrat des routes publiques élèves (`/api/v1/public/*`, J2) — lecture
+ * Contrat des routes publiques élèves (`/api/v1/public/*`) — lecture
  * seule, sans identité ni Bearer. Champs en snake_case comme le reste de
  * l'API. Différences avec le contrat prof : matières/niveaux dénormalisés en
  * **noms** (les taxonomies sont derrière JWT), ressources embarquées dans le

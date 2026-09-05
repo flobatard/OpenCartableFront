@@ -17,7 +17,7 @@ import { ExerciseView, ExerciseViewMode } from './exercise-view';
 /**
  * Rendu en lecture des blocs d'un cours, dans l'ordre du back — extraction de
  * la boucle de `course-preview` (onglet Aperçu prof), partagée avec la vue
- * élève (J2). Présentational pur : les blocs et les ressources lui sont
+ * élève. Présentational pur : les blocs et les ressources lui sont
  * passés résolus ; les accès réseau (présignature, code des modules) passent
  * par les résolveurs injectés (`COURSE_*_RESOLVER`) des composants enfants —
  * prof par défaut, publics sur les routes élèves.

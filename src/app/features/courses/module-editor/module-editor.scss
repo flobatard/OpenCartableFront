@@ -28,7 +28,7 @@
   gap: 12px;
 }
 
-// Bascule du chat : état porté par aria-pressed + .pill--active (motif block-editor).
+// Bascule du chat : état porté par aria-pressed + .pill--active (comme block-editor).
 .module-editor__chat-toggle {
   padding: 6px 12px;
   font-weight: 500;
@@ -66,7 +66,7 @@
   min-height: 0;
 }
 
-// Éditeur | preview côte à côte (motif markdown-playground), empilé <900px.
+// Éditeur | preview côte à côte (comme markdown-playground), empilé <900px.
 // --editor-basis piloté en template (editorPct()) ; en custom property pour
 // qu'au repli la règle --solo puisse faire grandir les panes à la place du chat.
 // ⚠ La ligne de grille est EXPLICITE (minmax(0,1fr)) : une ligne implicite

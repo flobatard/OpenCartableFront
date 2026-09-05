@@ -9,7 +9,7 @@ import { Spinner } from '../../../shared/spinner/spinner';
 import { UserAvatar } from '../../../shared/user-avatar/user-avatar';
 
 /**
- * Catalogue public d'un prof (`/:lang/p/:teacherId`, J2) : ses cours `public`
+ * Catalogue public d'un prof (`/:lang/p/:teacherId`) : ses cours `public`
  * uniquement, en cartes « Ouvrir le cours » vers `/p/courses/:id`. Page
  * anonyme sans compte : la seule identité affichée est le `public_name`
  * choisi par le prof (absent → titre générique). Un prof inconnu répond la

@@ -13,7 +13,7 @@ import { Spinner } from '../../../shared/spinner/spinner';
  * 'inline')`) puis redirige le navigateur vers l'URL S3. `location.replace`
  * (pas d'entrée d'historique) : le bouton Retour ne boucle pas sur la
  * redirection. Route protégée (authGuard) rendue uniquement côté navigateur
- * (RenderMode.Client) — motif `AuthCallback`.
+ * (RenderMode.Client) — comme `AuthCallback`.
  */
 @Component({
   selector: 'app-resource-view',

@@ -1,8 +1,8 @@
 import { PublicCourseSummary } from '../public-courses/public-course.model';
 
 /**
- * Modèles de la recherche publique (J3) — miroir des schémas
- * `app/search/schemas.py` du back (première enveloppe paginée de l'API).
+ * Modèles de la recherche publique — miroir des schémas
+ * `app/search/schemas.py` du back (enveloppe paginée).
  */
 export interface SearchPage<T> {
   items: T[];
@@ -11,7 +11,7 @@ export interface SearchPage<T> {
   offset: number;
 }
 
-/** Une carte de résultat cours = la carte publique J2, contrat inchangé. */
+/** Un résultat cours = la carte publique (même contrat). */
 export type SearchCourseResult = PublicCourseSummary;
 
 export interface SearchTeacherResult {

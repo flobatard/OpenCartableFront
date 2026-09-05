@@ -13,11 +13,11 @@
  * pareil).
  *
  * - `block_text` : `propose_block_edit` — markdown INTÉGRAL de remplacement ;
- * - `block_exercise` (par question — décision actée) : `propose_statement_edit`
+ * - `block_exercise` (par question) : `propose_statement_edit`
  *   (sujet), `propose_question_edit` (énoncé et/ou corrigé d'une question),
  *   `propose_question_add` (nouvelle question, position `after_id`),
  *   `propose_question_delete` ;
- * - `module` (par fichier — décision actée) : `propose_html_edit`,
+ * - `module` (par fichier) : `propose_html_edit`,
  *   `propose_css_edit`, `propose_js_edit` — `new_code` INTÉGRAL de
  *   remplacement du fichier visé (aucune référence courte à résoudre : le code
  *   d'un module n'est pas du markdown de cours).

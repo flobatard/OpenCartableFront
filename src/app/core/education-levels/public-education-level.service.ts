@@ -6,7 +6,7 @@ import { EducationLevelNode } from './education-level.model';
 
 /**
  * Arbre des niveaux d'étude en lecture publique
- * (`GET /api/v1/public/education-levels/tree`, J3) — facettes de la recherche.
+ * (`GET /api/v1/public/education-levels/tree`) — facettes de la recherche.
  *
  * Service PARALLÈLE à `EducationLevelService` pour les mêmes raisons que
  * `PublicSubjectService` (cache singleton, Bearer décidé par l'URL) — voir

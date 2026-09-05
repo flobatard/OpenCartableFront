@@ -37,13 +37,13 @@ function indent(label: string, depth: number): string {
 }
 
 /**
- * Page de recherche publique (`/:lang/search`, J3) : cours publics et
+ * Page de recherche publique (`/:lang/search`) : cours publics et
  * professeurs cherchables, sans compte — c'est le point d'entrée transversal
  * du site pour un élève sans lien de partage. Sans texte libre, la page est
  * un catalogue (le back trie alors par `updated_at`).
  *
  * L'état (q, onglet, facettes, page) vit dans les **query params** (URL
- * partageable, motif `?tab=` de course-blocks : seed en snapshot, défauts
+ * partageable, comme le `?tab=` de course-blocks : seed en snapshot, défauts
  * retirés de l'URL, `replaceUrl` — back/forward ne rejoue pas l'état,
  * limite assumée du motif). Les facettes sont deux `<select>` natifs
  * mono-valeur alimentés par les arbres publics (`/v1/public/subjects/tree`

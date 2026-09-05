@@ -95,7 +95,7 @@ export class StudentResourceView implements OnInit {
   /**
    * Indirection publique (exception à la convention `protected`) :
    * `location.replace` n'est pas espionnable en jsdom, les specs espionnent
-   * cette méthode à la place (motif `resource-view`).
+   * cette méthode à la place (comme `resource-view`).
    */
   redirectTo(url: string): void {
     window.location.replace(url);

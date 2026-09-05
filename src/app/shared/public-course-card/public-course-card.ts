@@ -4,8 +4,8 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { PublicCourseSummary } from '../../core/public-courses/public-course.model';
 
 /**
- * Carte d'un cours public (J2/J3) — extraite du catalogue par prof pour être
- * partagée avec les résultats de recherche (motif `course-blocks-view`).
+ * Carte d'un cours public, partagée par le catalogue d'un prof et les
+ * résultats de recherche.
  *
  * Présentational pur : les chips matières/niveaux sont déjà des **noms**
  * dénormalisés par le back (contrat public), aucune résolution d'arbre ; le

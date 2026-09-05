@@ -6,7 +6,7 @@ import { COURSE_RESOURCES_FIXTURE } from './resources.fixture';
 import { SUBJECTS_FIXTURE } from './subjects.fixture';
 
 /**
- * Mocks à signaux des services de données (motif `assistant.fixture.ts`) :
+ * Mocks à signaux des services de données (comme `assistant.fixture.ts`) :
  * chaque fabrique rend la forme « sur-ensemble » du service — signaux
  * modifiables par la spec (`mock.tree.set(...)`) et `vi.fn()` pour les
  * méthodes. À appeler dans la config du TestBed (un état neuf par test).

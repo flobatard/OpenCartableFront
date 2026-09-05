@@ -9,13 +9,13 @@ export type CourseFontChoice = 'sans' | 'serif';
 
 /**
  * Réglages de style du rendu markdown d'un cours. Propriété du cours (et non
- * préférence globale du lecteur) : sera persistée côté back dans une colonne
- * JSONB, branchée juste après ce premier développement.
+ * préférence globale du lecteur), persistée côté back en JSONB
+ * (`preview_settings`).
  */
 export interface CourseStyleSettings {
   /** Taille de police du corps, en px (appliquée comme facteur px/16). */
   fontSizePx: number;
-  /** Facteur d'échelle des titres (1 = tailles historiques). */
+  /** Facteur d'échelle des titres (1 = tailles par défaut). */
   headingScale: number;
   /** Interligne du corps (appliqué comme facteur valeur/1.7). */
   lineHeight: number;
@@ -27,7 +27,7 @@ export interface CourseStyleSettings {
   font: CourseFontChoice;
 }
 
-/** Défauts = valeurs historiques du rendu (aucune personnalisation active). */
+/** Défauts du rendu (aucune personnalisation active). */
 export const COURSE_STYLE_DEFAULTS: CourseStyleSettings = {
   fontSizePx: 16,
   headingScale: 1,
@@ -37,7 +37,7 @@ export const COURSE_STYLE_DEFAULTS: CourseStyleSettings = {
   font: 'sans',
 };
 
-/** Bornes de chaque réglage (sliders de la modale + validation du JSONB futur). */
+/** Bornes de chaque réglage (sliders de la modale + validation du JSONB). */
 export const COURSE_STYLE_BOUNDS = {
   fontSizePx: { min: 14, max: 22, step: 1 },
   headingScale: { min: 0.85, max: 1.3, step: 0.05 },
@@ -57,7 +57,7 @@ function clampNumber(value: unknown, min: number, max: number, fallback: number)
 
 /**
  * Normalise/borne des réglages potentiellement partiels ou invalides (saisie de
- * la modale, future désérialisation du JSONB). Chaque champ retombe sur son
+ * la modale, désérialisation du JSONB). Chaque champ retombe sur son
  * défaut s'il est absent ou hors-bornes. Pur — testable isolément.
  */
 export function clampCourseStyle(

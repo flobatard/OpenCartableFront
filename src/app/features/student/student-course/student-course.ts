@@ -21,7 +21,7 @@ const TAB_BY_PATH: Readonly<Record<string, StudentTab>> = {
 };
 
 /**
- * **Coquille** de la vue élève d'un cours partagé (J2) — page publique, sans
+ * **Coquille** de la vue élève d'un cours partagé — page publique, sans
  * compte ni Zitadel. Deux régimes, un seul composant (mode lu en snapshot via
  * `data.access`) : lien de partage (`/:lang/shared/:token`) ou cours public
  * direct (`/:lang/p/courses/:courseId`).
@@ -29,7 +29,7 @@ const TAB_BY_PATH: Readonly<Record<string, StudentTab>> = {
  * Elle ne rend que l'**en-tête** (titre, description, chips), la **barre
  * d'onglets** et le `router-outlet` : chaque onglet est une **route enfant**
  * (Sommaire `''` | Ressources | Modules | Cours entier), et le bloc seul vit
- * sous l'onglet Sommaire (`blocks/:blockId`). Motif `DocsShell` : les onglets
+ * sous l'onglet Sommaire (`blocks/:blockId`). Comme `DocsShell` : les onglets
  * sont de **vrais liens de navigation** (`<nav>`, pas un tablist APG — il n'y
  * a pas de panneaux à contrôler, ce sont des pages).
  *

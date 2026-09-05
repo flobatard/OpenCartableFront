@@ -5,7 +5,7 @@ import { BLOCK_REF_ATTR, parseBlockRef } from './course-block-ref';
 import { MODULE_REF_ATTR, parseModuleRef } from './course-module-ref';
 import { parseResourceRef, RESOURCE_REF_ATTR } from './course-resource-ref';
 
-// Passes suivantes du pipeline, réexportées ici (entrée historique du module).
+// Passes suivantes du pipeline, réexportées ici (point d'entrée du pipeline).
 export { hasCourseDiagrams, mermaidSourceHasMath, renderCourseDiagrams } from './course-diagrams';
 export {
   hasCourseModules,

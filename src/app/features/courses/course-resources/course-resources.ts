@@ -19,7 +19,7 @@ import { armedAction } from '../../../core/editing/armed';
  * renommage inline (pas de modale — testable en jsdom), aperçu en modale
  * (bouton « Voir », images et PDF `available` — `ResourcePreviewDialog`),
  * téléchargement par URL présignée et suppression en deux temps désarmée au
- * blur (motif des blocs). Après une suppression, l'output `deleted` prévient
+ * blur (comme les blocs). Après une suppression, l'output `deleted` prévient
  * la page : les blocs `document` pointeurs ont été supprimés PAR LE SERVEUR
  * (FK CASCADE), le détail du cours doit être rechargé.
  */

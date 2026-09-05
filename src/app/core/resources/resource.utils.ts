@@ -4,14 +4,14 @@ import { CourseResource, ResourceType } from './resource.model';
 
 /**
  * Helpers purs de la bibliothèque de ressources, testés isolément
- * (motif `subject.utils.ts`).
+ * (comme `subject.utils.ts`).
  */
 
 /**
  * URL **front** stable de la page d'un cours (`/:lang/courses/:id`), toujours
  * absolue (`siteUrl`) — destinée aux documents qui survivent à la session
  * (note « module interactif » du PDF). Même caveat que `resourceContentUrl` :
- * réservée au prof propriétaire tant que le régime élève J2 n'existe pas.
+ * Route prof (protégée) : les pages élèves passent leur propre builder.
  */
 export function courseContentUrl(lang: AppLang, courseId: string): string {
   return `${environment.siteUrl}/${lang}/courses/${courseId}`;
@@ -22,8 +22,8 @@ export function courseContentUrl(lang: AppLang, courseId: string): string {
  * `/:lang/courses/:id/resources/:resourceId` (elle présigne via
  * `getDownloadUrl(..., 'inline')` puis redirige le navigateur vers S3).
  * Contrairement à l'URL présignée (TTL court), elle est pérenne — utilisable
- * dans un PDF persistant, mais réservée au prof propriétaire du cours tant
- * que le régime élève J2 (token de partage) n'existe pas. Toujours absolue
+ * dans un PDF persistant. Route prof (protégée) : les pages élèves passent
+ * à l'impression le builder de leur régime public. Toujours absolue
  * (`siteUrl`) : un PDF partagé l'exige.
  */
 export function resourceContentUrl(

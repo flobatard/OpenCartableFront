@@ -14,7 +14,7 @@ import {
 
 /**
  * Phases de la mutation d'avatar en cours (une seule à la fois) : `progress`
- * n'est significatif que pendant `uploading` (motif `UploadState` des
+ * n'est significatif que pendant `uploading` (comme `UploadState` des
  * ressources).
  */
 export interface AvatarState {
@@ -164,7 +164,7 @@ export class UserProfileService {
   /**
    * PUT du blob sur l'URL présignée, progression relayée dans `avatarState`.
    * Duplication assumée du `#putToS3` de `ResourceService` : on ne couple
-   * pas les deux services pour si peu (motif `subject.utils`).
+   * pas les deux services pour si peu (comme `subject.utils`).
    */
   #putToS3(uploadUrl: string, blob: Blob, mime: AvatarMime): Promise<void> {
     return new Promise((resolve, reject) => {

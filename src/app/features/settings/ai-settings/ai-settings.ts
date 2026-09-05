@@ -38,7 +38,7 @@ let nextId = 0;
  * Contrat clé API : le champ est TOUJOURS vide à l'affichage ; quand une clé
  * est déjà enregistrée, le laisser vide la conserve (le payload omet
  * `api_key`) — le placeholder l'explique. « Enregistrer » n'est actif que si
- * le formulaire est complet ET modifié (snapshot JSON, motif page profil).
+ * le formulaire est complet ET modifié (snapshot JSON, comme la page profil).
  */
 @Component({
   selector: 'app-ai-settings',

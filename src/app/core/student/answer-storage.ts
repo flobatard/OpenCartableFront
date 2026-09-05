@@ -1,10 +1,9 @@
 /**
- * Persistance locale des réponses d'exercice des élèves (J2) — localStorage
- * UNIQUEMENT : aucune soumission serveur à ce jalon (la table des soumissions
- * et la review IA arrivent au J5). Le schéma de clé référence
+ * Persistance locale des réponses d'exercice des élèves — localStorage, sans
+ * compte : la copie navigateur des brouillons, indépendante des soumissions
+ * au tuteur IA (serveur, élève connecté). Le schéma de clé référence
  * `(courseId, blockId, questionId)` : les `questions[].id` du back sont
- * stables à vie précisément pour ça — le J5 branchera ses soumissions sur les
- * mêmes identifiants sans migration des brouillons locaux.
+ * stables à vie précisément pour ça.
  *
  * Helpers purs + garde d'accès : localStorage peut être indisponible
  * (navigation privée stricte, quota) — toute écriture retourne son succès,
@@ -16,7 +15,7 @@ export interface StoredAnswer {
   text: string;
   /** Marquée « terminée » par l'élève (verrouillée à l'écran). */
   locked: boolean;
-  /** ISO 8601 — informatif (affichage futur, arbitrage multi-appareils J5). */
+  /** ISO 8601 — informatif (non affiché). */
   updatedAt: string;
 }
 

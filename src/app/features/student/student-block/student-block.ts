@@ -26,7 +26,7 @@ import { CourseBlocksView } from '../../../shared/course-blocks-view/course-bloc
  * Un bloc exercice s'y **résout** (mode `solve` de `CourseBlocksView` : zones
  * de réponse par question, réponses en localStorage) — c'est la page de
  * résolution, l'ancienne page pleine `exercises/:blockId` y redirige. Le
- * **tuteur IA** y est câblé pour l'élève **connecté** (J5) : `correctionEnabled`
+ * **tuteur IA** y est câblé pour l'élève **connecté** : `correctionEnabled`
  * suit `AuthService.isAuthenticated()`, les fils viennent de
  * `StudentSubmissionService` (chargés à chaque bloc exercice, imputés à la
  * config IA de l'élève), `correctionRequested` streame un tour,
@@ -38,7 +38,7 @@ import { CourseBlocksView } from '../../../shared/course-blocks-view/course-bloc
  * porte sur les résolveurs de contenu (`COURSE_*_RESOLVER`), inchangés ici.
  *
  * ⚠ `blockId` est lu sur le **paramMap observé**, jamais en snapshot : passer
- * d'un bloc au suivant réutilise l'instance du composant (motif `DocsShell`),
+ * d'un bloc au suivant réutilise l'instance du composant (comme `DocsShell`),
  * un snapshot resterait figé sur le premier bloc.
  */
 @Component({

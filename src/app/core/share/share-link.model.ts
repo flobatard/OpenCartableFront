@@ -1,5 +1,5 @@
 /**
- * Liens de partage élèves d'un cours (J2), servis par le back
+ * Liens de partage élèves d'un cours, servis par le back
  * (`/api/v1/courses/{id}/share-links`, JWT prof). Le `token` est une
  * capability URL : le front construit l'URL complète
  * `${siteUrl}/${lang}/shared/${token}` — jamais persistée, toujours dérivée.

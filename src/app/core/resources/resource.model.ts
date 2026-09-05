@@ -6,7 +6,7 @@
  * (`CourseBlock.resource_id`), jamais l'inverse.
  */
 
-/** Types de ressource ouverts au MVP (`module` = sandbox HTML/JS, jalon J4). */
+/** Types de ressource de la bibliothèque (les modules interactifs ont la leur). */
 export type ResourceType = 'document' | 'image' | 'audio' | 'video';
 
 /**

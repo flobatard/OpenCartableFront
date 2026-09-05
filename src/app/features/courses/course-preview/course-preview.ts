@@ -21,7 +21,7 @@ import { CourseStyleDialog } from '../../../shared/course-style-dialog/course-st
  * Aperçu global d'un cours (onglet « Aperçu » de la page cours) : le cours tel
  * que le verra l'élève. Le rendu par bloc est délégué au composant partagé
  * `CourseBlocksView` (`shared/course-blocks-view/`), commun avec la vue élève
- * publique (J2) — cette page ne garde que le contexte prof : chargement de la
+ * publique — cette page ne garde que le contexte prof : chargement de la
  * bibliothèque (`ResourceService`), style de lecture, barre d'actions
  * (« Style de lecture », « Télécharger en PDF »).
  *

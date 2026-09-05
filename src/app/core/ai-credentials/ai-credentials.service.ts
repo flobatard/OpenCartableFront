@@ -12,7 +12,7 @@ import {
 
 /**
  * Credential IA de l'utilisateur courant — variante MUTABLE mono-ressource du
- * patron (motif `UserProfileService` réduit) : signal source de vérité,
+ * patron (`UserProfileService` réduit) : signal source de vérité,
  * promesse en vol partagée (`ensureLoaded()`, invalidée sur erreur pour le
  * retry), mutations qui remplacent le signal depuis la réponse (pas de
  * refetch), purge quand la session OIDC tombe.

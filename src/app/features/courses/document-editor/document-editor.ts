@@ -27,7 +27,7 @@ import { CoursePreviewDocument } from '../../../shared/course-blocks-view/course
  * résolveur prof par défaut, ce composant reste sans service). Réactivité par
  * signaux miroirs posés directement (`#selectedId`, `#editorial`) et JAMAIS
  * `toSignal(valueChanges)` : toutes les écritures de synchronisation du
- * formulaire sont en `emitEvent: false` (motif module-editor, « signaux posés
+ * formulaire sont en `emitEvent: false` (comme module-editor — « signaux posés
  * directement, sinon preview vide »).
  */
 @Component({

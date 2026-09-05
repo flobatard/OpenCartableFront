@@ -1,7 +1,7 @@
 /* Revue d'une proposition de code : occupe le pane éditeur du workspace
    (hauteur définie — les trois Monaco sont masqués par classe à côté, ils
    survivent). Colonne flex : en-tête, corps (le diff remplit le reste), pied
-   de décision toujours visible. Motif proposal-review du block-editor. */
+   de décision toujours visible (comme proposal-review). */
 :host {
   display: flex;
   flex-direction: column;

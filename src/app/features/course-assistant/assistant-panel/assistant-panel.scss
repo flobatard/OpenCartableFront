@@ -14,7 +14,7 @@
 /* Déplié : une vraie surface de lecture — ~44 % de la largeur du viewport,
    bornée 560–920px (jamais plus que l'écran moins les marges), sur ~85 % de
    la hauteur. [hidden] re-annulé (une règle d'auteur bat le [hidden] de l'UA —
-   motif course-chat). */
+   comme course-chat). */
 .assistant-panel__card {
   width: min(clamp(560px, 44vw, 920px), calc(100vw - 32px));
   height: min(85vh, calc(100vh - 48px));
@@ -58,7 +58,7 @@
   outline-offset: 2px;
 }
 
-/* Bottom-sheet sous le breakpoint unique du projet. */
+/* Bottom-sheet sous 900px. */
 @media (max-width: 900px) {
   :host {
     right: 8px;

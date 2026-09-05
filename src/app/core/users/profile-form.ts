@@ -21,9 +21,9 @@ export function buildProfileForm() {
     isTeacher: new FormControl(false, { nonNullable: true }),
     isStudent: new FormControl(false, { nonNullable: true }),
     system: new FormControl<string | null>(null),
-    // Nom affiché sur les pages publiques (catalogue J2) — optionnel.
+    // Nom affiché sur les pages publiques (catalogue public) — optionnel.
     publicName: new FormControl('', { nonNullable: true }),
-    // Opt-in recherche publique de profs (J3) — l'onboarding ne l'affiche
+    // Opt-in recherche publique de profs — l'onboarding ne l'affiche
     // pas (défaut false, opt-in réfléchi depuis la page profil).
     searchable: new FormControl(false, { nonNullable: true }),
     teaching: blockGroup(),

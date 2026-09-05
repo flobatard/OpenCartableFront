@@ -5,14 +5,14 @@ import { environment } from '../../../environments/environment';
 import { SubjectNode } from './subject.model';
 
 /**
- * Arbre des matières en lecture publique (`GET /api/v1/public/subjects/tree`,
- * J3) — alimente les facettes de la page de recherche anonyme.
+ * Arbre des matières en lecture publique (`GET /api/v1/public/subjects/tree`)
+ * — alimente les facettes de la page de recherche anonyme.
  *
  * Service PARALLÈLE à `SubjectService`, pas une source paramétrable : le cache
  * `shareReplay` est un singleton par service (une double source servirait
  * l'arbre « public » à une page prof selon le premier appelant), et c'est
  * l'URL qui décide du Bearer — `/v1/public/` est exclu de l'attachement par la
- * `customUrlValidation` d'`app.config.ts` (motif `PublicCourseService` vs
+ * `customUrlValidation` d'`app.config.ts` (comme `PublicCourseService` vs
  * `CourseService`). Les données sont identiques à la route JWT (délégation
  * pure côté back) : mêmes modèles, mêmes helpers `subject.utils.ts`.
  */

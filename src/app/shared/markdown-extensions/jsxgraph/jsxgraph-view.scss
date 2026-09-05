@@ -9,7 +9,7 @@
   overflow: hidden;
 }
 
-// Échec d'import ou de tracé : note atténuée, motif .course-resource--missing.
+// Échec d'import ou de tracé : note atténuée (comme .course-resource--missing).
 .jsxgraph-view__error {
   display: inline-block;
   margin: 0.5rem 0 0;

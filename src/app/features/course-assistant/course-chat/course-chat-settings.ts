@@ -107,7 +107,7 @@ export class CourseChatSettings {
     this.menuTrigger()?.nativeElement.focus();
   }
 
-  /** Ferme si le focus quitte le groupe roue crantée + menu (motif user-menu). */
+  /** Ferme si le focus quitte le groupe roue crantée + menu (comme user-menu). */
   protected onMenuFocusout(event: FocusEvent): void {
     const wrapper = event.currentTarget as HTMLElement;
     const next = event.relatedTarget as Node | null;
