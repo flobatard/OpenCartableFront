@@ -18,17 +18,16 @@ import { AssistantChatState } from '../../../core/course-assistant/assistant-cha
 import { AssistantMessage } from '../../../core/course-assistant/assistant.model';
 import { CourseAssistantService } from '../../../core/course-assistant/course-assistant.service';
 import { parseProposal, PROPOSAL_TOOLS } from '../../../core/course-assistant/proposals';
-import { LanguageService } from '../../../core/i18n/language.service';
 import { progressiveReveal } from '../../../core/course-assistant/stream-reveal';
+import { armedAction } from '../../../core/editing/armed';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { BlockCitations } from '../../../shared/block-citations/block-citations.directive';
 import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
 import { CourseChatProposal } from './course-chat-proposal';
 import { CourseChatSettings } from './course-chat-settings';
-import { ChatToolView, CourseChatTool, toolResultExcerpt } from './course-chat-tool';
-import { armedAction } from '../../../core/editing/armed';
+import { ChatToolView, CourseChatTool, toolRowsById, toolViewsFor } from './course-chat-tool';
 
 export { STREAM_REVEAL_TICK_MS } from '../../../core/course-assistant/stream-reveal';
-
 
 /** Distance au bas (px) sous laquelle l'auto-scroll reste accroché. */
 const SCROLL_PIN_THRESHOLD_PX = 80;
@@ -43,8 +42,8 @@ const SCROLL_PIN_THRESHOLD_PX = 80;
  *   local, créée côté serveur au premier message), historique des
  *   conversations derrière la flèche retour, fil streamé (texte dévoilé
  *   progressivement, thinking repliable, appels d'outils dépliables —
- *   `app-course-chat-tool`), citations `oc-block:` cliquables par délégation
- *   d'événements sur le fil ;
+ *   `app-course-chat-tool`), citations `oc-block:` cliquables
+ *   (`ocBlockCitations`) ;
  * - **mode edit** (`blockId` OU `moduleId` passé, sans `placeholder` — hôte :
  *   la colonne ancrée de block-editor sur un bloc TEXTE ou EXERCICE, ou celle
  *   de module-editor) : même chat, câblé sur l'instance d'`AssistantChatState`
@@ -53,12 +52,10 @@ const SCROLL_PIN_THRESHOLD_PX = 80;
  *   modèle (`PROPOSAL_TOOLS`) deviennent des cartes de proposition
  *   INFORMATIVES dans le fil (`app-course-chat-proposal` : résumé + décision
  *   rendue, ou invite tant que le flux attend) — la revue (diff/carte +
- *   décision) vit dans l'ÉDITEUR de l'hôte (`app-proposal-review`,
- *   `app-exercise-proposal-review`, `app-module-proposal-review`), qui lit la
- *   même instance d'état ;
+ *   décision) vit dans l'ÉDITEUR de l'hôte, qui lit la même instance d'état ;
  * - **mode placeholder** (`placeholder` vrai) : coquille « bientôt », garde
  *   générique d'un hôte dont le contexte d'édition n'existerait pas côté back
- *   (aucun hôte ne la pose aujourd'hui).
+ *   (aucun hôte ne la pose).
  *
  * Deux régimes de rendu du texte assistant : pendant le stream,
  * `app-markdown-view` sans `courseId` (références oc-* inertes → re-rendus
@@ -87,10 +84,9 @@ export class CourseChat {
   readonly moduleId = input<string | null>(null);
   /**
    * Force la coquille « bientôt » malgré une cible : garde générique pour un
-   * hôte dont le contexte d'édition n'est PAS livré — sans elle, la cible
-   * basculerait en chat d'édition et la création de conversation échouerait
-   * (422 côté back). Plus aucun hôte ne la pose aujourd'hui : les quatre
-   * contextes (texte, exercice, module) sont livrés.
+   * hôte dont le contexte d'édition n'existerait pas côté back — sans elle, la
+   * cible basculerait en chat d'édition et la création de conversation
+   * échouerait (422). Aucun hôte ne la pose ; le mode reste testé.
    */
   readonly placeholder = input(false);
 
@@ -153,15 +149,9 @@ export class CourseChat {
   );
 
   /** Tours `tool` de la conversation, indexés par id d'appel (résultats persistés). */
-  readonly #toolRowsById = computed(() => {
-    const rows = new Map<string, AssistantMessage>();
-    for (const message of this.assistant.active()?.messages ?? []) {
-      if (message.role === 'tool' && message.tool_call_id) {
-        rows.set(message.tool_call_id, message);
-      }
-    }
-    return rows;
-  });
+  readonly #toolRowsById = computed(() =>
+    toolRowsById(this.assistant.active()?.messages ?? []),
+  );
 
   /** Activité d'outils du tour en cours, dans la forme rendue par `app-course-chat-tool`. */
   protected readonly liveToolViews = computed<ChatToolView[]>(() =>
@@ -298,23 +288,9 @@ export class CourseChat {
     }
   }
 
-  /**
-   * Appels d'outils d'un message assistant, appariés à leurs tours `tool`
-   * (`is_error` et extrait du contenu). Sans tour apparié (round interrompu
-   * avant le résultat) : « résultat indisponible ».
-   */
+  /** Appels d'outils d'un message assistant, appariés à leurs tours `tool`. */
   protected toolViews(message: AssistantMessage): ChatToolView[] {
-    const rows = this.#toolRowsById();
-    return message.tool_calls.map((call) => {
-      const row = rows.get(call.id);
-      return {
-        id: call.id,
-        name: call.name,
-        args: call.arguments ?? {},
-        status: row?.is_error ? 'error' : 'done',
-        result: row?.content ? toolResultExcerpt(row.content) : null,
-      };
-    });
+    return toolViewsFor(message, this.#toolRowsById());
   }
 
   /** Date dans la locale de l'UI (pas de DatePipe : locale fr non enregistrée). */

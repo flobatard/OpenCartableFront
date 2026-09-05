@@ -1,9 +1,10 @@
 import { Component, computed, input } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { AssistantMessage } from '../../../core/course-assistant/assistant.model';
 
 /**
  * Longueur de l'extrait de résultat affiché — même valeur que
- * `TOOL_RESULT_EXCERPT_CHARS` côté back (`app/course_assistant/service.py`) :
+ * `TOOL_RESULT_EXCERPT_CHARS` côté back (`app/course_assistant/turn_encoder.py`) :
  * un tour `tool` rechargé (contenu complet) et un tour replié depuis le flux
  * (extrait streamé) se présentent à l'identique.
  */
@@ -44,6 +45,38 @@ export function toolResultExcerpt(content: string): string {
   return content.length > TOOL_RESULT_EXCERPT_CHARS
     ? content.slice(0, TOOL_RESULT_EXCERPT_CHARS) + '…'
     : content;
+}
+
+/** Tours `tool` d'une conversation, indexés par id d'appel (résultats persistés). */
+export function toolRowsById(messages: readonly AssistantMessage[]): Map<string, AssistantMessage> {
+  const rows = new Map<string, AssistantMessage>();
+  for (const message of messages) {
+    if (message.role === 'tool' && message.tool_call_id) {
+      rows.set(message.tool_call_id, message);
+    }
+  }
+  return rows;
+}
+
+/**
+ * Appels d'outils d'un message assistant, appariés à leurs tours `tool`
+ * (`is_error` et extrait du contenu). Sans tour apparié (round interrompu
+ * avant le résultat) : résultat indisponible (`null`).
+ */
+export function toolViewsFor(
+  message: AssistantMessage,
+  rows: ReadonlyMap<string, AssistantMessage>,
+): ChatToolView[] {
+  return message.tool_calls.map((call) => {
+    const row = rows.get(call.id);
+    return {
+      id: call.id,
+      name: call.name,
+      args: call.arguments ?? {},
+      status: row?.is_error ? 'error' : 'done',
+      result: row?.content ? toolResultExcerpt(row.content) : null,
+    };
+  });
 }
 
 /**

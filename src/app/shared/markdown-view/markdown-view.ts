@@ -19,16 +19,15 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import {
-  hasCourseDiagrams,
-  hasCourseResources,
-  renderCourseDiagrams,
-  renderCourseMarkdown,
-  ResolvedResource,
-  resolveCourseResources,
-} from '../../core/markdown/course-markdown';
+import { hasCourseDiagrams, renderCourseDiagrams } from '../../core/markdown/course-diagrams';
+import { renderCourseMarkdown } from '../../core/markdown/course-markdown';
 import { isModuleId, MODULE_REF_ATTR } from '../../core/markdown/course-module-ref';
 import { resourceKind } from '../../core/markdown/course-resource-ref';
+import {
+  hasCourseResources,
+  ResolvedResource,
+  resolveCourseResources,
+} from '../../core/markdown/course-resource-pass';
 import { PrintService } from '../../core/print/print.service';
 import {
   applyExtensionPlaceholders,
@@ -36,7 +35,6 @@ import {
   hasMarkdownExtensions,
 } from '../markdown-extensions/extension-placeholders';
 import { MarkdownExtensionRegistry } from '../markdown-extensions/markdown-extension-registry';
-import { MarkdownExtensionComponent } from '../markdown-extensions/markdown-extension.model';
 import { COURSE_RESOURCE_RESOLVER } from '../../core/course-content/course-content-resolvers';
 import { CourseResource } from '../../core/resources/resource.model';
 import { CourseStyleService } from '../../core/courses/course-style.service';
@@ -44,25 +42,23 @@ import { ThemeService } from '../../core/theme/theme.service';
 import { CourseStyleDialog } from '../course-style-dialog/course-style-dialog';
 
 /**
- * Vue de rendu markdown de cours réutilisable (présentational, lecture seule) :
- * prend une chaîne markdown en entrée et l'affiche en HTML sûr via le pipeline
- * de `course-markdown` (markdown + KaTeX synchrone, puis passe Mermaid
- * asynchrone). C'est le pipeline d'aperçu, jadis dupliqué dans `markdown-field`
- * et `exercise-editor`, extrait ici et partagé par eux et par l'aperçu global
- * du cours (`course-preview`).
+ * Vue de rendu markdown de cours (présentational, lecture seule) : prend une
+ * chaîne markdown en entrée et l'affiche en HTML sûr via le pipeline de
+ * `core/markdown/` — markdown + KaTeX synchrone, puis passes asynchrones
+ * Mermaid et ressources. Consommée par `markdown-field`, l'aperçu d'exercice,
+ * `course-preview`, le chat de l'assistant et les pages élèves.
  *
- * Avec un `courseId`, une troisième passe résout les ressources intégrées
- * (`oc-resource:<id>`, cf. `course-resource-ref`) en média/lien via l'URL
- * présignée fraîche du résolveur injecté (`COURSE_RESOURCE_RESOLVER` :
- * bibliothèque prof par défaut, endpoints publics élèves sur les routes
- * partagées J2) — la bibliothèque est normalement chargée par la page hôte ;
- * un chargement défensif (`ensureList`) comble le cas contraire.
+ * Avec un `courseId`, la passe ressources résout les `oc-resource:<id>` en
+ * média/lien via l'URL présignée fraîche du résolveur injecté
+ * (`COURSE_RESOURCE_RESOLVER` : bibliothèque prof par défaut, endpoints
+ * publics sur les routes élèves) — la bibliothèque est normalement chargée par
+ * la page hôte ; un chargement défensif (`ensureList`) comble le cas
+ * contraire. Les fences d'extension (```geogebra…) et les placeholders de
+ * module (`oc-module:`) sont montés en composants sur le HTML rendu.
  *
- * À la différence des deux consommateurs éditeurs (qui gardaient le rendu sur
- * l'onglet actif pour la paresse), ce composant rend dès qu'il est **monté** :
- * son montage est déjà gouverné par le `@if` de la page hôte. Seule la garde
- * navigateur subsiste — DOMPurify/Mermaid touchent `window`, la page hôte doit
- * être en `RenderMode.Client`.
+ * Rend dès qu'il est **monté** (le montage est gouverné par le `@if` de la
+ * page hôte). Seule la garde navigateur subsiste — DOMPurify/Mermaid touchent
+ * `window`, la page hôte doit être en `RenderMode.Client`.
  */
 @Component({
   selector: 'app-markdown-view',
@@ -120,7 +116,7 @@ export class MarkdownView {
 
   /**
    * HTML rendu (markdown + KaTeX, puis diagrammes Mermaid, puis ressources). La
-   * sanitisation vit dans course-markdown (DOMPurify) ; le bypass évite
+   * sanitisation vit dans core/markdown (DOMPurify) ; le bypass évite
    * uniquement le second nettoyage d'Angular, qui dépouillerait les attributs
    * style et le MathML/SVG dont dépendent KaTeX et Mermaid. Signal (et non
    * computed) car les passes Mermaid/ressources sont asynchrones.
@@ -141,6 +137,9 @@ export class MarkdownView {
    * rendu tant que son markdown, le thème ou le cours ne changent pas.
    */
   #resolvedResourcesKey: string | null = null;
+
+  /** Import mémoïsé de ModuleEmbed (iframe sandbox hors des chunks sans module). */
+  #moduleEmbedImport: Promise<Type<unknown>> | null = null;
 
   constructor() {
     // Chargement défensif de la bibliothèque : seulement si aucun hôte ne l'a
@@ -229,115 +228,95 @@ export class MarkdownView {
           ref.destroy();
         }
       });
-      void this.#mountExtensions(host, refs, () => stale);
-      void this.#mountModuleEmbeds(host, refs, () => stale);
+      // Extensions : un composant par fence enregistré, importé lazy par le
+      // registry ; import échoué ou langage désenregistré = source visible.
+      void this.#mountOnPlaceholders(host, `[${EXTENSION_ATTR}]`, refs, () => stale, {
+        load: (el) => {
+          const language = el.getAttribute(EXTENSION_ATTR) ?? '';
+          return this.#extensions.get(language) === undefined
+            ? null
+            : this.#extensions.load(language);
+        },
+        inputs: (el) => ({ source: el.textContent ?? '' }),
+        pendingClass: 'course-extension--pending',
+      });
+      // Embeds de module : hors contexte cours, les spans restent des notes
+      // inertes. Garde de forme (UUID) : un `data-oc-module-id` peut aussi
+      // arriver par du HTML brut (DOMPurify garde les data-*) sans passer par
+      // parseModuleRef — un id forgé n'atteint jamais l'URL de l'API.
+      const courseId = this.courseId();
+      if (courseId !== null) {
+        void this.#mountOnPlaceholders(host, `[${MODULE_REF_ATTR}]`, refs, () => stale, {
+          load: (el) =>
+            isModuleId(el.getAttribute(MODULE_REF_ATTR) ?? '') ? this.#moduleEmbed() : null,
+          inputs: (el) => ({ courseId, moduleId: el.getAttribute(MODULE_REF_ATTR) ?? '' }),
+          pendingClass: 'course-module-embed--pending',
+        });
+      }
     });
   }
 
   /**
-   * Monte un composant d'extension sur chaque hôte `data-oc-extension` du
-   * contenu rendu (placeholders posés par applyExtensionPlaceholders). Le
-   * composant est importé lazy (mémoïsé par le registry) ; un import échoué ou
-   * un langage désenregistré laissent la source visible (repli à la mermaid).
-   * `createComponent({ hostElement })` plutôt qu'un ViewContainerRef : le
-   * placeholder vit dans du `[innerHTML]`, hors template — il devient l'hôte
-   * (ses `data-*` restent, l'export PDF les retrouve) ; `attachView` inscrit
-   * la vue dans le tick zoneless.
+   * Monte un composant sur chaque hôte `selector` du HTML rendu. `load` rend
+   * la promesse du composant (ou `null` : l'hôte reste inerte), `inputs` ses
+   * entrées — lues AVANT le vidage de l'hôte (la source d'un fence est son
+   * textContent). `createComponent({ hostElement })` plutôt qu'un
+   * ViewContainerRef : le placeholder vit dans du `[innerHTML]`, hors template
+   * — il devient l'hôte (ses `data-*` restent, l'export PDF les retrouve) ;
+   * `attachView` inscrit la vue dans le tick zoneless. Le textContent n'est
+   * vidé qu'après un import réussi (la source reste le repli) et le
+   * modificateur pending retiré avec lui ; stale-check après chaque `await`.
    */
-  async #mountExtensions(
+  async #mountOnPlaceholders(
     host: HTMLElement,
+    selector: string,
     refs: ComponentRef<unknown>[],
     isStale: () => boolean,
+    mount: {
+      load: (el: HTMLElement) => Promise<Type<unknown>> | null;
+      inputs: (el: HTMLElement) => Record<string, unknown>;
+      pendingClass: string;
+    },
   ): Promise<void> {
-    for (const el of host.querySelectorAll<HTMLElement>(`[${EXTENSION_ATTR}]`)) {
-      const language = el.getAttribute(EXTENSION_ATTR) ?? '';
-      if (this.#extensions.get(language) === undefined) {
+    for (const el of host.querySelectorAll<HTMLElement>(selector)) {
+      const pending = mount.load(el);
+      if (pending === null) {
         continue;
       }
-      const source = el.textContent ?? '';
-      let component: Type<MarkdownExtensionComponent>;
+      const inputs = mount.inputs(el);
+      let component: Type<unknown>;
       try {
-        component = await this.#extensions.load(language);
+        component = await pending;
       } catch {
         continue;
       }
       if (isStale()) {
         return;
       }
-      // Vidé seulement après un import réussi : la source reste le repli. Le
-      // modificateur pending (typo mono du repli) ne doit pas habiller le composant.
       el.textContent = '';
-      el.classList.remove('course-extension--pending');
+      el.classList.remove(mount.pendingClass);
       const ref = createComponent(component, {
         environmentInjector: this.#envInjector,
         elementInjector: this.#injector,
         hostElement: el,
       });
-      ref.setInput('source', source);
+      for (const [name, value] of Object.entries(inputs)) {
+        ref.setInput(name, value);
+      }
       this.#appRef.attachView(ref.hostView);
       refs.push(ref);
     }
   }
 
-  /** Import mémoïsé de ModuleEmbed (iframe sandbox hors des chunks sans module). */
-  #moduleEmbedImport: Promise<Type<unknown>> | null = null;
-
-  /**
-   * Monte un `ModuleEmbed` sur chaque placeholder `data-oc-module-id` du
-   * contenu rendu (posés par l'override du renderer `link` pour les
-   * `oc-module:<id>`). Même mécanique que `#mountExtensions` (createComponent
-   * sur l'hôte innerHTML, import dynamique mémoïsé) ; hors contexte cours
-   * (`courseId` nul), les spans restent des notes inertes.
-   */
-  async #mountModuleEmbeds(
-    host: HTMLElement,
-    refs: ComponentRef<unknown>[],
-    isStale: () => boolean,
-  ): Promise<void> {
-    const courseId = this.courseId();
-    if (courseId === null) {
-      return;
-    }
-    const placeholders = host.querySelectorAll<HTMLElement>(`[${MODULE_REF_ATTR}]`);
-    if (placeholders.length === 0) {
-      return;
-    }
-    this.#moduleEmbedImport ??= import('../module-runner/module-embed').then(
-      (m) => m.ModuleEmbed,
-    );
-    let component: Type<unknown>;
-    try {
-      component = await this.#moduleEmbedImport;
-    } catch {
-      this.#moduleEmbedImport = null;
-      return;
-    }
-    if (isStale()) {
-      return;
-    }
-    for (const el of placeholders) {
-      const moduleId = el.getAttribute(MODULE_REF_ATTR) ?? '';
-      // Garde de forme (UUID) : un `data-oc-module-id` peut aussi arriver par
-      // du HTML brut dans le markdown (DOMPurify garde les data-*) sans passer
-      // par parseModuleRef — un id forgé n'atteint jamais l'URL de l'API ; le
-      // span reste alors une note inerte.
-      if (!isModuleId(moduleId)) {
-        continue;
-      }
-      // Le texte du lien (repli lisible) laisse place au composant ; les
-      // `data-*` de l'hôte restent (l'export PDF les retrouve).
-      el.textContent = '';
-      el.classList.remove('course-module-embed--pending');
-      const ref = createComponent(component, {
-        environmentInjector: this.#envInjector,
-        elementInjector: this.#injector,
-        hostElement: el,
+  /** Import mémoïsé de `ModuleEmbed` ; un échec est retiré du cache (retry possible). */
+  #moduleEmbed(): Promise<Type<unknown>> {
+    this.#moduleEmbedImport ??= import('../module-runner/module-embed')
+      .then((m) => m.ModuleEmbed)
+      .catch((error: unknown) => {
+        this.#moduleEmbedImport = null;
+        throw error;
       });
-      ref.setInput('courseId', courseId);
-      ref.setInput('moduleId', moduleId);
-      this.#appRef.attachView(ref.hostView);
-      refs.push(ref);
-    }
+    return this.#moduleEmbedImport;
   }
 
   /** Enchaîne les passes async (diagrammes puis ressources) sur le HTML de base. */
@@ -357,7 +336,11 @@ export class MarkdownView {
     }
     if (resolveResources && courseId !== null) {
       const missing = this.#transloco.translate('markdownField.resourceMissing');
-      html = await resolveCourseResources(html, (id) => this.#resolveResource(courseId, list, id), missing);
+      html = await resolveCourseResources(
+        html,
+        (id) => this.#resolveResource(courseId, list, id),
+        missing,
+      );
     }
     return html;
   }

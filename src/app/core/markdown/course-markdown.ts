@@ -3,24 +3,35 @@ import katex from 'katex';
 import { Marked, Tokens, TokenizerAndRendererExtension } from 'marked';
 import { BLOCK_REF_ATTR, parseBlockRef } from './course-block-ref';
 import { MODULE_REF_ATTR, parseModuleRef } from './course-module-ref';
-import { parseResourceRef, ResourceRefKind, RESOURCE_REF_ATTR } from './course-resource-ref';
+import { parseResourceRef, RESOURCE_REF_ATTR } from './course-resource-ref';
+
+// Passes suivantes du pipeline, réexportées ici (entrée historique du module).
+export { hasCourseDiagrams, mermaidSourceHasMath, renderCourseDiagrams } from './course-diagrams';
+export {
+  hasCourseModules,
+  hasCourseResources,
+  resolveCourseResources,
+} from './course-resource-pass';
+export type { ResolvedResource } from './course-resource-pass';
 
 /**
  * Rendu du markdown des blocs de cours (contrat `texte` de
  * app/models/block.py) : markdown GFM + formules LaTeX — `$…$` en ligne,
- * `$$…$$` centrée — rendues par KaTeX.
+ * `$$…$$` centrée — rendues par KaTeX. Première passe, synchrone ; les
+ * diagrammes Mermaid (`course-diagrams.ts`) et les ressources de la
+ * bibliothèque (`course-resource-pass.ts`) sont des passes asynchrones
+ * enchaînées par `markdown-view`.
  *
- * LA sanitisation du HTML de cours vit ici et nulle part ailleurs :
- * DOMPurify avec les profils html + mathMl + svg (la sortie KaTeX repose sur
- * des attributs `style` de positionnement, du MathML d'accessibilité et du
- * SVG pour les délimiteurs étirables — que le sanitizer d'Angular
- * dépouillerait). Les consommateurs injectent le résultat via
+ * LA sanitisation du HTML de cours vit dans `core/markdown/` et nulle part
+ * ailleurs : DOMPurify avec les profils html + mathMl + svg (la sortie KaTeX
+ * repose sur des attributs `style` de positionnement, du MathML
+ * d'accessibilité et du SVG pour les délimiteurs étirables — que le sanitizer
+ * d'Angular dépouillerait). Les consommateurs injectent le résultat via
  * `bypassSecurityTrustHtml`, jamais de HTML non passé par cette fonction.
  *
  * ⚠ Navigateur uniquement : sans `window` (SSR), DOMPurify retourne le HTML
- * NON filtré — tout consommateur (aperçu éditeur, future vue élève) doit
- * n'injecter ce HTML que côté client (route RenderMode.Client ou rendu
- * différé après hydratation).
+ * NON filtré — tout consommateur n'injecte ce HTML que côté client (route
+ * RenderMode.Client ou rendu différé après hydratation).
  */
 
 /**
@@ -135,8 +146,9 @@ function modulePlaceholder(id: string, label: string): string {
 /**
  * Ancre inerte d'une citation de bloc (`oc-block:<id>`, assistant IA) : pas
  * de href (rien à résoudre), l'id voyage en `data-*` (survit à DOMPurify) et
- * `tabindex` la rend focusable — le panneau assistant navigue par délégation
- * d'événements ; partout ailleurs l'ancre reste un texte inerte.
+ * `tabindex` la rend focusable — les hôtes qui naviguent le font par
+ * délégation d'événements (directive `ocBlockCitations`) ; partout ailleurs
+ * l'ancre reste un texte inerte.
  */
 function blockRefAnchor(id: string, label: string): string {
   return (
@@ -206,260 +218,4 @@ export function renderCourseMarkdown(markdown: string): string {
     // strippés par le profil mathMl par défaut. Jamais annotation-xml (mXSS).
     ADD_TAGS: ['semantics', 'annotation'],
   });
-}
-
-/*
- * Diagrammes Mermaid — deuxième passe, ASYNCHRONE et navigateur uniquement.
- *
- * marked rend déjà un bloc ```mermaid en <pre><code class="language-mermaid">…
- * (repli gracieux : la source reste lisible tant que la passe n'a pas tourné).
- * renderCourseDiagrams remplace ces blocs par le SVG du diagramme. Le SVG
- * mermaid REPASSE par DOMPurify : la sanitisation du HTML de cours reste
- * confinée à ce module, seul point de bypass autorisé.
- *
- * Deux contraintes de sanitisation vérifiées et non négociables :
- * - `htmlLabels: false` en TOP-LEVEL (pas sous `flowchart` — ignoré par le
- *   renderer v11) : les libellés doivent être des <text> SVG. En
- *   <foreignObject> (défaut mermaid), DOMPurify strippe TOUJOURS le HTML
- *   interne (même avec ADD_TAGS le foreignObject reste mais vide) et les
- *   diagrammes sortiraient sans texte. Vérifié : top-level → 0 foreignObject,
- *   libellés en <text> qui survivent à la sanitisation.
- * - `securityLevel: 'strict'` : défense en profondeur au-dessus de DOMPurify.
- *
- * mermaid est importé dynamiquement : hors du bundle initial, jamais chargé
- * sur une page sans diagramme ni au SSR (sans `window`, on renvoie le HTML
- * tel quel — le bloc source reste le repli). Un diagramme invalide n'interrompt
- * pas les autres : sa source est conservée dans un bloc d'erreur.
- */
-const MERMAID_SOURCE_SELECTOR = 'pre > code.language-mermaid';
-
-/** Ids DOM uniques pour mermaid.render (élément temporaire posé dans le body). */
-let mermaidUid = 0;
-
-/** Vrai si `html` (sortie de renderCourseMarkdown) contient un bloc mermaid. */
-export function hasCourseDiagrams(html: string): boolean {
-  return html.includes('language-mermaid');
-}
-
-/*
- * Le LaTeX dans les libellés Mermaid n'est PAS rendu ici : ça exigerait
- * `htmlLabels: true` (KaTeX injecté en <foreignObject>), or on force
- * `htmlLabels: false` pour la sanitisation (cf. doc ci-dessous). On se
- * contente de DÉTECTER un délimiteur math dans la source pour afficher un
- * indice pédagogique sous le diagramme (« mets la formule autour, pas dedans »).
- * Motif tolérant : un faux positif n'affiche qu'un indice non bloquant.
- */
-const MERMAID_MATH_HINT = /\$[^$\n]+\$/;
-
-/** Vrai si la source Mermaid contient un délimiteur math plausible (`$…$`/`$$…$$`). */
-export function mermaidSourceHasMath(source: string): boolean {
-  return MERMAID_MATH_HINT.test(source);
-}
-
-/**
- * Rend en SVG les blocs ```mermaid d'un HTML DÉJÀ sanitisé par
- * renderCourseMarkdown. `theme` aligne le thème mermaid sur celui de l'app.
- * Cf. doc ci-dessus pour les invariants de sanitisation.
- */
-export async function renderCourseDiagrams(
-  html: string,
-  theme: 'light' | 'dark',
-  mathNote?: string,
-  errorLabel?: string,
-): Promise<string> {
-  if (typeof window === 'undefined' || typeof DOMParser === 'undefined') {
-    return html;
-  }
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  const sources = doc.querySelectorAll(MERMAID_SOURCE_SELECTOR);
-  if (sources.length === 0) {
-    return html;
-  }
-
-  const { default: mermaid } = await import('mermaid');
-  mermaid.initialize({
-    startOnLoad: false,
-    securityLevel: 'strict',
-    theme: theme === 'dark' ? 'dark' : 'default',
-    // Libellés en <text> SVG (jamais <foreignObject>) : cf. doc du module.
-    // TOP-LEVEL impératif — `flowchart.htmlLabels` est ignoré par le renderer.
-    htmlLabels: false,
-    // Diagramme invalide : ne PAS injecter le SVG « bombe » d'erreur de mermaid
-    // dans le document. On gère notre propre repli (source visible) ci-dessous ;
-    // sans ceci, mermaid pose son graphique d'erreur dans le document.body réel
-    // (l'élément de travail temporaire orphelin), visible en bas de page.
-    suppressErrorRendering: true,
-  });
-
-  // Séquentiel : mermaid.render mute un conteneur global partagé, deux appels
-  // concurrents se marcheraient dessus.
-  for (const code of sources) {
-    const pre = code.parentElement;
-    if (pre === null) {
-      continue;
-    }
-    const source = code.textContent ?? '';
-    const figure = doc.createElement('figure');
-    const renderId = `oc-mermaid-${mermaidUid++}`;
-    try {
-      const { svg } = await mermaid.render(renderId, source);
-      figure.className = 'course-mermaid';
-      figure.innerHTML = DOMPurify.sanitize(svg, {
-        USE_PROFILES: { html: true, svg: true, mathMl: true },
-      });
-      // Indice : le LaTeX dans un nœud Mermaid n'est pas rendu (htmlLabels:false).
-      // textContent, jamais innerHTML : la note est un libellé traduit de confiance,
-      // on ne rouvre pas de vecteur d'injection.
-      if (mathNote !== undefined && mermaidSourceHasMath(source)) {
-        const note = doc.createElement('figcaption');
-        note.className = 'course-mermaid__note';
-        note.textContent = mathNote;
-        figure.appendChild(note);
-      }
-    } catch (err) {
-      // Diagramme invalide : on garde la source visible (comme .katex-error) et
-      // on affiche le message d'erreur de mermaid en légende pour guider l'auteur.
-      figure.className = 'course-mermaid course-mermaid--error';
-      if (errorLabel !== undefined) {
-        const caption = doc.createElement('figcaption');
-        caption.className = 'course-mermaid__error';
-        // textContent, jamais innerHTML : le message d'erreur mermaid est du
-        // texte non fiable (dérivé de la source), on ne rouvre pas d'injection.
-        const detail = err instanceof Error ? err.message.trim() : '';
-        caption.textContent = detail ? `${errorLabel} ${detail}` : errorLabel;
-        figure.appendChild(caption);
-      }
-      const fallback = doc.createElement('pre');
-      fallback.textContent = source;
-      figure.appendChild(fallback);
-      // Défense en profondeur : mermaid crée son élément de travail dans le
-      // document.body RÉEL (pas notre `doc` détaché) et ne le nettoie pas en
-      // cas d'échec. On retire cet orphelin (`d<id>`) pour éviter tout résidu.
-      document.querySelector(`#d${renderId}`)?.remove();
-    }
-    pre.replaceWith(figure);
-  }
-
-  return doc.body.innerHTML;
-}
-
-/*
- * Ressources de la bibliothèque intégrées au markdown — passe ASYNCHRONE et
- * navigateur uniquement (patron de renderCourseDiagrams).
- *
- * renderCourseMarkdown émet un placeholder `data-oc-resource-id` (sans src/href,
- * donc aucune requête réseau) pour chaque `oc-resource:<id>`. Cette passe le
- * remplace par le média (image/audio/vidéo intégré) ou le lien téléchargeable,
- * l'URL présignée (TTL court, jamais stockée) étant résolue à la volée par
- * `resolve`. Une ressource supprimée / indisponible / injoignable (`resolve`
- * renvoie `null`) devient une note « indisponible ». Le HTML REPASSE par
- * DOMPurify : la sanitisation du HTML de cours reste confinée à ce module.
- */
-
-/** URL présignée + élément de rendu + libellé d'une ressource résolue. */
-export interface ResolvedResource {
-  url: string;
-  kind: ResourceRefKind;
-  label: string;
-}
-
-/** Vrai si `html` (sortie de renderCourseMarkdown) référence une ressource. */
-export function hasCourseResources(html: string): boolean {
-  return html.includes(RESOURCE_REF_ATTR);
-}
-
-/** Vrai si `html` (sortie de renderCourseMarkdown) référence un module. */
-export function hasCourseModules(html: string): boolean {
-  return html.includes(MODULE_REF_ATTR);
-}
-
-/**
- * Remplace les placeholders `data-oc-resource-id` d'un HTML DÉJÀ sanitisé par le
- * média/lien correspondant. `resolve` mappe un id → { url, kind, label } (ou
- * `null` si indisponible) ; `missingLabel` est la note affichée à sa place.
- */
-export async function resolveCourseResources(
-  html: string,
-  resolve: (id: string) => Promise<ResolvedResource | null>,
-  missingLabel: string,
-): Promise<string> {
-  if (typeof window === 'undefined' || typeof DOMParser === 'undefined') {
-    return html;
-  }
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  const nodes = doc.querySelectorAll(`[${RESOURCE_REF_ATTR}]`);
-  if (nodes.length === 0) {
-    return html;
-  }
-
-  // Une présignature par id distinct, même s'il est référencé plusieurs fois.
-  const ids = [...new Set([...nodes].map((n) => n.getAttribute(RESOURCE_REF_ATTR) ?? ''))].filter(
-    (id) => id !== '',
-  );
-  const resolved = new Map<string, ResolvedResource | null>();
-  await Promise.all(
-    ids.map(async (id) => {
-      resolved.set(id, await resolve(id).catch(() => null));
-    }),
-  );
-
-  for (const node of nodes) {
-    const id = node.getAttribute(RESOURCE_REF_ATTR) ?? '';
-    node.replaceWith(buildResourceElement(doc, resolved.get(id) ?? null, missingLabel, id));
-  }
-
-  return DOMPurify.sanitize(doc.body.innerHTML, {
-    USE_PROFILES: { html: true, svg: true, mathMl: true },
-    // target/aria-label ne sont pas dans la liste par défaut de DOMPurify
-    // (controls/loading/download/src/href/alt/class, eux, le sont).
-    ADD_ATTR: ['target', 'aria-label'],
-  });
-}
-
-/**
- * Élément DOM d'une ressource résolue (jamais innerHTML : pas de réinjection).
- * L'`id` de la ressource est reposé en `data-oc-resource-id` sur l'élément
- * résolu (inerte à l'écran, survit à DOMPurify via `data-*`) : il permet à un
- * consommateur (ex. l'export PDF) de retrouver la ressource et de reconstruire
- * une URL stable à la place de l'URL présignée éphémère.
- */
-function buildResourceElement(
-  doc: Document,
-  resolved: ResolvedResource | null,
-  missingLabel: string,
-  id: string,
-): HTMLElement {
-  if (resolved === null) {
-    const span = doc.createElement('span');
-    span.className = 'course-resource course-resource--missing';
-    span.textContent = missingLabel;
-    return span;
-  }
-  const { url, kind, label } = resolved;
-  if (kind === 'image') {
-    const img = doc.createElement('img');
-    img.className = 'course-resource';
-    img.setAttribute(RESOURCE_REF_ATTR, id);
-    img.setAttribute('src', url);
-    img.setAttribute('alt', label);
-    img.setAttribute('loading', 'lazy');
-    return img;
-  }
-  if (kind === 'audio' || kind === 'video') {
-    const media = doc.createElement(kind);
-    media.className = 'course-resource';
-    media.setAttribute(RESOURCE_REF_ATTR, id);
-    media.setAttribute('controls', '');
-    media.setAttribute('src', url);
-    media.setAttribute('aria-label', label);
-    return media;
-  }
-  const link = doc.createElement('a');
-  link.className = 'course-resource course-resource--link';
-  link.setAttribute(RESOURCE_REF_ATTR, id);
-  link.setAttribute('href', url);
-  link.setAttribute('target', '_blank');
-  link.setAttribute('rel', 'noopener');
-  link.textContent = label;
-  return link;
 }

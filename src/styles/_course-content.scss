@@ -1,0 +1,181 @@
+/* Contenu de cours (.course-content) — rendu markdown des blocs (markdown-view).
+   Cible AAA (7:1) + présentation visuelle 1.4.8. Tokens : _tokens.scss. */
+
+.course-content {
+  --text-secondary: var(--slate-600); /* 7.58 */
+  --link: var(--indigo-700); /* 7.90 */
+  --text-success: var(--emerald-800);
+  --text-info: var(--sky-800);
+  --text-warning: var(--amber-800);
+  --text-danger: var(--red-800);
+  /* Typographie paramétrable par cours (CourseStyleService pose ces variables en
+     [style] inline sur le conteneur de rendu ; défauts = valeurs historiques, donc
+     aucune régression tant qu'aucune variable n'est posée). Les dimensions dont le
+     défaut diffère entre écran et papier sont des FACTEURS d'échelle (défaut 1) :
+     chaque média garde sa base propre × le même facteur, si bien que les mêmes
+     réglages pilotent l'écran (base px/1.7/1.5em) et l'impression (base pt/1.5/0.9em,
+     cf. _print.scss) sans jamais altérer les défauts. */
+  font-family: var(--course-font, var(--font-sans));
+  font-size: calc(16px * var(--course-font-scale, 1));
+  max-width: var(--course-width, 68ch);
+  line-height: calc(1.7 * var(--course-line-scale, 1));
+  text-align: left;
+}
+
+.course-content p {
+  margin-block: 0 calc(1.5em * var(--course-para-scale, 1));
+}
+
+/* Titres du markdown de cours : scopés à .course-content (spécificité > aux
+   règles globales h1..h4 de _typography.scss, qui restent inchangées pour l'UI).
+   Tailles en em (suivent le corps) × facteur --course-heading-scale ; famille
+   display conservée (le choix serif ne bascule que le corps). weight/line-height/
+   letter-spacing/margin restent hérités des règles globales. */
+.course-content :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-display);
+}
+
+.course-content h1 {
+  font-size: calc(1.75em * var(--course-heading-scale, 1));
+}
+
+.course-content h2 {
+  font-size: calc(1.5em * var(--course-heading-scale, 1));
+}
+
+.course-content h3 {
+  font-size: calc(1.25em * var(--course-heading-scale, 1));
+}
+
+.course-content h4 {
+  font-size: calc(1.125em * var(--course-heading-scale, 1));
+}
+
+/* Formules KaTeX centrées ($$…$$) : rythme vertical des paragraphes, et
+   défilement horizontal plutôt que débordement pour les formules larges. */
+.course-content .katex-display {
+  margin-block: 0 1.5em;
+  overflow-x: auto;
+}
+
+/* Diagrammes Mermaid (rendus par renderCourseDiagrams) : figure centrée,
+   défilement horizontal des diagrammes larges. Repli si diagramme invalide. */
+.course-content .course-mermaid {
+  margin: 0 0 1.5em;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.course-content .course-mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.course-content .course-mermaid--error {
+  text-align: left;
+}
+
+/* Message d'erreur affiché quand mermaid ne compile pas la source (au-dessus du
+   bloc source conservé). Rouge sémantique thème-aware, lisible AA. */
+.course-content .course-mermaid__error {
+  margin: 0 0 0.5em;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-danger);
+  text-align: left;
+  white-space: pre-wrap;
+}
+
+/* Indice sous un diagramme dont la source contient du LaTeX (non rendu dans
+   les nœuds Mermaid). Discret mais lisible AA — jamais slate-400 pour du texte. */
+.course-content .course-mermaid__note {
+  margin: 0.5em 0 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* Médias de ressources intégrés au markdown (résolus par resolveCourseResources
+   en URL présignée) : contraints à la largeur de lecture. Le rythme vertical
+   vient du <p> qui les enveloppe (marked entoure une image/un lien isolé). */
+.course-content img,
+.course-content video {
+  max-width: 100%;
+  height: auto;
+}
+
+.course-content img {
+  border-radius: var(--radius);
+}
+
+.course-content audio {
+  max-width: 100%;
+}
+
+/* Tableaux GFM du markdown de cours : bordures discrètes, en-tête sur fond
+   subtil — tokens uniquement (documentés dans l'aide markdown). */
+.course-content table {
+  border-collapse: collapse;
+  margin: 0 0 1em;
+  max-width: 100%;
+}
+
+.course-content th,
+.course-content td {
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  text-align: left;
+}
+
+.course-content th {
+  background: var(--bg-subtle);
+  font-weight: 600;
+}
+
+/* Hôte d'une extension markdown (```geogebra…, cf. shared/markdown-extensions) :
+   le composant est monté dedans par markdown-view ; avant montage il affiche la
+   source du fence (repli à la mermaid), en fonte mono discrète. */
+.course-content .course-extension {
+  margin: 0 0 1em;
+  max-width: 100%;
+}
+
+/* Avant montage (ou si l'import échoue), l'hôte affiche la source brute du
+   fence : fonte mono discrète. Le modificateur est retiré au montage — la
+   typo ne doit pas hériter dans le composant. */
+.course-content .course-extension--pending {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  white-space: pre-wrap;
+}
+
+/* Ressource supprimée / indisponible : note atténuée à la place du média (jamais
+   slate-400 pour du texte). Le pending (avant résolution) est furtif. */
+.course-content .course-resource--missing {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.875em;
+  font-style: italic;
+}
+
+/* Citation d'un bloc par l'assistant IA (`oc-block:` — ancre sans href, id en
+   data-*). Cliquable seulement là où un hôte délègue le clic (directive
+   ocBlockCitations) ; ailleurs elle garde l'apparence d'un lien mais reste
+   inerte. Global car injectée en innerHTML (l'encapsulation émulée ne la
+   scope pas). */
+.course-content .course-block-ref {
+  color: var(--link);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+[data-theme='dark'] .course-content {
+  --text-secondary: var(--slate-300);
+  --link: var(--indigo-300); /* 7.34 */
+  --text-success: var(--emerald-300);
+  --text-info: var(--sky-300);
+  --text-danger: var(--red-300);
+}

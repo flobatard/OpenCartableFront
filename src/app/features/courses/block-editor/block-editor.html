@@ -50,44 +50,7 @@
           }
         </nav>
 
-        <form class="block-editor__meta" [formGroup]="metaForm" (ngSubmit)="saveMeta()">
-          <label class="block-editor__field">
-            <span class="block-editor__label">{{ 'courses.editor.titleLabel' | transloco }}</span>
-            <input
-              type="text"
-              class="block-editor__input"
-              formControlName="title"
-              maxlength="300"
-              [placeholder]="'courses.editor.titlePlaceholder' | transloco"
-            />
-          </label>
-          <label class="block-editor__field">
-            <span class="block-editor__label">
-              {{ 'courses.editor.descriptionLabel' | transloco }}
-            </span>
-            <textarea
-              class="block-editor__input block-editor__textarea"
-              formControlName="description"
-              maxlength="500"
-              rows="2"
-              [placeholder]="'courses.editor.descriptionPlaceholder' | transloco"
-            ></textarea>
-          </label>
-          <div class="block-editor__meta-actions">
-            @if (metaSaveState() === 'error') {
-              <p class="block-editor__meta-status block-editor__meta-status--error" role="alert">
-                {{ 'courses.editor.metaError' | transloco }}
-              </p>
-            } @else if (metaSaveState() === 'saved') {
-              <p class="block-editor__meta-status" role="status">
-                {{ 'courses.editor.metaSaved' | transloco }}
-              </p>
-            }
-            <button type="submit" class="btn btn--primary" [disabled]="!canSaveMeta()">
-              {{ 'courses.editor.saveMeta' | transloco }}
-            </button>
-          </div>
-        </form>
+        <app-block-meta-editor [courseId]="courseId" [blockId]="blockId" [block]="block" />
 
         @if (block.type === 'text' || block.type === 'exercise') {
           <div class="block-editor__toolbar">

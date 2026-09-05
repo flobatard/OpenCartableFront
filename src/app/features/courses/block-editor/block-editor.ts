@@ -10,18 +10,12 @@ import {
   viewChild,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { merge, Subject } from 'rxjs';
 import {
-  buildBlockMetaForm,
-  patchBlockMetaForm,
-  payloadFromBlockMetaForm,
-} from '../../../core/courses/block-meta-form';
-import {
-  BlockMetaPayload,
   CourseBlock,
   DocumentContentPayload,
   ExerciseContentPayload,
@@ -50,25 +44,24 @@ import { CourseChat } from '../course-chat/course-chat';
 import { DocumentEditor } from '../document-editor/document-editor';
 import { ExerciseEditor } from '../exercise-editor/exercise-editor';
 import { ModuleBlockEditor } from '../module-block-editor/module-block-editor';
+import { BlockMetaEditor } from './block-meta-editor';
 import { ExerciseProposal, ExerciseProposalReview } from './exercise-proposal-review';
 import { buildBlockProposalHost } from './proposal-host';
 import { ProposalReview } from './proposal-review';
 
-type MetaSaveState = 'idle' | 'saving' | 'saved' | 'error';
-
 /**
  * Coquille-page d'édition d'un bloc : en-tête et navigation entre blocs,
- * formulaire titre/description (tous types, enregistrement explicite), et un
- * espace de travail redimensionnable éditeur | chat d'édition pour les blocs
- * texte et exercice. Le contenu est délégué par type — `app-markdown-field`
- * (texte), `app-exercise-editor` (exercice), `app-document-editor` (document :
- * légende/affichage autosauvés, ressource pointée en PATCH immédiat),
- * `app-module-block-editor` (module pointé, PATCH immédiat) — et l'autosave
- * (`createAutosave`) reste ici, dans un pipeline unique dont le payload est
- * relu à l'envoi. Pour un exercice, les ids de questions générés par le back
- * sont réécrits après chaque save sur un snapshot des groupes capturé à
- * l'envoi : sans ça l'autosave suivant renverrait `id: null` et casserait la
- * stabilité des ids.
+ * méta titre/description (`app-block-meta-editor`, enregistrement explicite),
+ * et un espace de travail redimensionnable éditeur | chat d'édition pour les
+ * blocs texte et exercice. Le contenu est délégué par type —
+ * `app-markdown-field` (texte), `app-exercise-editor` (exercice),
+ * `app-document-editor` (document : légende/affichage autosauvés, ressource
+ * pointée en PATCH immédiat), `app-module-block-editor` (module pointé, PATCH
+ * immédiat) — et l'autosave (`createAutosave`) reste ici, dans un pipeline
+ * unique dont le payload est relu à l'envoi. Pour un exercice, les ids de
+ * questions générés par le back sont réécrits après chaque save sur un
+ * snapshot des groupes capturé à l'envoi : sans ça l'autosave suivant
+ * renverrait `id: null` et casserait la stabilité des ids.
  *
  * Chat d'édition HITL (contextes `block_text` / `block_exercise`) : la page
  * fournit sa propre instance d'`AssistantChatState`, configurée selon le type
@@ -91,6 +84,7 @@ type MetaSaveState = 'idle' | 'saving' | 'saved' | 'error';
     DocumentEditor,
     ExerciseEditor,
     ModuleBlockEditor,
+    BlockMetaEditor,
     ProposalReview,
     ExerciseProposalReview,
   ],
@@ -229,32 +223,6 @@ export class BlockEditor implements OnInit, OnDestroy {
   protected readonly moduleSaveError = signal(false);
   #modulesRequested = false;
 
-  /**
-   * Titre/description du bloc (tous types) — enregistrement explicite (bouton),
-   * indépendant de l'autosave du contenu. `#savedPayload` est la référence de
-   * complétude « modifié » (snapshot JSON, motif page profil).
-   */
-  protected readonly metaForm = buildBlockMetaForm();
-  readonly #metaValue = toSignal(this.metaForm.valueChanges, {
-    initialValue: this.metaForm.getRawValue(),
-  });
-  readonly #savedPayload = signal<BlockMetaPayload>({ title: null, description: null });
-  protected readonly metaSaveState = signal<MetaSaveState>('idle');
-
-  /** Actif quand le formulaire méta diffère du dernier enregistré (et pas en vol). */
-  protected readonly canSaveMeta = computed(() => {
-    this.#metaValue();
-    if (this.metaSaveState() === 'saving') {
-      return false;
-    }
-    return (
-      JSON.stringify(payloadFromBlockMetaForm(this.metaForm)) !==
-      JSON.stringify(this.#savedPayload())
-    );
-  });
-
-  #metaInitialized = false;
-
   /** Partage de largeur éditeur/chat piloté par la poignée (drag), en % de la
       colonne éditeur ; `dragging` désactive la sélection de texte pendant le glissé. */
   protected readonly editorPct = signal(64);
@@ -358,25 +326,6 @@ export class BlockEditor implements OnInit, OnDestroy {
       const detail = this.detail();
       if (detail?.id === this.courseId) {
         this.#courseStyle.load(this.courseId, detail.preview_settings);
-      }
-    });
-
-    // Init UNIQUE du formulaire méta (tous types) depuis le bloc chargé ; la
-    // référence de complétude est figée au même instant.
-    effect(() => {
-      const block = this.block();
-      if (this.#metaInitialized || block === null) {
-        return;
-      }
-      this.#metaInitialized = true;
-      patchBlockMetaForm(this.metaForm, block);
-      this.#savedPayload.set(payloadFromBlockMetaForm(this.metaForm));
-    });
-
-    // Ré-éditer efface le badge « Enregistré/Échec » (mais pas pendant un save).
-    this.metaForm.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
-      if (this.metaSaveState() !== 'saving') {
-        this.metaSaveState.set('idle');
       }
     });
   }
@@ -484,22 +433,6 @@ export class BlockEditor implements OnInit, OnDestroy {
   #neighbour(delta: number): CourseBlock | null {
     const index = this.blockIndex();
     return index === 0 ? null : (this.blocks()[index - 1 + delta] ?? null);
-  }
-
-  /** Enregistre titre/description (tous types). N'envoie que le méta, jamais le contenu. */
-  protected async saveMeta(): Promise<void> {
-    if (!this.canSaveMeta()) {
-      return;
-    }
-    const payload = payloadFromBlockMetaForm(this.metaForm);
-    this.metaSaveState.set('saving');
-    try {
-      await this.#courses.updateBlockMeta(this.courseId, this.blockId, payload);
-      this.#savedPayload.set(payload);
-      this.metaSaveState.set('saved');
-    } catch {
-      this.metaSaveState.set('error');
-    }
   }
 
   protected toggleChat(): void {

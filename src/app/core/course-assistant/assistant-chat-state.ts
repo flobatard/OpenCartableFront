@@ -1,8 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import { effect, inject, Injectable, OnDestroy, PLATFORM_ID, signal } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import {
   AssistantContext,
@@ -12,24 +10,19 @@ import {
   AssistantSources,
   AssistantStreamEvent,
 } from './assistant.model';
+import { AssistantConversationsApi } from './conversations-api';
 import { AssistantPendingProposal, parseProposal } from './proposals';
 import { postSseStream } from './sse';
+import {
+  applyToolResult,
+  AssistantToolActivity,
+  foldTurnMessages,
+  LocalMessage,
+  toolActivityFromCall,
+} from './turn-reducer';
 
 export type { AssistantPendingProposal } from './proposals';
-
-/** Activité d'outil du tour en cours (affichage live du panneau). */
-export interface AssistantToolActivity {
-  id: string;
-  name: string;
-  status: 'running' | 'done' | 'error';
-  /** Arguments de l'appel, tels qu'émis par le modèle (événement `tool_call`). */
-  args: Record<string, unknown>;
-  /**
-   * Extrait du résultat (`excerpt` du flux, suivi de « … » s'il est tronqué) —
-   * message d'échec complet en cas d'erreur ; `null` tant que l'outil tourne.
-   */
-  result: string | null;
-}
+export type { AssistantToolActivity } from './turn-reducer';
 
 /**
  * `awaiting` : le flux s'est fermé sur une proposition d'édition (événement
@@ -53,39 +46,26 @@ export interface AssistantChatScope {
  * État d'UN chat assistant (conversations + flux SSE), instanciable par hôte :
  * le service root (`CourseAssistantService`, panneau flottant global) l'étend,
  * et le chat ancré d'un éditeur en fournit SA propre instance (`providers` du
- * composant hôte, ex. `BlockEditor`) — les deux chats coexistent sur la même
- * page sans se marcher dessus.
+ * composant hôte) — les deux chats coexistent sur la même page.
  *
- * Variante mutable du patron des services de données : le CRUD des
- * conversations passe par `HttpClient` (Bearer automatique, URLs sous
- * `apiUrl`), le flux de réponse par `postSseStream` (`fetch` +
- * `ReadableStream`, Bearer posé à la main). Navigateur uniquement
- * (`isPlatformBrowser`), annulable (`AbortController`).
- *
- * La **portée** (`configure`) fixe le contexte des conversations : `course`
- * (défaut — comportement historique, aucun query param ni champ ajouté) ou un
- * contexte d'édition — d'un bloc (`block_text`, `block_exercise` : liste
- * filtrée `?context=&block_id=`, création `{context, block_id}`) ou d'un
- * module (`module`, même motif sur `module_id`). L'hôte éditeur peut poser un
- * hook `setBeforeTurn` awaité avant chaque tour ET avant chaque décision HITL
- * (flush d'autosave : le back lit la cible EN BASE pour bâtir le contexte et,
- * à la reprise, relire ce qu'une décision acceptée vient d'appliquer — échec
- * non bloquant).
- *
- * La vue d'entrée est une conversation **brouillon** (id vide, purement
- * locale) : `active` ne vaut `null` que quand l'historique est affiché ;
- * `sendMessage` matérialise le brouillon (POST) avant de streamer le premier
- * tour. État en signaux, scopé à UN cours à la fois (garde `#courseId`, motif
- * `ResourceService`), purgé à la déconnexion. Pendant un tour, les deltas
- * s'accumulent dans `streamingText`/`streamingThinking` et l'activité
- * d'outils (arguments + extrait du résultat) dans `toolActivity` ; au `done`,
- * le tour est replié en messages locaux (le serveur reste la vérité — rouvrir
- * la conversation recharge les lignes persistées, contenus d'outils complets
- * compris ; les tours `tool` locaux ne portent que l'extrait streamé).
+ * Portée (`configure`) : contexte `course` (défaut — aucun query param ni
+ * champ ajouté) ou contexte d'édition scopé à sa cible (bloc ou module) ;
+ * l'hôte éditeur peut poser un hook `setBeforeTurn` awaité avant chaque tour
+ * ET chaque décision HITL (flush d'autosave : le back lit la cible EN BASE).
+ * La vue d'entrée est une conversation **brouillon** (id vide, locale) :
+ * `active` ne vaut `null` que quand l'historique est affiché ; `sendMessage`
+ * matérialise le brouillon (POST) avant de streamer le premier tour. Pendant
+ * un tour, les deltas s'accumulent dans `streamingText`/`streamingThinking`
+ * et l'activité d'outils dans `toolActivity` ; à la clôture, le tour est
+ * replié en messages locaux (`turn-reducer`) — le serveur reste la vérité
+ * (rouvrir recharge les lignes persistées, contenus d'outils complets).
+ * CRUD via `AssistantConversationsApi` (HttpClient), flux via `postSseStream`
+ * (fetch, Bearer à la main) ; navigateur uniquement, annulable, scopé à UN
+ * cours (`#courseId`), purgé à la déconnexion.
  */
 @Injectable()
 export class AssistantChatState implements OnDestroy {
-  readonly #http = inject(HttpClient);
+  readonly #api = inject(AssistantConversationsApi);
   /** Exposé aux sous-classes (purge du panneau global à la déconnexion). */
   protected readonly auth = inject(AuthService);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
@@ -130,8 +110,7 @@ export class AssistantChatState implements OnDestroy {
    * `streamState` passe à `awaiting`), consommée par `resumeProposal` —
    * l'hôte éditeur y adosse sa revue (diff/carte + décision). Purement
    * locale : un rechargement de page la perd (le back garde la reprise
-   * jusqu'à son TTL, mais elle n'est pas ré-offerte — assumé, rouvrir la
-   * conversation montre le round incomplet).
+   * jusqu'à son TTL, mais elle n'est pas ré-offerte — cf. TODO.md).
    */
   readonly #pendingProposal = signal<AssistantPendingProposal | null>(null);
   readonly pendingProposal = this.#pendingProposal.asReadonly();
@@ -167,8 +146,8 @@ export class AssistantChatState implements OnDestroy {
   }
 
   /**
-   * Hook awaité avant chaque tour (`sendMessage`) — l'hôte éditeur y branche
-   * son flush d'autosave pour que le back lise l'état courant du bloc. Un
+   * Hook awaité avant chaque tour (`sendMessage`) et chaque décision
+   * (`resumeProposal`) — l'hôte éditeur y branche son flush d'autosave. Un
    * échec du hook n'empêche jamais l'envoi (`null` désarme).
    */
   setBeforeTurn(hook: (() => Promise<void>) | null): void {
@@ -176,10 +155,9 @@ export class AssistantChatState implements OnDestroy {
   }
 
   /**
-   * Conversation **brouillon** : la vue d'entrée est une conversation vide
-   * purement locale (`id` vide — jamais un id serveur), matérialisée côté
-   * back seulement au premier message envoyé. Un brouillon jamais utilisé ne
-   * crée donc rien en base ; les dates sont des placeholders jamais affichés.
+   * Conversation **brouillon** : vue d'entrée vide, purement locale (`id`
+   * vide — jamais un id serveur), matérialisée côté back seulement au premier
+   * message envoyé. Les dates sont des placeholders jamais affichés.
    */
   #draft(): AssistantConversationDetail {
     const now = new Date().toISOString();
@@ -210,14 +188,7 @@ export class AssistantChatState implements OnDestroy {
     this.#pendingProposal.set(null);
   }
 
-  #base(courseId: string): string {
-    return `${environment.apiUrl}/v1/courses/${courseId}/assistant/conversations`;
-  }
-
-  /**
-   * Query params de la liste : aucun en portée `course` (défaut du back —
-   * URL historique inchangée), contexte + cible en portée d'édition.
-   */
+  /** Query params de la liste : aucun en portée `course`, contexte + cible sinon. */
   #listParams(): Record<string, string> {
     if (this.#context === 'course') {
       return {};
@@ -244,11 +215,7 @@ export class AssistantChatState implements OnDestroy {
     this.#listLoading.set(true);
     this.#listError.set(false);
     try {
-      const list = await firstValueFrom(
-        this.#http.get<AssistantConversation[]>(this.#base(courseId), {
-          params: this.#listParams(),
-        }),
-      );
+      const list = await this.#api.list(courseId, this.#listParams());
       if (this.#courseId === courseId) {
         this.#conversations.set(list);
       }
@@ -283,9 +250,7 @@ export class AssistantChatState implements OnDestroy {
       body['module_id'] = this.#moduleId;
     }
     try {
-      const created = await firstValueFrom(
-        this.#http.post<AssistantConversation>(this.#base(courseId), body),
-      );
+      const created = await this.#api.create(courseId, body);
       if (this.#courseId !== courseId || this.#active()?.id !== '') {
         return null;
       }
@@ -311,9 +276,7 @@ export class AssistantChatState implements OnDestroy {
     this.#activeError.set(false);
     this.#clearTurn();
     try {
-      const detail = await firstValueFrom(
-        this.#http.get<AssistantConversationDetail>(`${this.#base(courseId)}/${conversationId}`),
-      );
+      const detail = await this.#api.get(courseId, conversationId);
       if (this.#courseId === courseId) {
         this.#active.set(detail);
       }
@@ -336,12 +299,7 @@ export class AssistantChatState implements OnDestroy {
     if (!courseId) {
       return;
     }
-    const updated = await firstValueFrom(
-      this.#http.patch<AssistantConversation>(`${this.#base(courseId)}/${conversationId}`, {
-        title,
-      }),
-    );
-    this.#patchConversation(updated);
+    this.#patchConversation(await this.#api.rename(courseId, conversationId, title));
   }
 
   async deleteConversation(conversationId: string): Promise<void> {
@@ -349,7 +307,7 @@ export class AssistantChatState implements OnDestroy {
     if (!courseId) {
       return;
     }
-    await firstValueFrom(this.#http.delete<void>(`${this.#base(courseId)}/${conversationId}`));
+    await this.#api.delete(courseId, conversationId);
     this.#conversations.update((list) => (list ?? []).filter((c) => c.id !== conversationId));
     if (this.#active()?.id === conversationId) {
       this.closeConversation();
@@ -363,12 +321,10 @@ export class AssistantChatState implements OnDestroy {
   }
 
   /**
-   * Envoie un message et consomme le flux SSE de la réponse.
-   *
-   * `fetch` sort du pipeline HttpClient : Bearer posé à la main (voir doc de
-   * classe). Une réponse non-2xx (404/422/429/503 eager) est lue en JSON
-   * FastAPI et devient l'état d'erreur ; les erreurs mid-stream arrivent en
-   * événement `error` du flux. Un abort conserve le texte partiel affiché.
+   * Envoie un message et consomme le flux SSE de la réponse. Une réponse
+   * non-2xx (404/422/429/503 eager) devient l'état d'erreur ; les erreurs
+   * mid-stream arrivent en événement `error` du flux. Un abort conserve le
+   * texte partiel affiché.
    *
    * Sur un brouillon (`id` vide), la conversation est d'abord matérialisée
    * côté serveur — c'est le SEUL point de création : un brouillon sans message
@@ -390,14 +346,8 @@ export class AssistantChatState implements OnDestroy {
     this.#appendMessage({ role: 'user', content: trimmed });
     this.#clearTurn();
     this.#streamState.set('streaming');
-
     if (this.#beforeTurn) {
-      try {
-        await this.#beforeTurn();
-      } catch {
-        // Non bloquant : l'IA travaillera sur le dernier état persisté (le
-        // badge d'erreur d'autosave de l'éditeur signale déjà le problème).
-      }
+      await this.#runBeforeTurn(this.#beforeTurn);
     }
 
     let conversationId = conversation.id;
@@ -411,10 +361,9 @@ export class AssistantChatState implements OnDestroy {
       conversationId = created.id;
     }
 
-    const status = await this.#streamTurn(
-      `${this.#base(courseId)}/${conversationId}/messages/stream`,
-      { content: trimmed },
-    );
+    const status = await this.#streamTurn(this.#api.streamUrl(courseId, conversationId), {
+      content: trimmed,
+    });
     if (status !== null) {
       this.#failStream(status);
     }
@@ -429,11 +378,9 @@ export class AssistantChatState implements OnDestroy {
    * (réessayable), sauf 404 — reprise disparue côté back (expirée,
    * redémarrage). Retourne `false` si le flux n'a pas pu s'ouvrir.
    *
-   * Le hook `beforeTurn` (flush d'autosave) est awaité AVANT le POST : une
-   * décision acceptée vient d'être appliquée dans l'éditeur, et la reprise
-   * recharge le bloc EN BASE (relecture par le modèle, renumérotation des
-   * questions d'un exercice) — sans flush, elle travaillerait sur l'état
-   * d'avant l'application.
+   * Le hook `beforeTurn` est awaité AVANT le POST : une décision acceptée
+   * vient d'être appliquée dans l'éditeur, et la reprise recharge le bloc EN
+   * BASE — sans flush, elle travaillerait sur l'état d'avant l'application.
    */
   async resumeProposal(decision: { accepted: boolean; comment?: string }): Promise<boolean> {
     const courseId = this.#courseId;
@@ -448,14 +395,10 @@ export class AssistantChatState implements OnDestroy {
     this.#streamState.set('streaming');
     this.#streamErrorStatus.set(null);
     if (this.#beforeTurn) {
-      try {
-        await this.#beforeTurn();
-      } catch {
-        // Non bloquant (même règle que sendMessage).
-      }
+      await this.#runBeforeTurn(this.#beforeTurn);
     }
     const status = await this.#streamTurn(
-      `${this.#base(courseId)}/${conversationId}/proposals/${pending.id}/decision`,
+      this.#api.decisionUrl(courseId, conversationId, pending.id),
       { accepted: decision.accepted, comment: decision.comment ?? null },
       () => this.#pendingProposal.set(null),
     );
@@ -467,6 +410,18 @@ export class AssistantChatState implements OnDestroy {
       return false;
     }
     return true;
+  }
+
+  /** Hook avant-tour de l'hôte, non bloquant : l'IA travaillera sur le dernier
+      état persisté (le badge d'erreur d'autosave signale déjà le problème).
+      Awaité SEULEMENT si un hook est posé : sans hook, le POST de
+      matérialisation part dans le même tick que l'appel. */
+  async #runBeforeTurn(hook: () => Promise<void>): Promise<void> {
+    try {
+      await hook();
+    } catch {
+      // Non bloquant.
+    }
   }
 
   /**
@@ -499,12 +454,11 @@ export class AssistantChatState implements OnDestroy {
       }
       return null;
     } catch {
+      this.#finalizeTurn(null, null);
       if (abort.signal.aborted) {
         // Stop volontaire : le partiel affiché devient un message local.
-        this.#finalizeTurn(null, null);
         this.#streamState.set('idle');
       } else {
-        this.#finalizeTurn(null, null);
         this.#failStream(0);
       }
       return null;
@@ -515,7 +469,7 @@ export class AssistantChatState implements OnDestroy {
     }
   }
 
-  /** Traite un événement du flux ; `true` si le flux est clos (done/error). */
+  /** Traite un événement du flux ; `true` si le flux est clos (done/error/interrupt). */
   #handleEvent(event: AssistantStreamEvent): boolean {
     switch (event.type) {
       case 'token':
@@ -525,40 +479,16 @@ export class AssistantChatState implements OnDestroy {
         this.#streamingThinking.update((text) => text + event.delta);
         return false;
       case 'tool_call':
-        this.#toolActivity.update((activity) => [
-          ...activity,
-          {
-            id: event.id,
-            name: event.name,
-            status: 'running',
-            args: event.args ?? {},
-            result: null,
-          },
-        ]);
+        this.#toolActivity.update((activity) => [...activity, toolActivityFromCall(event)]);
         return false;
-      case 'tool_result': {
-        // Contrat additif : un back plus ancien n'envoie ni excerpt ni length.
-        const excerpt = event.excerpt ?? '';
-        const truncated = (event.length ?? excerpt.length) > excerpt.length;
-        this.#toolActivity.update((activity) =>
-          activity.map((entry) =>
-            entry.id === event.id
-              ? {
-                  ...entry,
-                  status: event.is_error ? 'error' : 'done',
-                  result: excerpt ? excerpt + (truncated ? '…' : '') : null,
-                }
-              : entry,
-          ),
-        );
+      case 'tool_result':
+        this.#toolActivity.update((activity) => applyToolResult(activity, event));
         return false;
-      }
       case 'interrupt': {
         // Proposition d'édition (HITL) : le run est figé côté back, le flux
-        // se ferme — la revue (diff/carte + décision, hôte éditeur) s'adosse
-        // à `pendingProposal` (typée par `parseProposal` depuis l'appel figé
-        // de l'activité d'outils) ; le tour reste affiché en l'état (activité
-        // d'outils comprise), il reprendra via `resumeProposal`.
+        // se ferme — la revue (hôte éditeur) s'adosse à `pendingProposal`,
+        // typée depuis l'appel figé de l'activité d'outils ; le tour reste
+        // affiché en l'état, il reprendra via `resumeProposal`.
         const entry = this.#toolActivity().find((e) => e.id === event.tool_call_id);
         const proposal = entry ? parseProposal(entry) : null;
         if (proposal !== null) {
@@ -583,35 +513,12 @@ export class AssistantChatState implements OnDestroy {
   }
 
   /**
-   * Replie le tour streamé en messages locaux : l'activité d'outils devient
-   * des tours `tool` (contenu = l'extrait streamé, jamais le résultat
-   * complet), le texte accumulé le message assistant final. Le serveur reste
-   * la vérité (rouvrir recharge).
+   * Replie le tour streamé en messages locaux (`foldTurnMessages`) et patche
+   * titre/`updated_at` de la conversation dans la liste, sans refetch.
    */
   #finalizeTurn(sources: AssistantSources | null, title: string | null): void {
-    const activity = this.#toolActivity();
-    for (const entry of activity) {
-      this.#appendMessage({
-        role: 'tool',
-        content: entry.result ?? '',
-        tool_call_id: entry.id,
-        is_error: entry.status === 'error',
-      });
-    }
-    const text = this.#streamingText();
-    if (text || activity.length > 0) {
-      // Même forme que les lignes serveur : l'assistant porte les tool_calls
-      // (le fil rend l'activité depuis eux, l'is_error depuis les tours tool).
-      this.#appendMessage({
-        role: 'assistant',
-        content: text,
-        tool_calls: activity.map((entry) => ({
-          id: entry.id,
-          name: entry.name,
-          arguments: entry.args,
-        })),
-        sources: sources ?? {},
-      });
+    for (const message of foldTurnMessages(this.#toolActivity(), this.#streamingText(), sources)) {
+      this.#appendMessage(message);
     }
     const active = this.#active();
     if (active) {
@@ -647,9 +554,7 @@ export class AssistantChatState implements OnDestroy {
     this.#pendingProposal.set(null);
   }
 
-  #appendMessage(
-    partial: Partial<AssistantMessage> & Pick<AssistantMessage, 'role' | 'content'>,
-  ): void {
+  #appendMessage(partial: LocalMessage): void {
     this.#active.update((detail) => {
       if (!detail) {
         return detail;

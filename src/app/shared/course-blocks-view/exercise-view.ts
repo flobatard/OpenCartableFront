@@ -14,31 +14,24 @@ import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { exerciseViewFromContent } from '../../core/courses/exercise-form';
+import { armedAction } from '../../core/editing/armed';
 import { LanguageService } from '../../core/i18n/language.service';
-import { BlockCitations } from '../block-citations/block-citations.directive';
-import {
-  answerStorage,
-  answerStorageKey,
-  clearAnswers,
-  readAnswers,
-  StoredAnswer,
-  writeAnswers,
-} from '../../core/student/answer-storage';
+import { AnswerDraft } from '../../core/student/answer-draft';
+import { answerStorageKey } from '../../core/student/answer-storage';
 import {
   CorrectionRequest,
   QuestionThread,
   SubmissionTurn,
   ThreadsClearRequest,
 } from '../../core/student/exercise-correction';
+import { BlockCitations } from '../block-citations/block-citations.directive';
 import { MarkdownView } from '../markdown-view/markdown-view';
 import { Spinner } from '../spinner/spinner';
-import { armedAction } from '../../core/editing/armed';
+
+export { ANSWER_SAVE_DEBOUNCE_MS } from '../../core/student/answer-draft';
 
 /** Rendu d'un bloc exercice : aperçu en lecture seule, ou résolution par l'élève. */
 export type ExerciseViewMode = 'preview' | 'solve';
-
-/** Délai d'autosave localStorage après une frappe (ms). */
-export const ANSWER_SAVE_DEBOUNCE_MS = 500;
 
 /**
  * Rendu partagé d'un bloc `exercise` — sujet puis questions **une à une**, en
@@ -49,12 +42,11 @@ export const ANSWER_SAVE_DEBOUNCE_MS = 500;
  * - **`solve`** (le bloc seul de la vue élève, `blocks/:blockId`) : une zone de
  *   réponse par question, « Marquer comme terminé » (verrouille la zone),
  *   « Effacer mes réponses » en deux temps désarmé au blur, réponses en
- *   **localStorage** (`core/student/answer-storage`, clé `(courseId, blockId)`,
- *   une entrée par id de question) : autosave débouncé après la frappe, flush
- *   au destroy **et au changement de clé** — la vue est robuste à un
- *   changement d'inputs, même si `CourseBlocksView` la recrée par
- *   `track block.id`. Storage indisponible → notice, la saisie reste possible
- *   mais non persistée.
+ *   **localStorage** (`AnswerDraft`, clé `(courseId, blockId)`, une entrée par
+ *   id de question) : autosave débouncé après la frappe, flush au destroy
+ *   **et au changement de clé** — la vue est robuste à un changement d'inputs,
+ *   même si `CourseBlocksView` la recrée par `track block.id`. Storage
+ *   indisponible → notice, la saisie reste possible mais non persistée.
  *
  * **Tuteur IA — fil par question** (mode `solve`, élève connecté) : sous
  * `correctionEnabled`, « Demander une correction » émet `correctionRequested`
@@ -63,12 +55,12 @@ export const ANSWER_SAVE_DEBOUNCE_MS = 500;
  * retour du tuteur en markdown, badge de verdict —, le tour en cours (spinner
  * puis texte streamé), l'erreur par statut, l'encart « Réponse attendue »
  * quand le corrigé a été révélé, et un composer « Répondre / demander de
- * l'aide » (`kind: 'message'`), et l'élève peut **effacer** ses échanges —
- * un fil (« Effacer ce fil ») ou tous ceux du bloc (pied de carte), en deux
- * temps désarmés au blur (`threadsClearRequested`). Sans session
- * (`correctionLoginHint`), une notice invite à se connecter (`loginRequested`). Les citations
- * `oc-block:` des retours naviguent vers `blockLink(id)` quand l'hôte le
- * fournit (directive `ocBlockCitations`).
+ * l'aide » (`kind: 'message'`) ; l'élève peut **effacer** ses échanges — un
+ * fil ou tous ceux du bloc — en deux temps désarmés au blur
+ * (`threadsClearRequested`). Sans session (`correctionLoginHint`), une notice
+ * invite à se connecter (`loginRequested`). Les citations `oc-block:` des
+ * retours naviguent vers `blockLink(id)` quand l'hôte le fournit (directive
+ * `ocBlockCitations`).
  *
  * Présentational : aucun service métier injecté (invariant vue élève —
  * `courseId`/`blockId` viennent des inputs, les `oc-resource:` des énoncés
@@ -112,16 +104,13 @@ export class ExerciseView implements OnDestroy {
   protected readonly view = computed(() => exerciseViewFromContent(this.content()));
   protected readonly solving = computed(() => this.mode() === 'solve');
 
-  /** Réponses par id de question — source de vérité de l'écran (mode solve). */
-  protected readonly answers = signal<Record<string, StoredAnswer>>({});
-  /** Persistance indisponible (navigation privée stricte, quota) : notice. */
-  protected readonly storageOk = signal(true);
+  /** Réponses de l'élève (mode solve) : état + persistance localStorage. */
+  readonly #draft = new AnswerDraft(this.#isBrowser);
+  protected readonly answers = this.#draft.answers;
+  protected readonly storageOk = this.#draft.storageOk;
+  protected readonly hasAnswers = this.#draft.hasAnswers;
   /** « Effacer mes réponses » armé (deux temps, désarmé au blur). */
   protected readonly clearArmed = armedAction();
-  /** Vrai dès qu'au moins une réponse est enregistrée sur l'appareil. */
-  protected readonly hasAnswers = computed(() =>
-    Object.values(this.answers()).some((a) => a.text !== '' || a.locked),
-  );
   /** Brouillons du composer « Répondre » par id de question (non persistés). */
   protected readonly replies = signal<Record<string, string>>({});
   /** Effacement de fil armé : id de question, `'*'` pour tout le bloc, sinon `null`. */
@@ -131,31 +120,20 @@ export class ExerciseView implements OnDestroy {
     Object.values(this.threads()).some((t) => t.turns.length > 0),
   );
 
-  /** localStorage, résolu paresseusement au premier besoin (mode solve, navigateur). */
-  #storage: Storage | null | undefined;
-  #saveTimer: ReturnType<typeof setTimeout> | null = null;
-  /** Clé des réponses affichées ; `null` tant qu'aucune restauration n'a eu lieu. */
-  #restoredKey: string | null = null;
-
   constructor() {
     // Restaure les réponses persistées dès que la clé (cours, bloc) est
-    // connue, une fois par clé — en flushant d'abord la frappe en attente de
-    // la précédente. Ne dépend que du mode et de la clé : jamais d'`answers()`
-    // ici (sinon re-run à chaque frappe).
+    // connue, une fois par clé. Ne dépend que du mode et de la clé : jamais
+    // d'`answers()` ici (sinon re-run à chaque frappe).
     effect(() => {
       if (this.mode() !== 'solve') {
         return;
       }
       const key = answerStorageKey(this.courseId(), this.blockId());
-      if (this.#restoredKey === key) {
+      if (this.#draft.key === key) {
         return;
       }
       untracked(() => {
-        this.#flush();
-        this.#restoredKey = key;
-        const storage = this.#resolveStorage();
-        this.answers.set(readAnswers(storage, key).answers);
-        this.storageOk.set(storage !== null);
+        this.#draft.restore(key);
         this.clearArmed.disarm();
         this.replies.set({});
         this.clearThreadArmed.disarm();
@@ -165,17 +143,17 @@ export class ExerciseView implements OnDestroy {
 
   ngOnDestroy(): void {
     // Flush : une frappe dont le debounce n'a pas expiré part quand même.
-    this.#flush();
+    this.#draft.flush();
   }
 
   /** Réponse courante d'une question (chaîne vide si jamais saisie). */
   protected answerText(questionId: string): string {
-    return this.answers()[questionId]?.text ?? '';
+    return this.#draft.text(questionId);
   }
 
   /** Question marquée « terminée » (zone de réponse verrouillée). */
   protected isLocked(questionId: string): boolean {
-    return this.answers()[questionId]?.locked === true;
+    return this.#draft.isLocked(questionId);
   }
 
   /** Fil du tuteur sur la question, ou `undefined` (jamais sollicité). */
@@ -272,7 +250,7 @@ export class ExerciseView implements OnDestroy {
     return `student.exercise.correction.verdict.${turn.verdict}`;
   }
 
-  /** Clé i18n du message d'erreur du fil, par statut (motif course-chat). */
+  /** Clé i18n du message d'erreur du fil, par statut. */
   protected errorKey(status: number): string {
     if (status === 429) {
       return 'student.exercise.correction.quotaError';
@@ -299,29 +277,12 @@ export class ExerciseView implements OnDestroy {
 
   /** Frappe dans la zone de réponse : état en mémoire + autosave débouncé. */
   protected onAnswerInput(questionId: string, value: string): void {
-    this.answers.update((answers) => ({
-      ...answers,
-      [questionId]: {
-        text: value,
-        locked: answers[questionId]?.locked === true,
-        updatedAt: new Date().toISOString(),
-      },
-    }));
-    this.#scheduleSave();
+    this.#draft.setText(questionId, value);
   }
 
   /** Bascule « Marquer comme terminé » / « Modifier » (persistée immédiatement). */
   protected toggleLocked(questionId: string): void {
-    this.answers.update((answers) => ({
-      ...answers,
-      [questionId]: {
-        text: answers[questionId]?.text ?? '',
-        locked: answers[questionId]?.locked !== true,
-        updatedAt: new Date().toISOString(),
-      },
-    }));
-    this.#cancelScheduledSave();
-    this.#persist();
+    this.#draft.toggleLocked(questionId);
   }
 
   /** Efface tout (deux temps : premier clic arme, second confirme). */
@@ -329,55 +290,6 @@ export class ExerciseView implements OnDestroy {
     if (!this.clearArmed.confirm(true)) {
       return;
     }
-    this.#cancelScheduledSave();
-    this.answers.set({});
-    if (this.#restoredKey !== null) {
-      clearAnswers(this.#resolveStorage(), this.#restoredKey);
-    }
-  }
-
-  #resolveStorage(): Storage | null {
-    if (this.#storage === undefined) {
-      this.#storage = this.#isBrowser ? answerStorage() : null;
-    }
-    return this.#storage;
-  }
-
-  #scheduleSave(): void {
-    if (!this.#isBrowser) {
-      return;
-    }
-    this.#cancelScheduledSave();
-    this.#saveTimer = setTimeout(() => {
-      this.#saveTimer = null;
-      this.#persist();
-    }, ANSWER_SAVE_DEBOUNCE_MS);
-  }
-
-  #cancelScheduledSave(): void {
-    if (this.#saveTimer !== null) {
-      clearTimeout(this.#saveTimer);
-      this.#saveTimer = null;
-    }
-  }
-
-  /** Persiste tout de suite une sauvegarde en attente (destroy, changement de clé). */
-  #flush(): void {
-    if (this.#saveTimer !== null) {
-      this.#cancelScheduledSave();
-      this.#persist();
-    }
-  }
-
-  /** Écrit les réponses courantes sous la clé restaurée. */
-  #persist(): void {
-    if (this.#restoredKey === null) {
-      return;
-    }
-    const ok = writeAnswers(this.#resolveStorage(), this.#restoredKey, {
-      version: 2,
-      answers: this.answers(),
-    });
-    this.storageOk.set(ok);
+    this.#draft.clear();
   }
 }
