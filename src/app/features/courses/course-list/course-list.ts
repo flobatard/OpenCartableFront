@@ -1,10 +1,11 @@
-import { Component, inject, PLATFORM_ID, viewChild } from '@angular/core';
+import { Component, inject, PLATFORM_ID, signal, viewChild } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { Router, RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CourseService } from '../../../core/courses/course.service';
 import { CourseImportDialog } from '../course-import-dialog/course-import-dialog';
 import { EducationLevelService } from '../../../core/education-levels/education-level.service';
+import { NotificationService } from '../../../core/notifications/notification.service';
 import {
   findById as findLevelById,
   sortByTreeOrder,
@@ -32,12 +33,18 @@ export class CourseList {
   readonly #subjects = inject(SubjectService);
   readonly #levels = inject(EducationLevelService);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  readonly #router = inject(Router);
+  readonly #notifications = inject(NotificationService);
+  readonly #transloco = inject(TranslocoService);
 
   protected readonly courses = inject(CourseService);
   protected readonly language = inject(LanguageService);
 
   /** Modale d'import d'archive de cours. */
   protected readonly importDialog = viewChild(CourseImportDialog);
+
+  /** Chargement du cours d'exemple en cours (état local du bouton). */
+  protected readonly starterLoading = signal(false);
 
   constructor() {
     if (this.#isBrowser) {
@@ -54,6 +61,27 @@ export class CourseList {
 
   protected openImport(): void {
     this.importDialog()?.open();
+  }
+
+  /**
+   * Charge le cours d'exemple puis y navigue — rattrapage du seed de
+   * l'onboarding, proposé quand la liste est vide (cours supprimé, ou seed
+   * qui a échoué en silence côté back).
+   */
+  protected async loadStarter(): Promise<void> {
+    if (this.starterLoading()) {
+      return;
+    }
+    this.starterLoading.set(true);
+    try {
+      const course = await this.courses.loadStarterCourse();
+      this.#notifications.success(this.#transloco.translate('courses.list.starterSuccess'));
+      await this.#router.navigate(['/', this.language.lang(), 'courses', course.id]);
+    } catch {
+      this.#notifications.error(this.#transloco.translate('courses.list.starterError'));
+    } finally {
+      this.starterLoading.set(false);
+    }
   }
 
   /** Noms des matières du cours (id inconnu de l'arbre → pas de chip). */

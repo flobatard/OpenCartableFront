@@ -384,6 +384,20 @@ describe('CourseService', () => {
     expect(service.detail()).toBeNull();
   });
 
+  it('loadStarterCourse POSTs to /starter and puts the course first', async () => {
+    service.loadList();
+    httpMock.expectOne(url).flush(COURSES_FIXTURE);
+    const starter = { ...COURSES_FIXTURE[0], id: 'cours-exemple', title: "Cours d'exemple" };
+
+    const loading = service.loadStarterCourse();
+    const req = httpMock.expectOne(`${url}/starter`);
+    expect(req.request.method).toBe('POST');
+    req.flush(starter);
+
+    expect(await loading).toEqual(starter);
+    expect(service.list()[0]).toEqual(starter);
+  });
+
   it('prependToList inserts a course first (imported course)', () => {
     service.loadList();
     httpMock.expectOne(url).flush(COURSES_FIXTURE);

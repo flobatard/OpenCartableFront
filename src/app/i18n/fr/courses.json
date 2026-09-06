@@ -8,6 +8,11 @@
     "retry": "Réessayer",
     "empty": "Compose ton premier cours",
     "emptyHint": "Crée un cours puis ajoute-lui du texte, des exercices et des documents.",
+    "starterHint": "Ou pars du cours d'exemple : formules, diagrammes, figures, schémas, exercices et modules interactifs, à modifier librement.",
+    "starter": "Charger le cours d'exemple",
+    "starterLoading": "Chargement…",
+    "starterSuccess": "Cours d'exemple chargé.",
+    "starterError": "Le cours d'exemple n'a pas pu être chargé. Réessayez.",
     "blockCount": "{{ count }} bloc(s)",
     "updated": "Modifié le {{ date }}"
   },

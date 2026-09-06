@@ -129,6 +129,20 @@ export class CourseService {
     return meta;
   }
 
+  /**
+   * Dépose le cours d'exemple (visite guidée des syntaxes, en brouillon) et
+   * l'insère en tête de la liste. Rattrapage manuel du seed automatique de
+   * l'onboarding, appelé depuis l'état vide de « Mes cours » ; le back
+   * recrée toujours un cours neuf, sans déduplication.
+   */
+  async loadStarterCourse(): Promise<CourseSummary> {
+    const course = await firstValueFrom(
+      this.#http.post<CourseSummary>(`${this.#url}/starter`, {}),
+    );
+    this.prependToList(course);
+    return course;
+  }
+
   /** Insère un cours en tête de la liste (cours importé — tri « modifié récemment » du back). */
   prependToList(course: CourseSummary): void {
     this.#list.update((courses) => [course, ...courses]);

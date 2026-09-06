@@ -29,9 +29,22 @@
     <div class="course-list__empty">
       <p class="course-list__empty-title">{{ 'courses.list.empty' | transloco }}</p>
       <p class="course-list__empty-hint">{{ 'courses.list.emptyHint' | transloco }}</p>
-      <a class="btn btn--primary" [routerLink]="['/', language.lang(), 'courses', 'new']">
-        {{ 'courses.list.create' | transloco }}
-      </a>
+      <p class="course-list__empty-hint">{{ 'courses.list.starterHint' | transloco }}</p>
+      <div class="course-list__empty-actions">
+        <a class="btn btn--primary" [routerLink]="['/', language.lang(), 'courses', 'new']">
+          {{ 'courses.list.create' | transloco }}
+        </a>
+        <button
+          type="button"
+          class="btn btn--secondary"
+          [disabled]="starterLoading()"
+          (click)="loadStarter()"
+        >
+          {{
+            (starterLoading() ? 'courses.list.starterLoading' : 'courses.list.starter') | transloco
+          }}
+        </button>
+      </div>
     </div>
   } @else {
     <ul class="course-list__cards">

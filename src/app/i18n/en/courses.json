@@ -8,6 +8,11 @@
     "retry": "Retry",
     "empty": "Compose your first course",
     "emptyHint": "Create a course, then add text, exercises and documents to it.",
+    "starterHint": "Or start from the sample course: formulas, diagrams, figures, sketches, exercises and interactive modules, yours to edit.",
+    "starter": "Load the sample course",
+    "starterLoading": "Loading…",
+    "starterSuccess": "Sample course loaded.",
+    "starterError": "The sample course could not be loaded. Please try again.",
     "blockCount": "{{ count }} block(s)",
     "updated": "Updated on {{ date }}"
   },

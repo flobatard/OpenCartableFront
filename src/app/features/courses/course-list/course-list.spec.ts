@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { CourseList } from './course-list';
 import { CourseService } from '../../../core/courses/course.service';
 import { CourseTransferService } from '../../../core/courses/course-transfer.service';
@@ -19,6 +19,7 @@ describe('CourseList', () => {
     listLoading,
     listError,
     loadList: vi.fn(),
+    loadStarterCourse: vi.fn(),
   };
   // Consommé par la modale d'import montée par la page.
   const transferMock = {
@@ -118,5 +119,47 @@ describe('CourseList', () => {
     const empty = el(fixture).querySelector('.course-list__empty');
     expect(empty?.textContent).toContain('Compose ton premier cours');
     expect(empty?.querySelector('a')?.getAttribute('href')).toBe('/fr/courses/new');
+  });
+
+  // --- Cours d'exemple (rattrapage du seed d'onboarding) ---
+
+  function starterButton(fixture: ComponentFixture<CourseList>): HTMLButtonElement | null {
+    return el(fixture).querySelector<HTMLButtonElement>('.course-list__empty-actions button');
+  }
+
+  it('offers the sample course when the list is empty', async () => {
+    list.set([]);
+    const fixture = await createComponent();
+    expect(starterButton(fixture)?.textContent).toContain("Charger le cours d'exemple");
+  });
+
+  it('hides the sample course entry once the prof has courses', async () => {
+    const fixture = await createComponent();
+    expect(starterButton(fixture)).toBeNull();
+  });
+
+  it('loads the sample course and navigates to it', async () => {
+    list.set([]);
+    coursesMock.loadStarterCourse.mockResolvedValue(COURSES_FIXTURE[0]);
+    const fixture = await createComponent();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    starterButton(fixture)?.click();
+    await fixture.whenStable();
+
+    expect(coursesMock.loadStarterCourse).toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith(['/', 'fr', 'courses', COURSES_FIXTURE[0].id]);
+  });
+
+  it('survives a failed load and re-enables the button', async () => {
+    list.set([]);
+    coursesMock.loadStarterCourse.mockRejectedValue(new Error('boom'));
+    const fixture = await createComponent();
+
+    starterButton(fixture)?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(starterButton(fixture)?.disabled).toBe(false);
   });
 });
