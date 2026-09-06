@@ -41,6 +41,10 @@
     "usage": "{{used}}/{{total}} messages today — {{remaining}} left",
     "unlimited": "unlimited messages"
   },
+  "tokens": {
+    "turn": "{{input}} in · {{output}} out",
+    "total": "Total: {{total}} tokens ({{input}} in · {{output}} out)"
+  },
   "settingsDialog": {
     "title": "AI settings",
     "close": "Close"

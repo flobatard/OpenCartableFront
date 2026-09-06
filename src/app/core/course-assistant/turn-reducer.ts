@@ -1,4 +1,9 @@
-import { AssistantMessage, AssistantSources, AssistantStreamEvent } from './assistant.model';
+import {
+  AssistantMessage,
+  AssistantSources,
+  AssistantStreamEvent,
+  AssistantUsage,
+} from './assistant.model';
 
 /**
  * Fonctions PURES du tour streamé de l'assistant : activité d'outils tenue
@@ -65,12 +70,15 @@ export function applyToolResult(
  * tours `tool` (contenu = l'extrait streamé, jamais le résultat complet), le
  * texte accumulé le message assistant final — même forme que les lignes
  * serveur : l'assistant porte les `tool_calls` (le fil rend l'activité depuis
- * eux, l'`is_error` depuis les tours tool). Rien si le tour est vide.
+ * eux, l'`is_error` depuis les tours tool) et l'usage de tokens cumulé du
+ * tour (`interrupt`(s) + `done`), là où le back le pose sur son dernier
+ * segment. Rien si le tour est vide.
  */
 export function foldTurnMessages(
   activity: readonly AssistantToolActivity[],
   text: string,
   sources: AssistantSources | null,
+  usage: AssistantUsage | null = null,
 ): LocalMessage[] {
   const messages: LocalMessage[] = activity.map((entry) => ({
     role: 'tool',
@@ -88,6 +96,8 @@ export function foldTurnMessages(
         arguments: entry.args,
       })),
       sources: sources ?? {},
+      input_tokens: usage?.input_tokens ?? null,
+      output_tokens: usage?.output_tokens ?? null,
     });
   }
   return messages;

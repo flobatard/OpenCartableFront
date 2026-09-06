@@ -9,6 +9,7 @@ import {
   AssistantMessage,
   AssistantSources,
   AssistantStreamEvent,
+  AssistantUsage,
 } from './assistant.model';
 import { AssistantConversationsApi } from './conversations-api';
 import { AssistantPendingProposal, parseProposal } from './proposals';
@@ -20,6 +21,7 @@ import {
   LocalMessage,
   toolActivityFromCall,
 } from './turn-reducer';
+import { addUsage } from './usage';
 
 export type { AssistantPendingProposal } from './proposals';
 export type { AssistantToolActivity } from './turn-reducer';
@@ -57,8 +59,10 @@ export interface AssistantChatScope {
  * matérialise le brouillon (POST) avant de streamer le premier tour. Pendant
  * un tour, les deltas s'accumulent dans `streamingText`/`streamingThinking`
  * et l'activité d'outils dans `toolActivity` ; à la clôture, le tour est
- * replié en messages locaux (`turn-reducer`) — le serveur reste la vérité
- * (rouvrir recharge les lignes persistées, contenus d'outils complets).
+ * replié en messages locaux (`turn-reducer`), l'usage de tokens cumulé sur
+ * ses événements (`interrupt`(s) puis `done`) posé sur le message assistant —
+ * le serveur reste la vérité (rouvrir recharge les lignes persistées,
+ * contenus d'outils complets).
  * CRUD via `AssistantConversationsApi` (HttpClient), flux via `postSseStream`
  * (fetch, Bearer à la main) ; navigateur uniquement, annulable, scopé à UN
  * cours (`#courseId`), purgé à la déconnexion.
@@ -78,6 +82,13 @@ export class AssistantChatState implements OnDestroy {
   #courseId: string | null = null;
   #abort: AbortController | null = null;
   #localSequence = 0;
+  /**
+   * Usage du tour en cours, cumulé au fil des événements qui en portent :
+   * `interrupt` (rounds déjà joués du run figé — plusieurs si le modèle
+   * re-propose après un rejet) puis `done` (rounds de la reprise, repartis de
+   * zéro côté back). Posé sur le message assistant replié, jamais rendu seul.
+   */
+  #turnUsage: AssistantUsage | null = null;
 
   readonly #conversations = signal<AssistantConversation[] | null>(null);
   readonly conversations = this.#conversations.asReadonly();
@@ -185,6 +196,7 @@ export class AssistantChatState implements OnDestroy {
     this.#streamingText.set('');
     this.#streamingThinking.set('');
     this.#toolActivity.set([]);
+    this.#turnUsage = null;
     this.#pendingProposal.set(null);
   }
 
@@ -485,6 +497,9 @@ export class AssistantChatState implements OnDestroy {
         this.#toolActivity.update((activity) => applyToolResult(activity, event));
         return false;
       case 'interrupt': {
+        // Usage des rounds déjà joués par le run figé, cumulé AVANT toute
+        // branche (le repli défensif ci-dessous le porte aussi).
+        this.#turnUsage = addUsage(this.#turnUsage, event.usage);
         // Proposition d'édition (HITL) : le run est figé côté back, le flux
         // se ferme — la revue (hôte éditeur) s'adosse à `pendingProposal`,
         // typée depuis l'appel figé de l'activité d'outils ; le tour reste
@@ -502,6 +517,7 @@ export class AssistantChatState implements OnDestroy {
         return true;
       }
       case 'done':
+        this.#turnUsage = addUsage(this.#turnUsage, event.usage);
         this.#finalizeTurn(event.sources, event.title);
         this.#streamState.set('idle');
         return true;
@@ -513,11 +529,19 @@ export class AssistantChatState implements OnDestroy {
   }
 
   /**
-   * Replie le tour streamé en messages locaux (`foldTurnMessages`) et patche
-   * titre/`updated_at` de la conversation dans la liste, sans refetch.
+   * Replie le tour streamé en messages locaux (`foldTurnMessages`, avec
+   * l'usage cumulé du tour) et patche titre/`updated_at` de la conversation
+   * dans la liste, sans refetch.
    */
   #finalizeTurn(sources: AssistantSources | null, title: string | null): void {
-    for (const message of foldTurnMessages(this.#toolActivity(), this.#streamingText(), sources)) {
+    const folded = foldTurnMessages(
+      this.#toolActivity(),
+      this.#streamingText(),
+      sources,
+      this.#turnUsage,
+    );
+    this.#turnUsage = null;
+    for (const message of folded) {
       this.#appendMessage(message);
     }
     const active = this.#active();
@@ -546,6 +570,7 @@ export class AssistantChatState implements OnDestroy {
     this.#streamingText.set('');
     this.#streamingThinking.set('');
     this.#toolActivity.set([]);
+    this.#turnUsage = null;
     this.#streamState.set('idle');
     this.#streamErrorStatus.set(null);
     // Nouvelle vue/nouveau tour : une proposition encore en attente est

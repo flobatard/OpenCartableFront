@@ -226,6 +226,18 @@
                 />
               </div>
             }
+            @if (turnUsage().get(message.id); as usage) {
+              <!-- Tokens du tour (somme de ses segments), sous son dernier
+                   message assistant — hors du @if content : un tour purement
+                   outillé garde sa ligne. -->
+              <p class="course-chat__usage">
+                {{
+                  'courseChat.tokens.turn'
+                    | transloco
+                      : { input: formatTokens(usage.input), output: formatTokens(usage.output) }
+                }}
+              </p>
+            }
           }
           <!-- Les tours `tool` ne rendent rien par eux-mêmes : ils alimentent
                (is_error, extrait) les appels du message assistant qui les a

@@ -1,5 +1,6 @@
 /* Pied de panneau discret, sous le composer : roue crantée à gauche, modèle
-   en service à sa suite, compteur de quota à droite. */
+   en service à sa suite, compteurs (total de tokens, quota) à droite —
+   repliés sur une seconde ligne quand le panneau est étroit. */
 
 :host {
   display: block;
@@ -8,6 +9,7 @@
 
 .chat-settings {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 4px 12px;
   padding: 2px 16px 4px 10px;
@@ -23,10 +25,20 @@
   text-overflow: ellipsis;
 }
 
-.chat-settings__quota {
+/* Groupe des compteurs : poussé à droite (seul ou sur sa propre ligne),
+   chiffres tabulaires, ses membres pouvant eux-mêmes passer à la ligne. */
+.chat-settings__end {
   margin-inline-start: auto;
-  flex: 0 0 auto;
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0 12px;
   font-variant-numeric: tabular-nums;
+}
+
+.chat-settings__tokens,
+.chat-settings__quota {
+  flex: 0 0 auto;
 }
 
 /* Ancre du menu déroulant, en tête de ligne (roue à gauche du pied). */

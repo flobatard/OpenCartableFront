@@ -19,6 +19,7 @@ import { AssistantMessage } from '../../../core/course-assistant/assistant.model
 import { CourseAssistantService } from '../../../core/course-assistant/course-assistant.service';
 import { parseProposal, PROPOSAL_TOOLS } from '../../../core/course-assistant/proposals';
 import { progressiveReveal } from '../../../core/course-assistant/stream-reveal';
+import { formatTokenCount, turnUsageByMessage } from '../../../core/course-assistant/usage';
 import { armedAction } from '../../../core/editing/armed';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { BlockCitations } from '../../../shared/block-citations/block-citations.directive';
@@ -164,6 +165,16 @@ export class CourseChat {
     toolRowsById(this.assistant.active()?.messages ?? []),
   );
 
+  /**
+   * Tokens par tour, indexés par le dernier message assistant du tour
+   * (`turnUsageByMessage`) : la ligne s'affiche sous ce message — un tour
+   * HITL rechargé (plusieurs segments) et un tour live replié (un seul)
+   * donnent la même somme.
+   */
+  protected readonly turnUsage = computed(() =>
+    turnUsageByMessage(this.assistant.active()?.messages ?? []),
+  );
+
   /** Activité d'outils du tour en cours, dans la forme rendue par `app-course-chat-tool`. */
   protected readonly liveToolViews = computed<ChatToolView[]>(() =>
     this.assistant.toolActivity().map((entry) => ({
@@ -307,6 +318,11 @@ export class CourseChat {
   /** Date dans la locale de l'UI (pas de DatePipe : locale fr non enregistrée). */
   protected updatedOn(iso: string): string {
     return new Date(iso).toLocaleDateString(this.language.lang());
+  }
+
+  /** Compteur de tokens dans la locale de l'UI (même raison : pas de DecimalPipe). */
+  protected formatTokens(value: number): string {
+    return formatTokenCount(value, this.language.lang());
   }
 
   // -------------------------------------------------- propositions (mode edit)

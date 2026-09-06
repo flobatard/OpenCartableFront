@@ -660,6 +660,102 @@ describe('CourseChat', () => {
       }
     });
 
+    /**
+     * Fil à deux tours : le premier tel qu'une relecture le sert après un
+     * flux HITL (deux segments assistant porteurs chacun de l'usage de leur
+     * appel), le second sans usage (provider muet).
+     */
+    function usageDetail(): AssistantConversationDetail {
+      return {
+        ...emptyDetail(),
+        messages: [
+          message({ id: 'u1', role: 'user', content: 'Réécris ce bloc' }),
+          message({
+            id: 'a1',
+            role: 'assistant',
+            tool_calls: [{ id: 'c1', name: 'read_block', arguments: { block_id: BLOCK_UUID } }],
+            input_tokens: 120,
+            output_tokens: 40,
+          }),
+          message({ id: 't1', role: 'tool', tool_call_id: 'c1', content: '### Bloc' }),
+          message({
+            id: 'a2',
+            role: 'assistant',
+            content: 'Voici.',
+            input_tokens: 30,
+            output_tokens: 10,
+          }),
+          message({ id: 'u2', role: 'user', content: 'Merci' }),
+          message({ id: 'a3', role: 'assistant', content: 'Sans usage' }),
+        ],
+      };
+    }
+
+    it('renders one token line per turn, under its last assistant message', async () => {
+      const fixture = await createComponent();
+      assistant.active.set(usageDetail());
+      fixture.detectChanges();
+
+      const lines = el(fixture).querySelectorAll('.course-chat__usage');
+      expect(lines).toHaveLength(1);
+      expect(lines[0].textContent?.replace(/\s+/g, ' ')).toContain('150 entrée · 50 sortie');
+      // Sous la réponse finale du premier tour (jamais sous un segment
+      // intermédiaire, ni sous un tour sans usage).
+      expect(lines[0].previousElementSibling?.classList.contains('course-chat__answer')).toBe(
+        true,
+      );
+    });
+
+    it('formats token counts in the UI language', async () => {
+      const fixture = await createComponent();
+      assistant.active.set({
+        ...emptyDetail(),
+        messages: [
+          message({ id: 'u1', role: 'user', content: 'Question' }),
+          message({
+            id: 'a1',
+            role: 'assistant',
+            content: 'Réponse',
+            input_tokens: 1234,
+            output_tokens: 5,
+          }),
+        ],
+      });
+      fixture.detectChanges();
+
+      const line = el(fixture).querySelector('.course-chat__usage');
+      expect(line?.textContent?.replace(/\s+/g, ' ')).toContain('1 234 entrée · 5 sortie');
+    });
+
+    it('shows the conversation token total in the footer, next to the quota', async () => {
+      const fixture = await createComponent();
+      credentials.credentials.set(DEFAULT_AI_CREDS);
+      assistant.active.set(usageDetail());
+      fixture.detectChanges();
+
+      const total = el(fixture).querySelector('.chat-settings__tokens');
+      expect(total?.textContent?.replace(/\s+/g, ' ')).toContain(
+        'Total : 200 tokens (150 entrée · 50 sortie)',
+      );
+      expect(el(fixture).querySelector('.chat-settings__quota')?.textContent).toContain('12/30');
+    });
+
+    it('hides the total while no message carries usage', async () => {
+      const fixture = await createComponent();
+      credentials.credentials.set(DEFAULT_AI_CREDS);
+      assistant.active.set({
+        ...emptyDetail(),
+        messages: [
+          message({ id: 'u1', role: 'user', content: 'Question' }),
+          message({ id: 'a1', role: 'assistant', content: 'Réponse' }),
+        ],
+      });
+      fixture.detectChanges();
+
+      expect(el(fixture).querySelector('.chat-settings__tokens')).toBeNull();
+      expect(el(fixture).querySelector('.course-chat__usage')).toBeNull();
+    });
+
     it('shows the personal model when a custom config is stored', async () => {
       const fixture = await createComponent();
       credentials.credentials.set({

@@ -23,6 +23,11 @@ const DONE_EVENT =
   'event: done\ndata: {"usage":null,"user_message_id":"u1","message_ids":["m1"],' +
   '"sources":{},"title":"T"}\n\n';
 
+/** `done` porteur d'usage — celui d'une reprise HITL ne compte que ses rounds. */
+const DONE_WITH_USAGE =
+  'event: done\ndata: {"usage":{"input_tokens":30,"output_tokens":10},' +
+  '"user_message_id":null,"message_ids":["m2"],"sources":{},"title":null}\n\n';
+
 /**
  * La portée `block_text` d'`AssistantChatState` (le régime `course`, défaut,
  * est couvert par `course-assistant.service.spec.ts` sur la sous-classe root).
@@ -113,10 +118,12 @@ describe('AssistantChatState (portée block_text)', () => {
     expect(state.streamState()).toBe('idle');
   });
 
+  // L'interrupt porte l'usage des rounds déjà joués par le run figé.
   const INTERRUPT_EVENTS =
     'event: tool_call\ndata: {"id":"call_p","name":"propose_block_edit",' +
     '"args":{"new_markdown":"# Proposé","summary":"Réécriture"}}\n\n' +
-    'event: interrupt\ndata: {"tool_call_id":"call_p","message_ids":["m1"]}\n\n';
+    'event: interrupt\ndata: {"tool_call_id":"call_p","message_ids":["m1"],' +
+    '"usage":{"input_tokens":120,"output_tokens":40}}\n\n';
 
   /** Amène l'état en `awaiting` : envoi → tool_call propose → interrupt. */
   async function reachAwaiting(): Promise<void> {
@@ -169,7 +176,7 @@ describe('AssistantChatState (portée block_text)', () => {
         sseResponse([
           'event: tool_result\ndata: {"id":"call_p","name":"propose_block_edit",' +
             '"is_error":false,"excerpt":"ACCEPTÉ","length":7}\n\n',
-          DONE_EVENT,
+          DONE_WITH_USAGE,
         ]),
       );
     vi.stubGlobal('fetch', resumeFetch);
@@ -182,6 +189,58 @@ describe('AssistantChatState (portée block_text)', () => {
     expect(JSON.parse(init.body as string)).toEqual({ accepted: true, comment: 'Très bien' });
     expect(state.pendingProposal()).toBeNull();
     expect(state.streamState()).toBe('idle');
+    // Le tour HITL entier est replié en UN message assistant portant la somme
+    // interrupt (120/40) + reprise (30/10) — ce qu'une relecture donne en
+    // deux segments.
+    const folded = state.active()?.messages.at(-1);
+    expect(folded?.role).toBe('assistant');
+    expect(folded?.tool_calls.map((c) => c.id)).toEqual(['call_p']);
+    expect(folded?.input_tokens).toBe(150);
+    expect(folded?.output_tokens).toBe(50);
+  });
+
+  it('a re-proposal after a rejection accumulates the usage of every interrupt', async () => {
+    await reachAwaiting();
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          sseResponse([
+            'event: tool_result\ndata: {"id":"call_p","name":"propose_block_edit",' +
+              '"is_error":false,"excerpt":"REJETÉ","length":6}\n\n',
+            'event: tool_call\ndata: {"id":"call_q","name":"propose_block_edit",' +
+              '"args":{"new_markdown":"# Proposé bis","summary":"Seconde version"}}\n\n',
+            'event: interrupt\ndata: {"tool_call_id":"call_q","message_ids":["m2"],' +
+              '"usage":{"input_tokens":30,"output_tokens":10}}\n\n',
+          ]),
+        ),
+    );
+    await expect(state.resumeProposal({ accepted: false, comment: 'Trop long' })).resolves.toBe(
+      true,
+    );
+    expect(state.streamState()).toBe('awaiting');
+    expect(state.pendingProposal()?.id).toBe('call_q');
+
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          sseResponse([
+            'event: tool_result\ndata: {"id":"call_q","name":"propose_block_edit",' +
+              '"is_error":false,"excerpt":"ACCEPTÉ","length":7}\n\n',
+            DONE_WITH_USAGE,
+          ]),
+        ),
+    );
+    await expect(state.resumeProposal({ accepted: true })).resolves.toBe(true);
+    expect(state.streamState()).toBe('idle');
+    // 120/40 (premier interrupt) + 30/10 (second) + 30/10 (done).
+    const folded = state.active()?.messages.at(-1);
+    expect(folded?.tool_calls.map((c) => c.id)).toEqual(['call_p', 'call_q']);
+    expect(folded?.input_tokens).toBe(180);
+    expect(folded?.output_tokens).toBe(60);
   });
 
   it('a failed resume keeps the proposal retryable — except a 404 (resume gone)', async () => {
@@ -198,10 +257,22 @@ describe('AssistantChatState (portée block_text)', () => {
 
   it('sending a new message abandons the pending proposal locally', async () => {
     await reachAwaiting();
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(sseResponse([DONE_EVENT])));
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          sseResponse(['event: token\ndata: {"delta":"Entendu."}\n\n', DONE_WITH_USAGE]),
+        ),
+    );
     await state.sendMessage('Autre chose');
     expect(state.pendingProposal()).toBeNull();
     expect(state.streamState()).toBe('idle');
+    // L'usage de l'interrupt abandonné (120/40) ne fuit pas dans le tour suivant.
+    const last = state.active()?.messages.at(-1);
+    expect(last?.content).toBe('Entendu.');
+    expect(last?.input_tokens).toBe(30);
+    expect(last?.output_tokens).toBe(10);
   });
 
   it('a failing beforeTurn hook never blocks the turn', async () => {

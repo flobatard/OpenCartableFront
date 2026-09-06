@@ -41,6 +41,10 @@
     "usage": "{{used}}/{{total}} messages aujourd'hui — {{remaining}} restants",
     "unlimited": "messages illimités"
   },
+  "tokens": {
+    "turn": "{{input}} entrée · {{output}} sortie",
+    "total": "Total : {{total}} tokens ({{input}} entrée · {{output}} sortie)"
+  },
   "settingsDialog": {
     "title": "Réglages IA",
     "close": "Fermer"

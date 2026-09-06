@@ -14,6 +14,8 @@ import {
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AiCredentialsService } from '../../../core/ai-credentials/ai-credentials.service';
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
+import { conversationUsage, formatTokenCount } from '../../../core/course-assistant/usage';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { AiSettingsDialog } from '../../settings/ai-settings-dialog/ai-settings-dialog';
 
 /** Ids ARIA uniques par instance (compteur de module, jamais Date.now()). */
@@ -23,9 +25,11 @@ let uid = 0;
  * Bandeau des réglages IA du chat (modes actifs de `CourseChat` — global et
  * block, jamais le placeholder) : modèle en service — la config personnelle
  * si une est enregistrée, sinon l'IA par défaut du serveur avec le compteur
- * du quota quotidien — et roue crantée ouvrant un menu (pattern APG menu
- * button réduit) dont « Sélectionner un autre modèle » ouvre la modale de
- * réglages IA (`AiSettingsDialog`).
+ * du quota quotidien —, total de tokens de la conversation active (somme des
+ * messages assistant, `conversationUsage` ; rien tant qu'aucun usage n'est
+ * connu) et roue crantée ouvrant un menu (pattern APG menu button réduit)
+ * dont « Sélectionner un autre modèle » ouvre la modale de réglages IA
+ * (`AiSettingsDialog`).
  *
  * L'instance d'état observée arrive par l'input `assistant` (celle du panneau
  * hôte : root en global, fournie par l'éditeur en mode block) — le compteur
@@ -43,6 +47,7 @@ export class CourseChatSettings {
   readonly assistant = input.required<AssistantChatState>();
 
   readonly #credentials = inject(AiCredentialsService);
+  readonly #language = inject(LanguageService);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   /** Menu de la roue crantée. */
@@ -65,6 +70,16 @@ export class CourseChatSettings {
     const creds = this.aiCreds();
     return creds ? Math.max(creds.daily_quota - creds.calls_today, 0) : 0;
   });
+
+  /** Total de tokens de la conversation active (`null` sans usage connu : rien d'affiché). */
+  protected readonly tokens = computed(() =>
+    conversationUsage(this.assistant().active()?.messages ?? []),
+  );
+
+  /** Compteur de tokens dans la locale de l'UI (pas de DecimalPipe : locale fr non enregistrée). */
+  protected formatTokens(value: number): string {
+    return formatTokenCount(value, this.#language.lang());
+  }
 
   /** Dernier état de flux observé (détection de fin de tour). */
   #wasStreaming = false;

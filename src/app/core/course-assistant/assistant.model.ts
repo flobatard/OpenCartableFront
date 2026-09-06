@@ -52,14 +52,18 @@ export interface AssistantConversationDetail extends AssistantConversation {
   messages: AssistantMessage[];
 }
 
-/** Usage relayé par l'événement `done` (souvent partiel selon le provider). */
+/**
+ * Usage relayé par `done` — et par `interrupt` (rounds déjà joués du run
+ * figé ; la reprise repart de zéro côté back, les deux s'additionnent) —
+ * souvent partiel selon le provider.
+ */
 export interface AssistantUsage {
   input_tokens: number | null;
   output_tokens: number | null;
 }
 
 /**
- * Événements du flux SSE (contrat de app/course_assistant/service.py) —
+ * Événements du flux SSE (contrat de app/course_assistant/streaming.py) —
  * union discriminée par `type`. Le contenu COMPLET des résultats d'outils ne
  * voyage jamais sur le flux (persisté, servi par le détail de conversation) :
  * `tool_result` n'en porte qu'un extrait borné (`excerpt`, 400 caractères côté
@@ -77,7 +81,13 @@ export type AssistantStreamEvent =
       excerpt: string;
       length: number;
     }
-  | { type: 'interrupt'; tool_call_id: string; message_ids: string[] }
+  | {
+      type: 'interrupt';
+      tool_call_id: string;
+      message_ids: string[];
+      /** Usage des rounds déjà joués (absent chez un back plus ancien). */
+      usage?: AssistantUsage | null;
+    }
   | {
       type: 'done';
       usage: AssistantUsage | null;

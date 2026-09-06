@@ -183,6 +183,10 @@ describe('CourseAssistantService', () => {
     expect(assistant.tool_calls).toEqual([
       { id: 'c1', name: 'read_block', arguments: { block_id: 'b1' } },
     ]);
+    // L'usage de `done` est posé sur le message assistant replié (même forme
+    // que la ligne persistée, le fil affiche les tokens du tour).
+    expect(assistant.input_tokens).toBe(3);
+    expect(assistant.output_tokens).toBe(2);
     // Le tour tool local porte l'extrait streamé (tronqué : « … »), apparié à l'appel.
     const toolRow = messages[messages.length - 2];
     expect(toolRow.role).toBe('tool');

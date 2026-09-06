@@ -59,23 +59,46 @@
             | transloco: { model: creds.default_model || creds.default_provider }
         }}
       </span>
-      <span class="chat-settings__quota">
-        @if (creds.daily_quota === 0) {
-          {{ 'courseChat.config.unlimited' | transloco }}
-        } @else {
-          {{
-            'courseChat.config.usage'
-              | transloco
-                : {
-                    used: creds.calls_today,
-                    total: creds.daily_quota,
-                    remaining: quotaRemaining(),
-                  }
-          }}
-        }
-      </span>
     }
   }
+
+  <!-- Compteurs, poussés à droite et repliables sur une seconde ligne : total
+       de tokens de la conversation active, puis quota quotidien de l'IA par
+       défaut (jamais pour une config personnelle : BYO token non compté). -->
+  <span class="chat-settings__end">
+    @if (tokens(); as t) {
+      <span class="chat-settings__tokens">
+        {{
+          'courseChat.tokens.total'
+            | transloco
+              : {
+                  total: formatTokens(t.total),
+                  input: formatTokens(t.input),
+                  output: formatTokens(t.output),
+                }
+        }}
+      </span>
+    }
+    @if (aiCreds(); as creds) {
+      @if (creds.provider === null) {
+        <span class="chat-settings__quota">
+          @if (creds.daily_quota === 0) {
+            {{ 'courseChat.config.unlimited' | transloco }}
+          } @else {
+            {{
+              'courseChat.config.usage'
+                | transloco
+                  : {
+                      used: creds.calls_today,
+                      total: creds.daily_quota,
+                      remaining: quotaRemaining(),
+                    }
+            }}
+          }
+        </span>
+      }
+    }
+  </span>
 </div>
 
 <app-ai-settings-dialog />

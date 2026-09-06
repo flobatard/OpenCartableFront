@@ -245,6 +245,17 @@
   line-height: calc(1.55 * var(--course-line-scale, 1));
 }
 
+/* Tokens du tour (entrée · sortie) sous son dernier message assistant : ligne
+   méta discrète (DS §8 : méta slate-500), chiffres tabulaires, remontée
+   contre la réponse malgré le gap de la colonne. */
+.course-chat__usage {
+  margin: -8px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.85em;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
 /* Boutons du chat : le `.btn` global est figé à 14px, plus gros que le corps
    réduit du panneau. */
 .btn {
