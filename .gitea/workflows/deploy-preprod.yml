@@ -8,7 +8,9 @@
 #   DEPLOY_PATH              → répertoire de déploiement sur l'hôte cible
 #   DEPLOY_SSH_USER          → utilisateur SSH de déploiement (optionnel, défaut "deploy")
 #   PREPROD_ALLOWED_HOSTS    → valeur runtime d'ALLOWED_HOSTS (protection SSRF SSR, cf. docker-compose.preprod.yml)
+#                               → preprod.opencartable.com
 #   PREPROD_TRUST_PROXY_HEADERS → optionnel, valeur runtime de TRUST_PROXY_HEADERS
+#                               → x-forwarded-host,x-forwarded-proto (le SSR est derrière le nginx de l'infra)
 #
 # Secrets Gitea (Settings → Actions → Secrets) :
 #   REGISTRY_USER / REGISTRY_PASSWORD → credentials du registry
@@ -17,8 +19,10 @@
 # Pas de secret .env ici : la config OIDC/apiUrl du front est compile-time,
 # gravée dans le bundle au `docker build` par la configuration Angular
 # "preprod" (cf. angular.json → src/environments/environment.preprod.ts, passée
-# au Dockerfile via --build-arg BUILD_CONFIGURATION) — renseigner ses
-# placeholders AVANT de fusionner sur la branche `preprod`.
+# au Dockerfile via --build-arg BUILD_CONFIGURATION). Cible : SPA sur
+# https://preprod.opencartable.com, API sur https://api.preprod.opencartable.com
+# (origines distinctes → apiUrl absolu côté front et CORS_ORIGINS renseigné dans
+# OpenCartableBack/config/preprod.yaml).
 
 name: Deploy PREPROD
 
