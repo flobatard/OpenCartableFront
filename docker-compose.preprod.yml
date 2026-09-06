@@ -13,7 +13,7 @@ services:
     image: ${REGISTRY}/${IMAGE}:${IMAGE_TAG}
     restart: unless-stopped
     ports:
-      - '4000:4000'
+      - '8000:4000'
     environment:
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
       TRUST_PROXY_HEADERS: ${TRUST_PROXY_HEADERS:-}
