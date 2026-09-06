@@ -1,7 +1,9 @@
 # Étage 1 : build (devDependencies nécessaires au build Angular)
 FROM node:26-alpine AS build
 WORKDIR /app
+# scripts/ est copié avant `npm ci` : le postinstall (prepare-tikzjax.mjs) en a besoin.
 COPY package.json package-lock.json ./
+COPY scripts ./scripts
 RUN npm ci
 COPY . .
 # Les environnements sont figés au BUILD (fileReplacements d'angular.json) :
