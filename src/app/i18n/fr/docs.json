@@ -9,6 +9,10 @@
       "title": "Formules (KaTeX)",
       "summary": "Écrire des formules LaTeX en ligne ($…$) ou centrées ($$…$$)."
     },
+    "mhchem": {
+      "title": "Chimie (mhchem)",
+      "summary": "Écrire équations chimiques, ions et unités dans une formule : $\\ce{…}$ et $\\pu{…}$."
+    },
     "mermaid": {
       "title": "Diagrammes (Mermaid)",
       "summary": "Organigrammes, séquences, Gantt… décrits en texte dans un bloc de code."
@@ -65,6 +69,30 @@
       "body": "Une formule invalide n'interrompt jamais le rendu du bloc : elle s'affiche en rouge, source visible, le temps de la corriger."
     },
     "more": "Liste complète des commandes supportées (katex.org)"
+  },
+  "mhchem": {
+    "intro": "La notation chimique s'écrit dans une formule KaTeX, entre dollars, avec la commande \\ce{…} (extension mhchem) ; \\pu{…} écrit une grandeur physique avec son unité. Les indices et les charges sont placés automatiquement. Chaque exemple est modifiable.",
+    "first": {
+      "title": "Première équation",
+      "body": "Dans \\ce{…}, on écrit les formules comme on les lit : les chiffres après un symbole deviennent des indices, le coefficient se place devant l'espèce, -> trace la flèche de réaction."
+    },
+    "species": {
+      "title": "Ions, états et noyaux",
+      "body": "La charge s'écrit après ^ (Cu^2+, SO4^2-) ; l'état physique entre parenthèses : (s), (l), (g), (aq). Un point relie les parties d'un hydrate ; ^{A}_{Z} note le nombre de masse et le numéro atomique d'un noyau."
+    },
+    "arrows": {
+      "title": "Flèches et équilibres",
+      "body": "-> réaction, <- sens inverse, <=> équilibre, <-> mésomérie. Un texte au-dessus de la flèche s'écrit entre crochets : ->[{catalyseur}]. Un v isolé note un précipité, un ^ isolé un dégagement gazeux."
+    },
+    "units": {
+      "title": "Grandeurs et unités",
+      "body": "\\pu{…} écrit une valeur et son unité avec l'espacement correct : e pour la puissance de dix (1.6e-19), le point ou * pour multiplier les unités (m.s^-2), / pour diviser (kJ/mol)."
+    },
+    "errors": {
+      "title": "Toujours entre dollars",
+      "body": "\\ce et \\pu sont des commandes KaTeX : hors d'une formule $…$ ou $$…$$, elles restent du texte brut. Une notation invalide s'affiche en rouge, comme toute formule invalide."
+    },
+    "more": "Documentation complète de mhchem"
   },
   "mermaid": {
     "intro": "Un bloc de code « mermaid » décrit un diagramme en texte ; il est rendu automatiquement (la source reste visible tant que le rendu n'a pas tourné). Les deux premiers exemples sont modifiables.",

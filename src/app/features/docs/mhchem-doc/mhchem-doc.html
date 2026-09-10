@@ -1,0 +1,38 @@
+<p class="doc-intro">{{ 'docs.mhchem.intro' | transloco }}</p>
+
+<section class="doc-section">
+  <h2>{{ 'docs.mhchem.first.title' | transloco }}</h2>
+  <p>{{ 'docs.mhchem.first.body' | transloco }}</p>
+  <app-markdown-playground [initial]="firstExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.mhchem.species.title' | transloco }}</h2>
+  <p>{{ 'docs.mhchem.species.body' | transloco }}</p>
+  <app-markdown-playground [initial]="speciesExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.mhchem.arrows.title' | transloco }}</h2>
+  <p>{{ 'docs.mhchem.arrows.body' | transloco }}</p>
+  <app-markdown-playground [initial]="arrowsExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.mhchem.units.title' | transloco }}</h2>
+  <p>{{ 'docs.mhchem.units.body' | transloco }}</p>
+  <app-markdown-playground [initial]="unitsExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.mhchem.errors.title' | transloco }}</h2>
+  <p>{{ 'docs.mhchem.errors.body' | transloco }}</p>
+  <pre class="doc-source">{{ errorExample }}</pre>
+  <app-markdown-view [markdown]="errorExample" [showPrint]="false" />
+</section>
+
+<p class="doc-more">
+  <a href="https://mhchem.github.io/MathJax-mhchem/" target="_blank" rel="noopener noreferrer">
+    {{ 'docs.mhchem.more' | transloco }}
+  </a>
+</p>

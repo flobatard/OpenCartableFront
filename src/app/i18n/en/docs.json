@@ -9,6 +9,10 @@
       "title": "Formulas (KaTeX)",
       "summary": "Write LaTeX formulas inline ($…$) or centered ($$…$$)."
     },
+    "mhchem": {
+      "title": "Chemistry (mhchem)",
+      "summary": "Write chemical equations, ions and units inside a formula: $\\ce{…}$ and $\\pu{…}$."
+    },
     "mermaid": {
       "title": "Diagrams (Mermaid)",
       "summary": "Flowcharts, sequences, Gantt charts… described as text in a code block."
@@ -65,6 +69,30 @@
       "body": "An invalid formula never breaks the block: it renders in red with its source visible until you fix it."
     },
     "more": "Full list of supported commands (katex.org)"
+  },
+  "mhchem": {
+    "intro": "Chemical notation is written inside a KaTeX formula, between dollar signs, with the \\ce{…} command (mhchem extension); \\pu{…} writes a physical quantity with its unit. Subscripts and charges are placed automatically. Every example is editable.",
+    "first": {
+      "title": "First equation",
+      "body": "Inside \\ce{…}, formulas are written as they are read: digits after a symbol become subscripts, the coefficient goes before the species, -> draws the reaction arrow."
+    },
+    "species": {
+      "title": "Ions, states and nuclei",
+      "body": "The charge follows ^ (Cu^2+, SO4^2-); the physical state goes in parentheses: (s), (l), (g), (aq). A dot joins the parts of a hydrate; ^{A}_{Z} gives the mass number and atomic number of a nucleus."
+    },
+    "arrows": {
+      "title": "Arrows and equilibria",
+      "body": "-> reaction, <- reverse direction, <=> equilibrium, <-> resonance. Text above the arrow goes in square brackets: ->[{catalyst}]. A lone v marks a precipitate, a lone ^ a gas release."
+    },
+    "units": {
+      "title": "Quantities and units",
+      "body": "\\pu{…} writes a value and its unit with correct spacing: e for the power of ten (1.6e-19), a dot or * to multiply units (m.s^-2), / to divide (kJ/mol)."
+    },
+    "errors": {
+      "title": "Always between dollar signs",
+      "body": "\\ce and \\pu are KaTeX commands: outside a $…$ or $$…$$ formula, they stay plain text. Invalid notation is shown in red, like any invalid formula."
+    },
+    "more": "Full mhchem documentation"
   },
   "mermaid": {
     "intro": "A “mermaid” code block describes a diagram as text; it renders automatically (the source stays visible until rendering runs). The first two examples are editable.",

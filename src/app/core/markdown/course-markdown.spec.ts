@@ -87,6 +87,13 @@ describe('renderCourseMarkdown', () => {
     expect(div.querySelector('.katex-error')).toBeTruthy();
   });
 
+  it('mhchem: \\ce and \\pu are rendered by KaTeX (no error)', () => {
+    const div = render('$\\ce{2H2 + O2 -> 2H2O}$ et $\\pu{9.81 m/s^2}$');
+    expect(div.querySelectorAll('.katex')).toHaveLength(2);
+    expect(div.querySelector('.katex-error')).toBeNull();
+    expect(render('$$\\ce{CO2 + H2O <=> H2CO3}$$').querySelector('.katex-error')).toBeNull();
+  });
+
   it('formulas inside code are not rendered', () => {
     expect(render('`code $y$`').querySelector('.katex')).toBeNull();
     expect(render('```\n$x^2$\n```').querySelector('.katex')).toBeNull();

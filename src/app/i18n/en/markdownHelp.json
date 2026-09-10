@@ -32,6 +32,10 @@
     "greek": "Greek letters",
     "docs": "See all supported functions"
   },
+  "mhchem": {
+    "title": "Chemistry (mhchem)",
+    "intro": "Inside a formula, \\ce{…} writes a chemical equation (automatic subscripts, charges and arrows) and \\pu{…} a quantity with its unit."
+  },
   "mermaid": {
     "title": "Diagrams (Mermaid)",
     "intro": "Describe a diagram in a code block tagged “mermaid”; it is rendered automatically in the preview.",

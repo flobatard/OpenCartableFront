@@ -5,7 +5,7 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { NativeDialog } from '../dialog/native-dialog.directive';
 
 /**
- * Modale d'aide à la mise en forme (markdown + LaTeX/KaTeX + Mermaid +
+ * Modale d'aide à la mise en forme (markdown + LaTeX/KaTeX et mhchem + Mermaid +
  * extensions GeoGebra/JSXGraph/TikZ), réutilisable par tout éditeur de
  * contenu de cours. Élément `<dialog>` natif : focus-trap, Escape et backdrop gérés par
  * la plateforme. Présentational — pilotée par le parent via les méthodes
@@ -30,6 +30,8 @@ export class MarkdownHelpDialog {
   /** Exemples affichés dans des `<pre>` (chaînes liées : gardent les sauts). */
   protected readonly tableExample =
     '| Colonne A | Colonne B |\n| --------- | --------- |\n| valeur    | valeur    |';
+
+  protected readonly mhchemExample = '$\\ce{2H2 + O2 -> 2H2O}$\n$\\pu{9.81 m.s^-2}$';
 
   protected readonly mermaidExample =
     '```mermaid\ngraph TD\n  A[Début] --> B{Condition ?}\n  B -->|oui| C[Action]\n  B -->|non| D[Fin]\n```';

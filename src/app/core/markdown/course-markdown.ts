@@ -1,5 +1,8 @@
 import DOMPurify from 'dompurify';
 import katex from 'katex';
+// Side-effect : enregistre `\ce` et `\pu` (chimie, unités) sur la MÊME
+// instance que `katex` (le module importe `../katex.mjs`).
+import 'katex/contrib/mhchem';
 import { Marked, Tokens, TokenizerAndRendererExtension } from 'marked';
 import { BLOCK_REF_ATTR, parseBlockRef } from './course-block-ref';
 import { MODULE_REF_ATTR, parseModuleRef } from './course-module-ref';
@@ -17,7 +20,8 @@ export type { ResolvedResource } from './course-resource-pass';
 /**
  * Rendu du markdown des blocs de cours (contrat `texte` de
  * app/models/block.py) : markdown GFM + formules LaTeX — `$…$` en ligne,
- * `$$…$$` centrée — rendues par KaTeX. Première passe, synchrone ; les
+ * `$$…$$` centrée — rendues par KaTeX, extension mhchem comprise (`\ce{…}`,
+ * `\pu{…}`). Première passe, synchrone ; les
  * diagrammes Mermaid (`course-diagrams.ts`) et les ressources de la
  * bibliothèque (`course-resource-pass.ts`) sont des passes asynchrones
  * enchaînées par `markdown-view`.

@@ -32,6 +32,10 @@
     "greek": "Lettres grecques",
     "docs": "Voir toutes les fonctions prises en charge"
   },
+  "mhchem": {
+    "title": "Chimie (mhchem)",
+    "intro": "Dans une formule, \\ce{…} écrit une équation chimique (indices, charges et flèches automatiques) et \\pu{…} une grandeur avec son unité."
+  },
   "mermaid": {
     "title": "Diagrammes (Mermaid)",
     "intro": "Décris un diagramme dans un bloc de code marqué « mermaid » ; il est rendu automatiquement dans l'aperçu.",

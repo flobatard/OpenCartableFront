@@ -138,6 +138,21 @@
       </section>
 
       <section class="md-help__section">
+        <h3>{{ 'markdownHelp.mhchem.title' | transloco }}</h3>
+        <p>{{ 'markdownHelp.mhchem.intro' | transloco }}</p>
+        <pre class="md-help__code">{{ mhchemExample }}</pre>
+        <p class="md-help__note">
+          <a
+            [routerLink]="['/', language.lang(), 'markdown-language', 'docs', 'mhchem']"
+            target="_blank"
+            rel="noopener"
+          >
+            {{ 'markdownHelp.fullDocs' | transloco }}
+          </a>
+        </p>
+      </section>
+
+      <section class="md-help__section">
         <h3>{{ 'markdownHelp.mermaid.title' | transloco }}</h3>
         <p>{{ 'markdownHelp.mermaid.intro' | transloco }}</p>
         <pre class="md-help__code">{{ mermaidExample }}</pre>

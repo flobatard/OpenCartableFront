@@ -69,6 +69,7 @@ describe('DocsShell', () => {
     const links = [...fixture.nativeElement.querySelectorAll('.tabs a.tab')] as HTMLAnchorElement[];
     expect(links.map((a) => a.getAttribute('href'))).toEqual([
       '/fr/markdown-language/docs/katex',
+      '/fr/markdown-language/docs/mhchem',
       '/fr/markdown-language/docs/mermaid',
       '/fr/markdown-language/docs/fakelang',
       '/fr/markdown-language/docs/otherlang',
