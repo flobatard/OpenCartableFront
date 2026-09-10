@@ -1,0 +1,83 @@
+@use 'sass:list';
+
+:host {
+  display: block;
+}
+
+// viewBox = largeur mesurée de l'hôte ; sous TIMELINE_MIN_WIDTH (480), défilement.
+.timeline__scroll {
+  overflow-x: auto;
+}
+
+.timeline__svg {
+  display: block;
+  width: 100%;
+  min-width: 480px;
+  height: auto;
+  font-family: var(--font-sans);
+}
+
+.timeline__axis,
+.timeline__tick,
+.timeline__stem {
+  stroke: var(--text-secondary);
+}
+
+.timeline__axis {
+  stroke-width: 2;
+}
+
+.timeline__stem {
+  stroke-dasharray: 2 3;
+}
+
+.timeline__dot {
+  fill: var(--color-primary);
+}
+
+.timeline__label {
+  fill: var(--text-primary);
+  font-size: 14px;
+}
+
+// Halo couleur du fond : la tige d'un événement voisin passe derrière le texte.
+.timeline__label--event {
+  paint-order: stroke;
+  stroke: var(--bg-surface);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+.timeline__tick-label {
+  fill: var(--text-secondary);
+  font-size: 12px;
+  text-anchor: middle;
+}
+
+// Teinte translucide : lisible sous le texte en thème clair comme sombre.
+.timeline__period {
+  fill-opacity: 0.22;
+  stroke-width: 1.5;
+}
+
+// Autant de teintes que TIMELINE_COLORS (timeline-layout.ts).
+$period-colors: (var(--indigo-500), var(--amber-500), var(--emerald-500), var(--sky-500), var(--red-500));
+
+@for $i from 1 through list.length($period-colors) {
+  .timeline__period--#{$i - 1} {
+    fill: list.nth($period-colors, $i);
+    stroke: list.nth($period-colors, $i);
+  }
+}
+
+// Frise vide ou lignes ignorées : note atténuée (comme .jsxgraph-view__error).
+.timeline__notice {
+  display: inline-block;
+  margin: 0.5rem 0 0;
+  padding: 2px 8px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.875em;
+  font-style: italic;
+}

@@ -2,7 +2,7 @@
   "trigger": "Formatting help",
   "title": "Formatting help",
   "close": "Close",
-  "intro": "The editor combines three languages: Markdown for text, LaTeX for formulas and Mermaid for diagrams.",
+  "intro": "The editor combines several languages: Markdown for text, LaTeX for formulas, and specialized code blocks for diagrams, figures, timelines and other content.",
   "colSyntax": "Syntax",
   "colResult": "Result",
   "markdown": {
@@ -55,5 +55,9 @@
   "tikz": {
     "title": "Figures (TikZ)",
     "intro": "Draws precise vector diagrams in LaTeX/TikZ inside a “tikz” code block; the figure is compiled in the browser."
+  },
+  "timeline": {
+    "title": "Timelines",
+    "intro": "Place periods (period=start,end,label) and events (event=date,label) on a time axis, in a “timeline” code block; negative years are BC."
   }
 }

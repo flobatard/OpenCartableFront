@@ -1,0 +1,104 @@
+@if (layout(); as frise) {
+  <div class="timeline__scroll">
+    <svg
+      class="timeline__svg"
+      role="img"
+      [attr.viewBox]="'0 0 ' + frise.width + ' ' + frise.height"
+      [attr.aria-label]="'markdownExtensions.timeline.label' | transloco"
+    >
+      @for (period of frise.periods; track $index) {
+        <rect
+          [attr.class]="'timeline__period timeline__period--' + period.colorIndex"
+          [attr.x]="period.x"
+          [attr.y]="period.y"
+          [attr.width]="period.width"
+          [attr.height]="period.height"
+          rx="4"
+        />
+        <text
+          class="timeline__label"
+          [attr.x]="period.labelX"
+          [attr.y]="period.labelY"
+          [attr.text-anchor]="period.anchor"
+        >
+          {{ period.label }}
+        </text>
+      }
+      <line
+        class="timeline__axis"
+        [attr.x1]="frise.axisX1"
+        [attr.x2]="frise.axisX2"
+        [attr.y1]="frise.axisY"
+        [attr.y2]="frise.axisY"
+      />
+      @for (tick of frise.ticks; track tick.year) {
+        <line
+          class="timeline__tick"
+          [attr.x1]="tick.x"
+          [attr.x2]="tick.x"
+          [attr.y1]="frise.axisY - 4"
+          [attr.y2]="frise.axisY + 4"
+        />
+        <text class="timeline__tick-label" [attr.x]="tick.x" [attr.y]="frise.tickLabelY">
+          @if (tick.year < 0) {
+            {{ 'markdownExtensions.timeline.bce' | transloco: { year: -tick.year } }}
+          } @else {
+            {{ tick.year }}
+          }
+        </text>
+      }
+      @for (event of frise.events; track $index) {
+        <line
+          class="timeline__stem"
+          [attr.x1]="event.x"
+          [attr.x2]="event.x"
+          [attr.y1]="event.stemTop"
+          [attr.y2]="frise.axisY"
+        />
+        <circle class="timeline__dot" [attr.cx]="event.x" [attr.cy]="frise.axisY" r="4" />
+      }
+      <!-- Libellés après toutes les tiges : leur halo masque celles qui les croisent. -->
+      @for (event of frise.events; track $index) {
+        <text
+          class="timeline__label timeline__label--event"
+          [attr.x]="event.labelX"
+          [attr.y]="event.labelY"
+          [attr.text-anchor]="event.anchor"
+        >
+          {{ event.label }}
+        </text>
+      }
+    </svg>
+  </div>
+  <ul class="sr-only">
+    @for (period of config().periods; track $index) {
+      <li>
+        {{ period.label }} :
+        <ng-container *ngTemplateOutlet="dateText; context: { $implicit: period.from }" />
+        –
+        <ng-container *ngTemplateOutlet="dateText; context: { $implicit: period.to }" />
+      </li>
+    }
+    @for (event of config().events; track $index) {
+      <li>
+        <ng-container *ngTemplateOutlet="dateText; context: { $implicit: event.date }" /> :
+        {{ event.label }}
+      </li>
+    }
+  </ul>
+  @if (config().ignored > 0) {
+    <p class="timeline__notice">
+      {{ 'markdownExtensions.timeline.ignoredLines' | transloco: { count: config().ignored } }}
+    </p>
+  }
+} @else {
+  <p class="timeline__notice">{{ 'markdownExtensions.timeline.invalidConfig' | transloco }}</p>
+}
+
+<ng-template #dateText let-date>
+  @if (date.bce) {
+    {{ 'markdownExtensions.timeline.bce' | transloco: { year: date.text } }}
+  } @else {
+    {{ date.text }}
+  }
+</ng-template>

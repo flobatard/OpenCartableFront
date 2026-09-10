@@ -28,6 +28,10 @@
     "tikz": {
       "title": "Figures (TikZ)",
       "summary": "Draw precise vector diagrams using LaTeX/TikZ syntax."
+    },
+    "timeline": {
+      "title": "Timelines",
+      "summary": "Place periods and events on a time axis, BC or AD."
     }
   },
   "katex": {
@@ -196,6 +200,36 @@
     "print": {
       "title": "Printing and PDF export",
       "body": "The rendering is a vector SVG: it goes into the course PDF export as-is, with crisp text and lines."
+    }
+  },
+  "timeline": {
+    "intro": "A “timeline” code block draws a timeline: periods as bands below the axis, events above it. The timeline follows the light or dark theme and prints as is. Every example is editable.",
+    "first": {
+      "title": "First timeline",
+      "body": "period=start,end,label draws a period; repeat the line to add more. The axis bounds and ticks are computed automatically."
+    },
+    "events": {
+      "title": "Events and precise dates",
+      "body": "event=date,label places a single event.",
+      "dates": "a date is written YYYY, YYYY-MM or YYYY-MM-DD (1789-07-14);",
+      "labels": "the label is everything after the comma: it may contain commas itself;",
+      "lanes": "items that are too close are stacked on several rows instead of overlapping."
+    },
+    "bounds": {
+      "title": "Bounds and ticks",
+      "body": "start= and end= set the axis bounds (anything beyond is clipped), step= the tick interval in years. A step too fine for the timeline's width is replaced by a round one."
+    },
+    "bce": {
+      "title": "Before Christ",
+      "body": "A negative year is BC: -52 is shown as “52 BC”. The axis is continuous: it ignores the missing year 0 of the historical calendar, a one-year gap that does not matter at the scale of a timeline."
+    },
+    "errors": {
+      "title": "Invalid lines",
+      "body": "A malformed line (unreadable date, missing label or period end) is ignored: the timeline draws what is valid and reports how many lines were ignored."
+    },
+    "print": {
+      "title": "Printing and PDF export",
+      "body": "The timeline is drawn as SVG: it goes as is into the course PDF export, in light colors."
     }
   }
 }

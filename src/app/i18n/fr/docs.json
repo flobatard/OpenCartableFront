@@ -28,6 +28,10 @@
     "tikz": {
       "title": "Figures (TikZ)",
       "summary": "Dessiner des schémas vectoriels précis avec la syntaxe LaTeX/TikZ."
+    },
+    "timeline": {
+      "title": "Frises chronologiques",
+      "summary": "Placer périodes et événements sur un axe du temps, avant ou après J.-C."
     }
   },
   "katex": {
@@ -196,6 +200,36 @@
     "print": {
       "title": "Impression et export PDF",
       "body": "Le rendu est un SVG vectoriel : il part tel quel dans l'export PDF du cours, texte et traits nets."
+    }
+  },
+  "timeline": {
+    "intro": "Un bloc de code « timeline » dessine une frise chronologique : des périodes en bandes sous l'axe, des événements au-dessus. La frise suit le thème clair ou sombre et part telle quelle à l'impression. Chaque exemple est modifiable.",
+    "first": {
+      "title": "Première frise",
+      "body": "period=début,fin,libellé trace une période ; répétez la ligne pour en ajouter. Les bornes de l'axe et les graduations se calculent toutes seules."
+    },
+    "events": {
+      "title": "Événements et dates précises",
+      "body": "event=date,libellé place un événement ponctuel.",
+      "dates": "une date s'écrit AAAA, AAAA-MM ou AAAA-MM-JJ (1789-07-14) ;",
+      "labels": "le libellé est tout ce qui suit la virgule : il peut lui-même contenir des virgules ;",
+      "lanes": "les éléments trop proches s'étagent sur plusieurs lignes au lieu de se chevaucher."
+    },
+    "bounds": {
+      "title": "Cadrage et graduations",
+      "body": "start= et end= fixent les bornes de l'axe (ce qui dépasse est coupé), step= le pas des graduations en années. Un pas trop fin pour la largeur de la frise est remplacé par un pas « rond »."
+    },
+    "bce": {
+      "title": "Avant Jésus-Christ",
+      "body": "Une année négative est antérieure à J.-C. : -52 s'affiche « 52 av. J.-C. ». L'axe est continu : il ne connaît pas l'absence d'an 0 du calendrier historique, un écart d'un an sans conséquence à l'échelle d'une frise."
+    },
+    "errors": {
+      "title": "Lignes invalides",
+      "body": "Une ligne malformée (date illisible, libellé ou fin de période manquants) est ignorée : la frise trace ce qui est valide et signale le nombre de lignes ignorées."
+    },
+    "print": {
+      "title": "Impression et export PDF",
+      "body": "La frise est dessinée en SVG : elle part telle quelle dans l'export PDF du cours, en couleurs claires."
     }
   }
 }

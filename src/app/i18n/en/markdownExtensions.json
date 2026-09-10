@@ -13,5 +13,11 @@
     "loading": "Compiling the figure…",
     "loadError": "The TikZ compiler could not be loaded.",
     "texError": "Invalid TikZ code: the figure could not be compiled."
+  },
+  "timeline": {
+    "label": "Timeline",
+    "bce": "{{year}} BC",
+    "invalidConfig": "Empty timeline: add at least one valid period=start,end,label or event=date,label line.",
+    "ignoredLines": "Ignored lines (invalid syntax): {{count}}"
   }
 }

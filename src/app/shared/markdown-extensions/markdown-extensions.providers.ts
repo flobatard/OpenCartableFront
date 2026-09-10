@@ -3,6 +3,7 @@ import { MARKDOWN_EXTENSIONS } from './markdown-extension.model';
 import { GEOGEBRA_EXTENSION } from './geogebra/geogebra-extension';
 import { JSXGRAPH_EXTENSION } from './jsxgraph/jsxgraph-extension';
 import { TIKZ_EXTENSION } from './tikz/tikz-extension';
+import { TIMELINE_EXTENSION } from './timeline/timeline-extension';
 
 /**
  * Enregistre les langages d'extension markdown de l'application (consommé par
@@ -15,5 +16,6 @@ export function provideMarkdownExtensions(): EnvironmentProviders {
     { provide: MARKDOWN_EXTENSIONS, useValue: GEOGEBRA_EXTENSION, multi: true },
     { provide: MARKDOWN_EXTENSIONS, useValue: JSXGRAPH_EXTENSION, multi: true },
     { provide: MARKDOWN_EXTENSIONS, useValue: TIKZ_EXTENSION, multi: true },
+    { provide: MARKDOWN_EXTENSIONS, useValue: TIMELINE_EXTENSION, multi: true },
   ]);
 }

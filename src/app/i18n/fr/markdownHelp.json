@@ -2,7 +2,7 @@
   "trigger": "Aide à la mise en forme",
   "title": "Aide à la mise en forme",
   "close": "Fermer",
-  "intro": "L'éditeur combine trois langages : le markdown pour le texte, LaTeX pour les formules et Mermaid pour les diagrammes.",
+  "intro": "L'éditeur combine plusieurs langages : le markdown pour le texte, LaTeX pour les formules, et des blocs de code spécialisés pour les diagrammes, figures, frises et autres contenus.",
   "colSyntax": "Syntaxe",
   "colResult": "Résultat",
   "markdown": {
@@ -55,5 +55,9 @@
   "tikz": {
     "title": "Figures (TikZ)",
     "intro": "Dessine des schémas vectoriels précis en LaTeX/TikZ dans un bloc de code « tikz » ; la figure est compilée dans le navigateur."
+  },
+  "timeline": {
+    "title": "Frises chronologiques",
+    "intro": "Place des périodes (period=début,fin,libellé) et des événements (event=date,libellé) sur un axe du temps, dans un bloc de code « timeline » ; les années négatives sont avant J.-C."
   }
 }

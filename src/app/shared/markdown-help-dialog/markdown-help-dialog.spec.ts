@@ -52,6 +52,7 @@ describe('MarkdownHelpDialog', () => {
     expect(examples.some((code) => code.includes('```geogebra'))).toBe(true);
     expect(examples.some((code) => code.includes('```jsxgraph'))).toBe(true);
     expect(examples.some((code) => code.includes('```tikz'))).toBe(true);
+    expect(examples.some((code) => code.includes('```timeline'))).toBe(true);
   });
 
   it('each section links to its doc page in a new tab', async () => {
@@ -67,6 +68,7 @@ describe('MarkdownHelpDialog', () => {
       '/fr/markdown-language/docs/geogebra',
       '/fr/markdown-language/docs/jsxgraph',
       '/fr/markdown-language/docs/tikz',
+      '/fr/markdown-language/docs/timeline',
     ]);
     // _blank : RouterLink n'intercepte pas — la modale et l'édition restent en place.
     expect(links.every((a) => a.getAttribute('target') === '_blank')).toBe(true);

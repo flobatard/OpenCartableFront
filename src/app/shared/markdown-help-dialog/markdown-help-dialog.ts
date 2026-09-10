@@ -6,7 +6,7 @@ import { NativeDialog } from '../dialog/native-dialog.directive';
 
 /**
  * Modale d'aide à la mise en forme (markdown + LaTeX/KaTeX et mhchem + Mermaid +
- * extensions GeoGebra/JSXGraph/TikZ), réutilisable par tout éditeur de
+ * extensions GeoGebra/JSXGraph/TikZ/frise), réutilisable par tout éditeur de
  * contenu de cours. Élément `<dialog>` natif : focus-trap, Escape et backdrop gérés par
  * la plateforme. Présentational — pilotée par le parent via les méthodes
  * publiques `open()` / `close()`.
@@ -42,6 +42,9 @@ export class MarkdownHelpDialog {
     '```jsxgraph\nequation=x^2 - 2\npoint=1,-1\nbbox=-5,5,5,-5\n```';
 
   protected readonly tikzExample = '```tikz\n\\draw (0,0) -- (4,0) -- (0,3) -- cycle;\n```';
+
+  protected readonly timelineExample =
+    '```timeline\nperiod=1789,1799,Révolution\nevent=1789-07-14,Prise de la Bastille\n```';
 
   open(): void {
     this.dialog()?.open();

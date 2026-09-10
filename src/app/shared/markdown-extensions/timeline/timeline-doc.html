@@ -1,0 +1,42 @@
+<p class="doc-intro">{{ 'docs.timeline.intro' | transloco }}</p>
+
+<section class="doc-section">
+  <h2>{{ 'docs.timeline.first.title' | transloco }}</h2>
+  <p>{{ 'docs.timeline.first.body' | transloco }}</p>
+  <app-markdown-playground [initial]="firstExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.timeline.events.title' | transloco }}</h2>
+  <p>{{ 'docs.timeline.events.body' | transloco }}</p>
+  <ul class="doc-rules">
+    <li>{{ 'docs.timeline.events.dates' | transloco }}</li>
+    <li>{{ 'docs.timeline.events.labels' | transloco }}</li>
+    <li>{{ 'docs.timeline.events.lanes' | transloco }}</li>
+  </ul>
+  <app-markdown-playground [initial]="eventsExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.timeline.bounds.title' | transloco }}</h2>
+  <p>{{ 'docs.timeline.bounds.body' | transloco }}</p>
+  <app-markdown-playground [initial]="boundsExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.timeline.bce.title' | transloco }}</h2>
+  <p>{{ 'docs.timeline.bce.body' | transloco }}</p>
+  <app-markdown-playground [initial]="bceExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.timeline.errors.title' | transloco }}</h2>
+  <p>{{ 'docs.timeline.errors.body' | transloco }}</p>
+  <pre class="doc-source">{{ errorExample }}</pre>
+  <app-markdown-view [markdown]="errorExample" [showPrint]="false" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.timeline.print.title' | transloco }}</h2>
+  <p>{{ 'docs.timeline.print.body' | transloco }}</p>
+</section>

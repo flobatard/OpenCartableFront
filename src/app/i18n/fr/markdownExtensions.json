@@ -13,5 +13,11 @@
     "loading": "Compilation de la figure…",
     "loadError": "Le compilateur TikZ n'a pas pu être chargé.",
     "texError": "Code TikZ invalide : la figure n'a pas pu être compilée."
+  },
+  "timeline": {
+    "label": "Frise chronologique",
+    "bce": "{{year}} av. J.-C.",
+    "invalidConfig": "Frise vide : ajoutez au moins une ligne period=début,fin,libellé ou event=date,libellé valide.",
+    "ignoredLines": "Lignes ignorées (syntaxe invalide) : {{count}}"
   }
 }
