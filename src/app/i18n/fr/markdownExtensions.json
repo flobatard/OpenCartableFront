@@ -24,5 +24,14 @@
     "label": "Molécule {{smiles}}",
     "invalid": "SMILES invalide, molécule non dessinée :",
     "loadError": "Le moteur de dessin des molécules n'a pas pu être chargé."
+  },
+  "vegalite": {
+    "label": "Graphique de données",
+    "loading": "Tracé du graphique…",
+    "json": "Spécification JSON invalide : {{detail}}",
+    "notObject": "Spécification invalide : le bloc doit contenir un objet JSON { … }.",
+    "externalData": "Données externes refusées ({{detail}}) : placez les valeurs dans data.values.",
+    "spec": "Graphique invalide : {{detail}}",
+    "load": "Le moteur de graphiques n'a pas pu être chargé."
   }
 }

@@ -36,6 +36,10 @@
     "smiles": {
       "title": "Molecules (SMILES)",
       "summary": "Draw a molecule's skeletal formula from its SMILES notation."
+    },
+    "vegalite": {
+      "title": "Charts (Vega-Lite)",
+      "summary": "Bars, lines, scatter plots, pies… from a data table."
     }
   },
   "katex": {
@@ -266,5 +270,32 @@
       "body": "Molecules are drawn as SVG: they go as is into the course PDF export."
     },
     "more": "Find a molecule's SMILES (PubChem)"
+  },
+  "vegalite": {
+    "intro": "A “vegalite” code block draws a data chart described in JSON with the Vega-Lite grammar: the values, the kind of mark and what each axis stands for. The chart is computed in the browser and drawn on a light board. Every example is editable.",
+    "first": {
+      "title": "First chart",
+      "body": "A specification brings together three parts:",
+      "data": "data.values: the data, one object per table row;",
+      "mark": "mark: the kind of mark — bar, line, point, area, arc (pie)…;",
+      "encoding": "encoding: which column goes to which channel (x, y, color, theta…) and its type (quantitative, nominal, ordinal, temporal)."
+    },
+    "measures": {
+      "title": "Measurements and regression",
+      "body": "Layers stack several marks on the same axes: here the measured points and their regression line, computed by the regression transform."
+    },
+    "layers": {
+      "title": "Two scales on one chart",
+      "body": "With resolve, each layer keeps its own vertical axis: this is how a climate chart works, precipitation as bars and temperature as a line."
+    },
+    "errors": {
+      "title": "Inline data only",
+      "body": "Data is written inside the specification (data.values): loading from a URL is refused, so that no chart makes a request to a third-party site from students' browsers. Invalid JSON or an invalid specification likewise shows a notice with the error message."
+    },
+    "print": {
+      "title": "Printing and PDF export",
+      "body": "The chart is drawn as static SVG: it goes as is into the course PDF export. Tooltips and interactive selections are not supported."
+    },
+    "more": "Vega-Lite example gallery"
   }
 }

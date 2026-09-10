@@ -1,0 +1,15 @@
+@if (loading()) {
+  <p class="vegalite-view__loading">{{ 'markdownExtensions.vegalite.loading' | transloco }}</p>
+}
+<div
+  #board
+  class="vegalite-view__board"
+  [class.vegalite-view__board--hidden]="loading() || error() !== null"
+  role="img"
+  [attr.aria-label]="label() ?? ('markdownExtensions.vegalite.label' | transloco)"
+></div>
+@if (error(); as failure) {
+  <p class="vegalite-view__error">
+    {{ 'markdownExtensions.vegalite.' + failure.kind | transloco: { detail: failure.detail } }}
+  </p>
+}

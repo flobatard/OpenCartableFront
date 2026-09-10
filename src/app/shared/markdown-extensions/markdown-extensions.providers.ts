@@ -5,6 +5,7 @@ import { JSXGRAPH_EXTENSION } from './jsxgraph/jsxgraph-extension';
 import { SMILES_EXTENSION } from './smiles/smiles-extension';
 import { TIKZ_EXTENSION } from './tikz/tikz-extension';
 import { TIMELINE_EXTENSION } from './timeline/timeline-extension';
+import { VEGALITE_EXTENSION } from './vegalite/vegalite-extension';
 
 /**
  * Enregistre les langages d'extension markdown de l'application (consommé par
@@ -19,5 +20,6 @@ export function provideMarkdownExtensions(): EnvironmentProviders {
     { provide: MARKDOWN_EXTENSIONS, useValue: TIKZ_EXTENSION, multi: true },
     { provide: MARKDOWN_EXTENSIONS, useValue: TIMELINE_EXTENSION, multi: true },
     { provide: MARKDOWN_EXTENSIONS, useValue: SMILES_EXTENSION, multi: true },
+    { provide: MARKDOWN_EXTENSIONS, useValue: VEGALITE_EXTENSION, multi: true },
   ]);
 }

@@ -166,6 +166,9 @@ export const ocMarkdownLanguage = {
       [/^(\t|[ ]{4})[^ ].*$/, 'string'],
       // code block (3 tilde)
       [/^\s*~~~\s*((?:\w|[/\-#])+)?\s*$/, { token: 'string', next: '@codeblock' }],
+      // OC — ```vegalite : spec JSON, colorée comme telle (le nom du fence
+      // n'est pas un langage Monaco).
+      [/^\s*```\s*vegalite\s*$/, { token: 'string', next: '@codeblockgh', nextEmbedded: 'json' }],
       // github style code blocks (with backticks and language)
       [/^\s*```\s*((?:\w|[/\-#])+).*$/, { token: 'string', next: '@codeblockgh', nextEmbedded: '$1' }],
       // github style code blocks (with backticks but no language)

@@ -63,5 +63,9 @@
   "smiles": {
     "title": "Molécules (SMILES)",
     "intro": "Dessine la formule topologique d'une molécule par ligne, en notation SMILES, dans un bloc de code « smiles » ; une légende optionnelle suit une barre verticale |."
+  },
+  "vegalite": {
+    "title": "Graphiques (Vega-Lite)",
+    "intro": "Trace un graphique de données (barres, courbes, points, secteurs…) décrit en JSON Vega-Lite dans un bloc de code « vegalite » ; les données s'écrivent dans data.values."
   }
 }

@@ -36,6 +36,10 @@
     "smiles": {
       "title": "Molécules (SMILES)",
       "summary": "Dessiner la formule topologique d'une molécule à partir de sa notation SMILES."
+    },
+    "vegalite": {
+      "title": "Graphiques (Vega-Lite)",
+      "summary": "Barres, courbes, nuages de points, secteurs… à partir d'un tableau de données."
     }
   },
   "katex": {
@@ -266,5 +270,32 @@
       "body": "Les molécules sont dessinées en SVG : elles partent telles quelles dans l'export PDF du cours."
     },
     "more": "Trouver le SMILES d'une molécule (PubChem)"
+  },
+  "vegalite": {
+    "intro": "Un bloc de code « vegalite » trace un graphique de données décrit en JSON selon la grammaire Vega-Lite : les valeurs, le type de tracé et ce que chaque axe représente. Le graphique est calculé dans le navigateur et dessiné sur une planche claire. Chaque exemple est modifiable.",
+    "first": {
+      "title": "Premier graphique",
+      "body": "Une spécification réunit trois éléments :",
+      "data": "data.values : les données, un objet par ligne du tableau ;",
+      "mark": "mark : le type de tracé — bar, line, point, area, arc (secteurs)… ;",
+      "encoding": "encoding : quelle colonne va sur quel canal (x, y, color, theta…) et son type (quantitative, nominal, ordinal, temporal)."
+    },
+    "measures": {
+      "title": "Mesures et régression",
+      "body": "Des couches (layer) superposent plusieurs tracés sur les mêmes axes : ici les points de mesure et leur droite de régression, calculée par la transformation regression."
+    },
+    "layers": {
+      "title": "Deux échelles sur un même graphique",
+      "body": "Avec resolve, chaque couche garde son propre axe vertical : c'est le principe du diagramme ombrothermique, précipitations en barres et températures en courbe."
+    },
+    "errors": {
+      "title": "Données en ligne uniquement",
+      "body": "Les données s'écrivent dans la spécification (data.values) : un chargement par URL est refusé, pour qu'aucun graphique ne fasse partir de requête vers un site tiers depuis le navigateur des élèves. Un JSON ou une spécification invalide affiche de même une notice avec le message d'erreur."
+    },
+    "print": {
+      "title": "Impression et export PDF",
+      "body": "Le graphique est dessiné en SVG statique : il part tel quel dans l'export PDF du cours. Info-bulles et sélections interactives ne sont pas prises en charge."
+    },
+    "more": "Galerie d'exemples Vega-Lite"
   }
 }

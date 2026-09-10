@@ -54,6 +54,7 @@ describe('MarkdownHelpDialog', () => {
     expect(examples.some((code) => code.includes('```tikz'))).toBe(true);
     expect(examples.some((code) => code.includes('```timeline'))).toBe(true);
     expect(examples.some((code) => code.includes('```smiles'))).toBe(true);
+    expect(examples.some((code) => code.includes('```vegalite'))).toBe(true);
   });
 
   it('each section links to its doc page in a new tab', async () => {
@@ -71,6 +72,7 @@ describe('MarkdownHelpDialog', () => {
       '/fr/markdown-language/docs/tikz',
       '/fr/markdown-language/docs/timeline',
       '/fr/markdown-language/docs/smiles',
+      '/fr/markdown-language/docs/vegalite',
     ]);
     // _blank : RouterLink n'intercepte pas — la modale et l'édition restent en place.
     expect(links.every((a) => a.getAttribute('target') === '_blank')).toBe(true);

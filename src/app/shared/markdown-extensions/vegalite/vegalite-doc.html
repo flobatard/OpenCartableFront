@@ -1,0 +1,42 @@
+<p class="doc-intro">{{ 'docs.vegalite.intro' | transloco }}</p>
+
+<section class="doc-section">
+  <h2>{{ 'docs.vegalite.first.title' | transloco }}</h2>
+  <p>{{ 'docs.vegalite.first.body' | transloco }}</p>
+  <ul class="doc-rules">
+    <li>{{ 'docs.vegalite.first.data' | transloco }}</li>
+    <li>{{ 'docs.vegalite.first.mark' | transloco }}</li>
+    <li>{{ 'docs.vegalite.first.encoding' | transloco }}</li>
+  </ul>
+  <app-markdown-playground [initial]="firstExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.vegalite.measures.title' | transloco }}</h2>
+  <p>{{ 'docs.vegalite.measures.body' | transloco }}</p>
+  <app-markdown-playground [initial]="measuresExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.vegalite.layers.title' | transloco }}</h2>
+  <p>{{ 'docs.vegalite.layers.body' | transloco }}</p>
+  <app-markdown-playground [initial]="layersExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.vegalite.errors.title' | transloco }}</h2>
+  <p>{{ 'docs.vegalite.errors.body' | transloco }}</p>
+  <pre class="doc-source">{{ errorExample }}</pre>
+  <app-markdown-view [markdown]="errorExample" [showPrint]="false" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.vegalite.print.title' | transloco }}</h2>
+  <p>{{ 'docs.vegalite.print.body' | transloco }}</p>
+</section>
+
+<p class="doc-more">
+  <a href="https://vega.github.io/vega-lite/examples/" target="_blank" rel="noopener noreferrer">
+    {{ 'docs.vegalite.more' | transloco }}
+  </a>
+</p>

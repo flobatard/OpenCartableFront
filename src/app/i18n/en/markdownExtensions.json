@@ -24,5 +24,14 @@
     "label": "Molecule {{smiles}}",
     "invalid": "Invalid SMILES, molecule not drawn:",
     "loadError": "The molecule drawing engine could not be loaded."
+  },
+  "vegalite": {
+    "label": "Data chart",
+    "loading": "Drawing the chart…",
+    "json": "Invalid JSON specification: {{detail}}",
+    "notObject": "Invalid specification: the block must contain a JSON object { … }.",
+    "externalData": "External data refused ({{detail}}): put the values in data.values.",
+    "spec": "Invalid chart: {{detail}}",
+    "load": "The chart engine could not be loaded."
   }
 }

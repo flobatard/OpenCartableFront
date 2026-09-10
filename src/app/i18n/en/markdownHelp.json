@@ -63,5 +63,9 @@
   "smiles": {
     "title": "Molecules (SMILES)",
     "intro": "Draws the skeletal formula of one molecule per line, in SMILES notation, in a “smiles” code block; an optional caption follows a vertical bar |."
+  },
+  "vegalite": {
+    "title": "Charts (Vega-Lite)",
+    "intro": "Draws a data chart (bars, lines, points, pies…) described in Vega-Lite JSON in a “vegalite” code block; the data goes in data.values."
   }
 }
