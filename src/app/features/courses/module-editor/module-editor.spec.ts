@@ -3,6 +3,7 @@ import { By } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { AiCredentialsService } from '../../../core/ai-credentials/ai-credentials.service';
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
+import { ProposalModeService } from '../../../core/course-assistant/proposal-mode.service';
 import { AssistantPendingProposal } from '../../../core/course-assistant/proposals';
 import { ModuleDetail } from '../../../core/modules/module.model';
 import { ModuleService } from '../../../core/modules/module.service';
@@ -378,6 +379,23 @@ describe('ModuleEditor', () => {
     // Le contrôle n'est PAS réécrit : la propagation CVA de l'édit Monaco
     // suffit (un setValue viderait la pile d'annulation).
     expect(fixture.componentInstance.htmlControl.value).toBe(DETAIL.html);
+  });
+
+  it('auto-edit mode: the file is applied and accepted, no review nor proposed preview', async () => {
+    const fixture = await createComponent();
+    TestBed.inject(ProposalModeService).setMode('auto');
+    try {
+      assistantState.pendingProposal.set(proposal('module_js', "console.log('v2')"));
+      fixture.detectChanges();
+
+      const pane = el(fixture).querySelector<HTMLElement>('.module-editor__pane')!;
+      expect(pane.classList.contains('module-editor__pane--reviewing')).toBe(false);
+      expect(el(fixture).querySelector('app-module-proposal-review')).toBeNull();
+      expect(fixture.componentInstance.jsControl.value).toBe("console.log('v2')");
+      expect(assistantState.resumeProposal).toHaveBeenCalledWith({ accepted: true, auto: true });
+    } finally {
+      localStorage.removeItem('oc-assistant-proposal-mode');
+    }
   });
 
   it('rejecting resumes the run without touching the code', async () => {

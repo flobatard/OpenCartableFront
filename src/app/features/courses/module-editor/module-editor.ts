@@ -18,6 +18,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { debounceTime, merge } from 'rxjs';
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
 import { ProposalHost } from '../../../core/course-assistant/proposal-host';
+import { ProposalModeService } from '../../../core/course-assistant/proposal-mode.service';
 import {
   AssistantModuleProposal,
   MODULE_FILE_BY_KIND,
@@ -143,8 +144,10 @@ export class ModuleEditor implements OnInit, OnDestroy {
   protected readonly jsEditor = viewChild<MarkdownEditor>('jsEditor');
 
   readonly #assistantState = inject(AssistantChatState);
+  readonly #proposalMode = inject(ProposalModeService);
 
-  /** Revue d'une proposition de code en attente de décision (cf. doc de classe). */
+  /** Revue d'une proposition de code en attente de décision (cf. doc de classe) ;
+      aucune revue en mode « édition auto », qui applique et accepte d'emblée. */
   protected readonly proposals = new ProposalHost<ModuleReviewView>({
     state: this.#assistantState,
     buildReview: (proposal) => {
@@ -161,6 +164,7 @@ export class ModuleEditor implements OnInit, OnDestroy {
       const modular = proposal as AssistantModuleProposal;
       return this.#applyCode(MODULE_FILE_BY_KIND[modular.kind], modular.code);
     },
+    autoAccept: (proposal) => this.#proposalMode.shouldAutoAccept(proposal),
   });
 
   /**

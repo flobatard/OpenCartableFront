@@ -222,6 +222,16 @@ describe('CourseChat', () => {
       );
     });
 
+    it('the footer offers the auto-edit switch (editing chat), never the global panel', async () => {
+      const edit = await createComponent({ moduleId: 'module-1' });
+      expect(el(edit).querySelector('.chat-settings__auto-edit')).not.toBeNull();
+
+      TestBed.resetTestingModule();
+      const global = await createComponent();
+      expect(el(global).querySelector('.chat-settings')).not.toBeNull();
+      expect(el(global).querySelector('.chat-settings__auto-edit')).toBeNull();
+    });
+
     it('renders a module proposal call as an informative card', async () => {
       const fixture = await createComponent({ moduleId: 'module-1' });
       assistant.active.set({

@@ -28,6 +28,7 @@ import {
 } from '../../../core/ai-credentials/ai-credentials.model';
 import { AiCredentialsService } from '../../../core/ai-credentials/ai-credentials.service';
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
+import { ProposalModeService } from '../../../core/course-assistant/proposal-mode.service';
 import { conversationUsage, formatTokenCount } from '../../../core/course-assistant/usage';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
@@ -51,6 +52,11 @@ let uid = 0;
  * l'IA par défaut et chaque configuration nommée (`menuitemradio`, un clic =
  * PUT `/active`), puis « Gérer les configurations… » qui ouvre la modale de
  * réglages IA (`AiSettingsDialog`).
+ *
+ * **Édition auto** (chats d'édition seulement, input `editing`) : interrupteur
+ * du mode de décision des propositions HITL (`ProposalModeService`) —
+ * désactivé, chaque proposition attend sa revue ; activé, `ProposalHost`
+ * l'applique et l'accepte sans revue.
  *
  * **Sélecteur de modèle** : le libellé « nom · modèle » de la configuration
  * active est un bouton qui ouvre un panneau (même ancrage que le menu) avec un
@@ -76,8 +82,11 @@ let uid = 0;
 })
 export class CourseChatSettings {
   readonly assistant = input.required<AssistantChatState>();
+  /** Chat d'édition (bloc, module — flux HITL) : bascule du mode « édition auto ». */
+  readonly editing = input(false);
 
   readonly #credentials = inject(AiCredentialsService);
+  readonly #proposalMode = inject(ProposalModeService);
   readonly #language = inject(LanguageService);
   readonly #notifications = inject(NotificationService);
   readonly #transloco = inject(TranslocoService);
@@ -165,6 +174,9 @@ export class CourseChatSettings {
       : null,
   );
 
+  /** Mode « édition auto » des propositions HITL activé. */
+  protected readonly autoEdit = computed(() => this.#proposalMode.mode() === 'auto');
+
   /** Messages restants du quota quotidien (jamais négatif). */
   protected readonly quotaRemaining = computed(() => {
     const creds = this.aiCreds();
@@ -218,6 +230,10 @@ export class CourseChatSettings {
         }
       });
     });
+  }
+
+  protected toggleAutoEdit(): void {
+    this.#proposalMode.toggle();
   }
 
   protected toggleMenu(): void {

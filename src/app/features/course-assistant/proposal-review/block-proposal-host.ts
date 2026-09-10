@@ -24,6 +24,8 @@ export interface BlockProposalHostDeps {
   applyText: (markdown: string) => void;
   /** Applique une proposition d'exercice ; `false` = cible introuvable. */
   applyExercise: (proposal: ExerciseProposal) => boolean;
+  /** Mode « édition auto » (cf. `ProposalHostDeps.autoAccept`). */
+  autoAccept?: (proposal: AssistantPendingProposal) => boolean;
 }
 
 function isExerciseProposal(proposal: AssistantPendingProposal): proposal is ExerciseProposal {
@@ -64,5 +66,6 @@ export function buildBlockProposalHost(
       }
       return isExerciseProposal(proposal) && deps.applyExercise(proposal);
     },
+    autoAccept: deps.autoAccept,
   });
 }

@@ -30,6 +30,7 @@ import {
   payloadFromExerciseForm,
 } from '../../../core/courses/exercise-form';
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
+import { ProposalModeService } from '../../../core/course-assistant/proposal-mode.service';
 import { CourseService } from '../../../core/courses/course.service';
 import { CourseStyleService } from '../../../core/courses/course-style.service';
 import { ExerciseSubmissionsService } from '../../../core/courses/exercise-submissions.service';
@@ -150,13 +151,15 @@ export class BlockEditor implements OnInit, OnDestroy {
 
   /** Instance d'état du chat ancré (contexte d'édition du bloc), propre à la page. */
   readonly #assistantState = inject(AssistantChatState);
+  readonly #proposalMode = inject(ProposalModeService);
 
   /**
    * Orchestration des revues HITL (proposition en attente → revue → décision
-   * → application → reprise) : `proposals.pending()` masque l'éditeur tant
-   * qu'une proposition attend, `proposals.review()` choisit la revue (texte ou
-   * exercice, « original » figé à l'interrupt). Les callbacks lisent les
-   * éditeurs montés à l'appel (viewChild), jamais à la construction.
+   * → application → reprise) : `proposals.review()` masque l'éditeur et
+   * choisit la revue (texte ou exercice, « original » figé à l'interrupt) —
+   * `null` pendant une acceptation du mode « édition auto », qui applique sans
+   * revue. Les callbacks lisent les éditeurs montés à l'appel (viewChild),
+   * jamais à la construction.
    */
   protected readonly proposals = buildBlockProposalHost({
     state: this.#assistantState,
@@ -167,6 +170,7 @@ export class BlockEditor implements OnInit, OnDestroy {
     },
     applyText: (markdown: string) => this.#applyText(markdown),
     applyExercise: (proposal: ExerciseProposal) => this.#applyExercise(proposal),
+    autoAccept: (proposal) => this.#proposalMode.shouldAutoAccept(proposal),
   });
 
   /** Clé i18n de l'erreur de revue courante (`null` = aucune). */

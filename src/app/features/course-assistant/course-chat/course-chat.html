@@ -339,6 +339,7 @@
 
   <!-- Pied de panneau discret : modèle en service (config personnelle ou IA
        par défaut + quota) et roue crantée ouvrant la modale de réglages IA —
-       câblé sur l'instance d'état du panneau (globale ou ancrée). -->
-  <app-course-chat-settings [assistant]="assistant" />
+       câblé sur l'instance d'état du panneau (globale ou ancrée) ; bascule
+       « édition auto » dans les seuls chats d'édition (flux HITL). -->
+  <app-course-chat-settings [assistant]="assistant" [editing]="mode() === 'edit'" />
 }

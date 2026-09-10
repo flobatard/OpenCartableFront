@@ -69,6 +69,11 @@
     },
     "reasoningError": "Reasoning setting not saved — try again."
   },
+  "proposalMode": {
+    "label": "Auto edit",
+    "hintAsk": "Off: every assistant proposal waits for your approval in the editor.",
+    "hintAuto": "On: assistant proposals are applied without review (except question removals) — Ctrl-Z undoes a rewrite."
+  },
   "tokens": {
     "turn": "{{input}} in · {{output}} out",
     "total": "Total: {{total}} tokens ({{input}} in · {{output}} out)",

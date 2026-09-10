@@ -8,6 +8,7 @@ import {
   EMPTY_REASONING_OPTIONS,
 } from '../../../core/ai-credentials/ai-credentials.model';
 import { AiCredentialsService } from '../../../core/ai-credentials/ai-credentials.service';
+import { ProposalModeService } from '../../../core/course-assistant/proposal-mode.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { mockAssistantChatState } from '../../../testing/assistant.fixture';
@@ -138,6 +139,42 @@ describe('CourseChatSettings', () => {
         'IA par défaut : claude-sonnet-5',
       );
       expect(el(fixture).querySelector('.chat-settings__quota')!.textContent).toContain('3/30');
+    });
+  });
+
+  describe('auto-edit switch', () => {
+    afterEach(() => localStorage.removeItem('oc-assistant-proposal-mode'));
+
+    function autoEdit(fixture: ComponentFixture<CourseChatSettings>): HTMLButtonElement | null {
+      return el(fixture).querySelector<HTMLButtonElement>('.chat-settings__auto-edit');
+    }
+
+    it('is absent outside editing chats (global panel)', async () => {
+      const fixture = await setup(CUSTOM);
+      expect(autoEdit(fixture)).toBeNull();
+    });
+
+    it('editing chats: an off switch that toggles the shared proposal mode', async () => {
+      const fixture = await setup(CUSTOM);
+      fixture.componentRef.setInput('editing', true);
+      fixture.detectChanges();
+
+      const toggle = autoEdit(fixture)!;
+      expect(toggle.getAttribute('role')).toBe('switch');
+      expect(toggle.textContent!.trim()).toBe('Édition auto');
+      expect(toggle.getAttribute('aria-checked')).toBe('false');
+      expect(toggle.title).toContain('attend votre validation');
+
+      toggle.click();
+      fixture.detectChanges();
+      expect(TestBed.inject(ProposalModeService).mode()).toBe('auto');
+      expect(toggle.getAttribute('aria-checked')).toBe('true');
+      expect(toggle.title).toContain('sauf suppression de question');
+
+      toggle.click();
+      fixture.detectChanges();
+      expect(TestBed.inject(ProposalModeService).mode()).toBe('ask');
+      expect(toggle.getAttribute('aria-checked')).toBe('false');
     });
   });
 

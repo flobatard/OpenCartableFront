@@ -109,6 +109,22 @@ export const PROPOSAL_TOOL_BY_KIND: Readonly<Record<AssistantProposalKind, strin
   module_js: PROPOSE_JS_EDIT,
 };
 
+/**
+ * Mode de décision des propositions (`ProposalModeService`) : `ask` = revue
+ * puis clic du professeur ; `auto` = appliquées et acceptées sans revue.
+ */
+export type ProposalMode = 'ask' | 'auto';
+
+/**
+ * Genres de proposition toujours soumis à la revue, même en mode « édition
+ * auto » (`ProposalModeService`) : une suppression de question n'est pas
+ * annulable par Ctrl-Z (elle passe par le formulaire) et des tentatives
+ * d'élèves référencent l'id de la question.
+ */
+export const ALWAYS_REVIEWED_KINDS: ReadonlySet<AssistantProposalKind> = new Set([
+  'exercise_question_delete',
+]);
+
 /** Un appel d'outil tel que tracé (activité live ou `tool_calls` persistés). */
 export interface ProposalToolCall {
   id: string;

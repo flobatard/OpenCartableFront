@@ -1,4 +1,4 @@
-import { computed, signal, Signal } from '@angular/core';
+import { computed, effect, signal, Signal, untracked } from '@angular/core';
 import { AssistantChatState } from './assistant-chat-state';
 import { AssistantPendingProposal } from './proposals';
 
@@ -21,6 +21,14 @@ export interface ProposalHostDeps<V> {
   buildReview: (proposal: AssistantPendingProposal) => V | null;
   /** Applique la proposition dans l'éditeur ; `false` = cible introuvable. */
   apply: (proposal: AssistantPendingProposal) => boolean;
+  /**
+   * Mode « édition auto » (`ProposalModeService.shouldAutoAccept`) : `true` =
+   * la proposition est appliquée et acceptée sans revue. Consulté UNE fois, à
+   * l'arrivée de la proposition — basculer le mode pendant une revue ne la
+   * décide pas. Fourni, il exige un contexte d'injection à la construction
+   * (effect).
+   */
+  autoAccept?: (proposal: AssistantPendingProposal) => boolean;
 }
 
 /**
@@ -33,6 +41,12 @@ export interface ProposalHostDeps<V> {
  * la décision, la suite du tour streame dans le chat et la revue s'efface avec
  * la proposition). Une acceptation dont la cible a disparu n'applique rien et
  * n'envoie rien (`error = 'target'`).
+ *
+ * Mode auto (`autoAccept`) : l'acceptation part dès l'arrivée de la
+ * proposition, depuis un effect — qui tourne avant le rendu de l'hôte, donc
+ * `review` reste `null` et la revue n'apparaît jamais. Une tentative par
+ * proposition ; cible disparue ou envoi en échec = repli sur la revue
+ * manuelle, avec son erreur et l'« original » d'avant l'application.
  */
 export class ProposalHost<V> {
   readonly #deps: ProposalHostDeps<V>;
@@ -45,13 +59,40 @@ export class ProposalHost<V> {
     this.#deps.state.pendingProposal(),
   );
 
-  readonly review: Signal<V | null> = computed(() => {
+  /** Revue figée à l'arrivée de la proposition (« original » du diff compris). */
+  readonly #frozenReview: Signal<V | null> = computed(() => {
     const proposal = this.pending();
     return proposal === null ? null : this.#deps.buildReview(proposal);
   });
 
+  /** Proposition en cours d'acceptation automatique : sa revue est masquée. */
+  readonly #autoId = signal<string | null>(null);
+  /** Dernière proposition soumise au mode auto (une seule tentative par id). */
+  #autoTried: string | null = null;
+
+  /** Revue à afficher (`null` : aucune proposition, ou acceptation auto en vol). */
+  readonly review: Signal<V | null> = computed(() => {
+    const proposal = this.pending();
+    return proposal === null || this.#autoId() === proposal.id ? null : this.#frozenReview();
+  });
+
   constructor(deps: ProposalHostDeps<V>) {
     this.#deps = deps;
+    const autoAccept = deps.autoAccept;
+    if (autoAccept) {
+      effect(() => {
+        const proposal = this.pending();
+        if (proposal === null || proposal.id === this.#autoTried) {
+          return;
+        }
+        this.#autoTried = proposal.id;
+        untracked(() => {
+          if (autoAccept(proposal)) {
+            void this.#autoAccept(proposal);
+          }
+        });
+      });
+    }
   }
 
   /** La revue s'est refermée (proposition consommée ou abandonnée). */
@@ -70,27 +111,50 @@ export class ProposalHost<V> {
     if (proposal === null) {
       return;
     }
-    this.error.set(null);
-    if (!this.#deps.apply(proposal)) {
-      this.error.set('target');
-      return;
-    }
-    await this.#decide(true, comment);
+    await this.#acceptProposal(proposal, comment, false);
   }
 
   async reject(comment: string): Promise<void> {
     if (this.pending() === null) {
       return;
     }
-    await this.#decide(false, comment);
+    await this.#decide(false, comment, false);
   }
 
-  async #decide(accepted: boolean, comment: string): Promise<void> {
+  async #autoAccept(proposal: AssistantPendingProposal): Promise<void> {
+    // « Original » figé AVANT l'application (le computed est paresseux) : un
+    // repli sur la revue manuelle doit montrer le vrai diff.
+    this.#frozenReview();
+    this.#autoId.set(proposal.id);
+    const resumed = await this.#acceptProposal(proposal, '', true);
+    // Échec (cible disparue, envoi refusé) : repli sur la revue manuelle, avec
+    // son erreur — sauf si une proposition suivante a déjà pris la main.
+    if (!resumed && this.#autoId() === proposal.id) {
+      this.#autoId.set(null);
+    }
+  }
+
+  /** Retourne `true` si la reprise est partie. */
+  async #acceptProposal(
+    proposal: AssistantPendingProposal,
+    comment: string,
+    auto: boolean,
+  ): Promise<boolean> {
+    this.error.set(null);
+    if (!this.#deps.apply(proposal)) {
+      this.error.set('target');
+      return false;
+    }
+    return this.#decide(true, comment, auto);
+  }
+
+  async #decide(accepted: boolean, comment: string, auto: boolean): Promise<boolean> {
     this.busy.set(true);
     this.error.set(null);
     const resumed = await this.#deps.state.resumeProposal({
       accepted,
       ...(comment ? { comment } : {}),
+      ...(auto ? { auto } : {}),
     });
     this.busy.set(false);
     if (!resumed && this.pending() !== null) {
@@ -98,5 +162,6 @@ export class ProposalHost<V> {
       // la revue reste affichée, réessayable.
       this.error.set('decision');
     }
+    return resumed;
   }
 }

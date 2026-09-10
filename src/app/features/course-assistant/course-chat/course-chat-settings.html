@@ -221,6 +221,27 @@
     }
   }
 
+  <!-- Mode de décision des propositions, chats d'édition seulement (les seuls
+       à flux HITL) : désactivé = chaque proposition attend sa revue dans
+       l'éditeur ; activé = appliquée et acceptée sans revue (sauf suppression
+       de question). Préférence du navigateur, commune à tous les éditeurs. -->
+  @if (editing()) {
+    <button
+      type="button"
+      role="switch"
+      class="chat-settings__auto-edit"
+      [attr.aria-checked]="autoEdit()"
+      [attr.title]="
+        (autoEdit() ? 'courseChat.proposalMode.hintAuto' : 'courseChat.proposalMode.hintAsk')
+          | transloco
+      "
+      (click)="toggleAutoEdit()"
+    >
+      <span class="chat-settings__switch" aria-hidden="true"></span>
+      {{ 'courseChat.proposalMode.label' | transloco }}
+    </button>
+  }
+
   <!-- Compteurs, poussés à droite et repliables sur une seconde ligne : total
        de tokens de la conversation active, puis quota quotidien de l'IA par
        défaut (jamais pour une configuration : BYO token non compté). -->

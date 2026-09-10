@@ -5,6 +5,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { BlockEditor } from './block-editor';
 import { AiCredentialsService } from '../../../core/ai-credentials/ai-credentials.service';
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
+import { ProposalModeService } from '../../../core/course-assistant/proposal-mode.service';
 import { AssistantPendingProposal } from '../../../core/course-assistant/proposals';
 import { CourseBlock, CourseDetail } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
@@ -859,6 +860,23 @@ describe('BlockEditor', () => {
       expect(focus).toHaveBeenCalledTimes(1);
     });
 
+    it('auto-edit mode: applies and accepts without ever showing the review', async () => {
+      const fixture = await createComponent();
+      TestBed.inject(ProposalModeService).setMode('auto');
+      try {
+        await openReview(fixture);
+
+        // Ni revue ni éditeur masqué : l'application et la reprise sont parties.
+        expect(el(fixture).querySelector('app-proposal-review')).toBeNull();
+        const field = el(fixture).querySelector('app-markdown-field')!;
+        expect(field.classList.contains('block-editor__field--reviewing')).toBe(false);
+        expect(fixture.componentInstance.content.value).toBe('# Version proposée');
+        expect(assistantState.resumeProposal).toHaveBeenCalledWith({ accepted: true, auto: true });
+      } finally {
+        localStorage.removeItem('oc-assistant-proposal-mode');
+      }
+    });
+
     it('a failed resume keeps the review with a retryable error', async () => {
       const fixture = await createComponent();
       assistantState.resumeProposal.mockResolvedValue(false);
@@ -1052,6 +1070,36 @@ describe('BlockEditor', () => {
       await fixture.whenStable();
       expect(exerciseForm(fixture).controls.questions.length).toBe(0);
       expect(assistantState.resumeProposal).toHaveBeenCalledTimes(2);
+    });
+
+    it('auto-edit mode: a question edit is applied, a question removal still goes through review', async () => {
+      const fixture = await createComponent('block-3');
+      fixture.detectChanges();
+      TestBed.inject(ProposalModeService).setMode('auto');
+      try {
+        await openExerciseReview(fixture, questionEdit({}));
+        expect(el(fixture).querySelector('app-exercise-proposal-review')).toBeNull();
+        expect(exerciseForm(fixture).controls.questions.at(0).controls.expectedAnswer.value).toBe(
+          NEW_ANSWER,
+        );
+        expect(assistantState.resumeProposal).toHaveBeenCalledWith({ accepted: true, auto: true });
+
+        assistantState.pendingProposal.set(null);
+        fixture.detectChanges();
+        await openExerciseReview(fixture, {
+          kind: 'exercise_question_delete',
+          id: 'call_d',
+          summary: null,
+          questionId: 'q-1',
+        });
+        expect(el(fixture).querySelector('app-exercise-proposal-review')!.textContent).toContain(
+          'sera supprimée',
+        );
+        expect(exerciseForm(fixture).controls.questions.length).toBe(1);
+        expect(assistantState.resumeProposal).toHaveBeenCalledTimes(1);
+      } finally {
+        localStorage.removeItem('oc-assistant-proposal-mode');
+      }
     });
 
     it('reject: leaves the form untouched and resumes with accepted false', async () => {

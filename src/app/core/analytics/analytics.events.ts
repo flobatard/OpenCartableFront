@@ -1,6 +1,7 @@
 import { BlockType, CourseVisibility } from '../courses/course.model';
 import { PublicAccess } from '../public-courses/public-course.model';
 import { AssistantContext } from '../course-assistant/assistant.model';
+import { ProposalMode } from '../course-assistant/proposals';
 import { SubmissionEffort, SubmissionKind, SubmissionVerdict } from '../student/exercise-correction';
 
 /**
@@ -42,7 +43,9 @@ export interface AnalyticsEvents {
   };
 
   assistant_message_sent: { context: AssistantContext };
-  assistant_proposal_decided: { accepted: boolean };
+  /** `auto` : décision prise par le mode « édition auto », sans revue. */
+  assistant_proposal_decided: { accepted: boolean; auto: boolean };
+  assistant_proposal_mode_changed: { mode: ProposalMode };
 
   /** La requête elle-même n'est JAMAIS envoyée. */
   search_performed: { scope: 'courses' | 'teachers'; hasFilters: boolean };

@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
+import { AnalyticsService } from '../analytics/analytics.service';
 import { AuthService } from '../auth/auth.service';
 import { AssistantChatState } from './assistant-chat-state';
 import { AssistantConversation } from './assistant.model';
@@ -198,6 +199,22 @@ describe('AssistantChatState (portée block_text)', () => {
     expect(folded?.input_tokens).toBe(150);
     expect(folded?.output_tokens).toBe(50);
     expect(folded?.cached_input_tokens).toBe(120);
+  });
+
+  it('the auto flag only reaches the analytics event, never the decision body', async () => {
+    await reachAwaiting();
+    const capture = vi.spyOn(TestBed.inject(AnalyticsService), 'capture');
+    const resumeFetch = vi.fn().mockResolvedValue(sseResponse([DONE_EVENT]));
+    vi.stubGlobal('fetch', resumeFetch);
+
+    await state.resumeProposal({ accepted: true, auto: true });
+
+    const [, init] = resumeFetch.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toEqual({ accepted: true, comment: null });
+    expect(capture).toHaveBeenCalledWith('assistant_proposal_decided', {
+      accepted: true,
+      auto: true,
+    });
   });
 
   it('a re-proposal after a rejection accumulates the usage of every interrupt', async () => {

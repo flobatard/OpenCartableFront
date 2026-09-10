@@ -69,6 +69,11 @@
     },
     "reasoningError": "Réglage de raisonnement non enregistré — réessayez."
   },
+  "proposalMode": {
+    "label": "Édition auto",
+    "hintAsk": "Désactivée : chaque proposition de l'assistant attend votre validation dans l'éditeur.",
+    "hintAuto": "Activée : les propositions de l'assistant sont appliquées sans revue (sauf suppression de question) — Ctrl-Z annule une réécriture."
+  },
   "tokens": {
     "turn": "{{input}} entrée · {{output}} sortie",
     "total": "Total : {{total}} tokens ({{input}} entrée · {{output}} sortie)",

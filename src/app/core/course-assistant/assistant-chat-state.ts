@@ -398,7 +398,12 @@ export class AssistantChatState implements OnDestroy {
    * vient d'être appliquée dans l'éditeur, et la reprise recharge le bloc EN
    * BASE — sans flush, elle travaillerait sur l'état d'avant l'application.
    */
-  async resumeProposal(decision: { accepted: boolean; comment?: string }): Promise<boolean> {
+  async resumeProposal(decision: {
+    accepted: boolean;
+    comment?: string;
+    /** Décision prise par le mode « édition auto » (mesure seulement). */
+    auto?: boolean;
+  }): Promise<boolean> {
     const courseId = this.#courseId;
     const conversationId = this.#active()?.id;
     const pending = this.#pendingProposal();
@@ -411,7 +416,10 @@ export class AssistantChatState implements OnDestroy {
     this.#streamState.set('streaming');
     this.#streamErrorStatus.set(null);
     // Le sens de la décision seulement, jamais le commentaire du prof.
-    this.#analytics.capture('assistant_proposal_decided', { accepted: decision.accepted });
+    this.#analytics.capture('assistant_proposal_decided', {
+      accepted: decision.accepted,
+      auto: decision.auto ?? false,
+    });
     if (this.#beforeTurn) {
       await this.#runBeforeTurn(this.#beforeTurn);
     }

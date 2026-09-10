@@ -112,7 +112,7 @@
                 <app-markdown-field
                   [formControl]="content"
                   [courseId]="courseId"
-                  [class.block-editor__field--reviewing]="proposals.pending() !== null"
+                  [class.block-editor__field--reviewing]="proposals.review() !== null"
                 />
               } @else {
                 <app-exercise-editor
@@ -120,7 +120,7 @@
                   [courseId]="courseId"
                   [submissionCounts]="submissionSummary()?.byQuestion ?? {}"
                   [submissionTotal]="submissionSummary()?.total ?? 0"
-                  [class.block-editor__field--reviewing]="proposals.pending() !== null"
+                  [class.block-editor__field--reviewing]="proposals.review() !== null"
                   (contentChange)="onExerciseDraft($event)"
                   (submissionsClearRequested)="onSubmissionsClear($event)"
                 />
