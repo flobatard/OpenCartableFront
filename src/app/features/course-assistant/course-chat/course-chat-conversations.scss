@@ -1,0 +1,73 @@
+/* Historique des conversations, dans la zone scrollable du chat : la taille
+   de police hérite de `--chat-font` (hôte `CourseChat`), tout est en em. */
+
+:host {
+  display: block;
+}
+
+.chat-conversations {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chat-conversations__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-conversations__open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 10px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.chat-conversations__open:hover {
+  background: var(--bg-subtle);
+}
+
+.chat-conversations__title {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 600;
+  font-size: 1em;
+}
+
+.chat-conversations__date {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+.chat-conversations__delete {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+
+.chat-conversations__delete:hover,
+.chat-conversations__delete--armed {
+  color: var(--text-danger);
+}

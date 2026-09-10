@@ -134,38 +134,11 @@
           </button>
         </div>
       } @else {
-        <ul class="course-chat__conversations">
-          @for (conversation of assistant.conversations(); track conversation.id) {
-            <li class="course-chat__conversation">
-              <button
-                type="button"
-                class="course-chat__conversation-open"
-                (click)="openConversation(conversation.id)"
-              >
-                <span class="course-chat__conversation-title">
-                  {{ conversation.title || ('courseChat.untitled' | transloco) }}
-                </span>
-                <span class="course-chat__conversation-date">
-                  {{ updatedOn(conversation.updated_at) }}
-                </span>
-              </button>
-              <button
-                type="button"
-                class="course-chat__conversation-delete"
-                [class.course-chat__conversation-delete--armed]="deleteArmed.isArmed(conversation.id)"
-                (click)="requestDelete(conversation.id)"
-                (blur)="deleteArmed.disarm()"
-              >
-                {{
-                  (deleteArmed.isArmed(conversation.id)
-                    ? 'courseChat.deleteConfirm'
-                    : 'courseChat.delete'
-                  ) | transloco
-                }}
-              </button>
-            </li>
-          }
-        </ul>
+        <app-course-chat-conversations
+          [conversations]="assistant.conversations() ?? []"
+          (openConversation)="openConversation($event)"
+          (deleteConversation)="deleteConversation($event)"
+        />
       }
     </div>
   } @else {

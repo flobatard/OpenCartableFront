@@ -1,0 +1,75 @@
+<button
+  #trigger
+  type="button"
+  class="model-picker__trigger"
+  aria-haspopup="dialog"
+  [attr.aria-expanded]="expanded()"
+  [attr.aria-controls]="popoverId"
+  [attr.title]="'courseChat.config.modelPicker.label' | transloco"
+  [disabled]="disabled()"
+  (click)="toggle()"
+>
+  {{ 'courseChat.config.customModel' | transloco: { name: config().name, model: config().model } }}
+</button>
+@if (expanded()) {
+  <div
+    class="model-picker__popover"
+    role="dialog"
+    [id]="popoverId"
+    [attr.aria-label]="'courseChat.config.modelPicker.label' | transloco"
+  >
+    <input
+      #field
+      type="text"
+      class="model-picker__input"
+      autocomplete="off"
+      maxlength="200"
+      role="combobox"
+      aria-autocomplete="list"
+      [attr.aria-expanded]="listing()"
+      [attr.aria-controls]="listing() ? listId : null"
+      [attr.aria-activedescendant]="activeOptionId()"
+      [attr.aria-label]="'courseChat.config.modelPicker.label' | transloco"
+      [placeholder]="config().model"
+      [value]="query()"
+      (input)="onQueryInput($event)"
+      (keydown)="onFieldKeydown($event)"
+    />
+    @if (listing()) {
+      <ul class="model-picker__list" role="listbox" [id]="listId">
+        @if (loading()) {
+          <li class="model-picker__note">
+            {{ 'courseChat.config.modelPicker.loading' | transloco }}
+          </li>
+        } @else if (failed()) {
+          <li class="model-picker__note">
+            {{ 'courseChat.config.modelPicker.error' | transloco }}
+          </li>
+        } @else if (options() !== null && filtered().length === 0) {
+          <li class="model-picker__note">
+            {{ 'courseChat.config.modelPicker.empty' | transloco }}
+          </li>
+        } @else {
+          @for (model of filtered(); track model; let i = $index) {
+            <li
+              role="option"
+              class="model-picker__option"
+              [id]="listId + '-' + i"
+              [class.model-picker__option--active]="i === activeIndex()"
+              [class.model-picker__option--current]="model === config().model"
+              [attr.aria-selected]="i === activeIndex()"
+              (pointerdown)="$event.preventDefault()"
+              (click)="pick(model)"
+            >
+              {{ model }}
+            </li>
+          }
+        }
+      </ul>
+    } @else {
+      <p class="model-picker__note">
+        {{ 'courseChat.config.modelPicker.typeHint' | transloco }}
+      </p>
+    }
+  </div>
+}

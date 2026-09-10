@@ -455,7 +455,7 @@ describe('CourseChat', () => {
       fixture.detectChanges();
 
       expect(assistant.loadConversations).toHaveBeenCalledWith('course-1');
-      expect(el(fixture).querySelector('.course-chat__conversation-title')?.textContent).toContain(
+      expect(el(fixture).querySelector('.chat-conversations__title')?.textContent).toContain(
         'Synthèse du chapitre',
       );
     });
@@ -466,7 +466,7 @@ describe('CourseChat', () => {
       fixture.detectChanges();
 
       // Vue conversation (pas la liste), fil vide avec l'invite.
-      expect(el(fixture).querySelector('.course-chat__conversations')).toBeNull();
+      expect(el(fixture).querySelector('.chat-conversations')).toBeNull();
       expect(el(fixture).querySelector('.course-chat__thread')).toBeTruthy();
       expect(el(fixture).textContent).toContain('Posez votre première question');
       expect(el(fixture).querySelector('.course-chat__title')?.textContent).toContain(
@@ -501,7 +501,7 @@ describe('CourseChat', () => {
       assistant.conversations.set([CONVERSATION]);
       fixture.detectChanges();
 
-      el(fixture).querySelector<HTMLButtonElement>('.course-chat__conversation-open')?.click();
+      el(fixture).querySelector<HTMLButtonElement>('.chat-conversations__open')?.click();
 
       expect(assistant.openConversation).toHaveBeenCalledWith('conv-1');
     });
@@ -512,7 +512,7 @@ describe('CourseChat', () => {
       fixture.detectChanges();
 
       const deleteButton = el(fixture).querySelector<HTMLButtonElement>(
-        '.course-chat__conversation-delete',
+        '.chat-conversations__delete',
       );
       deleteButton?.click();
       fixture.detectChanges();

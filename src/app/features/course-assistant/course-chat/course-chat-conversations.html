@@ -1,0 +1,30 @@
+<ul class="chat-conversations">
+  @for (conversation of conversations(); track conversation.id) {
+    <li class="chat-conversations__item">
+      <button
+        type="button"
+        class="chat-conversations__open"
+        (click)="openConversation.emit(conversation.id)"
+      >
+        <span class="chat-conversations__title">
+          {{ conversation.title || ('courseChat.untitled' | transloco) }}
+        </span>
+        <span class="chat-conversations__date">
+          {{ updatedOn(conversation.updated_at) }}
+        </span>
+      </button>
+      <button
+        type="button"
+        class="chat-conversations__delete"
+        [class.chat-conversations__delete--armed]="deleteArmed.isArmed(conversation.id)"
+        (click)="requestDelete(conversation.id)"
+        (blur)="deleteArmed.disarm()"
+      >
+        {{
+          (deleteArmed.isArmed(conversation.id) ? 'courseChat.deleteConfirm' : 'courseChat.delete')
+            | transloco
+        }}
+      </button>
+    </li>
+  }
+</ul>

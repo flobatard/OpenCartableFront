@@ -1,12 +1,10 @@
 import { isPlatformBrowser } from '@angular/common';
 import {
-  afterNextRender,
   Component,
   computed,
   effect,
   ElementRef,
   inject,
-  Injector,
   input,
   PLATFORM_ID,
   signal,
@@ -16,13 +14,10 @@ import {
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
   alignedReasoning,
-  filterModels,
-  modelListingSupported,
   payloadFromConfiguration,
 } from '../../../core/ai-credentials/ai-credentials-form';
 import {
   activeConfiguration,
-  AiConfiguration,
   AiCredentialsPayload,
   KNOWN_REASONING_EFFORTS,
 } from '../../../core/ai-credentials/ai-credentials.model';
@@ -33,6 +28,7 @@ import { conversationUsage, formatTokenCount } from '../../../core/course-assist
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { AiSettingsDialog } from '../../settings/ai-settings-dialog/ai-settings-dialog';
+import { CourseChatModelPicker } from './course-chat-model-picker';
 
 /** Ids ARIA uniques par instance (compteur de module, jamais Date.now()). */
 let uid = 0;
@@ -58,15 +54,12 @@ let uid = 0;
  * désactivé, chaque proposition attend sa revue ; activé, `ProposalHost`
  * l'applique et l'accepte sans revue.
  *
- * **Sélecteur de modèle** : le libellé « nom · modèle » de la configuration
- * active est un bouton qui ouvre un panneau (même ancrage que le menu) avec un
- * champ à autocomplétion — suggestions du provider par `listModels` avec la
- * clé enregistrée de la configuration (`config_id`), chargées une fois par
- * configuration, filtrées par la saisie ; providers sans listing : saisie
- * libre. Choisir une suggestion ou valider la saisie par Entrée enregistre le
- * modèle sur la configuration active (PUT reconstruit, provider et clé
- * inchangés), préférences de raisonnement ramenées dans les options du
- * nouveau modèle (`alignedReasoning` après sonde du catalogue).
+ * **Sélecteur de modèle** (`CourseChatModelPicker`, configuration active
+ * seulement) : le libellé « nom · modèle » ouvre un champ à autocomplétion ;
+ * le modèle choisi est enregistré ici sur la configuration active (PUT
+ * reconstruit, provider et clé inchangés), préférences de raisonnement
+ * ramenées dans les options du nouveau modèle (`alignedReasoning` après sonde
+ * du catalogue).
  *
  * L'instance d'état observée arrive par l'input `assistant` (celle du panneau
  * hôte : root en global, fournie par l'éditeur en mode block) — le compteur
@@ -76,7 +69,7 @@ let uid = 0;
  */
 @Component({
   selector: 'app-course-chat-settings',
-  imports: [TranslocoPipe, AiSettingsDialog],
+  imports: [TranslocoPipe, AiSettingsDialog, CourseChatModelPicker],
   templateUrl: './course-chat-settings.html',
   styleUrl: './course-chat-settings.scss',
 })
@@ -90,7 +83,6 @@ export class CourseChatSettings {
   readonly #language = inject(LanguageService);
   readonly #notifications = inject(NotificationService);
   readonly #transloco = inject(TranslocoService);
-  readonly #injector = inject(Injector);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   readonly #uid = uid++;
 
@@ -99,23 +91,6 @@ export class CourseChatSettings {
   protected readonly menuId = `chat-settings-${this.#uid}-menu`;
   protected readonly menuTrigger = viewChild<ElementRef<HTMLButtonElement>>('menuTrigger');
   protected readonly settingsDialog = viewChild(AiSettingsDialog);
-
-  /** Panneau du sélecteur de modèle. */
-  protected readonly modelPickerOpen = signal(false);
-  protected readonly modelPickerId = `chat-settings-${this.#uid}-models`;
-  protected readonly modelListId = `${this.modelPickerId}-list`;
-  protected readonly modelTrigger = viewChild<ElementRef<HTMLButtonElement>>('modelTrigger');
-  protected readonly modelInput = viewChild<ElementRef<HTMLInputElement>>('modelInput');
-  /** Saisie du champ (vide = toutes les suggestions ; le placeholder montre le modèle actuel). */
-  protected readonly modelQuery = signal('');
-  /** Suggestions du provider ; `null` = jamais chargées pour cette configuration. */
-  protected readonly modelOptions = signal<string[] | null>(null);
-  protected readonly modelsLoading = signal(false);
-  protected readonly modelsError = signal(false);
-  /** Option surlignée au clavier (-1 = aucune). */
-  protected readonly modelActiveIndex = signal(-1);
-  /** Configuration dont les suggestions sont chargées (une sonde par configuration). */
-  #modelsForConfig: string | null = null;
 
   /** PUT d'une préférence de raisonnement ou d'un modèle en cours : contrôles gelés. */
   protected readonly saving = signal(false);
@@ -161,19 +136,6 @@ export class CourseChatSettings {
     return options.toggle.length > 0 || options.efforts.length > 0 ? config : null;
   });
 
-  /** Le provider de la configuration active sait lister ses modèles. */
-  protected readonly modelListing = computed(() =>
-    modelListingSupported(this.activeConfig()?.provider ?? null),
-  );
-  protected readonly filteredModels = computed(() =>
-    filterModels(this.modelOptions() ?? [], this.modelQuery()),
-  );
-  protected readonly activeModelOptionId = computed(() =>
-    this.modelPickerOpen() && this.modelActiveIndex() >= 0
-      ? `${this.modelListId}-${this.modelActiveIndex()}`
-      : null,
-  );
-
   /** Mode « édition auto » des propositions HITL activé. */
   protected readonly autoEdit = computed(() => this.#proposalMode.mode() === 'auto');
 
@@ -218,17 +180,6 @@ export class CourseChatSettings {
       if (creds && activeConfiguration(creds) === null && creds.default_ai_available) {
         void this.#credentials.refresh().catch(() => {});
       }
-    });
-
-    // Changement de configuration active : le sélecteur de modèle se referme
-    // (ses suggestions appartiennent à l'ancienne configuration).
-    effect(() => {
-      const id = this.activeConfig()?.id ?? null;
-      untracked(() => {
-        if (id !== this.#modelsForConfig) {
-          this.closeModelPicker();
-        }
-      });
     });
   }
 
@@ -285,128 +236,16 @@ export class CourseChatSettings {
     }
   }
 
-  // ------------------------------------------------------ sélecteur de modèle
-
-  protected toggleModelPicker(): void {
-    if (this.modelPickerOpen()) {
-      this.closeModelPicker();
-    } else {
-      this.openModelPicker();
-    }
-  }
-
-  /** Ouvre le panneau, focalise le champ (après rendu, zoneless) et charge les suggestions. */
-  protected openModelPicker(): void {
-    const config = this.activeConfig();
-    if (!config) {
-      return;
-    }
-    this.modelQuery.set('');
-    this.modelActiveIndex.set(-1);
-    this.modelPickerOpen.set(true);
-    afterNextRender(() => this.modelInput()?.nativeElement.focus(), {
-      injector: this.#injector,
-    });
-    void this.#ensureModelsLoaded(config);
-  }
-
-  protected closeModelPicker(): void {
-    this.modelPickerOpen.set(false);
-    this.modelActiveIndex.set(-1);
-  }
-
-  /** Escape : ferme le panneau et rend le focus au bouton du modèle. */
-  protected onModelPickerEscape(): void {
-    if (!this.modelPickerOpen()) {
-      return;
-    }
-    this.closeModelPicker();
-    this.modelTrigger()?.nativeElement.focus();
-  }
-
-  /** Ferme si le focus quitte le groupe bouton + panneau. */
-  protected onModelPickerFocusout(event: FocusEvent): void {
-    const wrapper = event.currentTarget as HTMLElement;
-    const next = event.relatedTarget as Node | null;
-    if (next && !wrapper.contains(next)) {
-      this.closeModelPicker();
-    }
-  }
-
-  protected onModelQueryInput(event: Event): void {
-    this.modelQuery.set((event.target as HTMLInputElement).value);
-    this.modelActiveIndex.set(-1);
-  }
-
-  /** Flèches : surlignage ; Entrée : la suggestion surlignée, sinon la saisie telle quelle. */
-  protected onModelInputKeydown(event: KeyboardEvent): void {
-    const options = this.filteredModels();
-    if (event.key === 'ArrowDown' && options.length > 0) {
-      event.preventDefault();
-      this.modelActiveIndex.set((this.modelActiveIndex() + 1) % options.length);
-    } else if (event.key === 'ArrowUp' && options.length > 0) {
-      event.preventDefault();
-      this.modelActiveIndex.set(
-        (this.modelActiveIndex() - 1 + options.length) % options.length,
-      );
-    } else if (event.key === 'Enter') {
-      event.preventDefault();
-      const highlighted = options[this.modelActiveIndex()];
-      const typed = this.modelQuery().trim();
-      const model = highlighted ?? (typed || null);
-      if (model !== null) {
-        this.pickModel(model);
-      }
-    }
-  }
-
-  /** Choix d'un modèle : referme le panneau, rend le focus au bouton, enregistre. */
-  protected pickModel(model: string): void {
-    this.closeModelPicker();
-    this.modelTrigger()?.nativeElement.focus();
-    void this.#applyModel(model);
-  }
-
-  /** Sonde le provider une seule fois par configuration (clé enregistrée via `config_id`). */
-  async #ensureModelsLoaded(config: AiConfiguration): Promise<void> {
-    if (!modelListingSupported(config.provider)) {
-      this.modelOptions.set(null);
-      this.modelsError.set(false);
-      this.#modelsForConfig = config.id;
-      return;
-    }
-    if (this.#modelsForConfig === config.id && (this.modelOptions() !== null || this.modelsError())) {
-      return;
-    }
-    this.#modelsForConfig = config.id;
-    this.modelOptions.set(null);
-    this.modelsError.set(false);
-    this.modelsLoading.set(true);
-    try {
-      const models = await this.#credentials.listModels({
-        provider: config.provider,
-        base_url: config.base_url,
-        config_id: config.id,
-      });
-      if (this.#modelsForConfig === config.id) {
-        this.modelOptions.set(models);
-      }
-    } catch {
-      if (this.#modelsForConfig === config.id) {
-        this.modelsError.set(true);
-      }
-    } finally {
-      this.modelsLoading.set(false);
-    }
-  }
+  // ------------------------------------------------------ modèle
 
   /**
-   * Enregistre le modèle sur la configuration active (provider, clé et nom
-   * inchangés) ; les préférences de raisonnement sont ramenées dans les
-   * options du nouveau modèle (sonde du catalogue ; en cas d'échec de la
-   * sonde, transmises telles quelles — le back ne gate que par provider).
+   * Modèle choisi dans `CourseChatModelPicker` : l'enregistre sur la
+   * configuration active (provider, clé et nom inchangés) ; les préférences
+   * de raisonnement sont ramenées dans les options du nouveau modèle (sonde
+   * du catalogue ; en cas d'échec de la sonde, transmises telles quelles — le
+   * back ne gate que par provider).
    */
-  async #applyModel(model: string): Promise<void> {
+  protected async applyModel(model: string): Promise<void> {
     const config = this.activeConfig();
     if (!config || model === config.model || this.saving()) {
       return;

@@ -20,11 +20,11 @@ import { CourseAssistantService } from '../../../core/course-assistant/course-as
 import { parseProposal, PROPOSAL_TOOLS } from '../../../core/course-assistant/proposals';
 import { progressiveReveal } from '../../../core/course-assistant/stream-reveal';
 import { formatTokenCount, turnUsageByMessage } from '../../../core/course-assistant/usage';
-import { armedAction } from '../../../core/editing/armed';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { BlockCitations } from '../../../shared/block-citations/block-citations.directive';
 import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
 import { Spinner } from '../../../shared/spinner/spinner';
+import { CourseChatConversations } from './course-chat-conversations';
 import { CourseChatProposal } from './course-chat-proposal';
 import { CourseChatSettings } from './course-chat-settings';
 import { ChatToolView, CourseChatTool, toolRowsById, toolViewsFor } from './course-chat-tool';
@@ -72,6 +72,7 @@ const SCROLL_PIN_THRESHOLD_PX = 80;
     TranslocoPipe,
     MarkdownView,
     RouterLink,
+    CourseChatConversations,
     CourseChatProposal,
     CourseChatTool,
     CourseChatSettings,
@@ -143,7 +144,6 @@ export class CourseChat {
   });
 
   protected readonly draft = signal('');
-  protected readonly deleteArmed = armedAction<string>();
 
   /** Texte streamé dévoilé progressivement pour le rendu (le brut vit au service). */
   protected readonly streamingRender = progressiveReveal(
@@ -303,11 +303,9 @@ export class CourseChat {
     this.assistant.closeConversation();
   }
 
-  /** Suppression en deux temps, désarmée au blur. */
-  protected requestDelete(id: string): void {
-    if (this.deleteArmed.confirm(id)) {
-      void this.assistant.deleteConversation(id);
-    }
+  /** Suppression confirmée dans l'historique (deux temps : `CourseChatConversations`). */
+  protected deleteConversation(id: string): void {
+    void this.assistant.deleteConversation(id);
   }
 
   /** Appels d'outils d'un message assistant, appariés à leurs tours `tool`. */
@@ -315,12 +313,7 @@ export class CourseChat {
     return toolViewsFor(message, this.#toolRowsById());
   }
 
-  /** Date dans la locale de l'UI (pas de DatePipe : locale fr non enregistrée). */
-  protected updatedOn(iso: string): string {
-    return new Date(iso).toLocaleDateString(this.language.lang());
-  }
-
-  /** Compteur de tokens dans la locale de l'UI (même raison : pas de DecimalPipe). */
+  /** Compteur de tokens dans la locale de l'UI (pas de DecimalPipe : locale fr non enregistrée). */
   protected formatTokens(value: number): string {
     return formatTokenCount(value, this.language.lang());
   }

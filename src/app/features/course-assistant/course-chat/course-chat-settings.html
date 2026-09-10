@@ -75,91 +75,14 @@
 
   @if (aiCreds(); as creds) {
     @if (activeConfig(); as config) {
-      <!-- Sélecteur de modèle : le libellé est un bouton qui ouvre un panneau
-           (même ancrage que le menu) avec un champ à autocomplétion — les
-           suggestions viennent du provider avec la clé enregistrée de la
-           configuration ; Entrée valide la saisie libre. -->
-      <div
-        class="chat-settings__anchor chat-settings__model-anchor"
-        (keydown.escape)="onModelPickerEscape()"
-        (focusout)="onModelPickerFocusout($event)"
-      >
-        <button
-          #modelTrigger
-          type="button"
-          class="chat-settings__model chat-settings__model-trigger"
-          aria-haspopup="dialog"
-          [attr.aria-expanded]="modelPickerOpen()"
-          [attr.aria-controls]="modelPickerId"
-          [attr.title]="'courseChat.config.modelPicker.label' | transloco"
-          [disabled]="saving() || switching()"
-          (click)="toggleModelPicker()"
-        >
-          {{ 'courseChat.config.customModel' | transloco: { name: config.name, model: config.model } }}
-        </button>
-        @if (modelPickerOpen()) {
-          <div
-            class="chat-settings__popover"
-            role="dialog"
-            [id]="modelPickerId"
-            [attr.aria-label]="'courseChat.config.modelPicker.label' | transloco"
-          >
-            <input
-              #modelInput
-              type="text"
-              class="chat-settings__model-input"
-              autocomplete="off"
-              maxlength="200"
-              role="combobox"
-              aria-autocomplete="list"
-              [attr.aria-expanded]="modelListing()"
-              [attr.aria-controls]="modelListing() ? modelListId : null"
-              [attr.aria-activedescendant]="activeModelOptionId()"
-              [attr.aria-label]="'courseChat.config.modelPicker.label' | transloco"
-              [placeholder]="config.model"
-              [value]="modelQuery()"
-              (input)="onModelQueryInput($event)"
-              (keydown)="onModelInputKeydown($event)"
-            />
-            @if (modelListing()) {
-              <ul class="chat-settings__model-list" role="listbox" [id]="modelListId">
-                @if (modelsLoading()) {
-                  <li class="chat-settings__model-note">
-                    {{ 'courseChat.config.modelPicker.loading' | transloco }}
-                  </li>
-                } @else if (modelsError()) {
-                  <li class="chat-settings__model-note">
-                    {{ 'courseChat.config.modelPicker.error' | transloco }}
-                  </li>
-                } @else if (modelOptions() !== null && filteredModels().length === 0) {
-                  <li class="chat-settings__model-note">
-                    {{ 'courseChat.config.modelPicker.empty' | transloco }}
-                  </li>
-                } @else {
-                  @for (model of filteredModels(); track model; let i = $index) {
-                    <li
-                      role="option"
-                      class="chat-settings__model-option"
-                      [id]="modelListId + '-' + i"
-                      [class.chat-settings__model-option--active]="i === modelActiveIndex()"
-                      [class.chat-settings__model-option--current]="model === config.model"
-                      [attr.aria-selected]="i === modelActiveIndex()"
-                      (pointerdown)="$event.preventDefault()"
-                      (click)="pickModel(model)"
-                    >
-                      {{ model }}
-                    </li>
-                  }
-                }
-              </ul>
-            } @else {
-              <p class="chat-settings__model-note">
-                {{ 'courseChat.config.modelPicker.typeHint' | transloco }}
-              </p>
-            }
-          </div>
-        }
-      </div>
+      <!-- Sélecteur de modèle : le libellé est un bouton qui ouvre un champ à
+           autocomplétion (suggestions du provider avec la clé enregistrée de
+           la configuration) ; le choix est enregistré ici. -->
+      <app-course-chat-model-picker
+        [config]="config"
+        [disabled]="saving() || switching()"
+        (picked)="applyModel($event)"
+      />
     } @else {
       <span class="chat-settings__model">
         {{

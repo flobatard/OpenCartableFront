@@ -128,7 +128,7 @@ describe('CourseChatSettings', () => {
   describe('model label', () => {
     it('shows the active configuration name and model, no quota', async () => {
       const fixture = await setup(CUSTOM);
-      const label = el(fixture).querySelector('.chat-settings__model')!;
+      const label = el(fixture).querySelector('.model-picker__trigger')!;
       expect(label.textContent!.replace(/\s+/g, ' ').trim()).toBe('Claude · claude-sonnet-5');
       expect(el(fixture).querySelector('.chat-settings__quota')).toBeNull();
     });
@@ -237,7 +237,7 @@ describe('CourseChatSettings', () => {
 
   describe('model picker', () => {
     function trigger(fixture: ComponentFixture<CourseChatSettings>): HTMLButtonElement {
-      return el(fixture).querySelector<HTMLButtonElement>('.chat-settings__model-trigger')!;
+      return el(fixture).querySelector<HTMLButtonElement>('.model-picker__trigger')!;
     }
 
     async function openPicker(fixture: ComponentFixture<CourseChatSettings>): Promise<HTMLInputElement> {
@@ -245,7 +245,7 @@ describe('CourseChatSettings', () => {
       fixture.detectChanges();
       await fixture.whenStable();
       fixture.detectChanges();
-      return el(fixture).querySelector<HTMLInputElement>('.chat-settings__model-input')!;
+      return el(fixture).querySelector<HTMLInputElement>('.model-picker__input')!;
     }
 
     function optionTexts(fixture: ComponentFixture<CourseChatSettings>): string[] {
@@ -266,7 +266,7 @@ describe('CourseChatSettings', () => {
 
     it('opens on the label, lists the provider models with the stored key, filters, picks and saves', async () => {
       const fixture = await setup(CUSTOM);
-      expect(el(fixture).querySelector('.chat-settings__popover')).toBeNull();
+      expect(el(fixture).querySelector('.model-picker__popover')).toBeNull();
 
       const input = await openPicker(fixture);
       expect(trigger(fixture).getAttribute('aria-expanded')).toBe('true');
@@ -287,7 +287,7 @@ describe('CourseChatSettings', () => {
       (el(fixture).querySelector('[role="option"]') as HTMLElement).click();
       await fixture.whenStable();
       fixture.detectChanges();
-      expect(el(fixture).querySelector('.chat-settings__popover')).toBeNull();
+      expect(el(fixture).querySelector('.model-picker__popover')).toBeNull();
       expect(service.update).toHaveBeenCalledWith(CLAUDE_ID, {
         provider: 'anthropic',
         model: 'claude-opus-4-5',
@@ -354,10 +354,10 @@ describe('CourseChatSettings', () => {
 
       await openPicker(fixture);
       el(fixture)
-        .querySelector('.chat-settings__model-anchor')!
+        .querySelector('app-course-chat-model-picker')!
         .dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
       fixture.detectChanges();
-      expect(el(fixture).querySelector('.chat-settings__popover')).toBeNull();
+      expect(el(fixture).querySelector('.model-picker__popover')).toBeNull();
       expect(document.activeElement).toBe(trigger(fixture));
     });
 
@@ -413,7 +413,7 @@ describe('CourseChatSettings', () => {
       await openPicker(fixture);
       credentials.set({ ...CUSTOM, active_id: OLLAMA_ID });
       fixture.detectChanges();
-      expect(el(fixture).querySelector('.chat-settings__popover')).toBeNull();
+      expect(el(fixture).querySelector('.model-picker__popover')).toBeNull();
 
       await openPicker(fixture);
       expect(service.listModels).toHaveBeenLastCalledWith({

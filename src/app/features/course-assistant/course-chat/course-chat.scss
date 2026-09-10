@@ -151,73 +151,7 @@
   text-decoration: underline;
 }
 
-/* Historique des conversations. */
-.course-chat__conversations {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.course-chat__conversation {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.course-chat__conversation-open {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  padding: 8px 10px;
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--text-primary);
-  font: inherit;
-  text-align: start;
-  cursor: pointer;
-}
-
-.course-chat__conversation-open:hover {
-  background: var(--bg-subtle);
-}
-
-.course-chat__conversation-title {
-  max-width: 100%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-weight: 600;
-  font-size: 1em;
-}
-
-.course-chat__conversation-date {
-  color: var(--text-secondary);
-  font-size: 0.9em;
-}
-
-.course-chat__conversation-delete {
-  flex: 0 0 auto;
-  padding: 4px 8px;
-  background: none;
-  border: 0;
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  font: inherit;
-  font-size: 0.9em;
-  cursor: pointer;
-}
-
-.course-chat__conversation-delete:hover,
-.course-chat__conversation-delete--armed {
-  color: var(--text-danger);
-}
+/* L'historique des conversations vit dans app-course-chat-conversations. */
 
 /* Fil : seule la question du prof est une bulle ; la réponse assistant est
    un bloc pleine largeur (markdown-view), sans règle dédiée. */
