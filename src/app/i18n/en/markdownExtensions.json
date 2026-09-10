@@ -19,5 +19,10 @@
     "bce": "{{year}} BC",
     "invalidConfig": "Empty timeline: add at least one valid period=start,end,label or event=date,label line.",
     "ignoredLines": "Ignored lines (invalid syntax): {{count}}"
+  },
+  "smiles": {
+    "label": "Molecule {{smiles}}",
+    "invalid": "Invalid SMILES, molecule not drawn:",
+    "loadError": "The molecule drawing engine could not be loaded."
   }
 }

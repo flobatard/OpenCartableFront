@@ -32,6 +32,10 @@
     "timeline": {
       "title": "Timelines",
       "summary": "Place periods and events on a time axis, BC or AD."
+    },
+    "smiles": {
+      "title": "Molecules (SMILES)",
+      "summary": "Draw a molecule's skeletal formula from its SMILES notation."
     }
   },
   "katex": {
@@ -231,5 +235,36 @@
       "title": "Printing and PDF export",
       "body": "The timeline is drawn as SVG: it goes as is into the course PDF export, in light colors."
     }
+  },
+  "smiles": {
+    "intro": "A “smiles” code block draws the skeletal formula of one or more molecules, each described on one line in SMILES notation. The drawing is computed in the browser, with no external service, on a light board in both themes. Every example is editable.",
+    "first": {
+      "title": "First molecule",
+      "body": "One line = one molecule. The optional caption follows a vertical bar |; without it, the molecule is shown alone."
+    },
+    "syntax": {
+      "title": "Writing SMILES",
+      "body": "SMILES notation describes the molecule atom by atom:",
+      "atoms": "atoms are written with their symbol (C, O, N, Cl…); hydrogens are implicit;",
+      "bonds": "= marks a double bond, # a triple bond;",
+      "branches": "a branch goes in parentheses: CC(C)O is propan-2-ol."
+    },
+    "rings": {
+      "title": "Rings and aromatics",
+      "body": "A digit opens then closes a ring (C1CCCCC1); lowercase atoms are aromatic (c1ccccc1, benzene)."
+    },
+    "ions": {
+      "title": "Ions and separate species",
+      "body": "Square brackets for a charged atom or explicit hydrogens: [NH4+], [O-]. A dot separates unbonded species: [Na+].[Cl-]."
+    },
+    "errors": {
+      "title": "Invalid SMILES",
+      "body": "An unreadable SMILES shows a notice instead of its molecule; the other lines of the block are drawn normally."
+    },
+    "print": {
+      "title": "Printing and PDF export",
+      "body": "Molecules are drawn as SVG: they go as is into the course PDF export."
+    },
+    "more": "Find a molecule's SMILES (PubChem)"
   }
 }

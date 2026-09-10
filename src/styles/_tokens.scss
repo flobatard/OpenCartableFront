@@ -49,6 +49,9 @@
   --bg-page: var(--slate-50);
   --bg-surface: #ffffff;
   --bg-subtle: var(--slate-100);
+  /* Planche FIXE des figures à couleurs figées (TikZ, SMILES…) : jamais
+     redéfinie en thème sombre, sinon le trait noir disparaîtrait. */
+  --figure-board: #ffffff;
   --text-primary: var(--slate-900);
   --text-secondary: var(--slate-500); /* 4.76 AA */
   --text-muted: var(--slate-400); /* désactivé / décoratif */

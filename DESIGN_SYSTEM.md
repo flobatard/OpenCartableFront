@@ -241,6 +241,7 @@ Panneau de filtres de la page de recherche publique (`/search`) : carte `surface
   --color-primary:var(--indigo-600); --color-primary-hover:var(--indigo-700);
   --color-accent:var(--amber-500);            /* aplat / liseré uniquement */
   --bg-page:var(--slate-50); --bg-surface:#FFFFFF; --bg-subtle:var(--slate-100);
+  --figure-board:#FFFFFF;                     /* planche fixe des figures à couleurs figées — jamais redéfinie en sombre */
   --text-primary:var(--slate-900);
   --text-secondary:var(--slate-500);          /* 4.76 AA */
   --text-muted:var(--slate-400);              /* désactivé / décoratif */

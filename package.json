@@ -39,6 +39,7 @@
     "ngx-monaco-editor-v2": "^22.0.4",
     "posthog-js": "^1.429.1",
     "rxjs": "~7.8.0",
+    "smiles-drawer": "^2.4.1",
     "tslib": "^2.3.0"
   },
   "devDependencies": {

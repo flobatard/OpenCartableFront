@@ -1,0 +1,26 @@
+<div class="smiles-view">
+  @for (molecule of molecules(); track $index) {
+    <figure class="smiles-view__molecule">
+      <div
+        #board
+        class="smiles-view__board"
+        [class.smiles-view__board--empty]="invalid().has($index) || loadError()"
+        role="img"
+        [attr.aria-label]="
+          molecule.legend || ('markdownExtensions.smiles.label' | transloco: { smiles: molecule.smiles })
+        "
+      ></div>
+      @if (invalid().has($index)) {
+        <p class="smiles-view__error">
+          {{ 'markdownExtensions.smiles.invalid' | transloco }} <code>{{ molecule.smiles }}</code>
+        </p>
+      }
+      @if (molecule.legend) {
+        <figcaption class="smiles-view__legend">{{ molecule.legend }}</figcaption>
+      }
+    </figure>
+  }
+</div>
+@if (loadError()) {
+  <p class="smiles-view__error">{{ 'markdownExtensions.smiles.loadError' | transloco }}</p>
+}

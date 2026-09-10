@@ -32,6 +32,10 @@
     "timeline": {
       "title": "Frises chronologiques",
       "summary": "Placer périodes et événements sur un axe du temps, avant ou après J.-C."
+    },
+    "smiles": {
+      "title": "Molécules (SMILES)",
+      "summary": "Dessiner la formule topologique d'une molécule à partir de sa notation SMILES."
     }
   },
   "katex": {
@@ -231,5 +235,36 @@
       "title": "Impression et export PDF",
       "body": "La frise est dessinée en SVG : elle part telle quelle dans l'export PDF du cours, en couleurs claires."
     }
+  },
+  "smiles": {
+    "intro": "Un bloc de code « smiles » dessine la formule topologique d'une ou plusieurs molécules, décrites chacune sur une ligne en notation SMILES. Le dessin est calculé dans le navigateur, sans service externe, sur une planche claire dans les deux thèmes. Chaque exemple est modifiable.",
+    "first": {
+      "title": "Première molécule",
+      "body": "Une ligne = une molécule. La légende, optionnelle, suit une barre verticale | ; sans elle, la molécule s'affiche seule."
+    },
+    "syntax": {
+      "title": "Écrire un SMILES",
+      "body": "La notation SMILES décrit la molécule atome par atome :",
+      "atoms": "les atomes s'écrivent par leur symbole (C, O, N, Cl…) ; les hydrogènes sont implicites ;",
+      "bonds": "= marque une double liaison, # une triple liaison ;",
+      "branches": "une ramification s'écrit entre parenthèses : CC(C)O est le propan-2-ol."
+    },
+    "rings": {
+      "title": "Cycles et aromatiques",
+      "body": "Un chiffre ouvre puis referme un cycle (C1CCCCC1) ; les atomes en minuscules sont aromatiques (c1ccccc1, le benzène)."
+    },
+    "ions": {
+      "title": "Ions et espèces séparées",
+      "body": "Crochets pour un atome chargé ou porteur d'hydrogènes explicites : [NH4+], [O-]. Un point sépare des espèces non liées : [Na+].[Cl-]."
+    },
+    "errors": {
+      "title": "SMILES invalides",
+      "body": "Un SMILES illisible affiche une notice à la place de sa molécule ; les autres lignes du bloc sont dessinées normalement."
+    },
+    "print": {
+      "title": "Impression et export PDF",
+      "body": "Les molécules sont dessinées en SVG : elles partent telles quelles dans l'export PDF du cours."
+    },
+    "more": "Trouver le SMILES d'une molécule (PubChem)"
   }
 }

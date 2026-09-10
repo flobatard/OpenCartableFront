@@ -1,0 +1,64 @@
+.smiles-view {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 1rem 1.5rem;
+  margin: 1rem 0;
+}
+
+.smiles-view__molecule {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+  margin: 0;
+}
+
+// Planche claire FIXE (couleurs d'atomes figées, thème 'light' de SmilesDrawer).
+.smiles-view__board {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 0.5rem;
+  background: var(--figure-board);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+
+  &--empty {
+    display: none;
+  }
+
+  ::ng-deep svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  // Règles du <style> de SmilesDrawer (retiré à la sanitisation), scopées ici.
+  ::ng-deep .element {
+    font: 11pt Arial, Helvetica, sans-serif;
+  }
+
+  ::ng-deep .sub {
+    font: 3pt Arial, Helvetica, sans-serif;
+  }
+}
+
+.smiles-view__legend {
+  margin-top: 0.4rem;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  text-align: center;
+}
+
+// Molécule illisible ou moteur indisponible : note atténuée (comme jsxgraph).
+.smiles-view__error {
+  display: inline-block;
+  margin: 0.5rem 0 0;
+  padding: 2px 8px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.875em;
+  font-style: italic;
+}

@@ -59,5 +59,9 @@
   "timeline": {
     "title": "Timelines",
     "intro": "Place periods (period=start,end,label) and events (event=date,label) on a time axis, in a “timeline” code block; negative years are BC."
+  },
+  "smiles": {
+    "title": "Molecules (SMILES)",
+    "intro": "Draws the skeletal formula of one molecule per line, in SMILES notation, in a “smiles” code block; an optional caption follows a vertical bar |."
   }
 }

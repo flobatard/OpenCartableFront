@@ -59,5 +59,9 @@
   "timeline": {
     "title": "Frises chronologiques",
     "intro": "Place des périodes (period=début,fin,libellé) et des événements (event=date,libellé) sur un axe du temps, dans un bloc de code « timeline » ; les années négatives sont avant J.-C."
+  },
+  "smiles": {
+    "title": "Molécules (SMILES)",
+    "intro": "Dessine la formule topologique d'une molécule par ligne, en notation SMILES, dans un bloc de code « smiles » ; une légende optionnelle suit une barre verticale |."
   }
 }

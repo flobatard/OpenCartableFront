@@ -1,0 +1,48 @@
+<p class="doc-intro">{{ 'docs.smiles.intro' | transloco }}</p>
+
+<section class="doc-section">
+  <h2>{{ 'docs.smiles.first.title' | transloco }}</h2>
+  <p>{{ 'docs.smiles.first.body' | transloco }}</p>
+  <app-markdown-playground [initial]="firstExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.smiles.syntax.title' | transloco }}</h2>
+  <p>{{ 'docs.smiles.syntax.body' | transloco }}</p>
+  <ul class="doc-rules">
+    <li>{{ 'docs.smiles.syntax.atoms' | transloco }}</li>
+    <li>{{ 'docs.smiles.syntax.bonds' | transloco }}</li>
+    <li>{{ 'docs.smiles.syntax.branches' | transloco }}</li>
+  </ul>
+  <app-markdown-playground [initial]="syntaxExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.smiles.rings.title' | transloco }}</h2>
+  <p>{{ 'docs.smiles.rings.body' | transloco }}</p>
+  <app-markdown-playground [initial]="ringsExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.smiles.ions.title' | transloco }}</h2>
+  <p>{{ 'docs.smiles.ions.body' | transloco }}</p>
+  <app-markdown-playground [initial]="ionsExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.smiles.errors.title' | transloco }}</h2>
+  <p>{{ 'docs.smiles.errors.body' | transloco }}</p>
+  <pre class="doc-source">{{ errorExample }}</pre>
+  <app-markdown-view [markdown]="errorExample" [showPrint]="false" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.smiles.print.title' | transloco }}</h2>
+  <p>{{ 'docs.smiles.print.body' | transloco }}</p>
+</section>
+
+<p class="doc-more">
+  <a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noopener noreferrer">
+    {{ 'docs.smiles.more' | transloco }}
+  </a>
+</p>

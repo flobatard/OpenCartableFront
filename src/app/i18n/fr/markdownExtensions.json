@@ -19,5 +19,10 @@
     "bce": "{{year}} av. J.-C.",
     "invalidConfig": "Frise vide : ajoutez au moins une ligne period=début,fin,libellé ou event=date,libellé valide.",
     "ignoredLines": "Lignes ignorées (syntaxe invalide) : {{count}}"
+  },
+  "smiles": {
+    "label": "Molécule {{smiles}}",
+    "invalid": "SMILES invalide, molécule non dessinée :",
+    "loadError": "Le moteur de dessin des molécules n'a pas pu être chargé."
   }
 }
