@@ -1,0 +1,43 @@
+<div
+  #score
+  class="abc-view__score"
+  [class.abc-view__score--hidden]="!rendered()"
+  role="img"
+  [attr.aria-label]="title() ?? ('markdownExtensions.abc.label' | transloco)"
+></div>
+
+@if (rendered() && audioSupported) {
+  <div class="abc-view__controls">
+    <button
+      type="button"
+      class="btn btn--secondary abc-view__play"
+      [attr.aria-pressed]="audio() === 'playing'"
+      [disabled]="audio() === 'loading'"
+      (click)="toggleAudio()"
+    >
+      {{ (audio() === 'playing' ? 'markdownExtensions.abc.stop' : 'markdownExtensions.abc.play') | transloco }}
+    </button>
+    @if (audio() === 'loading') {
+      <span class="abc-view__status" role="status">{{ 'markdownExtensions.abc.loadingAudio' | transloco }}</span>
+    } @else if (audio() === 'error') {
+      <span class="abc-view__status" role="status">{{ 'markdownExtensions.abc.audioError' | transloco }}</span>
+    }
+  </div>
+}
+
+@if (warnings().length > 0) {
+  <details class="abc-view__warnings">
+    <summary>{{ 'markdownExtensions.abc.warnings' | transloco: { count: warnings().length } }}</summary>
+    <ul>
+      @for (warning of warnings(); track $index) {
+        <li>{{ warning }}</li>
+      }
+    </ul>
+  </details>
+}
+
+@if (error(); as kind) {
+  <p class="abc-view__error">
+    {{ (kind === 'load' ? 'markdownExtensions.abc.loadError' : 'markdownExtensions.abc.empty') | transloco }}
+  </p>
+}

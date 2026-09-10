@@ -1,0 +1,52 @@
+<p class="doc-intro">{{ 'docs.abc.intro' | transloco }}</p>
+
+<section class="doc-section">
+  <h2>{{ 'docs.abc.first.title' | transloco }}</h2>
+  <p>{{ 'docs.abc.first.body' | transloco }}</p>
+  <ul class="doc-rules">
+    <li>{{ 'docs.abc.first.headerX' | transloco }}</li>
+    <li>{{ 'docs.abc.first.headerMeter' | transloco }}</li>
+    <li>{{ 'docs.abc.first.headerKey' | transloco }}</li>
+  </ul>
+  <app-markdown-playground [initial]="firstExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.abc.notes.title' | transloco }}</h2>
+  <p>{{ 'docs.abc.notes.body' | transloco }}</p>
+  <ul class="doc-rules">
+    <li>{{ 'docs.abc.notes.pitch' | transloco }}</li>
+    <li>{{ 'docs.abc.notes.duration' | transloco }}</li>
+    <li>{{ 'docs.abc.notes.accidentals' | transloco }}</li>
+  </ul>
+  <app-markdown-playground [initial]="notesExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.abc.chords.title' | transloco }}</h2>
+  <p>{{ 'docs.abc.chords.body' | transloco }}</p>
+  <app-markdown-playground [initial]="chordsExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.abc.audio.title' | transloco }}</h2>
+  <p>{{ 'docs.abc.audio.body' | transloco }}</p>
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.abc.errors.title' | transloco }}</h2>
+  <p>{{ 'docs.abc.errors.body' | transloco }}</p>
+  <pre class="doc-source">{{ errorExample }}</pre>
+  <app-markdown-view [markdown]="errorExample" [showPrint]="false" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.abc.print.title' | transloco }}</h2>
+  <p>{{ 'docs.abc.print.body' | transloco }}</p>
+</section>
+
+<p class="doc-more">
+  <a href="https://abcnotation.com/learn" target="_blank" rel="noopener noreferrer">
+    {{ 'docs.abc.more' | transloco }}
+  </a>
+</p>

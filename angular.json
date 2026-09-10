@@ -24,6 +24,7 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "allowedCommonJsDependencies": [
+              "abcjs",
               "@braintree/sanitize-url",
               "dayjs",
               "dayjs/plugin/isoWeek.js",

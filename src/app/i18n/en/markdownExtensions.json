@@ -33,5 +33,15 @@
     "externalData": "External data refused ({{detail}}): put the values in data.values.",
     "spec": "Invalid chart: {{detail}}",
     "load": "The chart engine could not be loaded."
+  },
+  "abc": {
+    "label": "Sheet music",
+    "play": "▶ Listen",
+    "stop": "■ Stop",
+    "loadingAudio": "Loading notes…",
+    "audioError": "Audio playback failed.",
+    "warnings": "Sheet music parsing warnings: {{count}}",
+    "loadError": "The sheet music engine could not be loaded.",
+    "empty": "Empty sheet music: after the headers (X:, K:…), write at least one line of notes."
   }
 }

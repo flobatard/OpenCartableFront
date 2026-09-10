@@ -33,5 +33,15 @@
     "externalData": "Données externes refusées ({{detail}}) : placez les valeurs dans data.values.",
     "spec": "Graphique invalide : {{detail}}",
     "load": "Le moteur de graphiques n'a pas pu être chargé."
+  },
+  "abc": {
+    "label": "Partition",
+    "play": "▶ Écouter",
+    "stop": "■ Arrêter",
+    "loadingAudio": "Chargement des notes…",
+    "audioError": "La lecture audio a échoué.",
+    "warnings": "Avertissements de lecture de la partition : {{count}}",
+    "loadError": "Le moteur de partitions n'a pas pu être chargé.",
+    "empty": "Partition vide : après les en-têtes (X:, K:…), écrivez au moins une ligne de notes."
   }
 }

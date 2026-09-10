@@ -67,5 +67,9 @@
   "vegalite": {
     "title": "Charts (Vega-Lite)",
     "intro": "Draws a data chart (bars, lines, points, pies…) described in Vega-Lite JSON in a “vegalite” code block; the data goes in data.values."
+  },
+  "abc": {
+    "title": "Sheet music (ABC)",
+    "intro": "Engraves a tune written in ABC notation (headers X:, T:, M:, L:, K: then the notes) in an “abc” code block; it plays on the piano in one click."
   }
 }

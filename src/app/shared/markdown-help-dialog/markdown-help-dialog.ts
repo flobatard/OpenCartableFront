@@ -6,7 +6,7 @@ import { NativeDialog } from '../dialog/native-dialog.directive';
 
 /**
  * Modale d'aide à la mise en forme (markdown + LaTeX/KaTeX et mhchem + Mermaid +
- * extensions GeoGebra/JSXGraph/TikZ/frise/SMILES/Vega-Lite), réutilisable par tout éditeur de
+ * extensions GeoGebra/JSXGraph/TikZ/frise/SMILES/Vega-Lite/ABC), réutilisable par tout éditeur de
  * contenu de cours. Élément `<dialog>` natif : focus-trap, Escape et backdrop gérés par
  * la plateforme. Présentational — pilotée par le parent via les méthodes
  * publiques `open()` / `close()`.
@@ -53,6 +53,8 @@ export class MarkdownHelpDialog {
     '  "mark": "bar",\n' +
     '  "encoding": {\n    "x": {"field": "x", "type": "nominal"},\n' +
     '    "y": {"field": "y", "type": "quantitative"}\n  }\n}\n```';
+
+  protected readonly abcExample = '```abc\nX:1\nT:Au clair de la lune\nL:1/4\nK:C\nCCCD|E2D2|CEDD|C4|]\n```';
 
   open(): void {
     this.dialog()?.open();

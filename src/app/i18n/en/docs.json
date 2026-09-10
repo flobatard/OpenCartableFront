@@ -40,6 +40,10 @@
     "vegalite": {
       "title": "Charts (Vega-Lite)",
       "summary": "Bars, lines, scatter plots, pies… from a data table."
+    },
+    "abc": {
+      "title": "Sheet music (ABC)",
+      "summary": "Write a tune in ABC notation: engraved sheet music and piano playback."
     }
   },
   "katex": {
@@ -297,5 +301,39 @@
       "body": "The chart is drawn as static SVG: it goes as is into the course PDF export. Tooltips and interactive selections are not supported."
     },
     "more": "Vega-Lite example gallery"
+  },
+  "abc": {
+    "intro": "An “abc” code block engraves sheet music written in ABC notation, a text format where each note is a letter. The tune plays on the piano in one click, with no external service, and prints. Every example is editable.",
+    "first": {
+      "title": "First tune",
+      "body": "A few headers, one per line, then the notes:",
+      "headerX": "X: the tune number (1 is enough) and T: its title;",
+      "headerMeter": "M: the time signature (4/4, 3/4…), L: the default note length (1/4 = a quarter note), Q: the tempo;",
+      "headerKey": "K: the key (C, G, F, Dm…) — always the last header, right before the notes."
+    },
+    "notes": {
+      "title": "Pitches and durations",
+      "body": "One letter per note, a vertical bar between measures:",
+      "pitch": "C D E F G A B for the middle octave, c d e… for the octave above; a comma lowers by an octave (C,), an apostrophe raises (c');",
+      "duration": "a digit multiplies the default length (C2, C4), a slash divides it (C/2 or C/); z is a rest;",
+      "accidentals": "^ sharp, _ flat, = natural, before the note (^F, _B); the key signature is applied automatically."
+    },
+    "chords": {
+      "title": "Chords and rhythms",
+      "body": "A chord symbol in double quotes (\"D\", \"Am\") shows above the staff and accompanies the tune on playback. F>E writes a dotted rhythm (dotted F followed by a sixteenth-note E)."
+    },
+    "audio": {
+      "title": "Playback",
+      "body": "The Listen button plays the tune on the piano; notes load on first playback, and only one tune plays at a time. Only the piano is available: %%MIDI instrument directives are ignored."
+    },
+    "errors": {
+      "title": "Incomplete sheet music",
+      "body": "With no notes at all, the block shows a notice. A line the ABC parser does not understand is reported in collapsed warnings under the sheet music, which stays visible."
+    },
+    "print": {
+      "title": "Printing and PDF export",
+      "body": "Sheet music is engraved as SVG: it goes as is into the course PDF export, without the Listen button."
+    },
+    "more": "Learn ABC notation (abcnotation.com)"
   }
 }

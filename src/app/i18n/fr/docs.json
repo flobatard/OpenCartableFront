@@ -40,6 +40,10 @@
     "vegalite": {
       "title": "Graphiques (Vega-Lite)",
       "summary": "Barres, courbes, nuages de points, secteurs… à partir d'un tableau de données."
+    },
+    "abc": {
+      "title": "Partitions (ABC)",
+      "summary": "Écrire une mélodie en notation ABC : partition gravée et lecture au piano."
     }
   },
   "katex": {
@@ -297,5 +301,39 @@
       "body": "Le graphique est dessiné en SVG statique : il part tel quel dans l'export PDF du cours. Info-bulles et sélections interactives ne sont pas prises en charge."
     },
     "more": "Galerie d'exemples Vega-Lite"
+  },
+  "abc": {
+    "intro": "Un bloc de code « abc » grave une partition écrite en notation ABC, un format texte où chaque note est une lettre. La partition s'écoute au piano d'un clic, sans service externe, et s'imprime. Chaque exemple est modifiable.",
+    "first": {
+      "title": "Première mélodie",
+      "body": "Quelques en-têtes, un par ligne, puis les notes :",
+      "headerX": "X: numéro de la mélodie (1 suffit) et T: son titre ;",
+      "headerMeter": "M: la mesure (4/4, 3/4…), L: la durée d'une note sans indication (1/4 = une noire), Q: le tempo ;",
+      "headerKey": "K: la tonalité (C, G, F, Dm…) — toujours le dernier en-tête, juste avant les notes."
+    },
+    "notes": {
+      "title": "Hauteurs et durées",
+      "body": "Une note par lettre, une barre verticale entre les mesures :",
+      "pitch": "C D E F G A B pour l'octave du milieu, c d e… pour l'octave au-dessus ; une virgule descend d'une octave (C,), une apostrophe monte (c') ;",
+      "duration": "un chiffre multiplie la durée de base (C2, C4), une barre oblique la divise (C/2 ou C/) ; z est un silence ;",
+      "accidentals": "^ dièse, _ bémol, = bécarre, devant la note (^F, _B) ; les altérations de la tonalité sont appliquées d'office."
+    },
+    "chords": {
+      "title": "Accords et rythmes",
+      "body": "Un symbole d'accord entre guillemets (\"D\", \"Am\") s'affiche au-dessus de la portée et accompagne la mélodie à la lecture. F>E note un rythme pointé (F pointée suivie de E en double croche)."
+    },
+    "audio": {
+      "title": "Écoute",
+      "body": "Le bouton Écouter joue la partition au piano ; les notes sont chargées à la première écoute, une seule partition joue à la fois. Seul le piano est disponible : les directives %%MIDI de choix d'instrument sont ignorées."
+    },
+    "errors": {
+      "title": "Partitions incomplètes",
+      "body": "Sans aucune note, le bloc affiche une notice. Une ligne que l'analyseur ABC ne comprend pas est signalée dans des avertissements repliés sous la partition, qui reste affichée."
+    },
+    "print": {
+      "title": "Impression et export PDF",
+      "body": "La partition est gravée en SVG : elle part telle quelle dans l'export PDF du cours, sans le bouton d'écoute."
+    },
+    "more": "Apprendre la notation ABC (abcnotation.com)"
   }
 }

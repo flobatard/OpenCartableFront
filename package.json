@@ -28,6 +28,7 @@
     "@fontsource/outfit": "^5.2.8",
     "@fontsource/source-serif-4": "^5.2.9",
     "@jsverse/transloco": "^8.4.0",
+    "abcjs": "^6.7.0",
     "angular-oauth2-oidc": "^22.0.2",
     "dompurify": "^3.4.11",
     "express": "^5.1.0",

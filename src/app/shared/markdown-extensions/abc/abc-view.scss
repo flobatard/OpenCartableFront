@@ -1,0 +1,68 @@
+:host {
+  display: block;
+  margin: 1rem 0;
+}
+
+// Planche claire FIXE : abcjs grave en noir.
+.abc-view__score {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 0.5rem 1rem;
+  background: var(--figure-board);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+
+  &--hidden {
+    display: none;
+  }
+
+  ::ng-deep svg {
+    display: block;
+    max-width: 100%;
+  }
+}
+
+.abc-view__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.abc-view__status {
+  color: var(--text-secondary);
+  font-size: 0.875em;
+  font-style: italic;
+}
+
+// Avertissements de l'analyseur ABC : repliés, pour le professeur.
+.abc-view__warnings {
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875em;
+
+  ul {
+    margin: 0.25rem 0 0;
+    padding-left: 1.25rem;
+  }
+}
+
+.abc-view__error {
+  display: inline-block;
+  margin: 0.5rem 0 0;
+  padding: 2px 8px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.875em;
+  font-style: italic;
+}
+
+// Sur papier : la partition seule.
+@media print {
+  .abc-view__controls,
+  .abc-view__warnings {
+    display: none;
+  }
+}

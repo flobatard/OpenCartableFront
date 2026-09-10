@@ -1,5 +1,6 @@
 import { EnvironmentProviders, makeEnvironmentProviders } from '@angular/core';
 import { MARKDOWN_EXTENSIONS } from './markdown-extension.model';
+import { ABC_EXTENSION } from './abc/abc-extension';
 import { GEOGEBRA_EXTENSION } from './geogebra/geogebra-extension';
 import { JSXGRAPH_EXTENSION } from './jsxgraph/jsxgraph-extension';
 import { SMILES_EXTENSION } from './smiles/smiles-extension';
@@ -21,5 +22,6 @@ export function provideMarkdownExtensions(): EnvironmentProviders {
     { provide: MARKDOWN_EXTENSIONS, useValue: TIMELINE_EXTENSION, multi: true },
     { provide: MARKDOWN_EXTENSIONS, useValue: SMILES_EXTENSION, multi: true },
     { provide: MARKDOWN_EXTENSIONS, useValue: VEGALITE_EXTENSION, multi: true },
+    { provide: MARKDOWN_EXTENSIONS, useValue: ABC_EXTENSION, multi: true },
   ]);
 }

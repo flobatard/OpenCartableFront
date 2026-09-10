@@ -67,5 +67,9 @@
   "vegalite": {
     "title": "Graphiques (Vega-Lite)",
     "intro": "Trace un graphique de données (barres, courbes, points, secteurs…) décrit en JSON Vega-Lite dans un bloc de code « vegalite » ; les données s'écrivent dans data.values."
+  },
+  "abc": {
+    "title": "Partitions (ABC)",
+    "intro": "Grave une mélodie écrite en notation ABC (en-têtes X:, T:, M:, L:, K: puis les notes) dans un bloc de code « abc » ; elle s'écoute au piano d'un clic."
   }
 }
