@@ -11,7 +11,9 @@ import {
 
 export {
   keepHeadingsWithContent,
+  PRINT_ID_SUFFIX,
   transformForPrint,
+  uniquifySvgIds,
   type PrintLabels,
   type ResourceUrlBuilder,
 } from './print-transform';

@@ -44,7 +44,8 @@ export interface PrintLabels {
  * l'instant → embarqué), l'audio/vidéo et l'iframe du PDF embarqué deviennent
  * une note renvoyant vers l'URL stable, les liens/boutons de ressource
  * pointent vers l'URL stable — la route front de redirection, construite dans
- * la langue active (`lang`).
+ * la langue active (`lang`). Enfin, les `id` des SVG clonés sont rendus
+ * uniques (`uniquifySvgIds`).
  */
 export function transformForPrint(
   root: HTMLElement,
@@ -107,6 +108,67 @@ export function transformForPrint(
       // Carte téléchargeable (bloc document, ressource non visionnable) : le
       // bouton est inutile sur papier.
       transformDocumentCard(el, url, doc);
+    }
+  }
+  uniquifySvgIds(root);
+}
+
+/** Suffixe des `id` SVG du clone d'impression (un seul clone à la fois). */
+export const PRINT_ID_SUFFIX = '-oc-print';
+
+/** Attributs de référence par liste d'ids séparés par des espaces. */
+const ID_LIST_ATTRS = new Set(['aria-labelledby', 'aria-describedby']);
+
+/**
+ * Rend uniques les `id` des SVG d'un clone et réécrit leurs références.
+ *
+ * Le clone duplique chaque `id` ; or `url(#id)` et `href="#id"` se résolvent
+ * vers le PREMIER élément du document portant cet id — l'original, masqué à
+ * l'impression. Sans cette passe, masques, dégradés, clips et marqueurs
+ * (SmilesDrawer, Vega, Mermaid) disparaissent ou s'appliquent de travers dans
+ * le PDF. Les `<style>` embarqués sont réécrits aussi : Mermaid y scope ses
+ * règles par `#<id du svg>`.
+ */
+export function uniquifySvgIds(root: HTMLElement): void {
+  for (const svg of [...root.querySelectorAll('svg')]) {
+    if (svg.parentElement?.closest('svg') != null) {
+      continue; // SVG imbriqué : traité avec son SVG racine.
+    }
+    const elements = [svg, ...svg.querySelectorAll('*')];
+    const ids = new Set(elements.map((el) => el.id).filter((id) => id !== ''));
+    if (ids.size === 0) {
+      continue;
+    }
+    const renamed = (id: string) => (ids.has(id) ? `${id}${PRINT_ID_SUFFIX}` : id);
+    const urlRef = /url\(\s*(['"]?)#([^'")\s]+)\1\s*\)/g;
+    const rewriteUrls = (value: string) =>
+      value.replace(urlRef, (match, quote: string, id: string) =>
+        ids.has(id) ? `url(${quote}#${renamed(id)}${quote})` : match,
+      );
+    for (const el of elements) {
+      if (el.id !== '') {
+        el.id = renamed(el.id);
+      }
+      for (const attr of [...el.attributes]) {
+        const name = attr.name.toLowerCase();
+        let value = attr.value;
+        if ((name === 'href' || name === 'xlink:href') && value.startsWith('#')) {
+          value = `#${renamed(value.slice(1))}`;
+        } else if (ID_LIST_ATTRS.has(name)) {
+          value = value.split(/\s+/).map(renamed).join(' ');
+        } else if (value.includes('url(')) {
+          value = rewriteUrls(value);
+        }
+        if (value !== attr.value) {
+          el.setAttributeNS(attr.namespaceURI, attr.name, value);
+        }
+      }
+      if (el.tagName.toLowerCase() === 'style' && el.textContent !== null) {
+        el.textContent = rewriteUrls(el.textContent).replace(
+          /#([A-Za-z_][\w-]*)/g,
+          (match, id: string) => (ids.has(id) ? `#${renamed(id)}` : match),
+        );
+      }
     }
   }
 }

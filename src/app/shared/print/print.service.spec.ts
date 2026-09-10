@@ -1,11 +1,13 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import {
+  PRINT_ID_SUFFIX,
   PRINT_ROOT_ID,
   PrintLabels,
   PrintService,
   keepHeadingsWithContent,
   transformForPrint,
+  uniquifySvgIds,
 } from './print.service';
 import { courseContentUrl, resourceContentUrl } from '../../core/resources/resource.utils';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
@@ -223,6 +225,63 @@ describe('keepHeadingsWithContent', () => {
     const root = fragment('<div class="course-content"><h3>Seul</h3></div>');
     keepHeadingsWithContent(root);
     expect(root.querySelector('.oc-print__keep')).toBeNull();
+  });
+});
+
+describe('uniquifySvgIds', () => {
+  const svg = (inner: string, attrs = '') =>
+    fragment(`<svg xmlns="http://www.w3.org/2000/svg" ${attrs}>${inner}</svg>`);
+
+  it('renames ids and their url(#…) references (masks, gradients)', () => {
+    const root = svg(
+      '<defs><mask id="m1"></mask><linearGradient id="g1"></linearGradient></defs>' +
+        '<line mask="url(#m1)" stroke="url(\'#g1\')" style="fill: url(#g1)"></line>' +
+        '<rect fill="url(#ailleurs)"></rect>',
+    );
+    uniquifySvgIds(root);
+    expect(root.querySelector('mask')?.id).toBe(`m1${PRINT_ID_SUFFIX}`);
+    expect(root.querySelector('linearGradient')?.id).toBe(`g1${PRINT_ID_SUFFIX}`);
+    const line = root.querySelector('line')!;
+    expect(line.getAttribute('mask')).toBe(`url(#m1${PRINT_ID_SUFFIX})`);
+    expect(line.getAttribute('stroke')).toBe(`url('#g1${PRINT_ID_SUFFIX}')`);
+    expect(line.getAttribute('style')).toBe(`fill: url(#g1${PRINT_ID_SUFFIX})`);
+    // Référence vers un id absent du SVG : laissée telle quelle.
+    expect(root.querySelector('rect')?.getAttribute('fill')).toBe('url(#ailleurs)');
+  });
+
+  it('rewrites href references and aria id lists', () => {
+    const root = svg(
+      '<title id="t"></title><path id="p"></path><use href="#p"></use>',
+      'aria-labelledby="t autre"',
+    );
+    uniquifySvgIds(root);
+    expect(root.querySelector('use')?.getAttribute('href')).toBe(`#p${PRINT_ID_SUFFIX}`);
+    expect(root.querySelector('svg')?.getAttribute('aria-labelledby')).toBe(
+      `t${PRINT_ID_SUFFIX} autre`,
+    );
+  });
+
+  it('rewrites the id-scoped rules of an embedded <style> (Mermaid)', () => {
+    const root = svg('<style>#d1 .node { fill: #fff; } #d1 path { marker-end: url(#arrow); }</style>' +
+      '<marker id="arrow"></marker>', 'id="d1"');
+    uniquifySvgIds(root);
+    expect(root.querySelector('svg')?.id).toBe(`d1${PRINT_ID_SUFFIX}`);
+    expect(root.querySelector('style')?.textContent).toBe(
+      `#d1${PRINT_ID_SUFFIX} .node { fill: #fff; } #d1${PRINT_ID_SUFFIX} path { marker-end: url(#arrow${PRINT_ID_SUFFIX}); }`,
+    );
+  });
+
+  it('leaves an SVG without ids untouched', () => {
+    const root = svg('<circle r="4" fill="url(#x)"></circle>');
+    const before = root.innerHTML;
+    uniquifySvgIds(root);
+    expect(root.innerHTML).toBe(before);
+  });
+
+  it('runs as part of transformForPrint', () => {
+    const root = svg('<mask id="m"></mask><line mask="url(#m)"></line>');
+    transformForPrint(root, null, 'fr', labels());
+    expect(root.querySelector('line')?.getAttribute('mask')).toBe(`url(#m${PRINT_ID_SUFFIX})`);
   });
 });
 
