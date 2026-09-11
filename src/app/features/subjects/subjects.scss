@@ -61,11 +61,12 @@
   border-radius: var(--radius-lg);
 }
 
+/* Retrait par profondeur (`--depth` posé par le template). */
 .subjects__node {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 8px 12px 8px calc(8px + var(--depth, 0) * var(--subjects-indent, 20px));
   color: var(--text-primary);
 }
 
@@ -87,6 +88,19 @@
 
 .subjects__twistie--leaf {
   cursor: default;
+}
+
+/* Tactile : zone de tap de 40 px autour du chevron, sans agrandir la rangée. */
+@include bp.touch {
+  .subjects__twistie:not(.subjects__twistie--leaf) {
+    position: relative;
+  }
+
+  .subjects__twistie:not(.subjects__twistie--leaf)::before {
+    content: '';
+    position: absolute;
+    inset: -9px;
+  }
 }
 
 .subjects__name {
@@ -172,5 +186,15 @@
   .subjects {
     padding-inline: 0;
     padding-top: 0;
+  }
+
+  /* Colonne étroite : retrait resserré, le libellé de profondeur (redondant
+     avec le retrait) laisse la place au nom. */
+  .subjects__node {
+    --subjects-indent: 12px;
+  }
+
+  .subjects__level {
+    display: none;
   }
 }

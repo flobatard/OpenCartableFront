@@ -111,6 +111,7 @@
   display: flex;
   gap: 16px;
   height: clamp(520px, 78vh, 900px);
+  height: clamp(520px, 78dvh, 900px);
   min-height: 0;
 }
 
@@ -221,6 +222,7 @@
   .block-editor__workspace {
     flex-direction: column;
     height: clamp(600px, 90vh, 980px);
+    height: clamp(600px, 90dvh, 980px);
   }
 
   .block-editor__divider {
@@ -236,10 +238,59 @@
   }
 }
 
-/* Téléphone : la gouttière latérale est celle d'.app-main (DESIGN_SYSTEM.md §12). */
+/* Téléphone : la gouttière latérale est celle d'.app-main (DESIGN_SYSTEM.md §12).
+   Espace de travail en BASCULE DE VUE plutôt qu'en empilement (qui laissait ~30 px
+   de messages au chat) : chat replié (défaut au téléphone) → l'éditeur seul ; chat
+   ouvert → l'assistant seul, à pleine hauteur. Une revue de proposition, qui vit
+   dans la colonne éditeur, reprend la main sur le chat. Masquage par CSS : Monaco
+   n'est jamais détruit. */
 @include bp.mobile {
   .block-editor {
     padding-inline: 0;
     padding-top: 0;
+  }
+
+  .block-editor__toolbar-end {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  /* Navigation entre blocs : position sur sa ligne, puis Précédent / Suivant à
+     parts égales (les <span> vides tiennent la place d'un lien absent). */
+  .block-editor__nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .block-editor__nav-position {
+    grid-column: 1 / -1;
+    order: -1;
+    text-align: center;
+  }
+
+  .block-editor__workspace {
+    height: 75vh;
+    height: 75dvh;
+    min-height: 420px;
+  }
+
+  .block-editor__divider {
+    display: none;
+  }
+
+  .block-editor__workspace:not(.block-editor__workspace--solo) .block-editor__editor-col {
+    display: none;
+  }
+
+  .block-editor__workspace:has(app-proposal-review, app-exercise-proposal-review) {
+    .block-editor__editor-col {
+      display: flex;
+      flex: 1 1 0;
+    }
+
+    .block-editor__chat {
+      display: none;
+    }
   }
 }

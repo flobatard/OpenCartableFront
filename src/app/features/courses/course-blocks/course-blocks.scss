@@ -32,7 +32,6 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
 }
 
@@ -182,6 +181,8 @@
 .course-blocks__actions {
   display: flex;
   flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 4px;
   margin-left: auto;
 }
@@ -205,6 +206,15 @@
 
 .course-blocks__move:disabled {
   opacity: 0.3;
+}
+
+/* Tactile : pas de survol pour révéler les flèches — pleinement visibles (sinon
+   elles semblent désactivées), à taille de doigt. */
+@include bp.touch {
+  .course-blocks__move {
+    padding: 10px 14px;
+    opacity: 1;
+  }
 }
 
 .course-blocks__mutation-error {
@@ -289,10 +299,26 @@
   color: var(--text-secondary);
 }
 
-/* Téléphone : la gouttière latérale est celle d'.app-main (DESIGN_SYSTEM.md §12). */
+/* Téléphone : la gouttière latérale est celle d'.app-main (DESIGN_SYSTEM.md §12) ;
+   les actions d'une rangée passent sur leur propre ligne (l'état « Confirmer la
+   suppression », plus large, débordait de la carte). */
 @include bp.mobile {
   .course-blocks {
     padding-inline: 0;
     padding-top: 0;
+  }
+
+  /* En-tête : titre sur sa ligne, puis badge et actions alignés à gauche (le
+     margin-left auto de desktop les dispersait sur trois lignes). */
+  .course-blocks__title {
+    flex: 1 1 100%;
+  }
+
+  .course-blocks__edit-course {
+    margin-left: 0;
+  }
+
+  .course-blocks__actions {
+    flex-basis: 100%;
   }
 }

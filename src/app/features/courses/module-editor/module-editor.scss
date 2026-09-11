@@ -65,6 +65,7 @@
   display: flex;
   gap: 16px;
   height: clamp(520px, 78vh, 900px);
+  height: clamp(520px, 78dvh, 900px);
   min-height: 0;
 }
 
@@ -192,6 +193,7 @@
   .module-editor__workspace {
     flex-direction: column;
     height: clamp(600px, 90vh, 980px);
+    height: clamp(600px, 90dvh, 980px);
   }
 
   // Cède du terrain au min-height du chat ; la ligne minmax(0,1fr) de base est
@@ -220,18 +222,67 @@
   }
 }
 
-// Très étroit (téléphone) : panes empilées en une colonne qui défile.
+// Téléphone : BASCULE DE VUE entre les panes et l'assistant (l'empilement
+// imbriquait trois défilements : page, panes, Monaco). Assistant replié (défaut
+// au téléphone) → code puis aperçu empilés, dans le flux de la page (plus de
+// hauteur imposée) ; assistant ouvert → lui seul, à pleine hauteur. Une revue
+// de proposition reprend la main sur l'assistant. Masquage par CSS : les trois
+// Monaco ne sont jamais détruits.
 @include bp.mobile {
-  .module-editor__panes {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto; // deux lignes au contenu (éditeur fixe + preview)
-    overflow-y: auto;
+  .module-editor__header,
+  .module-editor__header-end {
+    flex-wrap: wrap;
   }
 
-  // Empilé : hauteur d'éditeur fixe (remplir n'a pas de sens en une colonne),
-  // les deux panes défilent ensemble dans le conteneur.
+  .module-editor__workspace {
+    height: 75vh;
+    height: 75dvh;
+    min-height: 420px;
+  }
+
+  .module-editor__workspace--solo {
+    height: auto;
+  }
+
+  .module-editor__divider {
+    display: none;
+  }
+
+  .module-editor__workspace:not(.module-editor__workspace--solo) .module-editor__panes {
+    display: none;
+  }
+
+  .module-editor__workspace:has(.module-editor__review) {
+    height: auto;
+
+    .module-editor__panes {
+      display: grid;
+    }
+
+    .module-editor__chat {
+      display: none;
+    }
+  }
+
+  // Au contenu : l'espace de travail n'a plus de hauteur imposée (sélecteur
+  // aussi spécifique que la règle --solo de base, qui poserait `flex: 1 1 0`).
+  .module-editor__workspace .module-editor__panes {
+    flex: 0 0 auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto; // code (hauteur fixe) puis aperçu (au contenu)
+  }
+
+  // Une colonne : hauteur d'éditeur fixe (remplir n'a pas de sens).
   .module-editor__panel {
-    flex: 0 0 420px;
+    flex: 0 0 auto;
+    height: 60vh;
+    height: 60dvh;
+  }
+
+  // Le diff remplit sa hauteur : il lui en faut une définie.
+  .module-editor__review {
+    height: 70vh;
+    height: 70dvh;
   }
 
   .module-editor__pane--preview {

@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 /* Éditeur d'exercice : onglets Sujet | Questions, chaque question en carte sur
    les tokens du design system. Monté dans la colonne éditeur du workspace du
    block-editor, à hauteur définie : le markdown-field se dimensionne en
@@ -193,6 +195,8 @@
 
 .exercise-editor__question-actions {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 4px;
   flex: 0 0 auto;
   padding-inline-end: 8px;
@@ -227,6 +231,31 @@
 
 .exercise-editor__move:disabled {
   opacity: 0.3;
+}
+
+/* Tactile : flèches pleinement visibles (pas de survol pour les révéler). */
+@include bp.touch {
+  .exercise-editor__move {
+    opacity: 1;
+  }
+}
+
+/* Téléphone : en-tête de question sur deux lignes — titre, puis les actions
+   (↑ ↓ Supprimer, effacement des réponses d'élèves), qui écrasaient le titre et
+   débordaient, rognées par la carte. Flèches au padding compact. */
+@include bp.mobile {
+  .exercise-editor__question-head {
+    flex-wrap: wrap;
+  }
+
+  .exercise-editor__question-actions {
+    flex-basis: 100%;
+    padding-bottom: 8px;
+  }
+
+  .exercise-editor__move {
+    padding-inline: 12px;
+  }
 }
 
 /* Aperçu flottant compact pendant le glissé (jamais le Monaco de la question). */

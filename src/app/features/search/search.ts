@@ -8,6 +8,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { PublicEducationLevelService } from '../../core/education-levels/public-education-level.service';
 import { flattenTree } from '../../core/education-levels/education-level.utils';
 import { LanguageService } from '../../core/i18n/language.service';
+import { WIDE_QUERY } from '../../core/layout/breakpoints';
 import { SearchQuery } from '../../core/search/search.model';
 import { SearchService } from '../../core/search/search.service';
 import { PublicSubjectService } from '../../core/subjects/public-subject.service';
@@ -21,9 +22,6 @@ import { Tablist } from '../../shared/tabs/tablist.directive';
 let sequence = 0;
 
 type SearchTab = 'courses' | 'teachers';
-
-/** Largeur desktop des facettes : miroir de `bp.wide` (`styles/_breakpoints.scss`). */
-const WIDE_QUERY = '(width > 900px)';
 
 /** Ordre des onglets pour la navigation clavier ←/→ (APG tabs). */
 const TAB_ORDER: readonly SearchTab[] = ['courses', 'teachers'];

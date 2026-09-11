@@ -26,6 +26,7 @@ import {
 } from '../../../core/course-assistant/proposals';
 import { createAutosave } from '../../../core/editing/autosave';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { MOBILE_QUERY } from '../../../core/layout/breakpoints';
 import { ModuleUpdatePayload } from '../../../core/modules/module.model';
 import { ModuleService } from '../../../core/modules/module.service';
 import { MarkdownEditor } from '../../../shared/markdown-editor/markdown-editor';
@@ -196,8 +197,12 @@ export class ModuleEditor implements OnInit, OnDestroy {
       Défaut plus large qu'au block-editor : la colonne porte DEUX panes. */
   protected readonly editorPct = signal(68);
   protected readonly dragging = signal(false);
-  /** Repli du panneau assistant : les panes reprennent toute la largeur. */
-  protected readonly chatCollapsed = signal(false);
+  /** Repli du panneau assistant : les panes reprennent toute la largeur. Sur
+      téléphone, l'assistant REMPLACE les panes quand il est ouvert (bascule de
+      vue, cf. scss) : on arrive donc sur le code, assistant replié. */
+  protected readonly chatCollapsed = signal(
+    this.#isBrowser && window.matchMedia(MOBILE_QUERY).matches,
+  );
 
   #initialized = false;
 

@@ -36,6 +36,7 @@ import { CourseStyleService } from '../../../core/courses/course-style.service';
 import { ExerciseSubmissionsService } from '../../../core/courses/exercise-submissions.service';
 import { createAutosave } from '../../../core/editing/autosave';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { MOBILE_QUERY } from '../../../core/layout/breakpoints';
 import { ModuleService } from '../../../core/modules/module.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { ResourceService } from '../../../core/resources/resource.service';
@@ -234,8 +235,12 @@ export class BlockEditor implements OnInit, OnDestroy {
       colonne éditeur ; `dragging` désactive la sélection de texte pendant le glissé. */
   protected readonly editorPct = signal(64);
   protected readonly dragging = signal(false);
-  /** Repli du panneau chat : l'éditeur reprend toute la largeur. */
-  protected readonly chatCollapsed = signal(false);
+  /** Repli du panneau chat : l'éditeur reprend toute la largeur. Sur téléphone,
+      l'assistant REMPLACE l'éditeur quand il est ouvert (bascule de vue, cf.
+      scss) : on arrive donc sur l'éditeur, chat replié. */
+  protected readonly chatCollapsed = signal(
+    this.#isBrowser && window.matchMedia(MOBILE_QUERY).matches,
+  );
 
   #initialized = false;
 

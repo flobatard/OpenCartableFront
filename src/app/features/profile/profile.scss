@@ -64,7 +64,7 @@
 /* Cartes de rôle : deux grandes cibles cochables côte à côte. */
 .profile__role-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   gap: 12px;
 }
 
@@ -110,7 +110,7 @@
 
 .profile__radios {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   gap: 8px;
 }
 
@@ -176,16 +176,21 @@
 }
 
 /* Section photo de profil : avatar + contrôles, hors formulaire. */
+/* Avatar (96 px) + contrôles : les contrôles passent sous l'avatar quand la
+   colonne est trop étroite (téléphone). */
 .profile__avatar-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 20px;
 }
 
 .profile__avatar-controls {
   display: flex;
+  flex: 1 1 200px;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
 }
 
 .profile__avatar-controls .profile__hint {

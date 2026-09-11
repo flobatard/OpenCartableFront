@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 /* Boutons — cf. DESIGN_SYSTEM.md §8. */
 
 .btn {
@@ -69,10 +71,13 @@
    (role=tablist/tab, navigation clavier) reste porté par le composant hôte.
    Trop large pour son conteneur (téléphone), la barre défile horizontalement
    plutôt que de déborder la page ; les onglets ne se compriment ni ne passent
-   à la ligne. */
+   à la ligne. `flex-shrink: 0` : conteneur de défilement, la barre perdrait sa
+   taille minimale automatique et s'écraserait dans une colonne flex contrainte
+   (éditeurs). */
 
 .tabs {
   display: inline-flex;
+  flex-shrink: 0;
   gap: 4px;
   max-width: 100%;
   padding: 4px;
@@ -155,6 +160,13 @@
   color: var(--text-primary);
 }
 
+/* Tactile : poignée à taille de doigt (40 px). */
+@include bp.touch {
+  .drag-handle {
+    padding: 10px;
+  }
+}
+
 .drag-handle:active {
   cursor: grabbing;
 }
@@ -163,12 +175,21 @@
    separator WAI-ARIA). Le curseur row-resize de l'empilement mobile reste au
    composant hôte, qui connaît son breakpoint. */
 .resize-handle {
+  position: relative;
   flex: 0 0 6px;
   align-self: stretch;
   background: var(--border);
   border-radius: var(--radius-full);
   cursor: col-resize;
   touch-action: none; /* le drag tactile ne déclenche pas le scroll de page */
+}
+
+/* Zone de saisie de 24 px autour du trait de 6 px (cible WCAG 2.5.8), dans les
+   deux orientations — le trait visible ne change pas. */
+.resize-handle::before {
+  content: '';
+  position: absolute;
+  inset: -9px;
 }
 
 .resize-handle:hover,

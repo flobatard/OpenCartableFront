@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: block;
 }
@@ -169,4 +171,14 @@
 .course-resources__empty-hint {
   margin: 0;
   color: var(--text-secondary);
+}
+
+/* Téléphone : les actions d'une rangée passent sur leur propre ligne, et à la
+   ligne entre elles (l'état « Confirmer … » est plus large que le repos). */
+@include bp.mobile {
+  .course-resources__actions {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
 }

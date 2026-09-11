@@ -54,7 +54,7 @@
           [attr.aria-level]="row.depth + 1"
           [attr.aria-expanded]="row.hasChildren ? row.expanded : null"
           [class.is-active]="row.node.id === activeId()"
-          [style.padding-left.px]="8 + row.depth * 20"
+          [style.--depth]="row.depth"
         >
           @if (row.hasChildren) {
             <button

@@ -341,6 +341,7 @@ Règles :
 - Hauteurs d'écran en `dvh`/`svh`, précédées d'un repli `vh`.
 - Champs de saisie ≥ **16 px** sur téléphone (sinon Safari iOS zoome au focus).
 - Cibles tactiles ≥ **40 px** ; sous `bp.touch`, tout ce que le desktop révèle au survol est visible d'emblée (ex. les boutons imprimer / style de lecture d'un bloc passent dans le flux, au-dessus du contenu).
+- Éditeurs prof sur téléphone : bascule de vue Éditeur ⇄ Assistant (pastille « Assistant ») au lieu d'un empilement ; rangées d'actions des listes (blocs, ressources, modules, liens, questions) sur leur propre ligne.
 - Contenu de cours : un mot plus long que la ligne passe à la ligne (`overflow-wrap`) ; tableaux dans `.course-table` et formules centrées défilent dans leur boîte ; figures (JSXGraph, GeoGebra) gardent leur ratio ; une figure interactive ne capture jamais le défilement à un doigt ; un module interactif s'agrandit en plein écran.
 
 ---
