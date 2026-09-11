@@ -79,5 +79,10 @@
     "timeout": "Programme interrompu : plus de {{seconds}} secondes d'exécution.",
     "stopped": "Exécution arrêtée.",
     "unavailable": "Python n'a pas pu être chargé."
+  },
+  "passage": {
+    "label": "Texte à lignes numérotées",
+    "line": "Ligne",
+    "empty": "Texte vide : écrivez l'extrait dans le bloc, une ligne de la source par ligne du texte."
   }
 }

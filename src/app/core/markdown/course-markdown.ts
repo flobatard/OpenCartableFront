@@ -3,8 +3,14 @@ import katex from 'katex';
 // Side-effect : enregistre `\ce` et `\pu` (chimie, unités) sur la MÊME
 // instance que `katex` (le module importe `../katex.mjs`).
 import 'katex/contrib/mhchem';
-import { Marked, Tokens, TokenizerAndRendererExtension } from 'marked';
+import { Marked, Parser, Tokens, TokenizerAndRendererExtension } from 'marked';
 import { BLOCK_REF_ATTR, parseBlockRef } from './course-block-ref';
+import {
+  CALLOUT_FALLBACK_TITLES,
+  CalloutParts,
+  CalloutTitles,
+  splitCallout,
+} from './course-callouts';
 import { MODULE_REF_ATTR, parseModuleRef } from './course-module-ref';
 import { parseResourceRef, RESOURCE_REF_ATTR } from './course-resource-ref';
 
@@ -21,10 +27,10 @@ export type { ResolvedResource } from './course-resource-pass';
  * Rendu du markdown des blocs de cours (contrat `texte` de
  * app/models/block.py) : markdown GFM + formules LaTeX — `$…$` en ligne,
  * `$$…$$` centrée — rendues par KaTeX, extension mhchem comprise (`\ce{…}`,
- * `\pu{…}`). Première passe, synchrone ; les
- * diagrammes Mermaid (`course-diagrams.ts`) et les ressources de la
- * bibliothèque (`course-resource-pass.ts`) sont des passes asynchrones
- * enchaînées par `markdown-view`.
+ * `\pu{…}`) + encadrés `> [!DEFINITION]…` (`course-callouts.ts`). Première
+ * passe, synchrone ; les diagrammes Mermaid (`course-diagrams.ts`) et les
+ * ressources de la bibliothèque (`course-resource-pass.ts`) sont des passes
+ * asynchrones enchaînées par `markdown-view`.
  *
  * LA sanitisation du HTML de cours vit dans `core/markdown/` et nulle part
  * ailleurs : DOMPurify avec les profils html + mathMl + svg (la sortie KaTeX
@@ -161,6 +167,32 @@ function blockRefAnchor(id: string, label: string): string {
   );
 }
 
+/**
+ * Titres par défaut des encadrés du rendu EN COURS : posés par
+ * `renderCourseMarkdown` autour de son `parse`, synchrone — aucun autre rendu
+ * ne peut s'intercaler.
+ */
+let activeCalloutTitles: CalloutTitles = CALLOUT_FALLBACK_TITLES;
+
+/**
+ * Encadré (cf. course-callouts.ts) : `<div>` classé par type, titre en `<p>`
+ * — titre par défaut du type, ou titre personnalisé précédé de ce titre en
+ * `.sr-only` : le type n'est jamais porté par la seule couleur (l'icône du
+ * titre, en CSS, le double pour l'œil).
+ */
+function calloutHtml(parser: Parser, callout: CalloutParts): string {
+  const label = escapeHtmlAttr(activeCalloutTitles[callout.kind]);
+  const title =
+    callout.titleTokens.length === 0
+      ? label
+      : `<span class="sr-only">${label} : </span>${parser.parseInline(callout.titleTokens)}`;
+  return (
+    `<div class="course-callout course-callout--${callout.kind}">\n` +
+    `<p class="course-callout__title">${title}</p>\n` +
+    `${parser.parse(callout.bodyTokens)}</div>\n`
+  );
+}
+
 // Instance dédiée, configurée UNE fois au chargement du module : ne jamais
 // muter le singleton `marked` (son use() est global). Défauts identiques
 // (gfm actif) — le markdown sans formule se rend comme avant.
@@ -171,9 +203,17 @@ function blockRefAnchor(id: string, label: string): string {
 // resolveCourseResources) ; tout autre href retombe sur le rendu marked par
 // défaut (`return false`). L'élément final (image/audio/vidéo/lien) est choisi
 // par la passe de résolution selon le type réel de la ressource.
+//
+// Override du renderer blockquote : une citation ouverte par un marqueur
+// `[!TYPE]` connu devient un encadré, toute autre citation garde le rendu
+// par défaut.
 const courseMarked = new Marked({
   extensions: [mathBlock, mathInline],
   renderer: {
+    blockquote({ tokens }) {
+      const callout = splitCallout(tokens);
+      return callout === null ? false : calloutHtml(this.parser, callout);
+    },
     image({ href, text }) {
       // `![…](oc-module:…)` : symétrie naturelle avec `![…](oc-resource:…)` —
       // même placeholder d'embed que le lien (sans lui, marked émettrait un
@@ -213,9 +253,24 @@ const courseMarked = new Marked({
   },
 });
 
+/** Options du rendu : ce qui dépend de la langue de l'interface. */
+export interface CourseMarkdownOptions {
+  /** Titres par défaut des encadrés (repli : `CALLOUT_FALLBACK_TITLES`). */
+  readonly calloutTitles?: CalloutTitles;
+}
+
 /** Rend le markdown d'un bloc de cours en HTML sûr (cf. doc du module). */
-export function renderCourseMarkdown(markdown: string): string {
-  const html = courseMarked.parse(markdown, { async: false });
+export function renderCourseMarkdown(
+  markdown: string,
+  options: CourseMarkdownOptions = {},
+): string {
+  activeCalloutTitles = options.calloutTitles ?? CALLOUT_FALLBACK_TITLES;
+  let html: string;
+  try {
+    html = courseMarked.parse(markdown, { async: false });
+  } finally {
+    activeCalloutTitles = CALLOUT_FALLBACK_TITLES;
+  }
   return DOMPurify.sanitize(html, {
     USE_PROFILES: { html: true, mathMl: true, svg: true },
     // KaTeX émet <semantics>/<annotation> (source LaTeX pour l'accessibilité),

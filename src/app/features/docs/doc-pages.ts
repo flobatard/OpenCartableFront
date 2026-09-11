@@ -4,8 +4,8 @@ import { MarkdownExtensionDef } from '../../shared/markdown-extensions/markdown-
 /**
  * Pages de documentation des « langages » du markdown de cours
  * (`/:lang/markdown-language/docs/:slug`). Deux origines fusionnées par
- * `allDocPages` : les langages INTÉGRÉS au pipeline (KaTeX, mhchem, Mermaid —
- * déclarés ici, leurs slugs sont réservés) puis les extensions du registry, dont le
+ * `allDocPages` : les langages INTÉGRÉS au pipeline (KaTeX, mhchem, Mermaid,
+ * encadrés — déclarés ici, leurs slugs sont réservés) puis les extensions du registry, dont le
  * contrat (`MarkdownExtensionDef.doc`) impose le composant de doc — chacune
  * suivie de ses pages complémentaires (`doc.guides`). Chaque slug porte ses
  * clés i18n `docs.pages.<slug>.{title,summary}`.
@@ -30,6 +30,10 @@ export const BUILTIN_DOC_PAGES: readonly DocPage[] = [
   {
     slug: 'mermaid',
     loadComponent: () => import('./mermaid-doc/mermaid-doc').then((m) => m.MermaidDoc),
+  },
+  {
+    slug: 'callouts',
+    loadComponent: () => import('./callouts-doc/callouts-doc').then((m) => m.CalloutsDoc),
   },
 ];
 

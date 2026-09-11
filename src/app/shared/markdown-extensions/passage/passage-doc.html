@@ -1,0 +1,34 @@
+<p class="doc-intro">{{ 'docs.passage.intro' | transloco }}</p>
+
+<section class="doc-section">
+  <h2>{{ 'docs.passage.first.title' | transloco }}</h2>
+  <p>{{ 'docs.passage.first.body' | transloco }}</p>
+  <ul class="doc-rules">
+    <li>{{ 'docs.passage.first.lines' | transloco }}</li>
+    <li>{{ 'docs.passage.first.gaps' | transloco }}</li>
+    <li>{{ 'docs.passage.first.indent' | transloco }}</li>
+    <li>{{ 'docs.passage.first.raw' | transloco }}</li>
+  </ul>
+  <app-markdown-playground [initial]="firstExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.passage.prose.title' | transloco }}</h2>
+  <p>{{ 'docs.passage.prose.body' | transloco }}</p>
+  <app-markdown-playground [initial]="proseExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.passage.options.title' | transloco }}</h2>
+  <p>{{ 'docs.passage.options.body' | transloco }}</p>
+  <ul class="doc-rules">
+    <li><code>start=</code> — {{ 'docs.passage.options.start' | transloco }}</li>
+    <li><code>step=</code> — {{ 'docs.passage.options.step' | transloco }}</li>
+  </ul>
+  <app-markdown-playground [initial]="optionsExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.passage.print.title' | transloco }}</h2>
+  <p>{{ 'docs.passage.print.body' | transloco }}</p>
+</section>

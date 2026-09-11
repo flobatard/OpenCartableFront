@@ -39,6 +39,7 @@ describe('MarkdownHelpDialog', () => {
     expect(examples.some((code) => code.includes('| Colonne A |'))).toBe(true);
     expect(examples.some((code) => code.includes('graph TD'))).toBe(true);
     expect(examples.some((code) => code.includes('\\ce{2H2 + O2 -> 2H2O}'))).toBe(true);
+    expect(examples.some((code) => code.includes('> [!DEFINITION]'))).toBe(true);
   });
 
   it('renders the GeoGebra and JSXGraph sections with their example', async () => {
@@ -58,6 +59,7 @@ describe('MarkdownHelpDialog', () => {
     expect(examples.some((code) => code.includes('```abc'))).toBe(true);
     expect(examples.some((code) => code.includes('```sql'))).toBe(true);
     expect(examples.some((code) => code.includes('```python'))).toBe(true);
+    expect(examples.some((code) => code.includes('```passage'))).toBe(true);
   });
 
   it('each section links to its doc page in a new tab', async () => {
@@ -67,6 +69,7 @@ describe('MarkdownHelpDialog', () => {
     ] as HTMLAnchorElement[];
     expect(links.map((a) => a.getAttribute('href'))).toEqual([
       '/fr/markdown-language/docs',
+      '/fr/markdown-language/docs/callouts',
       '/fr/markdown-language/docs/katex',
       '/fr/markdown-language/docs/mhchem',
       '/fr/markdown-language/docs/mermaid',
@@ -80,6 +83,7 @@ describe('MarkdownHelpDialog', () => {
       '/fr/markdown-language/docs/abc',
       '/fr/markdown-language/docs/sql',
       '/fr/markdown-language/docs/python',
+      '/fr/markdown-language/docs/passage',
     ]);
     // _blank : RouterLink n'intercepte pas — la modale et l'édition restent en place.
     expect(links.every((a) => a.getAttribute('target') === '_blank')).toBe(true);

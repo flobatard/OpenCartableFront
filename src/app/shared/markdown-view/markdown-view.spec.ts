@@ -1,5 +1,6 @@
 import { Component, input, signal, Type } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslocoService } from '@jsverse/transloco';
 import { MarkdownView } from './markdown-view';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
 import { ResourceService } from '../../core/resources/resource.service';
@@ -77,6 +78,16 @@ describe('MarkdownView', () => {
   it('renders LaTeX formulas via KaTeX', async () => {
     const fixture = await createComponent('Soit $x^2$ un carré.');
     expect(content(fixture)?.querySelector('.katex')).toBeTruthy();
+  });
+
+  it('titles callouts in the interface language, re-rendered when it changes', async () => {
+    const fixture = await createComponent('> [!RETENIR]\n> Le périmètre du cercle vaut $2\\pi r$.');
+    const title = () => content(fixture)?.querySelector('.course-callout__title')?.textContent;
+    expect(title()).toBe('À retenir');
+
+    TestBed.inject(TranslocoService).setActiveLang('en');
+    await fixture.whenStable();
+    expect(title()).toBe('Key point');
   });
 
   it('an empty markdown renders no content', async () => {

@@ -17,6 +17,10 @@
       "title": "Diagrammes (Mermaid)",
       "summary": "Organigrammes, séquences, Gantt… décrits en texte dans un bloc de code."
     },
+    "callouts": {
+      "title": "Encadrés",
+      "summary": "Définitions, méthodes, points à retenir, mises en garde : des encadrés colorés, écrits comme les alertes de GitHub."
+    },
     "geogebra": {
       "title": "GeoGebra",
       "summary": "Intégrer une activité publiée sur geogebra.org dans un cours."
@@ -56,6 +60,10 @@
     "python": {
       "title": "Python exécutable",
       "summary": "Du code Python, avec numpy et matplotlib, que l'élève exécute et modifie dans son navigateur."
+    },
+    "passage": {
+      "title": "Textes à lignes numérotées",
+      "summary": "Afficher un extrait à commenter, numéroté dans la marge toutes les cinq lignes."
     }
   },
   "katex": {
@@ -153,6 +161,45 @@
       "body": "Une source invalide n'interrompt pas le reste du bloc : la source est conservée avec le message d'erreur en légende."
     },
     "more": "Documentation complète de Mermaid (mermaid.js.org)"
+  },
+  "callouts": {
+    "intro": "Un encadré isole une notion du fil du cours — définition, méthode, point à retenir, mise en garde —, avec une couleur et une icône par type. Il s'écrit comme une citation dont la première ligne annonce le type, à la manière des alertes de GitHub. Chaque exemple est modifiable.",
+    "first": {
+      "title": "Premier encadré",
+      "body": "La première ligne de la citation porte le marqueur, ici > [!DEFINITION] ; le contenu suit sur les lignes qui commencent par >. Une ligne vide termine l'encadré : une ligne collée à la dernière ligne > en ferait encore partie."
+    },
+    "kinds": {
+      "title": "Les six types",
+      "body": "Chaque type a sa couleur, son icône et son titre par défaut, affiché dans la langue de l'interface :",
+      "definition": "une notion, un mot de vocabulaire ;",
+      "keypoint": "l'essentiel : une propriété, un théorème, une formule ;",
+      "method": "une démarche, des étapes à suivre ;",
+      "example": "une application, un exercice corrigé ;",
+      "note": "une précision, un prolongement ;",
+      "warning": "un piège, une erreur fréquente, une consigne de sécurité."
+    },
+    "customTitle": {
+      "title": "Titre personnalisé",
+      "body": "Le texte écrit après le marqueur, sur la même ligne, remplace le titre par défaut ; il accepte le gras et les formules. La couleur et l'icône continuent de signaler le type."
+    },
+    "content": {
+      "title": "Contenu riche",
+      "body": "L'intérieur d'un encadré est du markdown complet — listes, formules centrées, tableaux, figures et autres blocs de code —, chaque ligne précédée de >. Une ligne > vide sépare deux paragraphes."
+    },
+    "keywords": {
+      "title": "Mots-clés acceptés",
+      "body": "Casse et accents sont indifférents : [!Méthode] vaut [!METHODE], [!À retenir] vaut [!RETENIR]. Les mots-clés des alertes GitHub et quelques graphies anglaises sont aussi reconnus :",
+      "note": "remarque ;",
+      "tip": "méthode ;",
+      "important": "à retenir ;",
+      "warning": "attention ;",
+      "example": "exemple.",
+      "unknown": "Un type inconnu laisse la citation telle quelle, marqueur visible. Pour écrire le marqueur sans créer d'encadré, échappez le crochet : > \\[!NOTE]."
+    },
+    "print": {
+      "title": "Impression et export PDF",
+      "body": "Les encadrés partent dans l'export PDF avec leur fond, leur liseré et leur icône, en couleurs claires ; un encadré qui tient sur une page n'y est pas coupé."
+    }
   },
   "geogebra": {
     "intro": "Un bloc de code « geogebra » intègre une activité GeoGebra publiée sur geogebra.org, affichée dans un cadre interactif.",
@@ -481,5 +528,30 @@
       "body": "Le code, sa dernière sortie et ses figures partent dans l'export PDF ; les boutons et le champ Entrées sont masqués."
     },
     "more": "Tutoriel officiel de Python"
+  },
+  "passage": {
+    "intro": "Un bloc de code « passage » affiche un extrait à étudier avec ses lignes numérotées : un numéro dans la marge toutes les cinq lignes, pour que les élèves citent « l. 12 » dans un commentaire ou une explication de texte. Chaque exemple est modifiable.",
+    "first": {
+      "title": "Premier texte",
+      "body": "Recopiez l'extrait dans le bloc tel qu'il est imprimé :",
+      "lines": "une ligne de la source est une ligne du texte ; trop longue pour la colonne, elle passe à la ligne sans prendre de nouveau numéro ;",
+      "gaps": "une ligne vide sépare deux strophes ou deux paragraphes, sans être comptée ;",
+      "indent": "les espaces en début de ligne sont conservés : un vers en retrait reste en retrait ;",
+      "raw": "le contenu s'affiche tel quel, sans gras ni formule : la référence de l'œuvre s'écrit sous le bloc, en markdown."
+    },
+    "prose": {
+      "title": "Un extrait en prose",
+      "body": "En prose, reproduisez les retours à la ligne de l'édition de référence : la numérotation suit ceux de la source, jamais la largeur de l'écran — la ligne 7 est la même pour tous les élèves, à l'écran comme sur papier."
+    },
+    "options": {
+      "title": "Premier numéro et pas",
+      "body": "Deux lignes facultatives, en tête du bloc, règlent la numérotation ; seuls les numéros multiples du pas s'affichent, comme dans les éditions :",
+      "start": "numéro de la première ligne (1 par défaut) — pour un extrait pris au milieu d'une œuvre, reprenez la numérotation de l'édition ;",
+      "step": "pas de la numérotation (5 par défaut) — 1 numérote chaque ligne."
+    },
+    "print": {
+      "title": "Impression et copie",
+      "body": "Le texte et ses numéros partent tels quels dans l'export PDF, dans la police du cours. Les numéros ne se sélectionnent pas : copier un passage n'emporte que le texte."
+    }
   }
 }

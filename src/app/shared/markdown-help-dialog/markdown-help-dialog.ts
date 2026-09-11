@@ -5,8 +5,8 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { NativeDialog } from '../dialog/native-dialog.directive';
 
 /**
- * Modale d'aide à la mise en forme (markdown + LaTeX/KaTeX et mhchem + Mermaid +
- * extensions GeoGebra/JSXGraph/TikZ/frise/SMILES/Vega-Lite/ABC/SQL/Python), réutilisable par tout éditeur de
+ * Modale d'aide à la mise en forme (markdown et encadrés + LaTeX/KaTeX et mhchem + Mermaid +
+ * extensions GeoGebra/JSXGraph/TikZ/frise/SMILES/Vega-Lite/ABC/SQL/Python/passage), réutilisable par tout éditeur de
  * contenu de cours. Élément `<dialog>` natif : focus-trap, Escape et backdrop gérés par
  * la plateforme. Présentational — pilotée par le parent via les méthodes
  * publiques `open()` / `close()`.
@@ -30,6 +30,10 @@ export class MarkdownHelpDialog {
   /** Exemples affichés dans des `<pre>` (chaînes liées : gardent les sauts). */
   protected readonly tableExample =
     '| Colonne A | Colonne B |\n| --------- | --------- |\n| valeur    | valeur    |';
+
+  protected readonly calloutExample =
+    '> [!DEFINITION]\n> Une fonction affine s’écrit $f(x) = ax + b$.\n\n' +
+    '> [!ATTENTION] Titre libre\n> Le texte après le marqueur remplace le titre.';
 
   protected readonly mhchemExample = '$\\ce{2H2 + O2 -> 2H2O}$\n$\\pu{9.81 m.s^-2}$';
 
@@ -63,6 +67,10 @@ export class MarkdownHelpDialog {
 
   protected readonly pythonExample =
     '```python\nfor i in range(1, 4):\n    print(i, "au carré vaut", i ** 2)\n```';
+
+  protected readonly passageExample =
+    '```passage\nDemain, dès l’aube, à l’heure où blanchit la campagne,\n' +
+    'Je partirai. Vois-tu, je sais que tu m’attends.\n…\n```';
 
   open(): void {
     this.dialog()?.open();

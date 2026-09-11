@@ -1,0 +1,26 @@
+@if (config().rows.length > 0) {
+  <div
+    class="passage"
+    role="group"
+    [attr.aria-label]="'markdownExtensions.passage.label' | transloco"
+    [style.--passage-gutter]="gutter()"
+  >
+    @for (row of config().rows; track $index) {
+      @if (row.kind === 'line') {
+        <div class="passage__line">
+          <span class="passage__number">
+            @if (row.labelled) {
+              <span class="sr-only">{{ 'markdownExtensions.passage.line' | transloco }} </span
+              >{{ row.number }}
+            }
+          </span>
+          <span class="passage__text">{{ row.text }}</span>
+        </div>
+      } @else {
+        <div class="passage__gap"></div>
+      }
+    }
+  </div>
+} @else {
+  <p class="passage__notice">{{ 'markdownExtensions.passage.empty' | transloco }}</p>
+}

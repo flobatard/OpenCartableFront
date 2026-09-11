@@ -1,0 +1,58 @@
+:host {
+  display: block;
+}
+
+// Marge des numéros | texte : la marge est dimensionnée par le composant
+// (--passage-gutter, en chiffres du plus grand numéro), commune à toutes les
+// lignes.
+.passage__line {
+  display: grid;
+  grid-template-columns: var(--passage-gutter, 2ch) minmax(0, 1fr);
+  column-gap: 1.25em;
+  align-items: baseline;
+}
+
+// Plus petits et atténués (AAA en contenu), jamais sélectionnés : copier un
+// passage n'emporte que le texte.
+.passage__number {
+  color: var(--text-secondary);
+  font-size: 0.75em;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  user-select: none;
+}
+
+// Blancs de tête conservés (vers en retrait) ; une ligne trop longue passe à
+// la ligne dans sa colonne, sans nouveau numéro, sa suite en retrait profond
+// (plus que les quatre espaces d'un vers en retrait) pour ne la confondre ni
+// avec la ligne suivante ni avec un vers décalé.
+.passage__text {
+  padding-left: 3em;
+  text-indent: -3em;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  tab-size: 4;
+}
+
+// Ligne vide de la source : saut de strophe ou de paragraphe.
+.passage__gap {
+  height: 1lh;
+}
+
+@media print {
+  .passage__line {
+    break-inside: avoid;
+  }
+}
+
+// Bloc vide : note atténuée (comme .timeline__notice).
+.passage__notice {
+  display: inline-block;
+  margin: 0;
+  padding: 2px 8px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.875em;
+  font-style: italic;
+}

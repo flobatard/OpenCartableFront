@@ -20,6 +20,10 @@
     "table": "Table: a header row, a separator row, then the data rows.",
     "resourceNote": "To insert a library file (image, audio, video, document), use the “Insert a resource” button below the editor: the link stays valid over time, unlike a URL pasted by hand."
   },
+  "callouts": {
+    "title": "Callouts",
+    "intro": "A quote whose first line is a marker becomes a colored box: [!DEFINITION], [!RETENIR] (key point), [!METHODE] (method), [!EXEMPLE] (example), [!REMARQUE] (note) or [!ATTENTION] (warning); the GitHub keywords NOTE, TIP, IMPORTANT, WARNING and CAUTION work too. Text after the marker replaces the title; a blank line ends the callout."
+  },
   "latex": {
     "title": "Formulas (LaTeX)",
     "intro": "Rendered by KaTeX. An invalid formula shows in red without breaking the rest of the block.",
@@ -80,5 +84,9 @@
   "python": {
     "title": "Runnable Python",
     "intro": "A “python” code block becomes a program that students run and edit in their browser; numpy and matplotlib are available, input() reads the Inputs field."
+  },
+  "passage": {
+    "title": "Numbered-line texts",
+    "intro": "A “passage” code block shows an excerpt to study, one source line per line of text, numbered in the margin every five lines; blank lines are not counted."
   }
 }

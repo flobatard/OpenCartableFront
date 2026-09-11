@@ -1,0 +1,55 @@
+<p class="doc-intro">{{ 'docs.callouts.intro' | transloco }}</p>
+
+<section class="doc-section">
+  <h2>{{ 'docs.callouts.first.title' | transloco }}</h2>
+  <p>{{ 'docs.callouts.first.body' | transloco }}</p>
+  <app-markdown-playground [initial]="firstExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.callouts.kinds.title' | transloco }}</h2>
+  <p>{{ 'docs.callouts.kinds.body' | transloco }}</p>
+  <ul class="doc-rules">
+    @for (entry of kinds; track entry.kind) {
+      <li>
+        <code>{{ entry.keyword }}</code> — {{ 'docs.callouts.kinds.' + entry.kind | transloco }}
+      </li>
+    }
+  </ul>
+  <app-markdown-playground [initial]="kindsExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.callouts.customTitle.title' | transloco }}</h2>
+  <p>{{ 'docs.callouts.customTitle.body' | transloco }}</p>
+  <app-markdown-playground [initial]="customTitleExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.callouts.content.title' | transloco }}</h2>
+  <p>{{ 'docs.callouts.content.body' | transloco }}</p>
+  <app-markdown-playground [initial]="contentExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.callouts.keywords.title' | transloco }}</h2>
+  <p>{{ 'docs.callouts.keywords.body' | transloco }}</p>
+  <ul class="doc-rules">
+    <li><code>NOTE</code> → {{ 'docs.callouts.keywords.note' | transloco }}</li>
+    <li><code>TIP</code>, <code>METHOD</code> → {{ 'docs.callouts.keywords.tip' | transloco }}</li>
+    <li><code>IMPORTANT</code> → {{ 'docs.callouts.keywords.important' | transloco }}</li>
+    <li>
+      <code>WARNING</code>, <code>CAUTION</code> →
+      {{ 'docs.callouts.keywords.warning' | transloco }}
+    </li>
+    <li><code>EXAMPLE</code> → {{ 'docs.callouts.keywords.example' | transloco }}</li>
+  </ul>
+  <p>{{ 'docs.callouts.keywords.unknown' | transloco }}</p>
+  <pre class="doc-source">{{ keywordsExample }}</pre>
+  <app-markdown-view [markdown]="keywordsExample" [showPrint]="false" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.callouts.print.title' | transloco }}</h2>
+  <p>{{ 'docs.callouts.print.body' | transloco }}</p>
+</section>

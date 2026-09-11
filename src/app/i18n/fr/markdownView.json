@@ -1,3 +1,11 @@
 {
-  "print": "Imprimer / exporter en PDF"
+  "print": "Imprimer / exporter en PDF",
+  "callouts": {
+    "definition": "Définition",
+    "keypoint": "À retenir",
+    "method": "Méthode",
+    "example": "Exemple",
+    "note": "Remarque",
+    "warning": "Attention"
+  }
 }

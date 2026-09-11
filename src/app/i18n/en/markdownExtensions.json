@@ -79,5 +79,10 @@
     "timeout": "Program interrupted: more than {{seconds}} seconds of execution.",
     "stopped": "Execution stopped.",
     "unavailable": "Python could not be loaded."
+  },
+  "passage": {
+    "label": "Text with numbered lines",
+    "line": "Line",
+    "empty": "Empty text: write the excerpt in the block, one source line per line of text."
   }
 }

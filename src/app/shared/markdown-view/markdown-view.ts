@@ -3,6 +3,7 @@ import {
   ApplicationRef,
   Component,
   ComponentRef,
+  computed,
   createComponent,
   effect,
   ElementRef,
@@ -18,7 +19,8 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { translateObjectSignal, TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { resolveCalloutTitles } from '../../core/markdown/course-callouts';
 import { hasCourseDiagrams, renderCourseDiagrams } from '../../core/markdown/course-diagrams';
 import { renderCourseMarkdown } from '../../core/markdown/course-markdown';
 import { isModuleId, MODULE_REF_ATTR } from '../../core/markdown/course-module-ref';
@@ -79,6 +81,13 @@ export class MarkdownView {
   readonly #injector = inject(Injector);
   readonly #appRef = inject(ApplicationRef);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  /**
+   * Titres par défaut des encadrés (`> [!DEFINITION]`…) dans la langue active :
+   * signal de traduction, le rendu se rejoue quand la langue change.
+   */
+  readonly #calloutTranslations = translateObjectSignal('markdownView.callouts');
+  readonly #calloutTitles = computed(() => resolveCalloutTitles(this.#calloutTranslations()));
 
   /** Exposé au template : le bouton d'impression n'a de sens qu'au navigateur. */
   protected readonly isBrowser = this.#isBrowser;
@@ -165,10 +174,12 @@ export class MarkdownView {
       const theme = this.#theme.theme();
       const courseId = this.courseId();
       const markdown = this.markdown();
+      const calloutTitles = this.#calloutTitles();
       // Gel du rendu résolu (cf. #resolvedResourcesKey) : sortir AVANT la
       // lecture de la bibliothèque — l'effet ne re-suivra list()/listLoading()
-      // que si le contenu change réellement.
-      const key = `${theme}|${courseId}|${markdown}`;
+      // que si le contenu change réellement. Les titres des encadrés en font
+      // partie : un changement de langue rejoue le rendu.
+      const key = `${theme}|${courseId}|${JSON.stringify(calloutTitles)}|${markdown}`;
       if (this.#resolvedResourcesKey === key) {
         return;
       }
@@ -176,7 +187,7 @@ export class MarkdownView {
       // Passe extensions synchrone : les fences des langages enregistrés
       // (```geogebra…) deviennent des hôtes `data-oc-extension`, montés en
       // composants par l'afterRenderEffect ci-dessous une fois le HTML au DOM.
-      let base = renderCourseMarkdown(markdown);
+      let base = renderCourseMarkdown(markdown, { calloutTitles });
       if (hasMarkdownExtensions(base, this.#extensions.defs)) {
         base = applyExtensionPlaceholders(base, this.#extensions.defs);
       }

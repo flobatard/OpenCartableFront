@@ -71,6 +71,7 @@ describe('DocsShell', () => {
       '/fr/markdown-language/docs/katex',
       '/fr/markdown-language/docs/mhchem',
       '/fr/markdown-language/docs/mermaid',
+      '/fr/markdown-language/docs/callouts',
       '/fr/markdown-language/docs/fakelang',
       '/fr/markdown-language/docs/otherlang',
     ]);

@@ -4,6 +4,7 @@ import { PYTHON_EXTENSION } from './python/python-extension';
 import { ABC_EXTENSION } from './abc/abc-extension';
 import { GEOGEBRA_EXTENSION } from './geogebra/geogebra-extension';
 import { JSXGRAPH_EXTENSION } from './jsxgraph/jsxgraph-extension';
+import { PASSAGE_EXTENSION } from './passage/passage-extension';
 import { SMILES_EXTENSION } from './smiles/smiles-extension';
 import { SQL_EXTENSION } from './sql/sql-extension';
 import { TIKZ_EXTENSION } from './tikz/tikz-extension';
@@ -27,5 +28,6 @@ export function provideMarkdownExtensions(): EnvironmentProviders {
     { provide: MARKDOWN_EXTENSIONS, useValue: ABC_EXTENSION, multi: true },
     { provide: MARKDOWN_EXTENSIONS, useValue: SQL_EXTENSION, multi: true },
     { provide: MARKDOWN_EXTENSIONS, useValue: PYTHON_EXTENSION, multi: true },
+    { provide: MARKDOWN_EXTENSIONS, useValue: PASSAGE_EXTENSION, multi: true },
   ]);
 }

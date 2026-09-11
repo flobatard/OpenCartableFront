@@ -1,3 +1,11 @@
 {
-  "print": "Print / export to PDF"
+  "print": "Print / export to PDF",
+  "callouts": {
+    "definition": "Definition",
+    "keypoint": "Key point",
+    "method": "Method",
+    "example": "Example",
+    "note": "Note",
+    "warning": "Warning"
+  }
 }

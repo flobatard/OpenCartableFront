@@ -15,12 +15,13 @@ function fakeDef(language: string): MarkdownExtensionDef {
 }
 
 describe('allDocPages', () => {
-  it('merges built-ins (katex, mhchem, mermaid) then extensions, in order', () => {
+  it('merges built-ins (katex, mhchem, mermaid, callouts) then extensions, in order', () => {
     const pages = allDocPages([fakeDef('geogebra'), fakeDef('jsxgraph')]);
     expect(pages.map((p) => p.slug)).toEqual([
       'katex',
       'mhchem',
       'mermaid',
+      'callouts',
       'geogebra',
       'jsxgraph',
     ]);

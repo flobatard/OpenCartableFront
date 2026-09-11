@@ -17,6 +17,10 @@
       "title": "Diagrams (Mermaid)",
       "summary": "Flowcharts, sequences, Gantt charts… described as text in a code block."
     },
+    "callouts": {
+      "title": "Callouts",
+      "summary": "Definitions, methods, key points, warnings: colored boxes, written like GitHub alerts."
+    },
     "geogebra": {
       "title": "GeoGebra",
       "summary": "Embed an activity published on geogebra.org into a course."
@@ -56,6 +60,10 @@
     "python": {
       "title": "Runnable Python",
       "summary": "Python code, with numpy and matplotlib, that students run and edit in their browser."
+    },
+    "passage": {
+      "title": "Numbered-line texts",
+      "summary": "Show an excerpt to study, numbered in the margin every five lines."
     }
   },
   "katex": {
@@ -153,6 +161,45 @@
       "body": "An invalid source does not break the rest of the block: the source is kept with the error message as a caption."
     },
     "more": "Full Mermaid documentation (mermaid.js.org)"
+  },
+  "callouts": {
+    "intro": "A callout sets a notion apart from the flow of the course — definition, method, key point, warning —, with one color and one icon per type. It is written as a quote whose first line states the type, like GitHub alerts. Every example is editable.",
+    "first": {
+      "title": "First callout",
+      "body": "The first line of the quote carries the marker, here > [!DEFINITION]; the content follows on lines starting with >. A blank line ends the callout: a line glued to the last > line would still belong to it."
+    },
+    "kinds": {
+      "title": "The six types",
+      "body": "Each type has its color, its icon and a default title, shown in the interface language:",
+      "definition": "a notion, a vocabulary word;",
+      "keypoint": "the key point: a property, a theorem, a formula;",
+      "method": "a procedure, steps to follow;",
+      "example": "an application, a worked exercise;",
+      "note": "a clarification, a further thought;",
+      "warning": "a pitfall, a common mistake, a safety instruction."
+    },
+    "customTitle": {
+      "title": "Custom title",
+      "body": "Text written after the marker, on the same line, replaces the default title; it accepts bold and formulas. The color and the icon still show the type."
+    },
+    "content": {
+      "title": "Rich content",
+      "body": "The inside of a callout is full markdown — lists, centered formulas, tables, figures and other code blocks —, each line preceded by >. A blank > line separates two paragraphs."
+    },
+    "keywords": {
+      "title": "Accepted keywords",
+      "body": "Case and accents do not matter: [!Méthode] equals [!METHODE], [!À retenir] equals [!RETENIR]. GitHub alert keywords and a few English spellings are recognized too:",
+      "note": "note (remarque);",
+      "tip": "method (méthode);",
+      "important": "key point (retenir);",
+      "warning": "warning (attention);",
+      "example": "example (exemple).",
+      "unknown": "An unknown type leaves the quote as is, marker visible. To write the marker without creating a callout, escape the bracket: > \\[!NOTE]."
+    },
+    "print": {
+      "title": "Printing and PDF export",
+      "body": "Callouts go into the PDF export with their background, side bar and icon, in light colors; a callout that fits on a page is not split."
+    }
   },
   "geogebra": {
     "intro": "A “geogebra” code block embeds a GeoGebra activity published on geogebra.org, displayed in an interactive frame.",
@@ -481,5 +528,30 @@
       "body": "The code, its last output and its figures go into the PDF export; buttons and the Inputs field are hidden."
     },
     "more": "Official Python tutorial"
+  },
+  "passage": {
+    "intro": "A “passage” code block shows an excerpt to study with numbered lines: a number in the margin every five lines, so that students can quote “l. 12” in a commentary or a close reading. Every example is editable.",
+    "first": {
+      "title": "First text",
+      "body": "Copy the excerpt into the block as it is printed:",
+      "lines": "one source line is one line of the text; when too long for the column, it wraps without taking a new number;",
+      "gaps": "a blank line separates two stanzas or two paragraphs and is never counted;",
+      "indent": "leading spaces are kept: an indented verse stays indented;",
+      "raw": "the content is shown as is, without bold or formulas: the reference of the work goes below the block, in markdown."
+    },
+    "prose": {
+      "title": "A prose excerpt",
+      "body": "For prose, reproduce the line breaks of the reference edition: numbering follows the source lines, never the width of the screen — line 7 is the same for every student, on screen and on paper."
+    },
+    "options": {
+      "title": "First number and step",
+      "body": "Two optional lines at the top of the block set the numbering; only numbers that are multiples of the step are shown, as in printed editions:",
+      "start": "number of the first line (1 by default) — for an excerpt taken from the middle of a work, use the numbering of the edition;",
+      "step": "numbering step (5 by default) — 1 numbers every line."
+    },
+    "print": {
+      "title": "Printing and copying",
+      "body": "The text and its numbers go as is into the PDF export, in the course font. Numbers cannot be selected: copying a passage only takes the text."
+    }
   }
 }
