@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 .docs-shell {
   max-width: 880px;
   margin: 0 auto;
@@ -14,11 +16,6 @@
   flex-wrap: wrap;
 }
 
-// L'utilitaire .tab est pensé pour des <button> ; en lien de navigation, pas de soulignement.
-.docs-shell__tabs .tab {
-  text-decoration: none;
-}
-
 .docs-shell__loading {
   display: grid;
   place-items: center;
@@ -33,4 +30,17 @@
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
   font-style: italic;
+}
+
+/* Téléphone : la gouttière latérale est celle d'.app-main (DESIGN_SYSTEM.md §12). */
+@include bp.mobile {
+  .docs-shell {
+    padding-inline: 0;
+    padding-top: 0;
+  }
+
+  // 15 pages : en wrap, 9 lignes d'onglets avant le contenu — bande défilante.
+  .docs-shell__tabs {
+    flex-wrap: nowrap;
+  }
 }

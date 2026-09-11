@@ -8,6 +8,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { SeoService } from '../../../core/seo/seo.service';
 import { MarkdownExtensionRegistry } from '../../../shared/markdown-extensions/markdown-extension-registry';
 import { Spinner } from '../../../shared/spinner/spinner';
+import { ActiveTabInView } from '../../../shared/tabs/active-tab-in-view.directive';
 import { allDocPages, docPageBySlug } from '../doc-pages';
 
 type DocsShellState = 'loading' | 'ready' | 'notFound' | 'error';
@@ -25,7 +26,7 @@ type DocsShellState = 'loading' | 'ready' | 'notFound' | 'error';
  */
 @Component({
   selector: 'app-docs-shell',
-  imports: [NgComponentOutlet, RouterLink, RouterLinkActive, Spinner, TranslocoPipe],
+  imports: [ActiveTabInView, NgComponentOutlet, RouterLink, RouterLinkActive, Spinner, TranslocoPipe],
   templateUrl: './docs-shell.html',
   styleUrl: './docs-shell.scss',
 })

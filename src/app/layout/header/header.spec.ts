@@ -126,6 +126,42 @@ describe('Header', () => {
     expect(links[1].textContent).toContain('Mes cours');
   });
 
+  it('toggles the burger panel and closes it on Escape, returning focus', async () => {
+    const fixture = TestBed.createComponent(Header);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    const burger = el.querySelector<HTMLButtonElement>('.header__burger')!;
+    const menu = el.querySelector<HTMLElement>('.header__menu')!;
+
+    expect(burger.getAttribute('aria-expanded')).toBe('false');
+    expect(burger.getAttribute('aria-controls')).toBe(menu.id);
+    expect(burger.getAttribute('aria-label')).toBe('Ouvrir le menu');
+
+    burger.click();
+    await fixture.whenStable();
+    expect(burger.getAttribute('aria-expanded')).toBe('true');
+    expect(burger.getAttribute('aria-label')).toBe('Fermer le menu');
+    expect(menu.classList).toContain('header__menu--open');
+
+    menu.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await fixture.whenStable();
+    expect(menu.classList).not.toContain('header__menu--open');
+    expect(document.activeElement).toBe(burger);
+  });
+
+  it('closes the burger panel on a click outside the header', async () => {
+    const fixture = TestBed.createComponent(Header);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    el.querySelector<HTMLButtonElement>('.header__burger')!.click();
+    await fixture.whenStable();
+
+    document.body.click();
+    await fixture.whenStable();
+
+    expect(el.querySelector('.header__menu')!.classList).not.toContain('header__menu--open');
+  });
+
   it('shows the user menu once authenticated', async () => {
     isAuthenticated.set(true);
     displayName.set('Prof');

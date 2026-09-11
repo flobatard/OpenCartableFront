@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: block;
   max-width: 880px;
@@ -47,4 +49,12 @@
   padding: 48px 24px;
   color: var(--text-secondary);
   text-align: center;
+}
+
+/* Téléphone : la gouttière latérale est celle d'.app-main (DESIGN_SYSTEM.md §12). */
+@include bp.mobile {
+  :host {
+    padding-inline: 0;
+    padding-top: 0;
+  }
 }

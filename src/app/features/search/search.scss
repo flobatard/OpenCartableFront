@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 /* Exception de largeur (comme block-editor) : la sidebar de facettes + la
    grille de résultats justifient de dépasser les 880px habituels. */
 :host {
@@ -41,7 +43,7 @@
   align-items: start;
 }
 
-@media (min-width: 900px) {
+@include bp.wide {
   .search__layout {
     grid-template-columns: 280px 1fr;
   }
@@ -75,7 +77,7 @@
   margin-top: 8px;
 }
 
-@media (min-width: 900px) {
+@include bp.wide {
   .search__filters[open] .search__filters-body {
     margin-top: 0;
   }
@@ -224,4 +226,12 @@
 .search__pagination-range {
   font-size: 13px;
   color: var(--text-secondary);
+}
+
+/* Téléphone : la gouttière latérale est celle d'.app-main (DESIGN_SYSTEM.md §12). */
+@include bp.mobile {
+  :host {
+    padding-inline: 0;
+    padding-top: 0;
+  }
 }

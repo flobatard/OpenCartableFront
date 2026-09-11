@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 /* Page de texte : colonne de lecture étroite, rythme vertical régulier. Les
    tailles de titre viennent de _typography.scss, rien n'est redéfini ici. */
 
@@ -35,4 +37,12 @@
 .privacy__updated {
   margin: 32px 0 0;
   color: var(--text-secondary);
+}
+
+/* Téléphone : la gouttière latérale est celle d'.app-main (DESIGN_SYSTEM.md §12). */
+@include bp.mobile {
+  .privacy {
+    padding-inline: 0;
+    padding-top: 0;
+  }
 }

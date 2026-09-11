@@ -9,7 +9,9 @@
 #oc-print-root {
   position: absolute;
   top: 0;
-  left: -100vw;
+  /* Décalage absolu, pas -100vw : sur un écran plus étroit que l'A4, la boîte
+     dépasserait à droite du viewport (défilement horizontal pendant l'export). */
+  left: -9999px;
   width: 210mm; /* A4 : layout réaliste pour le chargement des images */
 }
 

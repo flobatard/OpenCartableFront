@@ -1,0 +1,37 @@
+/* Breakpoints responsive (DESIGN_SYSTEM.md §12). Partiel sans aucune sortie CSS :
+   les composants l'importent par `@use 'breakpoints' as bp;` (résolu par
+   `stylePreprocessorOptions.includePaths` d'angular.json).
+
+   Deux seuils seulement, desktop-first :
+   - `mobile`  (≤ 640 px) : téléphone — une seule gouttière, piles, bascules de vue ;
+   - `stacked` (≤ 900 px) : tablette portrait — les colonnes côte à côte s'empilent.
+   `wide` est le complément exact de `stacked` (aucun chevauchement à 900 px).
+   Les requêtes de largeur visent `screen` : l'impression garde la mise en page desktop.
+   `touch` = pas de survol (écran tactile) : rien ne doit y dépendre de `:hover`. */
+
+$mobile: 640px;
+$stacked: 900px;
+
+@mixin mobile {
+  @media screen and (width <= $mobile) {
+    @content;
+  }
+}
+
+@mixin stacked {
+  @media screen and (width <= $stacked) {
+    @content;
+  }
+}
+
+@mixin wide {
+  @media screen and (width > $stacked) {
+    @content;
+  }
+}
+
+@mixin touch {
+  @media (hover: none) {
+    @content;
+  }
+}

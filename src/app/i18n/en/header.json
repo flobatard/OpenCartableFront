@@ -10,5 +10,7 @@
   "logout": "Sign out",
   "settings": "Settings",
   "userMenu": "User menu",
-  "search": "Search"
+  "search": "Search",
+  "menuOpen": "Open menu",
+  "menuClose": "Close menu"
 }

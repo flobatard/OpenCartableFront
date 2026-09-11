@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: block;
 }
@@ -226,4 +228,12 @@
 .course-list__visibility-badge--shared {
   background: var(--emerald-100);
   color: var(--emerald-700);
+}
+
+/* Téléphone : la gouttière latérale est celle d'.app-main (DESIGN_SYSTEM.md §12). */
+@include bp.mobile {
+  .course-list {
+    padding-inline: 0;
+    padding-top: 0;
+  }
 }

@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: block;
 }
@@ -194,4 +196,12 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+/* Téléphone : la gouttière latérale est celle d'.app-main (DESIGN_SYSTEM.md §12). */
+@include bp.mobile {
+  .profile {
+    padding-inline: 0;
+    padding-top: 0;
+  }
 }

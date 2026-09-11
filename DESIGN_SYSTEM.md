@@ -167,7 +167,7 @@ Commun : `radius 8px`, `padding 9px 18px`, Inter 500 / 14 px. **Focus** : `outli
 
 ### Onglets (segmented control)
 
-Bascule entre vues d'un même contenu (ex. Éditeur / Aperçu d'un champ markdown). Conteneur `.tabs` : fond `bg-subtle`, `radius 8px`, padding 4 px, largeur naturelle (`inline-flex`). Onglet `.tab` : `radius-sm`, Inter 500 / 14 px, texte secondaire ; l'onglet actif `.tab--active` prend le fond `surface` + `shadow-sm` + texte principal. Le markup ARIA (`role="tablist"`/`tab`, `aria-selected`, roving tabindex, navigation flèches) est porté par le composant hôte. Utilitaire global (`_components.scss`).
+Bascule entre vues d'un même contenu (ex. Éditeur / Aperçu d'un champ markdown). Conteneur `.tabs` : fond `bg-subtle`, `radius 8px`, padding 4 px, largeur naturelle (`inline-flex`) bornée à celle du conteneur — au-delà (téléphone), la barre **défile horizontalement** sans barre visible, les onglets ne se compriment ni ne passent à la ligne ; une barre de liens de navigation pose `ocActiveTabInView` pour garder l'onglet actif en vue. Onglet `.tab` : `radius-sm`, Inter 500 / 14 px, texte secondaire ; l'onglet actif `.tab--active` prend le fond `surface` + `shadow-sm` + texte principal. Le markup ARIA (`role="tablist"`/`tab`, `aria-selected`, roving tabindex, navigation flèches) est porté par le composant hôte. Utilitaire global (`_components.scss`).
 
 ### Pilule
 
@@ -315,6 +315,32 @@ Import des polices :
 **Contenu de cours (AAA)** — appliquer `.course-content` : texte ≥ 7:1 (grand ≥ 4.5:1) · largeur ≤ 80ch · interlignage ≥ 1.5 · pas de justification · espacement paragraphe ≥ 1.5× · liens explicites · texte en image évité (hors logo).
 
 **Transverse** — `prefers-reduced-motion` respecté · thèmes clair/sombre (piste : ajouter un mode contraste élevé) · liens de partage expirés : message clair + régénération.
+
+---
+
+## 12. Responsive
+
+Desktop-first, **deux breakpoints** et un critère d'entrée tactile, en mixins de `styles/_breakpoints.scss` (partiel sans sortie CSS, `@use 'breakpoints' as bp;` depuis n'importe quel composant) — jamais de `@media` de largeur écrite en dur :
+
+| Mixin | Condition | Usage |
+|---|---|---|
+| `bp.mobile` | `screen`, largeur ≤ 640 px | Téléphone : une seule gouttière, piles, bascules de vue |
+| `bp.stacked` | `screen`, largeur ≤ 900 px | Tablette portrait : ce qui est côte à côte s'empile |
+| `bp.wide` | `screen`, largeur > 900 px | Complément exact de `stacked` (panneaux latéraux permanents) |
+| `bp.touch` | `hover: none` | Écran tactile : rien n'y dépend du survol |
+
+Les requêtes de largeur visent `screen` : l'impression garde la mise en page desktop.
+
+Règles :
+
+- **Aucun défilement horizontal de page**, à aucune largeur ≥ 320 px. Ce qui est intrinsèquement large (tableau, formule, frise, figure) défile **dans son propre conteneur** (`overflow-x: auto`).
+- **Une seule gouttière horizontale** sur téléphone : celle d'`.app-main` (16 px) ; les pages retirent leur padding latéral sous `bp.mobile`.
+- **Header** : sur téléphone, symbole seul et burger (disclosure) qui ouvre un panneau pleine largeur (nav, langue, thème) ; « Se connecter » ou l'avatar restent visibles.
+- Grilles de cartes : `repeat(auto-fill, minmax(min(Npx, 100%), 1fr))` — le minimum ne dépasse jamais la colonne.
+- Rangées d'actions : `flex-wrap: wrap`, jamais un groupe `flex: 0 0 auto` sans retour à la ligne (l'état « Confirmer … » est plus large que l'état de repos).
+- Hauteurs d'écran en `dvh`/`svh`, précédées d'un repli `vh`.
+- Champs de saisie ≥ **16 px** sur téléphone (sinon Safari iOS zoome au focus).
+- Cibles tactiles ≥ **40 px** ; sous `bp.touch`, tout ce que le desktop révèle au survol est visible d'emblée.
 
 ---
 

@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: block;
   position: sticky;
@@ -6,6 +8,7 @@
 }
 
 .header {
+  position: relative; /* ancre du panneau du burger */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -18,11 +21,16 @@
 .header__brand {
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
   border-radius: var(--radius-sm);
 }
 
-.header__logo {
+.header__logo,
+.header__logo img {
   display: block;
+}
+
+.header__logo img {
   height: 32px;
   width: auto;
 }
@@ -41,7 +49,15 @@
   }
 }
 
-/* Nav prof : collée à la marque (margin-right auto), actions à droite. */
+/* Desktop : nav collée à la marque (margin-right auto), préférences à droite. */
+.header__menu {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .header__nav {
   display: flex;
   align-items: center;
@@ -65,6 +81,7 @@
   color: var(--link);
 }
 
+.header__prefs,
 .header__actions {
   display: flex;
   align-items: center;
@@ -87,4 +104,68 @@
 
 .header__theme {
   padding: 8px;
+}
+
+.header__burger {
+  display: none;
+  padding: 9px;
+}
+
+/* Téléphone : marque (symbole seul, via <source media>) + actions ; nav et
+   préférences dans un panneau pleine largeur sous le header. */
+@include bp.mobile {
+  .header {
+    gap: 8px;
+    padding: 8px 16px;
+  }
+
+  .header__logo img {
+    height: 36px;
+  }
+
+  .header__burger {
+    display: inline-flex;
+  }
+
+  .header__menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    inset-inline: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 16px 16px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+  }
+
+  .header__menu--open {
+    display: flex;
+  }
+
+  .header__nav {
+    flex-direction: column;
+    align-items: stretch;
+    margin-right: 0;
+  }
+
+  .header__nav-link {
+    padding: 10px 12px;
+  }
+
+  .header__prefs {
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .header__lang {
+    padding: 9px 14px;
+  }
+
+  .header__theme {
+    padding: 10px;
+  }
 }

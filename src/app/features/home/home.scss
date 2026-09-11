@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 /* Primitives de la landing : un vocabulaire court, réutilisé par les neuf sections.
    Aucune règle « bespoke » par section — c'est ce qui tient le budget `anyComponentStyle`
    (avertissement à 4 kB, erreur à 8 kB, cf. angular.json).
@@ -210,7 +212,7 @@
   color: var(--link);
 }
 
-@media (min-width: 900px) {
+@include bp.wide {
   .home-hero,
   .home-band {
     padding-inline: 32px;
@@ -236,7 +238,7 @@
   }
 }
 
-@media (max-width: 640px) {
+@include bp.mobile {
   .home-hero,
   .home-band {
     padding: 32px 16px;

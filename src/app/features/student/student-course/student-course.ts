@@ -9,6 +9,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { publicAccessFromRoute, publicCourseLink } from '../../../core/public-courses/public-access';
 import { PublicCourseService } from '../../../core/public-courses/public-course.service';
 import { Spinner } from '../../../shared/spinner/spinner';
+import { ActiveTabInView } from '../../../shared/tabs/active-tab-in-view.directive';
 
 /** Onglets = enfants de route (cf. `PUBLIC_COURSE_CHILDREN` d'`app.routes.ts`). */
 type StudentTab = 'blocks' | 'resources' | 'modules' | 'content';
@@ -45,7 +46,7 @@ const TAB_BY_PATH: Readonly<Record<string, StudentTab>> = {
  */
 @Component({
   selector: 'app-student-course',
-  imports: [TranslocoPipe, RouterLink, RouterOutlet, Spinner],
+  imports: [ActiveTabInView, TranslocoPipe, RouterLink, RouterOutlet, Spinner],
   templateUrl: './student-course.html',
   styleUrl: './student-course.scss',
 })

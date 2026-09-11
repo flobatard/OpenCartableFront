@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 .module-editor {
   display: flex;
   flex-direction: column;
@@ -186,7 +188,7 @@
 // côte : les panes récupèrent toute la largeur, deux colonnes y tiennent
 // encore. Deux seuils distincts, donc : 900px pour le chat, 640px (ci-dessous)
 // pour l'empilement complet des panes.
-@media (max-width: 900px) {
+@include bp.stacked {
   .module-editor__workspace {
     flex-direction: column;
     height: clamp(600px, 90vh, 980px);
@@ -219,7 +221,7 @@
 }
 
 // Très étroit (téléphone) : panes empilées en une colonne qui défile.
-@media (max-width: 640px) {
+@include bp.mobile {
   .module-editor__panes {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto; // deux lignes au contenu (éditeur fixe + preview)

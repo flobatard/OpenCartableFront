@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: block;
 }
@@ -285,4 +287,12 @@
 .course-blocks__empty-hint {
   margin: 0;
   color: var(--text-secondary);
+}
+
+/* Téléphone : la gouttière latérale est celle d'.app-main (DESIGN_SYSTEM.md §12). */
+@include bp.mobile {
+  .course-blocks {
+    padding-inline: 0;
+    padding-top: 0;
+  }
 }

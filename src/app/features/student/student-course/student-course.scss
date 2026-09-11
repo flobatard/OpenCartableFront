@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: block;
   max-width: 880px;
@@ -79,5 +81,13 @@
   .student-course__header,
   .student-course__tabbar {
     display: none;
+  }
+}
+
+/* Téléphone : la gouttière latérale est celle d'.app-main (DESIGN_SYSTEM.md §12). */
+@include bp.mobile {
+  :host {
+    padding-inline: 0;
+    padding-top: 0;
   }
 }

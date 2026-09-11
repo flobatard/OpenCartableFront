@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 /* Bandeau de consentement, ancré en bas, au-dessus du contenu mais SOUS la
    snackbar (z-index 200) : un toast d'erreur reste lisible. Non modal — il ne
    doit jamais empêcher un élève de lire son cours. */
@@ -43,6 +45,20 @@
   flex-wrap: wrap;
   gap: 8px;
   flex-shrink: 0;
+}
+
+/* Téléphone : les trois boutons ne tiennent pas sur une ligne — le groupe prend
+   toute la largeur (sinon, fixed, il déborde hors écran sans défilement
+   possible) et les boutons s'empilent à égalité. */
+@include bp.mobile {
+  .consent {
+    padding: 16px;
+  }
+
+  .consent__actions {
+    flex: 1 1 100%;
+    flex-direction: column;
+  }
 }
 
 /* Modale de préférences — chrome calqué sur .course-style (course-style-dialog). */

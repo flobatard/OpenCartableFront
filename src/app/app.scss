@@ -1,7 +1,10 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100svh; /* barre d'adresse mobile : hauteur visible, pas la plus grande */
 }
 
 .app-main {
@@ -14,6 +17,14 @@
   margin: 0 auto;
   padding: 24px;
   outline: none;
+}
+
+/* Téléphone : une seule gouttière horizontale, celle-ci — les pages retirent
+   leur padding latéral sous le même breakpoint (DESIGN_SYSTEM.md §12). */
+@include bp.mobile {
+  .app-main {
+    padding: 16px;
+  }
 }
 
 /* La landing est la seule page à bandeaux pleine largeur : elle retire le cadre

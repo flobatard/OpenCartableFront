@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: block;
 }
@@ -43,7 +45,7 @@
 }
 
 /* Empilement mobile : le menu passe au-dessus du contenu. */
-@media (max-width: 900px) {
+@include bp.stacked {
   .settings-shell {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -56,5 +58,13 @@
 
   .settings-shell__title {
     width: 100%;
+  }
+}
+
+/* Téléphone : la gouttière latérale est celle d'.app-main (DESIGN_SYSTEM.md §12). */
+@include bp.mobile {
+  .settings-shell {
+    padding-inline: 0;
+    padding-top: 0;
   }
 }

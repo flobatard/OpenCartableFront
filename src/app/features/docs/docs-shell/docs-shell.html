@@ -4,7 +4,7 @@
     <p class="docs-shell__intro">{{ 'docs.intro' | transloco }}</p>
   </header>
 
-  <nav class="tabs docs-shell__tabs" [attr.aria-label]="'docs.tabsLabel' | transloco">
+  <nav class="tabs docs-shell__tabs" ocActiveTabInView [attr.aria-label]="'docs.tabsLabel' | transloco">
     @for (page of pages; track page.slug) {
       <a
         class="tab"

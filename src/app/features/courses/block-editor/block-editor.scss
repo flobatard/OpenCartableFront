@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: block;
 }
@@ -215,7 +217,7 @@
 /* Écran étroit : chat empilé sous l'éditeur/aperçu, la poignée passe en axe
    vertical (le drag reste utile — l'IA peut être verbeuse). Hauteur définie
    conservée : le drag vertical s'en sert de référence. */
-@media (max-width: 900px) {
+@include bp.stacked {
   .block-editor__workspace {
     flex-direction: column;
     height: clamp(600px, 90vh, 980px);
@@ -231,5 +233,13 @@
 
   .block-editor__chat-reopen {
     display: inline-flex; /* flex → l'icône et le libellé gardent gap + centrage */
+  }
+}
+
+/* Téléphone : la gouttière latérale est celle d'.app-main (DESIGN_SYSTEM.md §12). */
+@include bp.mobile {
+  .block-editor {
+    padding-inline: 0;
+    padding-top: 0;
   }
 }

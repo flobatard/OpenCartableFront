@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: block;
 }
@@ -23,6 +25,20 @@
 
 .user-menu__trigger:hover {
   background: var(--bg-subtle);
+}
+
+.user-menu__name {
+  max-width: 20ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Téléphone : avatar + caret seuls (le nom élargirait le header). */
+@include bp.mobile {
+  .user-menu__name {
+    display: none;
+  }
 }
 
 .user-menu__caret {

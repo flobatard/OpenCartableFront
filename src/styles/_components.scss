@@ -66,17 +66,30 @@
 }
 
 /* Onglets segmentés (tablist) — segmented control réutilisable. Le markup ARIA
-   (role=tablist/tab, navigation clavier) reste porté par le composant hôte. */
+   (role=tablist/tab, navigation clavier) reste porté par le composant hôte.
+   Trop large pour son conteneur (téléphone), la barre défile horizontalement
+   plutôt que de déborder la page ; les onglets ne se compriment ni ne passent
+   à la ligne. */
 
 .tabs {
   display: inline-flex;
   gap: 4px;
+  max-width: 100%;
   padding: 4px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
   background: var(--bg-subtle);
   border-radius: var(--radius);
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .tab {
+  flex-shrink: 0;
+  white-space: nowrap;
   padding: 6px 14px;
   background: none;
   border: 0;
@@ -85,6 +98,7 @@
   font: inherit;
   font-size: 14px;
   font-weight: 500;
+  text-decoration: none; /* onglets en liens de navigation (docs, cours élève) */
   cursor: pointer;
 }
 
