@@ -57,6 +57,38 @@ describe('composeModuleDocument', () => {
     expect(doc).not.toContain('content: "</style>"');
     expect(doc).toContain('<\\/style>');
   });
+
+  it('inlines declared libraries: their CSS before the teacher’s, their JS between bridge and JS', () => {
+    const doc = composeModuleDocument('<div id="b"></div>', '.mine {}', 'go()', [
+      { name: 'jsxgraph', js: 'window.JXG = {};', css: '.jxgbox {}' },
+      { name: 'd3', js: 'window.d3 = {};', css: '' },
+    ]);
+    const order = [
+      'Content-Security-Policy',
+      '.jxgbox {}',
+      '.mine {}',
+      '<div id="b"></div>',
+      'ResizeObserver',
+      'window.JXG = {};',
+      'window.d3 = {};',
+      'go()',
+    ].map((needle) => doc.indexOf(needle));
+
+    expect(order.every((index) => index > -1)).toBe(true);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
+    // Une librairie sans CSS n'ajoute pas de <style> vide.
+    expect(doc.match(/<style>/g)).toHaveLength(2);
+    // La CSP n'est PAS rouverte : tout reste inline.
+    expect(doc).not.toContain('<script src');
+  });
+
+  it('neutralizes </script> and </style> in library text too', () => {
+    const doc = composeModuleDocument('', '', '', [
+      { name: 'x', js: "var s = '</script>';", css: 'a::after { content: "</style>" }' },
+    ]);
+    expect(doc).not.toContain("'</script>'");
+    expect(doc).not.toContain('content: "</style>"');
+  });
 });
 
 describe('clampFrameHeight', () => {

@@ -108,6 +108,31 @@ describe('ModuleEditor', () => {
     expect(tabs[2].getAttribute('aria-selected')).toBe('true');
   });
 
+  it('the JS tab lists the preinstalled libraries and flags unknown pragma names', async () => {
+    vi.useFakeTimers();
+    try {
+      const fixture = await createComponent();
+      const hints = () =>
+        Array.from(el(fixture).querySelectorAll('.module-editor__libs')).map((p) => p.textContent);
+      expect(hints()).toEqual([]); // onglet HTML : pas d'aide
+
+      el(fixture).querySelectorAll<HTMLButtonElement>('[role="tab"]')[2].click();
+      fixture.detectChanges();
+      expect(hints()).toHaveLength(1);
+      expect(hints()[0]).toContain('// @oc-libs: matter, chart');
+      expect(hints()[0]).toContain('matter, chart, p5, jsxgraph, d3, three');
+
+      fixture.componentInstance.jsControl.setValue('// @oc-libs: matter, jquery\nrun();');
+      vi.advanceTimersByTime(500);
+      fixture.detectChanges();
+      expect(hints()).toHaveLength(2);
+      expect(hints()[1]).toContain('jquery');
+      expect(hints()[1]).not.toContain('matter');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('the preview receives the loaded code then follows typing (500 ms debounce)', async () => {
     vi.useFakeTimers();
     try {

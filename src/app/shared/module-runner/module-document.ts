@@ -8,9 +8,13 @@
  * ni aux cookies, ni au localStorage (lève une exception), ni au DOM/tokens
  * de l'app. Le réseau sortant est **bloqué par CSP** (`MODULE_CSP`,
  * cf. docs/decisions.md) : un module est
- * self-contained, ses assets passent en `data:`/`blob:`. Seul un pont
- * postMessage contrôlé relie le module à la page.
+ * self-contained, ses assets passent en `data:`/`blob:` ; seules les
+ * librairies du catalogue (`module-libraries.ts`) qu'il déclare sont
+ * INLINÉES par le runtime, sans rouvrir la CSP. Seul un pont postMessage
+ * contrôlé relie le module à la page.
  */
+
+import type { ModuleLibrarySource } from './module-library-loader';
 
 /** Marqueur `source` des messages du pont (filtre côté parent). */
 export const MODULE_MESSAGE_SOURCE = 'oc-module';
@@ -86,16 +90,24 @@ export const MODULE_CSP =
   "img-src data: blob:; media-src data: blob:; font-src data:; " +
   "form-action 'none'; base-uri 'none'";
 
+const safeStyle = (css: string): string => css.replace(/<\/style/gi, '<\\/style');
+const safeScript = (js: string): string => js.replace(/<\/script/gi, '<\\/script');
+
 /**
- * Compose le document `srcdoc` d'un module : CSP puis CSS en tête, HTML dans
- * le body, puis le bridge et enfin le JS du prof. Le JS est neutralisé contre
- * un `</script>` littéral qui casserait la composition (`<\/script` — dans
- * une chaîne JS, `\/` ≡ `/`, transformation sémantiquement neutre) ; le CSS
- * l'est contre `</style`.
+ * Compose le document `srcdoc` d'un module : CSP puis CSS (des librairies,
+ * puis du prof) en tête, HTML dans le body, puis le bridge, les librairies
+ * déclarées et enfin le JS du prof. Le JS est neutralisé contre un
+ * `</script>` littéral qui casserait la composition (`<\/script` — dans une
+ * chaîne JS, `\/` ≡ `/`, transformation sémantiquement neutre) ; le CSS l'est
+ * contre `</style`. Le texte des librairies reçoit le même traitement
+ * (`prepare-module-libs.mjs` garantit déjà qu'il n'en contient pas).
  */
-export function composeModuleDocument(html: string, css: string, js: string): string {
-  const safeCss = css.replace(/<\/style/gi, '<\\/style');
-  const safeJs = js.replace(/<\/script/gi, '<\\/script');
+export function composeModuleDocument(
+  html: string,
+  css: string,
+  js: string,
+  libraries: readonly ModuleLibrarySource[] = [],
+): string {
   return [
     '<!doctype html>',
     '<html>',
@@ -103,12 +115,16 @@ export function composeModuleDocument(html: string, css: string, js: string): st
     '<meta charset="utf-8">',
     `<meta http-equiv="Content-Security-Policy" content="${MODULE_CSP}">`,
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
-    `<style>${safeCss}</style>`,
+    ...libraries
+      .filter((library) => library.css)
+      .map((library) => `<style>${safeStyle(library.css)}</style>`),
+    `<style>${safeStyle(css)}</style>`,
     '</head>',
     '<body>',
     html,
     `<script>${MODULE_BRIDGE}</script>`,
-    `<script>${safeJs}</script>`,
+    ...libraries.map((library) => `<script>${safeScript(library.js)}</script>`),
+    `<script>${safeScript(js)}</script>`,
     '</body>',
     '</html>',
   ].join('\n');

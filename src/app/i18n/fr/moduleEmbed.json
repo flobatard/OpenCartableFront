@@ -3,5 +3,6 @@
   "frameTitle": "Module interactif",
   "none": "Aucun module choisi pour ce bloc.",
   "missing": "Module indisponible (supprimé ou introuvable).",
-  "printFallback": "Module interactif : à retrouver dans le cours en ligne."
+  "printFallback": "Module interactif : à retrouver dans le cours en ligne.",
+  "libraryError": "Une bibliothèque de ce module n’a pas pu être chargée : il peut ne pas fonctionner. Rechargez la page pour réessayer."
 }

@@ -1,8 +1,8 @@
 # Étage 1 : build (devDependencies nécessaires au build Angular)
 FROM node:26-alpine AS build
 WORKDIR /app
-# scripts/ est copié avant `npm ci` : le postinstall (prepare-tikzjax.mjs,
-# prepare-pyodide.mjs — ce dernier télécharge les paquets Python, réseau requis) en a besoin.
+# scripts/ est copié avant `npm ci` : le postinstall (prepare-module-libs.mjs,
+# prepare-tikzjax.mjs, prepare-pyodide.mjs — ce dernier télécharge les paquets Python, réseau requis) en a besoin.
 COPY package.json package-lock.json ./
 COPY scripts ./scripts
 RUN npm ci

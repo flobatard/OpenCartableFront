@@ -29,6 +29,10 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { ModuleUpdatePayload } from '../../../core/modules/module.model';
 import { ModuleService } from '../../../core/modules/module.service';
 import { MarkdownEditor } from '../../../shared/markdown-editor/markdown-editor';
+import {
+  MODULE_LIBRARIES,
+  parseModuleLibraries,
+} from '../../../shared/module-runner/module-libraries';
 import { ModuleRunner } from '../../../shared/module-runner/module-runner';
 import { ResizeHandle } from '../../../shared/resize-handle/resize-handle.directive';
 import { Tablist } from '../../../shared/tabs/tablist.directive';
@@ -123,6 +127,14 @@ export class ModuleEditor implements OnInit, OnDestroy {
   protected readonly previewJs = signal('');
   /** La preview ne monte l'iframe qu'une fois le module chargé. */
   protected readonly previewReady = signal(false);
+
+  /** Aide de l'onglet JS : librairies préinstallées (pragma `@oc-libs`). */
+  protected readonly libraryPragma = '// @oc-libs: matter, chart';
+  protected readonly libraryNames = MODULE_LIBRARIES.map((library) => library.name).join(', ');
+  /** Noms déclarés mais absents du catalogue (frappe débouncée) : ignorés au runtime. */
+  protected readonly unknownLibraries = computed(() =>
+    parseModuleLibraries(this.previewJs()).unknown.join(', '),
+  );
 
   /** Autosave des trois fichiers par le PATCH partiel (code sans titre). */
   readonly #autosave = createAutosave<ModuleUpdatePayload>({

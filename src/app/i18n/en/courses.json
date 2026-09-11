@@ -250,6 +250,11 @@
       "css": "CSS",
       "js": "JS"
     },
+    "libraries": {
+      "hint": "Preinstalled libraries: declare them at the top of the JS with",
+      "available": "available:",
+      "unknown": "Unknown library, ignored: {{ names }}."
+    },
     "save": {
       "dirty": "Unsaved changes…",
       "saving": "Saving…",

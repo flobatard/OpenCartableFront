@@ -35,6 +35,8 @@ yarn-error.log
 /.tikzjax
 # Runtime Pyodide et ses paquets, préparés au postinstall (scripts/prepare-pyodide.mjs)
 /.pyodide
+# Librairies du bac à sable des modules, préparées au postinstall (scripts/prepare-module-libs.mjs)
+/.module-libs
 .sass-cache/
 /connect.lock
 /coverage

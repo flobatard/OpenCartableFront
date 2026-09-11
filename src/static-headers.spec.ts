@@ -4,11 +4,14 @@ import { staticHeaders, WORKER_CSP } from './static-headers';
 const ROOT = '/app/dist/OpenCartableFront/browser';
 
 describe('staticHeaders', () => {
-  it('revalidates the unhashed WASM runtimes instead of caching them for a year', () => {
+  it('revalidates the unhashed runtimes instead of caching them for a year', () => {
     expect(staticHeaders(`${ROOT}/assets/sqljs/sql-wasm.wasm`)).toEqual({
       'Cache-Control': 'no-cache',
     });
     expect(staticHeaders(`${ROOT}/assets/pyodide/pyodide.asm.wasm`)).toEqual({
+      'Cache-Control': 'no-cache',
+    });
+    expect(staticHeaders(`${ROOT}/assets/module-libs/p5.js`)).toEqual({
       'Cache-Control': 'no-cache',
     });
   });

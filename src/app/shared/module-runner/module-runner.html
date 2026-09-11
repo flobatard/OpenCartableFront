@@ -8,4 +8,9 @@
     [style.height.px]="frameHeight()"
     [title]="title() || ('moduleEmbed.frameTitle' | transloco)"
   ></iframe>
+  @if (libraryError()) {
+    <p class="module-runner__error" role="status">
+      {{ 'moduleEmbed.libraryError' | transloco }}
+    </p>
+  }
 }

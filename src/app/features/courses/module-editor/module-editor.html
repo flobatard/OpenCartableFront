@@ -102,6 +102,23 @@
             }
           </div>
 
+          @if (activeTab() === 'js') {
+            <p class="module-editor__libs">
+              {{ 'courses.moduleEditor.libraries.hint' | transloco }}
+              <code>{{ libraryPragma }}</code>
+              — {{ 'courses.moduleEditor.libraries.available' | transloco }}
+              {{ libraryNames }}
+            </p>
+            @if (unknownLibraries()) {
+              <p class="module-editor__libs module-editor__libs--unknown">
+                {{
+                  'courses.moduleEditor.libraries.unknown'
+                    | transloco: { names: unknownLibraries() }
+                }}
+              </p>
+            }
+          }
+
           <!-- Panneaux masqués par [hidden], jamais @if : Monaco vit dans les trois. -->
           <div
             role="tabpanel"

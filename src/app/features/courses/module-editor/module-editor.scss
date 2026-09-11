@@ -121,6 +121,21 @@
   font-weight: 600;
 }
 
+// Aide de l'onglet JS : librairies préinstallées et pragma `@oc-libs`.
+.module-editor__libs {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+
+  code {
+    font-family: var(--font-mono);
+  }
+}
+
+.module-editor__libs--unknown {
+  color: var(--text-warning);
+}
+
 // Le panneau actif prend toute la hauteur restante sous le tabbar ; l'éditeur
 // remplit la hauteur de son hôte (contrat markdown-editor). Les panneaux
 // inactifs sont [hidden] (display:none UA) et ne consomment rien.

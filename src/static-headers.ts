@@ -2,7 +2,8 @@
  * En-têtes posés par `server.ts` sur certains fichiers statiques (module pur,
  * testé par `static-headers.spec.ts`).
  *
- * - Runtimes WASM (`/assets/sqljs/`, `/assets/pyodide/`) : fichiers NON hashés,
+ * - Runtimes WASM (`/assets/sqljs/`, `/assets/pyodide/`) et librairies du bac
+ *   à sable des modules (`/assets/module-libs/`) : fichiers NON hashés,
  *   servis sinon avec `maxAge: '1y'` — une montée de version resterait un an
  *   dans le cache des navigateurs. `no-cache` = revalidation par ETag à chaque
  *   chargement (304 bon marché).
@@ -19,7 +20,7 @@
 export const WORKER_CSP =
   "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'";
 
-const RUNTIME_DIR = /[\\/]assets[\\/](?:sqljs|pyodide)[\\/]/;
+const RUNTIME_DIR = /[\\/]assets[\\/](?:sqljs|pyodide|module-libs)[\\/]/;
 const ANGULAR_WORKER = /[\\/]worker-[A-Z0-9]{8}\.m?js$/;
 const SQLJS_WORKER = /[\\/]assets[\\/]sqljs[\\/]worker\.sql-wasm\.js$/;
 

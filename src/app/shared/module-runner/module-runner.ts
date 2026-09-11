@@ -19,6 +19,8 @@ import {
   ModuleEventPayload,
   parseModuleMessage,
 } from './module-document';
+import { parseModuleLibraries } from './module-libraries';
+import { ModuleLibraryLoader } from './module-library-loader';
 
 /**
  * Exécuteur sandbox d'un module interactif : compose le document
@@ -37,6 +39,13 @@ import {
  * - les messages du pont sont validés par PROVENANCE (`event.source` =
  *   contentWindow de NOTRE iframe + `event.origin === 'null'`) et par forme
  *   (`parseModuleMessage`) ; la hauteur d'auto-resize est bornée.
+ *
+ * Librairies déclarées par le pragma `@oc-libs` : lues par le parent
+ * (`ModuleLibraryLoader`) puis inlinées — composition alors ASYNCHRONE,
+ * gardée par un compteur de génération (la preview live recompose à chaque
+ * frappe : une lecture lente ne doit jamais écraser un code plus récent).
+ * Sans pragma, le chemin reste synchrone. Échec de lecture : module composé
+ * sans ses librairies, note sous l'iframe.
  *
  * Client-only par construction (l'iframe n'existe pas au SSR : `@if
  * isBrowser`).
@@ -60,6 +69,12 @@ export class ModuleRunner implements OnDestroy {
   protected readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   protected readonly frame = viewChild<ElementRef<HTMLIFrameElement>>('frame');
   protected readonly frameHeight = signal(MODULE_FRAME_DEFAULT_HEIGHT);
+  /** Une librairie déclarée n'a pas pu être lue (module composé sans elle). */
+  protected readonly libraryError = signal(false);
+
+  readonly #loader = inject(ModuleLibraryLoader);
+  /** Incrémenté à chaque composition et au destroy : invalide les lectures en vol. */
+  #generation = 0;
 
   /** Référence stable pour add/removeEventListener. */
   readonly #onMessage = (event: MessageEvent): void => {
@@ -87,15 +102,37 @@ export class ModuleRunner implements OnDestroy {
     // la hauteur courante est conservée jusqu'au prochain resize du bridge
     // (pas de saut visuel pendant la frappe en preview live).
     effect(() => {
-      const doc = composeModuleDocument(this.html(), this.css(), this.js());
+      const [html, css, js] = [this.html(), this.css(), this.js()];
       const iframe = this.frame()?.nativeElement;
-      if (iframe) {
-        iframe.srcdoc = doc;
+      if (!iframe) {
+        return;
       }
+      const generation = ++this.#generation;
+      const { libraries } = parseModuleLibraries(js);
+      if (libraries.length === 0) {
+        this.libraryError.set(false);
+        iframe.srcdoc = composeModuleDocument(html, css, js);
+        return;
+      }
+      this.#loader.load(libraries).then(
+        (sources) => {
+          if (generation === this.#generation) {
+            this.libraryError.set(false);
+            iframe.srcdoc = composeModuleDocument(html, css, js, sources);
+          }
+        },
+        () => {
+          if (generation === this.#generation) {
+            this.libraryError.set(true);
+            iframe.srcdoc = composeModuleDocument(html, css, js);
+          }
+        },
+      );
     });
   }
 
   ngOnDestroy(): void {
+    this.#generation++;
     if (this.isBrowser) {
       window.removeEventListener('message', this.#onMessage);
     }

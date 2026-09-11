@@ -12,3 +12,9 @@
   border-radius: var(--radius);
   background: var(--bg-surface);
 }
+
+.module-runner__error {
+  margin: 6px 0 0;
+  color: var(--text-danger);
+  font-size: 0.875em;
+}

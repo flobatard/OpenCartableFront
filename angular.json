@@ -58,6 +58,11 @@
                 "glob": "**/*",
                 "input": ".pyodide",
                 "output": "/assets/pyodide"
+              },
+              {
+                "glob": "**/*",
+                "input": ".module-libs",
+                "output": "/assets/module-libs"
               }
             ],
             "styles": [
