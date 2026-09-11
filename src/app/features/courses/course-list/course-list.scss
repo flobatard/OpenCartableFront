@@ -195,6 +195,19 @@
   gap: 12px;
 }
 
+/* Cours d'exemple sous une liste non vide : entrée discrète (ghost, 13 px),
+   loin des actions du header. */
+.course-list__starter {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.course-list__starter-button {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
 /* Badge d'état de partage (DS §8) — ambre « brouillon » / émeraude « partagé ». */
 .course-list__visibility-badge {
   display: inline-block;

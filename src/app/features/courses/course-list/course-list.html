@@ -85,6 +85,16 @@
         </li>
       }
     </ul>
+    <div class="course-list__starter">
+      <button
+        type="button"
+        class="btn btn--ghost course-list__starter-button"
+        [disabled]="starterLoading()"
+        (click)="loadStarter()"
+      >
+        {{ (starterLoading() ? 'courses.list.starterLoading' : 'courses.list.starter') | transloco }}
+      </button>
+    </div>
   }
 
   <app-course-import-dialog />

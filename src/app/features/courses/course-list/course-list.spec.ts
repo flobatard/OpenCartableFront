@@ -133,9 +133,19 @@ describe('CourseList', () => {
     expect(starterButton(fixture)?.textContent).toContain("Charger le cours d'exemple");
   });
 
-  it('hides the sample course entry once the prof has courses', async () => {
+  it('keeps a discreet sample course entry under a non-empty list', async () => {
+    coursesMock.loadStarterCourse.mockResolvedValue(COURSES_FIXTURE[0]);
     const fixture = await createComponent();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     expect(starterButton(fixture)).toBeNull();
+
+    const discreet = el(fixture).querySelector<HTMLButtonElement>('.course-list__starter button');
+    expect(discreet?.textContent).toContain("Charger le cours d'exemple");
+    discreet?.click();
+    await fixture.whenStable();
+
+    expect(coursesMock.loadStarterCourse).toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith(['/', 'fr', 'courses', COURSES_FIXTURE[0].id]);
   });
 
   it('loads the sample course and navigates to it', async () => {

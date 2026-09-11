@@ -21,7 +21,9 @@ import { findById as findSubjectById } from '../../../core/subjects/subject.util
  * la page (données mutables). États chargement / erreur / vide soignés,
  * l'état vide étant une invitation à composer le premier cours. Le header
  * porte aussi l'entrée « Importer un cours » (modale `CourseImportDialog`,
- * qui recrée un cours depuis une archive d'export puis y navigue).
+ * qui recrée un cours depuis une archive d'export puis y navigue). Le cours
+ * d'exemple est proposé à égalité dans l'état vide, en entrée discrète sous
+ * une liste non vide.
  */
 @Component({
   selector: 'app-course-list',
@@ -65,8 +67,8 @@ export class CourseList {
 
   /**
    * Charge le cours d'exemple puis y navigue — rattrapage du seed de
-   * l'onboarding, proposé quand la liste est vide (cours supprimé, ou seed
-   * qui a échoué en silence côté back).
+   * l'onboarding (cours supprimé, seed qui a échoué en silence côté back, ou
+   * exemple à relire intact après l'avoir modifié). Toujours un NOUVEAU cours.
    */
   protected async loadStarter(): Promise<void> {
     if (this.starterLoading()) {
