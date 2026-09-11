@@ -10,7 +10,7 @@ import {
   mockCourseAssistantService,
 } from '../../../testing/assistant.fixture';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
-import { AssistantOutlet, courseIdFromUrl } from './assistant-outlet';
+import { AssistantOutlet, courseIdFromUrl, isEditorUrl } from './assistant-outlet';
 
 describe('courseIdFromUrl', () => {
   it("extracts the course id from every page of the authoring space", () => {
@@ -33,6 +33,16 @@ describe('courseIdFromUrl', () => {
   it('rejects ids outside the safe charset (interpolated into API URLs)', () => {
     expect(courseIdFromUrl('/fr/courses/%2e%2e')).toBeNull();
     expect(courseIdFromUrl('/fr/courses/a.b')).toBeNull();
+  });
+});
+
+describe('isEditorUrl', () => {
+  it('recognises the block and module editors only', () => {
+    expect(isEditorUrl('/fr/courses/course-1/blocks/block-9')).toBe(true);
+    expect(isEditorUrl('/en/courses/course-1/modules/module-2?x=1')).toBe(true);
+    expect(isEditorUrl('/fr/courses/course-1')).toBe(false);
+    expect(isEditorUrl('/fr/courses/course-1/resources/r-1')).toBe(false);
+    expect(isEditorUrl('/fr/p/courses/course-1/blocks/block-9')).toBe(false);
   });
 });
 
@@ -65,6 +75,18 @@ describe('AssistantOutlet', () => {
     const fixture = await createComponent('/fr/courses/course-1/blocks/block-2');
     expect(el(fixture).querySelector('app-assistant-panel')).toBeTruthy();
     expect(el(fixture).querySelector('.assistant-panel__pill')?.textContent).toContain('Assistant');
+  });
+
+  it('flags the panel on an editor page (hidden there on narrow screens)', async () => {
+    const editor = await createComponent('/fr/courses/course-1/blocks/block-2');
+    expect(el(editor).querySelector('app-assistant-panel')?.classList).toContain(
+      'assistant-panel--in-editor',
+    );
+    TestBed.resetTestingModule();
+    const course = await createComponent('/fr/courses/course-1');
+    expect(el(course).querySelector('app-assistant-panel')?.classList).not.toContain(
+      'assistant-panel--in-editor',
+    );
   });
 
   it('mounts nothing outside the course space', async () => {

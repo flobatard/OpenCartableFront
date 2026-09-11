@@ -2,7 +2,9 @@
 
 /* Hôte flottant : épinglé au viewport, sous le skip-link (100) et le
    snackbar (200) — les <dialog> natifs vivent dans le top layer, toujours
-   au-dessus. */
+   au-dessus. Transparent aux clics hors de la carte et de la pastille (sous
+   900 px, l'hôte couvre toute la largeur du bas de l'écran : il avalerait les
+   taps du contenu dessous). */
 :host {
   position: fixed;
   right: 16px;
@@ -11,6 +13,12 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  pointer-events: none;
+}
+
+.assistant-panel__card,
+.assistant-panel__pill {
+  pointer-events: auto;
 }
 
 /* Déplié : une vraie surface de lecture — ~44 % de la largeur du viewport,
@@ -20,6 +28,7 @@
 .assistant-panel__card {
   width: min(clamp(560px, 44vw, 920px), calc(100vw - 32px));
   height: min(85vh, calc(100vh - 48px));
+  height: min(85dvh, calc(100dvh - 48px)); /* barre d'adresse, clavier virtuel */
   display: flex;
   box-shadow: var(--shadow-md);
   border-radius: var(--radius);
@@ -60,7 +69,8 @@
   outline-offset: 2px;
 }
 
-/* Bottom-sheet sous 900px. */
+/* Bottom-sheet sous 900px ; effacé sur une page d'éditeur, qui a son propre
+   chat (deux assistants, et la pastille couvrait « Envoyer »). */
 @include bp.stacked {
   :host {
     right: 8px;
@@ -69,9 +79,14 @@
     align-items: stretch;
   }
 
+  :host(.assistant-panel--in-editor) {
+    display: none;
+  }
+
   .assistant-panel__card {
     width: 100%;
     height: min(85vh, calc(100vh - 32px));
+    height: min(85dvh, calc(100dvh - 32px));
   }
 
   .assistant-panel__pill {

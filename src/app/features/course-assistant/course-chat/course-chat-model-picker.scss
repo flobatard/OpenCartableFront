@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 /* L'hôte est l'ancre du panneau, dans la ligne du pied de chat : il peut
    rétrécir, l'ellipse vit sur le bouton. */
 :host {
@@ -105,4 +107,22 @@
   margin: 0;
   padding: 6px 10px;
   color: var(--text-secondary);
+}
+
+/* Tactile : déclencheur attrapable ; téléphone : panneau borné à l'écran et
+   champ à 16 px (zoom au focus de Safari iOS). */
+@include bp.touch {
+  .model-picker__trigger {
+    height: 36px;
+  }
+}
+
+@include bp.mobile {
+  .model-picker__popover {
+    width: min(320px, calc(100vw - 40px));
+  }
+
+  .model-picker__input {
+    font-size: max(16px, 1em);
+  }
 }

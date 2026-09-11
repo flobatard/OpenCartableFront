@@ -16,16 +16,23 @@ import { CourseChat } from '../course-chat/course-chat';
  * (jamais dans l'URL) pour survivre aussi à un démontage : sortir de
  * l'espace du cours puis y revenir retrouve le panneau tel quel, et la
  * déconnexion le replie. Sous 900px la carte devient une bottom-sheet
- * pleine largeur (voir scss).
+ * pleine largeur (voir scss) ; sur une page d'éditeur (`inEditor`), qui a
+ * déjà son chat d'édition, le panneau s'efface — masqué en CSS, l'instance
+ * survit.
  */
 @Component({
   selector: 'app-assistant-panel',
   imports: [TranslocoPipe, CourseChat],
   templateUrl: './assistant-panel.html',
   styleUrl: './assistant-panel.scss',
+  host: {
+    '[class.assistant-panel--in-editor]': 'inEditor()',
+  },
 })
 export class AssistantPanel {
   readonly courseId = input.required<string>();
+  /** Page d'un éditeur de bloc/module (qui porte son propre chat). */
+  readonly inEditor = input(false);
 
   protected readonly assistant = inject(CourseAssistantService);
 }

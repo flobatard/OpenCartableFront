@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 /* Pied de panneau discret, sous le composer : roue crantée à gauche, modèle
    en service à sa suite, compteurs (total de tokens, quota) à droite —
    repliés sur une seconde ligne quand le panneau est étroit. */
@@ -226,4 +228,18 @@
   height: 1px;
   margin: 4px 0;
   background: var(--border);
+}
+
+/* Tactile : le pied compact (24 px, assumé au pointeur fin) passe à 36 px —
+   la roue, les sélecteurs et l'interrupteur restent attrapables au doigt. */
+@include bp.touch {
+  .chat-settings__gear {
+    width: 36px;
+    height: 36px;
+  }
+
+  .chat-settings__select,
+  .chat-settings__auto-edit {
+    height: 36px;
+  }
 }

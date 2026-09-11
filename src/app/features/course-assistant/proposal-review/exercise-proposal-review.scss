@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 /* Revue structurée d'une proposition sur un exercice : occupe la colonne
    éditeur du workspace (hauteur définie — l'éditeur d'exercice est masqué par
    classe à côté, Monaco survit). Colonne flex : en-tête, CORPS DÉFILANT (les
@@ -108,4 +110,13 @@
   color: var(--text-danger);
   font-size: 13px;
   font-weight: 500;
+}
+
+/* Sous 900 px, Monaco rend le diff en vue INLINE (bascule par défaut du
+   comparatif) : la légende en deux colonnes ne décrirait plus ce qui est
+   affiché — les couleurs et les signes du diff s'en chargent. */
+@include bp.stacked {
+  .exercise-review__legend {
+    display: none;
+  }
 }

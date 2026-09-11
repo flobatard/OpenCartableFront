@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 /* Carte assistant : colonne flex (en-tête fixe / messages scrollables / composer épinglé).
    Le display est ré-annulé sous [hidden] car une règle d'auteur bat le [hidden] de l'UA
    (les hôtes masquent le chat via [hidden] au repli). */
@@ -261,4 +263,12 @@
 
 .course-chat__send {
   flex: 0 0 auto;
+}
+
+/* Téléphone : la saisie ne descend pas sous 16 px (Safari iOS zoome au focus
+   d'un champ plus petit) ; le corps du fil garde sa base compacte. */
+@include bp.mobile {
+  .course-chat__input {
+    font-size: max(16px, 1em);
+  }
 }

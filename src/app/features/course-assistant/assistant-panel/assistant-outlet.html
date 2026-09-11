@@ -2,6 +2,6 @@
      cours ; une fois chargé, c'est le @if qui monte/démonte selon l'URL. -->
 @defer (when courseId() !== null) {
   @if (courseId(); as id) {
-    <app-assistant-panel [courseId]="id" />
+    <app-assistant-panel [courseId]="id" [inEditor]="inEditor()" />
   }
 }

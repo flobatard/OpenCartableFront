@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 /* Revue d'une proposition : occupe la colonne éditeur du workspace (hauteur
    définie — le champ markdown est masqué par classe à côté, Monaco survit).
    Colonne flex : en-tête, corps (le diff remplit le reste), pied de décision
@@ -56,4 +58,13 @@
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+/* Sous 900 px, Monaco rend le diff en vue INLINE (bascule par défaut du
+   comparatif) : la légende en deux colonnes ne décrirait plus ce qui est
+   affiché — les couleurs et les signes du diff s'en chargent. */
+@include bp.stacked {
+  .proposal-review__legend {
+    display: none;
+  }
 }

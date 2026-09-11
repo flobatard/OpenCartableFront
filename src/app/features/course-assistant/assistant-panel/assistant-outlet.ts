@@ -13,6 +13,14 @@ import { AssistantPanel } from './assistant-panel';
  */
 const COURSE_URL_PATTERN = /^\/[a-z]{2}\/courses\/([A-Za-z0-9-]+)(?:[/?#;]|$)/;
 
+/** Éditeurs de bloc et de module : ils portent leur propre chat d'édition. */
+const EDITOR_URL_PATTERN = /^\/[a-z]{2}\/courses\/[A-Za-z0-9-]+\/(?:blocks|modules)\/[^/?#;]+/;
+
+/** Vrai sur la page d'un éditeur de bloc ou de module. */
+export function isEditorUrl(url: string): boolean {
+  return EDITOR_URL_PATTERN.test(url);
+}
+
 /** Id du cours de l'URL d'autorat courante, ou `null` hors espace cours. */
 export function courseIdFromUrl(url: string): string | null {
   const id = COURSE_URL_PATTERN.exec(url)?.[1] ?? null;
@@ -53,4 +61,7 @@ export class AssistantOutlet {
   protected readonly courseId = computed(() =>
     this.#auth.isAuthenticated() ? courseIdFromUrl(this.#url()) : null,
   );
+
+  /** Page d'éditeur : le panneau s'y efface sous 900 px (cf. `AssistantPanel`). */
+  protected readonly inEditor = computed(() => isEditorUrl(this.#url()));
 }
