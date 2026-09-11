@@ -1,0 +1,69 @@
+<app-runnable-code
+  [code]="code()"
+  [label]="'markdownExtensions.python.label' | transloco"
+  [running]="running()"
+  (runRequested)="run($event)"
+  (stopRequested)="stop()"
+>
+  @if (phase(); as current) {
+    <span runnableStatus class="python-view__status" role="status">
+      {{ 'markdownExtensions.python.phase.' + current | transloco }}
+    </span>
+  }
+
+  <details class="python-view__stdin" [open]="usesInput()">
+    <summary>{{ 'markdownExtensions.python.stdin' | transloco }}</summary>
+    <textarea
+      rows="3"
+      spellcheck="false"
+      [attr.aria-label]="'markdownExtensions.python.stdinLabel' | transloco"
+      [value]="stdin()"
+      (input)="editStdin($event)"
+    ></textarea>
+  </details>
+
+  <div class="python-view__output" aria-live="polite">
+    @if (result(); as outcome) {
+      @switch (outcome.status) {
+        @case ('ok') {
+          @if (outcome.stdout) {
+            <pre class="python-view__stdout">{{ outcome.stdout }}</pre>
+          }
+          @if (outcome.stderr) {
+            <pre class="python-view__stderr">{{ outcome.stderr }}</pre>
+          }
+          @if (outcome.error; as error) {
+            <pre class="python-view__error">{{ error }}</pre>
+            @if (waitsForInput(error)) {
+              <p class="python-view__meta">{{ 'markdownExtensions.python.needsInput' | transloco }}</p>
+            }
+          }
+          @for (figure of outcome.figures; track $index) {
+            <img
+              class="python-view__figure"
+              [src]="'data:image/png;base64,' + figure"
+              [alt]="'markdownExtensions.python.figure' | transloco: { n: $index + 1 }"
+            />
+          }
+          @if (outcome.truncated) {
+            <p class="python-view__meta">{{ 'markdownExtensions.python.truncated' | transloco }}</p>
+          }
+          @if (isEmpty(outcome)) {
+            <p class="python-view__meta">{{ 'markdownExtensions.python.noOutput' | transloco }}</p>
+          }
+        }
+        @case ('timeout') {
+          <p class="python-view__error-note">
+            {{ 'markdownExtensions.python.timeout' | transloco: { seconds: timeoutSeconds } }}
+          </p>
+        }
+        @case ('stopped') {
+          <p class="python-view__meta">{{ 'markdownExtensions.python.stopped' | transloco }}</p>
+        }
+        @case ('unavailable') {
+          <p class="python-view__error-note">{{ 'markdownExtensions.python.unavailable' | transloco }}</p>
+        }
+      }
+    }
+  </div>
+</app-runnable-code>

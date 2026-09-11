@@ -62,5 +62,22 @@
     "timeout": "Query interrupted: more than {{seconds}} seconds of execution.",
     "stopped": "Execution stopped.",
     "unavailable": "The SQL engine could not be loaded."
+  },
+  "python": {
+    "label": "Python code",
+    "phase": {
+      "loading-runtime": "Loading Python (about 6 MB, only once)…",
+      "loading-packages": "Loading libraries (numpy, matplotlib)…",
+      "running": "Running…"
+    },
+    "stdin": "Inputs (read by input(), one line per call)",
+    "stdinLabel": "Program inputs, one line per input() call",
+    "needsInput": "The program is waiting for input: fill the Inputs field, one line per input() call, then run again.",
+    "figure": "Figure {{n}} produced by the program",
+    "truncated": "Output truncated: the program wrote too much.",
+    "noOutput": "Program finished without printing anything.",
+    "timeout": "Program interrupted: more than {{seconds}} seconds of execution.",
+    "stopped": "Execution stopped.",
+    "unavailable": "Python could not be loaded."
   }
 }

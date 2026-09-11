@@ -1,0 +1,53 @@
+<p class="doc-intro">{{ 'docs.python.intro' | transloco }}</p>
+
+<section class="doc-section">
+  <h2>{{ 'docs.python.first.title' | transloco }}</h2>
+  <p>{{ 'docs.python.first.body' | transloco }}</p>
+  <app-markdown-playground [initial]="firstExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.python.input.title' | transloco }}</h2>
+  <p>{{ 'docs.python.input.body' | transloco }}</p>
+  <app-markdown-playground [initial]="inputExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.python.numpy.title' | transloco }}</h2>
+  <p>{{ 'docs.python.numpy.body' | transloco }}</p>
+  <app-markdown-playground [initial]="numpyExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.python.plot.title' | transloco }}</h2>
+  <p>{{ 'docs.python.plot.body' | transloco }}</p>
+  <app-markdown-playground [initial]="plotExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.python.errors.title' | transloco }}</h2>
+  <p>{{ 'docs.python.errors.body' | transloco }}</p>
+  <app-markdown-playground [initial]="errorExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.python.limits.title' | transloco }}</h2>
+  <ul class="doc-rules">
+    <li>{{ 'docs.python.limits.packages' | transloco }}</li>
+    <li>{{ 'docs.python.limits.independent' | transloco }}</li>
+    <li>{{ 'docs.python.limits.timeout' | transloco }}</li>
+    <li>{{ 'docs.python.limits.weight' | transloco }}</li>
+    <li>{{ 'docs.python.limits.browsers' | transloco }}</li>
+  </ul>
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.python.print.title' | transloco }}</h2>
+  <p>{{ 'docs.python.print.body' | transloco }}</p>
+</section>
+
+<p class="doc-more">
+  <a href="https://docs.python.org/fr/3/tutorial/" target="_blank" rel="noopener noreferrer">
+    {{ 'docs.python.more' | transloco }}
+  </a>
+</p>

@@ -48,6 +48,10 @@
     "sql": {
       "title": "SQL exécutable",
       "summary": "Des requêtes SQLite que l'élève exécute et modifie dans son navigateur."
+    },
+    "python": {
+      "title": "Python exécutable",
+      "summary": "Du code Python, avec numpy et matplotlib, que l'élève exécute et modifie dans son navigateur."
     }
   },
   "katex": {
@@ -371,5 +375,41 @@
       "body": "Le code et le dernier résultat affiché partent dans l'export PDF ; les boutons sont masqués."
     },
     "more": "Référence du langage SQL de SQLite"
+  },
+  "python": {
+    "intro": "Un bloc de code « python » devient un programme exécutable : l'élève le lance, le modifie et le relance ; l'affichage et les graphiques apparaissent sous le code. Python tourne dans son navigateur (Pyodide), sans compte ni serveur, et n'est téléchargé qu'au premier clic sur Exécuter. Chaque exemple est modifiable.",
+    "first": {
+      "title": "Premier programme",
+      "body": "Cliquez sur Exécuter dans l'aperçu : ce que le programme affiche avec print() apparaît sous le code. Modifier permet de l'éditer (Ctrl+Entrée pour relancer), Réinitialiser revient au code du cours."
+    },
+    "input": {
+      "title": "Lire des entrées",
+      "body": "input() lit le champ Entrées, une ligne par appel, dans l'ordre ; le champ s'ouvre de lui-même quand le code en contient. Écrivez par exemple Ada puis 15 sur deux lignes avant d'exécuter l'exemple."
+    },
+    "numpy": {
+      "title": "Calcul avec numpy",
+      "body": "numpy est disponible pour le calcul numérique : il est téléchargé automatiquement au premier import, une seule fois."
+    },
+    "plot": {
+      "title": "Graphiques avec matplotlib",
+      "body": "Les figures matplotlib s'affichent sous le code en fin d'exécution (plt.show() est facultatif) ; chaque exécution repart d'une figure vierge."
+    },
+    "errors": {
+      "title": "Erreurs",
+      "body": "Une erreur affiche son traceback, réduit au code de l'élève : ligne fautive et message de Python. Exécutez l'exemple ci-dessous pour voir une NameError."
+    },
+    "limits": {
+      "title": "Ce qu'il faut savoir",
+      "packages": "bibliothèque standard, numpy et matplotlib sont disponibles ; les autres paquets (pandas, scipy…) et turtle ne le sont pas ;",
+      "independent": "chaque exécution a ses propres variables : les blocs d'un cours sont indépendants ;",
+      "timeout": "un programme qui tourne plus de 15 secondes (boucle infinie) est interrompu ; le bouton Arrêter le coupe à tout moment ;",
+      "weight": "le premier lancement télécharge Python (environ 6 Mo), le premier import de numpy et matplotlib environ 13 Mo de plus ; le navigateur les garde ensuite en cache ;",
+      "browsers": "navigateurs récents requis (Chrome ou Edge 112, Firefox 114, Safari 16.4 et suivants)."
+    },
+    "print": {
+      "title": "Impression et export PDF",
+      "body": "Le code, sa dernière sortie et ses figures partent dans l'export PDF ; les boutons et le champ Entrées sont masqués."
+    },
+    "more": "Tutoriel officiel de Python"
   }
 }

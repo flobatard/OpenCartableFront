@@ -75,5 +75,9 @@
   "sql": {
     "title": "Runnable SQL",
     "intro": "An “sql” code block becomes an SQLite query that students run and edit; the database setup comes before a -- @query line."
+  },
+  "python": {
+    "title": "Runnable Python",
+    "intro": "A “python” code block becomes a program that students run and edit in their browser; numpy and matplotlib are available, input() reads the Inputs field."
   }
 }

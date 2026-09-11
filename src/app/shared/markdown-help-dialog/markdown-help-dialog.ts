@@ -6,7 +6,7 @@ import { NativeDialog } from '../dialog/native-dialog.directive';
 
 /**
  * Modale d'aide à la mise en forme (markdown + LaTeX/KaTeX et mhchem + Mermaid +
- * extensions GeoGebra/JSXGraph/TikZ/frise/SMILES/Vega-Lite/ABC/SQL), réutilisable par tout éditeur de
+ * extensions GeoGebra/JSXGraph/TikZ/frise/SMILES/Vega-Lite/ABC/SQL/Python), réutilisable par tout éditeur de
  * contenu de cours. Élément `<dialog>` natif : focus-trap, Escape et backdrop gérés par
  * la plateforme. Présentational — pilotée par le parent via les méthodes
  * publiques `open()` / `close()`.
@@ -60,6 +60,9 @@ export class MarkdownHelpDialog {
     "```sql\nCREATE TABLE ville (nom TEXT, habitants INTEGER);\n" +
     "INSERT INTO ville VALUES ('Paris', 2100000), ('Lyon', 520000);\n" +
     '-- @query\nSELECT nom FROM ville WHERE habitants > 1000000;\n```';
+
+  protected readonly pythonExample =
+    '```python\nfor i in range(1, 4):\n    print(i, "au carré vaut", i ** 2)\n```';
 
   open(): void {
     this.dialog()?.open();

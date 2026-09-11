@@ -53,6 +53,11 @@
                 "glob": "{worker.sql-wasm.js,sql-wasm.wasm}",
                 "input": "node_modules/sql.js/dist",
                 "output": "/assets/sqljs"
+              },
+              {
+                "glob": "**/*",
+                "input": ".pyodide",
+                "output": "/assets/pyodide"
               }
             ],
             "styles": [

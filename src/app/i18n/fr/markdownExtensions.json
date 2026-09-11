@@ -62,5 +62,22 @@
     "timeout": "Requête interrompue : plus de {{seconds}} secondes d'exécution.",
     "stopped": "Exécution arrêtée.",
     "unavailable": "Le moteur SQL n'a pas pu être chargé."
+  },
+  "python": {
+    "label": "Code Python",
+    "phase": {
+      "loading-runtime": "Chargement de Python (environ 6 Mo, une seule fois)…",
+      "loading-packages": "Chargement des bibliothèques (numpy, matplotlib)…",
+      "running": "Exécution…"
+    },
+    "stdin": "Entrées (lues par input(), une ligne par appel)",
+    "stdinLabel": "Entrées du programme, une ligne par appel à input()",
+    "needsInput": "Le programme attend une saisie : remplissez le champ Entrées, une ligne par appel à input(), puis relancez.",
+    "figure": "Figure {{n}} produite par le programme",
+    "truncated": "Sortie tronquée : le programme a trop écrit.",
+    "noOutput": "Programme terminé, sans rien afficher.",
+    "timeout": "Programme interrompu : plus de {{seconds}} secondes d'exécution.",
+    "stopped": "Exécution arrêtée.",
+    "unavailable": "Python n'a pas pu être chargé."
   }
 }

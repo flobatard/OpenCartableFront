@@ -75,5 +75,9 @@
   "sql": {
     "title": "SQL exécutable",
     "intro": "Un bloc de code « sql » devient une requête SQLite que l'élève exécute et modifie ; la préparation de la base précède une ligne -- @query."
+  },
+  "python": {
+    "title": "Python exécutable",
+    "intro": "Un bloc de code « python » devient un programme que l'élève exécute et modifie dans son navigateur ; numpy et matplotlib sont disponibles, input() lit le champ Entrées."
   }
 }

@@ -33,6 +33,8 @@ yarn-error.log
 /.angular/cache
 # Assets TikZJax préparés au postinstall (scripts/prepare-tikzjax.mjs)
 /.tikzjax
+# Runtime Pyodide et ses paquets, préparés au postinstall (scripts/prepare-pyodide.mjs)
+/.pyodide
 .sass-cache/
 /connect.lock
 /coverage

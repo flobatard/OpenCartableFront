@@ -1,0 +1,83 @@
+:host {
+  display: block;
+  margin: 1rem 0;
+}
+
+.python-view__status,
+.python-view__meta {
+  color: var(--text-secondary);
+  font-size: 0.875em;
+  font-style: italic;
+}
+
+.python-view__meta {
+  margin: 0.25rem 0 0.75rem;
+}
+
+.python-view__stdin {
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+
+  textarea {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    margin-top: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-control);
+    border-radius: var(--radius);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    resize: vertical;
+  }
+}
+
+.python-view__stdout,
+.python-view__stderr,
+.python-view__error {
+  margin: 0 0 0.5rem;
+  padding: 0.5rem 0.75rem;
+  overflow-x: auto;
+  border-left: 3px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  white-space: pre-wrap;
+}
+
+.python-view__stdout {
+  color: var(--text-primary);
+}
+
+.python-view__stderr,
+.python-view__error {
+  border-left-color: var(--text-danger);
+  color: var(--text-danger);
+}
+
+.python-view__error-note {
+  margin: 0.25rem 0 0.75rem;
+  color: var(--text-danger);
+  font-size: 0.875em;
+}
+
+// Figures matplotlib : PNG sur fond blanc, planche comme les autres figures.
+.python-view__figure {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 0 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--figure-board);
+}
+
+// Sur papier : pas de champ de saisie.
+@media print {
+  .python-view__stdin {
+    display: none;
+  }
+}

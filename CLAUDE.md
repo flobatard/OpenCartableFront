@@ -15,7 +15,7 @@ export PATH="$HOME/.nvm/versions/node/v26.3.0/bin:$PATH"
 ```
 
 ```bash
-npm install                            # postinstall : prépare le runtime TikZJax dans .tikzjax/ (gitignoré)
+npm install                            # postinstall : runtimes TikZJax (.tikzjax/) et Pyodide + wheels numpy/matplotlib (.pyodide/, réseau requis — OC_SKIP_PYODIDE_PACKAGES=1 pour sauter les wheels), gitignorés
 npm start                              # dev server (4200)
 npm run build                          # build prod + prerender de /fr/home et /en/home
 npm run watch                          # build dev en continu
@@ -27,7 +27,8 @@ docker compose up --build              # conteneur SSR (4000)
 ```
 
 - Après tout changement touchant SSR/i18n/prerender, vérifier que `dist/OpenCartableFront/browser/fr/home/index.html` contient le texte français rendu (chaînes vides = régression du préchargement Transloco).
-- Toute modification d'`angular.json` ou de `scripts/prepare-tikzjax.mjs` exige un redémarrage de `ng serve` (sinon 302 SPA sur les assets).
+- Toute modification d'`angular.json`, de `scripts/prepare-tikzjax.mjs` ou de `scripts/prepare-pyodide.mjs` exige un redémarrage de `ng serve` (sinon 302 SPA sur les assets).
+- Les en-têtes de `static-headers.ts` (CSP des workers, `no-cache` des runtimes) ne s'observent que sous `npm run serve:ssr:OpenCartableFront`, jamais sous `ng serve`.
 - Le repo n'est pas entièrement formaté Prettier : ne jamais lancer `prettier --write` sur un fichier existant.
 
 ## Carte de `src/app/`
@@ -68,7 +69,7 @@ Routes : `app.routes.ts` (guards prof `TEACHER_GUARDS`, sous-arbres élèves `PU
 **Contenu de cours**
 - LA sanitisation du HTML de cours vit dans `core/markdown/` (DOMPurify, profils html+mathMl+svg, `ADD_TAGS` semantics/annotation — jamais `annotation-xml`) ; l'unique `bypassSecurityTrustHtml` est dans `markdown-view` ; deux seuls `bypassSecurityTrustResourceUrl` (iframe GeoGebra à id validé, PDF embarqué présigné).
 - Figures produites par une lib (TikZ, SMILES, Vega-Lite, ABC) : SVG re-sanitisé par DOMPurify dans le composant, planche claire `--figure-board`. Aucune requête hors origine depuis un contenu de cours : Vega-Lite refuse toute clé `url`, son loader rejette tout chargement et ses expressions passent par `vega-interpreter` (jamais `new Function`) ; la lecture ABC charge ses notes depuis `public/abcjs-soundfont/` (jamais le `soundFontUrl` par défaut d'abcjs).
-- Code exécutable (```sql, ```python) : runtimes WASM servis depuis `/assets` (copiés par `angular.json`, jamais bundlés), téléchargés au premier « Exécuter » — jamais au montage —, tenus par un service root derrière une fabrique de Worker injectable, exécutés dans un Worker résiliable (délai, Arrêter). `server.ts` (`static-headers.ts`) pose `no-cache` sur ces runtimes et une CSP d'en-tête sur les scripts de worker : ne s'observe que sous `serve:ssr`.
+- Code exécutable (```sql, ```python) : runtimes WASM servis depuis `/assets` (copiés par `angular.json`, jamais bundlés), téléchargés au premier « Exécuter » — jamais au montage —, tenus par un service root derrière une fabrique de Worker injectable, exécutés dans un Worker résiliable (délai, Arrêter). `server.ts` (`static-headers.ts`) pose `no-cache` sur ces runtimes et une CSP d'en-tête sur les scripts de worker. Worker sql.js **classique**, worker Python **module** (Pyodide chargé à l'exécution par un `import()` d'URL variable, `MPLBACKEND=Agg`, lock élagué aux paquets hébergés).
 - Le markdown stocke des références stables `oc-resource:<id>`, `oc-module:<id>`, `oc-block:<id>` (jamais une URL présignée) ; tout id est validé en forme UUID avant d'être interpolé dans une URL ou une commande de navigation.
 - Sandbox des modules (`shared/module-runner/`) : `sandbox` statique **sans** `allow-same-origin`, CSP `default-src 'none'` dans le srcdoc (`MODULE_CSP`), `srcdoc` posé impérativement (jamais `[srcdoc]`), messages validés par provenance puis par forme. Le prompt `MODULE_RUNTIME` du back est le miroir de `module-document.ts` : les faire évoluer ensemble.
 - Style de lecture : variables posées en `[style]` inline sur `.course-content`, jamais sur `:root` ; les unités sont des facteurs d'échelle (écran et papier partagent les réglages).

@@ -1,5 +1,6 @@
 import { EnvironmentProviders, makeEnvironmentProviders } from '@angular/core';
 import { MARKDOWN_EXTENSIONS } from './markdown-extension.model';
+import { PYTHON_EXTENSION } from './python/python-extension';
 import { ABC_EXTENSION } from './abc/abc-extension';
 import { GEOGEBRA_EXTENSION } from './geogebra/geogebra-extension';
 import { JSXGRAPH_EXTENSION } from './jsxgraph/jsxgraph-extension';
@@ -25,5 +26,6 @@ export function provideMarkdownExtensions(): EnvironmentProviders {
     { provide: MARKDOWN_EXTENSIONS, useValue: VEGALITE_EXTENSION, multi: true },
     { provide: MARKDOWN_EXTENSIONS, useValue: ABC_EXTENSION, multi: true },
     { provide: MARKDOWN_EXTENSIONS, useValue: SQL_EXTENSION, multi: true },
+    { provide: MARKDOWN_EXTENSIONS, useValue: PYTHON_EXTENSION, multi: true },
   ]);
 }

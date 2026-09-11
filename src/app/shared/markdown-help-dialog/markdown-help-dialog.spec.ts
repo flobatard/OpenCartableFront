@@ -57,6 +57,7 @@ describe('MarkdownHelpDialog', () => {
     expect(examples.some((code) => code.includes('```vegalite'))).toBe(true);
     expect(examples.some((code) => code.includes('```abc'))).toBe(true);
     expect(examples.some((code) => code.includes('```sql'))).toBe(true);
+    expect(examples.some((code) => code.includes('```python'))).toBe(true);
   });
 
   it('each section links to its doc page in a new tab', async () => {
@@ -77,6 +78,7 @@ describe('MarkdownHelpDialog', () => {
       '/fr/markdown-language/docs/vegalite',
       '/fr/markdown-language/docs/abc',
       '/fr/markdown-language/docs/sql',
+      '/fr/markdown-language/docs/python',
     ]);
     // _blank : RouterLink n'intercepte pas — la modale et l'édition restent en place.
     expect(links.every((a) => a.getAttribute('target') === '_blank')).toBe(true);

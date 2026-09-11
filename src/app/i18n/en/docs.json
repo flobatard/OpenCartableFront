@@ -48,6 +48,10 @@
     "sql": {
       "title": "Runnable SQL",
       "summary": "SQLite queries that students run and edit in their browser."
+    },
+    "python": {
+      "title": "Runnable Python",
+      "summary": "Python code, with numpy and matplotlib, that students run and edit in their browser."
     }
   },
   "katex": {
@@ -371,5 +375,41 @@
       "body": "The code and the last displayed result go into the PDF export; buttons are hidden."
     },
     "more": "SQLite SQL language reference"
+  },
+  "python": {
+    "intro": "A “python” code block becomes a runnable program: students run it, edit it and run it again; printed output and charts appear under the code. Python runs in their browser (Pyodide), with no account or server, and is only downloaded on the first click on Run. Every example is editable.",
+    "first": {
+      "title": "First program",
+      "body": "Click Run in the preview: whatever the program prints with print() shows under the code. Edit lets you change it (Ctrl+Enter to run again), Reset goes back to the course code."
+    },
+    "input": {
+      "title": "Reading inputs",
+      "body": "input() reads the Inputs field, one line per call, in order; the field opens by itself when the code calls input(). For instance, write Ada then 15 on two lines before running the example."
+    },
+    "numpy": {
+      "title": "Computing with numpy",
+      "body": "numpy is available for numerical computing: it is downloaded automatically on first import, only once."
+    },
+    "plot": {
+      "title": "Charts with matplotlib",
+      "body": "matplotlib figures show under the code at the end of the run (plt.show() is optional); each run starts from a blank figure."
+    },
+    "errors": {
+      "title": "Errors",
+      "body": "An error shows its traceback, reduced to the student's code: the faulty line and Python's message. Run the example below to see a NameError."
+    },
+    "limits": {
+      "title": "Good to know",
+      "packages": "the standard library, numpy and matplotlib are available; other packages (pandas, scipy…) and turtle are not;",
+      "independent": "each run has its own variables: a course's blocks are independent;",
+      "timeout": "a program running longer than 15 seconds (endless loop) is interrupted; the Stop button cuts it at any time;",
+      "weight": "the first run downloads Python (about 6 MB), the first numpy and matplotlib import about 13 MB more; the browser then keeps them cached;",
+      "browsers": "recent browsers required (Chrome or Edge 112, Firefox 114, Safari 16.4 and later)."
+    },
+    "print": {
+      "title": "Printing and PDF export",
+      "body": "The code, its last output and its figures go into the PDF export; buttons and the Inputs field are hidden."
+    },
+    "more": "Official Python tutorial"
   }
 }

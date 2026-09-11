@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "postinstall": "node scripts/prepare-tikzjax.mjs",
+    "postinstall": "node scripts/prepare-tikzjax.mjs && node scripts/prepare-pyodide.mjs",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
@@ -39,6 +39,7 @@
     "mermaid": "^11.16.0",
     "ngx-monaco-editor-v2": "^22.0.4",
     "posthog-js": "^1.429.1",
+    "pyodide": "314.0.6",
     "rxjs": "~7.8.0",
     "smiles-drawer": "^2.4.1",
     "sql.js": "^1.14.2",
