@@ -328,7 +328,8 @@
     },
     "audio": {
       "title": "Playback",
-      "body": "The Listen button plays the tune on the piano; notes load on first playback, and only one tune plays at a time. Only the piano is available: %%MIDI instrument directives are ignored."
+      "body": "The Listen button plays the tune on the piano; notes load on first playback, and only one tune plays at a time. Only the piano is available: %%MIDI instrument directives are ignored.",
+      "credit": "Piano sounds: Frank Wen's Fluid R3 GM soundfont, under the Creative Commons Attribution 3.0 license, sampled by the midi-js-soundfonts project."
     },
     "errors": {
       "title": "Incomplete sheet music",

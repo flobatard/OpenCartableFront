@@ -328,7 +328,8 @@
     },
     "audio": {
       "title": "Écoute",
-      "body": "Le bouton Écouter joue la partition au piano ; les notes sont chargées à la première écoute, une seule partition joue à la fois. Seul le piano est disponible : les directives %%MIDI de choix d'instrument sont ignorées."
+      "body": "Le bouton Écouter joue la partition au piano ; les notes sont chargées à la première écoute, une seule partition joue à la fois. Seul le piano est disponible : les directives %%MIDI de choix d'instrument sont ignorées.",
+      "credit": "Sons de piano : banque Fluid R3 GM de Frank Wen, sous licence Creative Commons Attribution 3.0, échantillonnée par le projet midi-js-soundfonts."
     },
     "errors": {
       "title": "Partitions incomplètes",
