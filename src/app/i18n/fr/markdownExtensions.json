@@ -43,5 +43,24 @@
     "warnings": "Avertissements de lecture de la partition : {{count}}",
     "loadError": "Le moteur de partitions n'a pas pu être chargé.",
     "empty": "Partition vide : après les en-têtes (X:, K:…), écrivez au moins une ligne de notes."
+  },
+  "runnable": {
+    "run": "▶ Exécuter",
+    "stop": "■ Arrêter",
+    "edit": "Modifier",
+    "reset": "Réinitialiser"
+  },
+  "sql": {
+    "label": "Requête SQL",
+    "setup": "Voir la préparation de la base ({{count}} lignes)",
+    "loadingEngine": "Chargement du moteur SQL (une seule fois)…",
+    "rows": "Lignes : {{count}}",
+    "rowsTruncated": "{{shown}} lignes affichées sur {{total}}",
+    "noResult": "Requête exécutée : aucun résultat à afficher.",
+    "setupError": "Erreur dans la préparation de la base :",
+    "queryError": "Erreur SQL :",
+    "timeout": "Requête interrompue : plus de {{seconds}} secondes d'exécution.",
+    "stopped": "Exécution arrêtée.",
+    "unavailable": "Le moteur SQL n'a pas pu être chargé."
   }
 }

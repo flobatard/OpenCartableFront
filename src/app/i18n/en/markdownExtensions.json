@@ -43,5 +43,24 @@
     "warnings": "Sheet music parsing warnings: {{count}}",
     "loadError": "The sheet music engine could not be loaded.",
     "empty": "Empty sheet music: after the headers (X:, K:…), write at least one line of notes."
+  },
+  "runnable": {
+    "run": "▶ Run",
+    "stop": "■ Stop",
+    "edit": "Edit",
+    "reset": "Reset"
+  },
+  "sql": {
+    "label": "SQL query",
+    "setup": "Show the database setup ({{count}} lines)",
+    "loadingEngine": "Loading the SQL engine (only once)…",
+    "rows": "Rows: {{count}}",
+    "rowsTruncated": "{{shown}} rows shown out of {{total}}",
+    "noResult": "Query executed: no result to display.",
+    "setupError": "Error in the database setup:",
+    "queryError": "SQL error:",
+    "timeout": "Query interrupted: more than {{seconds}} seconds of execution.",
+    "stopped": "Execution stopped.",
+    "unavailable": "The SQL engine could not be loaded."
   }
 }

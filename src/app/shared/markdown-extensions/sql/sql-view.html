@@ -1,0 +1,79 @@
+@if (parsed().setup) {
+  <details class="sql-view__setup">
+    <summary>
+      {{ 'markdownExtensions.sql.setup' | transloco: { count: lineCount(parsed().setup) } }}
+    </summary>
+    <pre><code>{{ parsed().setup }}</code></pre>
+  </details>
+}
+
+<app-runnable-code
+  [code]="parsed().query"
+  [label]="'markdownExtensions.sql.label' | transloco"
+  [running]="running()"
+  (runRequested)="run($event)"
+  (stopRequested)="stop()"
+>
+  @if (loadingEngine()) {
+    <span runnableStatus class="sql-view__status" role="status">
+      {{ 'markdownExtensions.sql.loadingEngine' | transloco }}
+    </span>
+  }
+
+  <div class="sql-view__output" aria-live="polite">
+    @if (result(); as outcome) {
+      @switch (outcome.status) {
+        @case ('ok') {
+          @for (set of outcome.results; track $index) {
+            <div class="sql-view__table-wrap">
+              <table class="sql-view__table">
+                <thead>
+                  <tr>
+                    @for (column of set.columns; track $index) {
+                      <th scope="col">{{ column }}</th>
+                    }
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of set.values.slice(0, maxRows); track $index) {
+                    <tr>
+                      @for (value of row; track $index) {
+                        <td [class.sql-view__null]="value === null">{{ cell(value) }}</td>
+                      }
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            <p class="sql-view__meta">
+              @if (set.values.length > maxRows) {
+                {{ 'markdownExtensions.sql.rowsTruncated' | transloco: { shown: maxRows, total: set.values.length } }}
+              } @else {
+                {{ 'markdownExtensions.sql.rows' | transloco: { count: set.values.length } }}
+              }
+            </p>
+          } @empty {
+            <p class="sql-view__meta">{{ 'markdownExtensions.sql.noResult' | transloco }}</p>
+          }
+        }
+        @case ('error') {
+          <p class="sql-view__error">
+            {{ (outcome.phase === 'setup' ? 'markdownExtensions.sql.setupError' : 'markdownExtensions.sql.queryError') | transloco }}
+            <code>{{ outcome.message }}</code>
+          </p>
+        }
+        @case ('timeout') {
+          <p class="sql-view__error">
+            {{ 'markdownExtensions.sql.timeout' | transloco: { seconds: timeoutSeconds } }}
+          </p>
+        }
+        @case ('stopped') {
+          <p class="sql-view__meta">{{ 'markdownExtensions.sql.stopped' | transloco }}</p>
+        }
+        @case ('unavailable') {
+          <p class="sql-view__error">{{ 'markdownExtensions.sql.unavailable' | transloco }}</p>
+        }
+      }
+    }
+  </div>
+</app-runnable-code>

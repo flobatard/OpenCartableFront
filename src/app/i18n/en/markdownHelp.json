@@ -71,5 +71,9 @@
   "abc": {
     "title": "Sheet music (ABC)",
     "intro": "Engraves a tune written in ABC notation (headers X:, T:, M:, L:, K: then the notes) in an “abc” code block; it plays on the piano in one click."
+  },
+  "sql": {
+    "title": "Runnable SQL",
+    "intro": "An “sql” code block becomes an SQLite query that students run and edit; the database setup comes before a -- @query line."
   }
 }

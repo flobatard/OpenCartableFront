@@ -1,0 +1,43 @@
+@if (editing()) {
+  <textarea
+    class="runnable__editor"
+    spellcheck="false"
+    autocapitalize="off"
+    [attr.aria-label]="label()"
+    [rows]="rows()"
+    [value]="draft()"
+    (input)="edit($event)"
+    (keydown.control.enter)="run()"
+    (keydown.meta.enter)="run()"
+  ></textarea>
+} @else {
+  <pre class="runnable__code" [attr.aria-label]="label()"><code>{{ draft() }}</code></pre>
+}
+
+<div class="runnable__toolbar">
+  @if (running()) {
+    <button type="button" class="btn btn--secondary" (click)="stopRequested.emit()">
+      {{ 'markdownExtensions.runnable.stop' | transloco }}
+    </button>
+  } @else {
+    <button type="button" class="btn btn--primary" (click)="run()">
+      {{ 'markdownExtensions.runnable.run' | transloco }}
+    </button>
+  }
+  <button
+    type="button"
+    class="btn btn--ghost"
+    [attr.aria-pressed]="editing()"
+    (click)="editing.set(!editing())"
+  >
+    {{ 'markdownExtensions.runnable.edit' | transloco }}
+  </button>
+  @if (modified()) {
+    <button type="button" class="btn btn--ghost" (click)="reset()">
+      {{ 'markdownExtensions.runnable.reset' | transloco }}
+    </button>
+  }
+  <ng-content select="[runnableStatus]" />
+</div>
+
+<ng-content />

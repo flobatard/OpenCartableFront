@@ -6,6 +6,7 @@ import {
 } from '@angular/ssr/node';
 import express from 'express';
 import { join } from 'node:path';
+import { staticHeaders } from './static-headers';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -40,13 +41,21 @@ const angularApp = new AngularNodeAppEngine({ allowedHosts, trustProxyHeaders })
  */
 
 /**
- * Serve static files from /browser
+ * Serve static files from /browser. `setHeaders` passe avant l'en-tête
+ * Cache-Control de `maxAge` (posé seulement s'il est absent) : les runtimes
+ * WASM non hashés sont revalidés, les scripts de worker confinés à l'origine
+ * par leur propre CSP (cf. static-headers.ts).
  */
 app.use(
   express.static(browserDistFolder, {
     maxAge: '1y',
     index: false,
     redirect: false,
+    setHeaders: (res, filePath) => {
+      for (const [name, value] of Object.entries(staticHeaders(filePath))) {
+        res.setHeader(name, value);
+      }
+    },
   }),
 );
 

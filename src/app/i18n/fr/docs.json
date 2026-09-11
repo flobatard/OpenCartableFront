@@ -44,6 +44,10 @@
     "abc": {
       "title": "Partitions (ABC)",
       "summary": "Écrire une mélodie en notation ABC : partition gravée et lecture au piano."
+    },
+    "sql": {
+      "title": "SQL exécutable",
+      "summary": "Des requêtes SQLite que l'élève exécute et modifie dans son navigateur."
     }
   },
   "katex": {
@@ -335,5 +339,36 @@
       "body": "La partition est gravée en SVG : elle part telle quelle dans l'export PDF du cours, sans le bouton d'écoute."
     },
     "more": "Apprendre la notation ABC (abcnotation.com)"
+  },
+  "sql": {
+    "intro": "Un bloc de code « sql » devient une requête exécutable : l'élève la lance, la modifie et la relance, les résultats s'affichent en tableau. Le moteur SQLite tourne dans son navigateur, sans compte ni serveur, et n'est téléchargé qu'au premier clic sur Exécuter. Chaque exemple est modifiable.",
+    "first": {
+      "title": "Première requête",
+      "body": "Cliquez sur Exécuter dans l'aperçu : la requête tourne, le résultat s'affiche sous le code. Modifier permet de l'éditer, Réinitialiser revient au code du cours."
+    },
+    "setup": {
+      "title": "Préparer une base",
+      "body": "Tout ce qui précède la ligne -- @query prépare la base (création et remplissage des tables) : cette partie est repliée chez l'élève. Ce qui suit est la requête qu'il voit et modifie. Le marqueur est un commentaire SQL : le bloc reste du SQL valide."
+    },
+    "queries": {
+      "title": "Jointures et agrégats",
+      "body": "Tout le SQL de SQLite est disponible : jointures, GROUP BY, sous-requêtes, fonctions de fenêtre… Chaque SELECT de la requête produit son propre tableau."
+    },
+    "limits": {
+      "title": "Ce qu'il faut savoir",
+      "independent": "chaque exécution repart d'une base neuve : les blocs d'un cours sont indépendants, et une modification (INSERT, UPDATE) ne survit pas à l'exécution suivante ;",
+      "timeout": "une requête qui dépasse 5 secondes (récursion sans fin, produit cartésien énorme) est interrompue ;",
+      "rows": "un résultat affiche au plus 200 lignes, le nombre total est indiqué ;",
+      "engine": "le moteur (environ 0,7 Mo) est téléchargé une seule fois, au premier clic, puis gardé en cache par le navigateur."
+    },
+    "errors": {
+      "title": "Erreurs",
+      "body": "Une erreur SQL affiche le message de SQLite sous le code, en précisant si elle vient de la préparation ou de la requête. Exécutez l'exemple ci-dessous pour la voir."
+    },
+    "print": {
+      "title": "Impression et export PDF",
+      "body": "Le code et le dernier résultat affiché partent dans l'export PDF ; les boutons sont masqués."
+    },
+    "more": "Référence du langage SQL de SQLite"
   }
 }

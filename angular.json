@@ -48,6 +48,11 @@
                 "glob": "**/*",
                 "input": ".tikzjax",
                 "output": "/assets/tikzjax"
+              },
+              {
+                "glob": "{worker.sql-wasm.js,sql-wasm.wasm}",
+                "input": "node_modules/sql.js/dist",
+                "output": "/assets/sqljs"
               }
             ],
             "styles": [

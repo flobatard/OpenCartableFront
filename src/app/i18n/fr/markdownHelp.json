@@ -71,5 +71,9 @@
   "abc": {
     "title": "Partitions (ABC)",
     "intro": "Grave une mélodie écrite en notation ABC (en-têtes X:, T:, M:, L:, K: puis les notes) dans un bloc de code « abc » ; elle s'écoute au piano d'un clic."
+  },
+  "sql": {
+    "title": "SQL exécutable",
+    "intro": "Un bloc de code « sql » devient une requête SQLite que l'élève exécute et modifie ; la préparation de la base précède une ligne -- @query."
   }
 }

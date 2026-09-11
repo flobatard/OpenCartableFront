@@ -1,0 +1,46 @@
+<p class="doc-intro">{{ 'docs.sql.intro' | transloco }}</p>
+
+<section class="doc-section">
+  <h2>{{ 'docs.sql.first.title' | transloco }}</h2>
+  <p>{{ 'docs.sql.first.body' | transloco }}</p>
+  <app-markdown-playground [initial]="firstExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.sql.setup.title' | transloco }}</h2>
+  <p>{{ 'docs.sql.setup.body' | transloco }}</p>
+  <app-markdown-playground [initial]="setupExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.sql.queries.title' | transloco }}</h2>
+  <p>{{ 'docs.sql.queries.body' | transloco }}</p>
+  <app-markdown-playground [initial]="joinExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.sql.limits.title' | transloco }}</h2>
+  <ul class="doc-rules">
+    <li>{{ 'docs.sql.limits.independent' | transloco }}</li>
+    <li>{{ 'docs.sql.limits.timeout' | transloco }}</li>
+    <li>{{ 'docs.sql.limits.rows' | transloco }}</li>
+    <li>{{ 'docs.sql.limits.engine' | transloco }}</li>
+  </ul>
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.sql.errors.title' | transloco }}</h2>
+  <p>{{ 'docs.sql.errors.body' | transloco }}</p>
+  <app-markdown-playground [initial]="errorExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.sql.print.title' | transloco }}</h2>
+  <p>{{ 'docs.sql.print.body' | transloco }}</p>
+</section>
+
+<p class="doc-more">
+  <a href="https://www.sqlite.org/lang.html" target="_blank" rel="noopener noreferrer">
+    {{ 'docs.sql.more' | transloco }}
+  </a>
+</p>

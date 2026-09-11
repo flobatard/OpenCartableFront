@@ -44,6 +44,10 @@
     "abc": {
       "title": "Sheet music (ABC)",
       "summary": "Write a tune in ABC notation: engraved sheet music and piano playback."
+    },
+    "sql": {
+      "title": "Runnable SQL",
+      "summary": "SQLite queries that students run and edit in their browser."
     }
   },
   "katex": {
@@ -335,5 +339,36 @@
       "body": "Sheet music is engraved as SVG: it goes as is into the course PDF export, without the Listen button."
     },
     "more": "Learn ABC notation (abcnotation.com)"
+  },
+  "sql": {
+    "intro": "An “sql” code block becomes a runnable query: students run it, edit it and run it again, and results show as a table. The SQLite engine runs in their browser, with no account or server, and is only downloaded on the first click on Run. Every example is editable.",
+    "first": {
+      "title": "First query",
+      "body": "Click Run in the preview: the query runs and the result shows under the code. Edit lets you change it, Reset goes back to the course code."
+    },
+    "setup": {
+      "title": "Setting up a database",
+      "body": "Everything before the -- @query line sets up the database (creating and filling tables): this part is collapsed for students. What follows is the query they see and edit. The marker is an SQL comment: the block stays valid SQL."
+    },
+    "queries": {
+      "title": "Joins and aggregates",
+      "body": "All of SQLite's SQL is available: joins, GROUP BY, subqueries, window functions… Each SELECT in the query produces its own table."
+    },
+    "limits": {
+      "title": "Good to know",
+      "independent": "each run starts from a fresh database: a course's blocks are independent, and a change (INSERT, UPDATE) does not survive the next run;",
+      "timeout": "a query running longer than 5 seconds (endless recursion, huge cartesian product) is interrupted;",
+      "rows": "a result shows at most 200 rows, and the total count is given;",
+      "engine": "the engine (about 0.7 MB) is downloaded only once, on the first click, then cached by the browser."
+    },
+    "errors": {
+      "title": "Errors",
+      "body": "An SQL error shows SQLite's message under the code, saying whether it comes from the setup or the query. Run the example below to see it."
+    },
+    "print": {
+      "title": "Printing and PDF export",
+      "body": "The code and the last displayed result go into the PDF export; buttons are hidden."
+    },
+    "more": "SQLite SQL language reference"
   }
 }

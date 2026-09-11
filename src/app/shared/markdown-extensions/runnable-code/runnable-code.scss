@@ -1,0 +1,42 @@
+:host {
+  display: block;
+}
+
+.runnable__code,
+.runnable__editor {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  line-height: 1.5;
+  tab-size: 4;
+  white-space: pre;
+}
+
+.runnable__editor {
+  border-color: var(--border-control);
+  resize: vertical;
+}
+
+.runnable__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+// Sur papier : le code et la sortie, sans les commandes.
+@media print {
+  .runnable__toolbar {
+    display: none;
+  }
+}

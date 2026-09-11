@@ -41,6 +41,7 @@
     "posthog-js": "^1.429.1",
     "rxjs": "~7.8.0",
     "smiles-drawer": "^2.4.1",
+    "sql.js": "^1.14.2",
     "tslib": "^2.3.0",
     "vega": "^6.4.0",
     "vega-interpreter": "^2.3.2",
