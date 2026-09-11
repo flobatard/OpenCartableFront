@@ -22,7 +22,7 @@
   },
   "callouts": {
     "title": "Callouts",
-    "intro": "A quote whose first line is a marker becomes a colored box: [!DEFINITION], [!RETENIR] (key point), [!METHODE] (method), [!EXEMPLE] (example), [!REMARQUE] (note) or [!ATTENTION] (warning); the GitHub keywords NOTE, TIP, IMPORTANT, WARNING and CAUTION work too. Text after the marker replaces the title; a blank line ends the callout."
+    "intro": "A quote whose first line is a marker becomes a colored box: [!DEFINITION], [!KEYPOINT], [!METHOD], [!EXAMPLE], [!NOTE] or [!WARNING]; the French keywords ([!RETENIR], [!METHODE]…) and the GitHub ones (TIP, IMPORTANT, CAUTION) stay recognized. Text after the marker replaces the title; a blank line ends the callout."
   },
   "latex": {
     "title": "Formulas (LaTeX)",

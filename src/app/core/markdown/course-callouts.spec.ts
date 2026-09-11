@@ -24,9 +24,15 @@ function render(
 const title = (el: HTMLElement) => el.querySelector('.course-callout__title');
 
 describe('calloutKind', () => {
-  it('reads the six keywords, whatever the case, accents and spaces', () => {
-    expect(calloutKind('DEFINITION')).toBe('definition');
+  it('reads each type by its own name, whatever the case and accents', () => {
+    for (const kind of CALLOUT_KINDS) {
+      expect(calloutKind(kind.toUpperCase())).toBe(kind);
+      expect(calloutKind(kind)).toBe(kind);
+    }
     expect(calloutKind('Définition')).toBe('definition');
+  });
+
+  it('accepts the French keywords of the original syntax as aliases', () => {
     expect(calloutKind('retenir')).toBe('keypoint');
     expect(calloutKind('À retenir')).toBe('keypoint');
     expect(calloutKind(' a  RETENIR ')).toBe('keypoint');
@@ -36,14 +42,10 @@ describe('calloutKind', () => {
     expect(calloutKind('attention')).toBe('warning');
   });
 
-  it('accepts the GitHub alert keywords and the English spellings as aliases', () => {
-    expect(calloutKind('NOTE')).toBe('note');
+  it('accepts the GitHub alert keywords as aliases', () => {
     expect(calloutKind('TIP')).toBe('method');
     expect(calloutKind('IMPORTANT')).toBe('keypoint');
-    expect(calloutKind('WARNING')).toBe('warning');
     expect(calloutKind('caution')).toBe('warning');
-    expect(calloutKind('Example')).toBe('example');
-    expect(calloutKind('METHOD')).toBe('method');
   });
 
   it('rejects anything else', () => {
@@ -99,7 +101,9 @@ describe('renderCourseMarkdown — callouts', () => {
     );
   });
 
-  it('keywords follow calloutKind: accents, case and GitHub aliases', () => {
+  it('keywords follow calloutKind: accents, case and aliases', () => {
+    expect(render('> [!Method]\n> x').querySelector('.course-callout--method')).not.toBeNull();
+    expect(render('> [!KEYPOINT]\n> x').querySelector('.course-callout--keypoint')).not.toBeNull();
     expect(render('> [!Méthode]\n> x').querySelector('.course-callout--method')).not.toBeNull();
     expect(render('> [!à retenir]\n> x').querySelector('.course-callout--keypoint')).not.toBeNull();
     const note = render('> [!NOTE]\n> x');

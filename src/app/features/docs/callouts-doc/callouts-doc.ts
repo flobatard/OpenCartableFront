@@ -20,11 +20,28 @@ export class CalloutsDoc {
   /** Mot-clé de chacun des six types, dans l'ordre de `CALLOUT_KINDS`. */
   protected readonly kinds = [
     { keyword: '[!DEFINITION]', kind: 'definition' },
+    { keyword: '[!KEYPOINT]', kind: 'keypoint' },
+    { keyword: '[!METHOD]', kind: 'method' },
+    { keyword: '[!EXAMPLE]', kind: 'example' },
+    { keyword: '[!NOTE]', kind: 'note' },
+    { keyword: '[!WARNING]', kind: 'warning' },
+  ] as const satisfies readonly { keyword: string; kind: CalloutKind }[];
+
+  /**
+   * Alias reconnus pour toujours : les mots-clés français de la syntaxe
+   * d'origine, puis ceux des alertes GitHub sans graphie canonique (NOTE et
+   * WARNING en sont déjà). Libellés via `markdownView.callouts.*`.
+   */
+  protected readonly aliases = [
     { keyword: '[!RETENIR]', kind: 'keypoint' },
+    { keyword: '[!À RETENIR]', kind: 'keypoint' },
     { keyword: '[!METHODE]', kind: 'method' },
     { keyword: '[!EXEMPLE]', kind: 'example' },
     { keyword: '[!REMARQUE]', kind: 'note' },
     { keyword: '[!ATTENTION]', kind: 'warning' },
+    { keyword: '[!TIP]', kind: 'method' },
+    { keyword: '[!IMPORTANT]', kind: 'keypoint' },
+    { keyword: '[!CAUTION]', kind: 'warning' },
   ] as const satisfies readonly { keyword: string; kind: CalloutKind }[];
 
   protected readonly firstExample =
@@ -38,30 +55,30 @@ export class CalloutsDoc {
     '> [!DEFINITION]\n' +
     '> Le **périmètre** d’une figure est la longueur de son contour.\n' +
     '\n' +
-    '> [!RETENIR]\n' +
+    '> [!KEYPOINT]\n' +
     '> Un cercle de rayon $r$ a pour périmètre $2\\pi r$.\n' +
     '\n' +
-    '> [!METHODE]\n' +
+    '> [!METHOD]\n' +
     '> Pour un polygone, on additionne les longueurs de tous ses côtés.\n' +
     '\n' +
-    '> [!EXEMPLE]\n' +
+    '> [!EXAMPLE]\n' +
     '> Un carré de côté $3$ cm a pour périmètre $4 \\times 3 = 12$ cm.\n' +
     '\n' +
-    '> [!REMARQUE]\n' +
+    '> [!NOTE]\n' +
     '> Un périmètre s’exprime dans une unité de longueur : cm, m, km…\n' +
     '\n' +
-    '> [!ATTENTION]\n' +
+    '> [!WARNING]\n' +
     '> Ne pas confondre le périmètre (en cm) et l’aire (en cm²).';
 
   protected readonly customTitleExample =
-    '> [!RETENIR] Théorème de Pythagore\n' +
+    '> [!KEYPOINT] Théorème de Pythagore\n' +
     '> Si le triangle $ABC$ est rectangle en $C$, alors $AB^2 = AC^2 + BC^2$.\n' +
     '\n' +
-    '> [!ATTENTION] Le piège du signe $-$\n' +
+    '> [!WARNING] Le piège du signe $-$\n' +
     '> $(-3)^2 = 9$, mais $-3^2 = -9$ : la puissance passe avant le signe.';
 
   protected readonly contentExample =
-    '> [!METHODE] Résoudre une équation $ax + b = 0$\n' +
+    '> [!METHOD] Résoudre une équation $ax + b = 0$\n' +
     '> 1. Isoler le terme en $x$ : $ax = -b$.\n' +
     '> 2. Diviser par $a$, qui doit être non nul :\n' +
     '>\n' +
@@ -70,11 +87,14 @@ export class CalloutsDoc {
     '> Une ligne `>` vide sépare deux paragraphes de l’encadré.';
 
   protected readonly keywordsExample =
-    '> [!Méthode]\n' +
+    '> [!Method]\n' +
     '> Casse et accents indifférents.\n' +
     '\n' +
-    '> [!NOTE]\n' +
-    '> Mot-clé d’une alerte GitHub : il s’affiche en remarque.\n' +
+    '> [!À retenir]\n' +
+    '> Mot-clé français : il s’affiche comme [!KEYPOINT].\n' +
+    '\n' +
+    '> [!TIP]\n' +
+    '> Mot-clé d’une alerte GitHub : il s’affiche en méthode.\n' +
     '\n' +
     '> [!ASTUCE]\n' +
     '> Type inconnu : le bloc reste une simple citation.';

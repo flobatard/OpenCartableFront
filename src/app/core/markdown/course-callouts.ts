@@ -10,15 +10,18 @@ import { Token, Tokens } from 'marked';
  * Le marqueur ouvre la PREMIÈRE ligne d'une citation ; le texte qui le suit
  * sur cette ligne remplace le titre par défaut (libellé du type, dans la
  * langue de l'interface). Mot-clé insensible à la casse, aux accents et aux
- * espaces (`[!Méthode]`, `[!À retenir]`) ; les cinq mots-clés GitHub sont des
- * alias. Type inconnu ou marqueur ailleurs qu'en tête : la citation reste une
- * citation, marqueur visible (repli lisible, rien n'est perdu).
+ * espaces (`[!Method]`, `[!À retenir]`) ; les mots-clés français et les cinq
+ * mots-clés GitHub sont des alias. Type inconnu ou marqueur ailleurs qu'en
+ * tête : la citation reste une citation, marqueur visible (repli lisible,
+ * rien n'est perdu).
  *
- * Les mots-clés sont un CONTRAT DE CONTENU — écrits dans le markdown des
- * blocs, cités par le catalogue de l'assistant et gardés par les tests du
- * cours d'exemple côté back : on en ajoute, on n'en retire ni n'en renomme.
- * Les types, eux, sont des clés internes (classes CSS, clés i18n) : les
- * mots-clés français de la syntaxe y sont traduits.
+ * Les mots-clés CANONIQUES sont les types eux-mêmes, en anglais comme toute
+ * clé du code (ils nomment aussi les classes CSS et les clés i18n) : c'est la
+ * graphie que documentent les pages d'aide, le catalogue de l'assistant et le
+ * cours d'exemple. Les mots-clés sont un CONTRAT DE CONTENU — écrits dans le
+ * markdown des blocs, gardés par les tests du cours d'exemple côté back : on
+ * en ajoute, on n'en retire ni n'en renomme (les alias français d'avant le
+ * passage à l'anglais restent reconnus pour toujours).
  *
  * Module pur (découpage des tokens marked d'une citation) : le HTML est
  * produit par `course-markdown.ts` et sanitisé avec le reste du bloc.
@@ -55,21 +58,24 @@ export const CALLOUT_FALLBACK_TITLES: CalloutTitles = {
 
 /** Mot-clé normalisé (majuscules, sans accent, espaces simples) → type. */
 const KEYWORDS: ReadonlyMap<string, CalloutKind> = new Map([
+  // Graphie canonique : le type lui-même, dans l'ordre de `CALLOUT_KINDS`.
   ['DEFINITION', 'definition'],
+  ['KEYPOINT', 'keypoint'],
+  ['METHOD', 'method'],
+  ['EXAMPLE', 'example'],
+  ['NOTE', 'note'],
+  ['WARNING', 'warning'],
+  // Alias français, graphie d'origine de la syntaxe : reconnus pour toujours.
   ['RETENIR', 'keypoint'],
   ['A RETENIR', 'keypoint'],
   ['METHODE', 'method'],
   ['EXEMPLE', 'example'],
   ['REMARQUE', 'note'],
   ['ATTENTION', 'warning'],
-  // Alertes GitHub, et graphies anglaises des mots-clés sans équivalent GitHub.
-  ['NOTE', 'note'],
+  // Alertes GitHub sans équivalent canonique (NOTE et WARNING en sont déjà).
   ['TIP', 'method'],
   ['IMPORTANT', 'keypoint'],
-  ['WARNING', 'warning'],
   ['CAUTION', 'warning'],
-  ['EXAMPLE', 'example'],
-  ['METHOD', 'method'],
 ]);
 
 /** Marqueur en tête de citation, espaces qui le suivent compris. */

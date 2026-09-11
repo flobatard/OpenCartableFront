@@ -81,7 +81,7 @@ describe('MarkdownView', () => {
   });
 
   it('titles callouts in the interface language, re-rendered when it changes', async () => {
-    const fixture = await createComponent('> [!RETENIR]\n> Le périmètre du cercle vaut $2\\pi r$.');
+    const fixture = await createComponent('> [!KEYPOINT]\n> Le périmètre du cercle vaut $2\\pi r$.');
     const title = () => content(fixture)?.querySelector('.course-callout__title')?.textContent;
     expect(title()).toBe('À retenir');
 

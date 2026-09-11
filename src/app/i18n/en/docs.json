@@ -188,12 +188,7 @@
     },
     "keywords": {
       "title": "Accepted keywords",
-      "body": "Case and accents do not matter: [!Méthode] equals [!METHODE], [!À retenir] equals [!RETENIR]. GitHub alert keywords and a few English spellings are recognized too:",
-      "note": "note (remarque);",
-      "tip": "method (méthode);",
-      "important": "key point (retenir);",
-      "warning": "warning (attention);",
-      "example": "example (exemple).",
+      "body": "Case and accents do not matter: [!Method] equals [!METHOD]. The French keywords of the original syntax and the GitHub alert keywords stay recognized, forever:",
       "unknown": "An unknown type leaves the quote as is, marker visible. To write the marker without creating a callout, escape the bracket: > \\[!NOTE]."
     },
     "print": {

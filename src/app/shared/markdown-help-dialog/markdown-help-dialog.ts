@@ -33,7 +33,7 @@ export class MarkdownHelpDialog {
 
   protected readonly calloutExample =
     '> [!DEFINITION]\n> Une fonction affine s’écrit $f(x) = ax + b$.\n\n' +
-    '> [!ATTENTION] Titre libre\n> Le texte après le marqueur remplace le titre.';
+    '> [!WARNING] Titre libre\n> Le texte après le marqueur remplace le titre.';
 
   protected readonly mhchemExample = '$\\ce{2H2 + O2 -> 2H2O}$\n$\\pu{9.81 m.s^-2}$';
 

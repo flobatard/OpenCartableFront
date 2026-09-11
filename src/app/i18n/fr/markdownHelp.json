@@ -22,7 +22,7 @@
   },
   "callouts": {
     "title": "Encadrés",
-    "intro": "Une citation dont la première ligne est un marqueur devient un encadré coloré : [!DEFINITION], [!RETENIR], [!METHODE], [!EXEMPLE], [!REMARQUE] ou [!ATTENTION]. Un texte écrit après le marqueur remplace le titre ; une ligne vide termine l'encadré."
+    "intro": "Une citation dont la première ligne est un marqueur devient un encadré coloré : [!DEFINITION], [!KEYPOINT], [!METHOD], [!EXAMPLE], [!NOTE] ou [!WARNING] ; les mots-clés français ([!RETENIR], [!METHODE]…) et ceux des alertes GitHub (TIP, IMPORTANT, CAUTION) restent reconnus. Un texte écrit après le marqueur remplace le titre ; une ligne vide termine l'encadré."
   },
   "latex": {
     "title": "Formules (LaTeX)",

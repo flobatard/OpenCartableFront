@@ -188,12 +188,7 @@
     },
     "keywords": {
       "title": "Mots-clés acceptés",
-      "body": "Casse et accents sont indifférents : [!Méthode] vaut [!METHODE], [!À retenir] vaut [!RETENIR]. Les mots-clés des alertes GitHub et quelques graphies anglaises sont aussi reconnus :",
-      "note": "remarque ;",
-      "tip": "méthode ;",
-      "important": "à retenir ;",
-      "warning": "attention ;",
-      "example": "exemple.",
+      "body": "Casse et accents sont indifférents : [!Method] vaut [!METHOD]. Les mots-clés français de la syntaxe d'origine et ceux des alertes GitHub restent reconnus, pour toujours :",
       "unknown": "Un type inconnu laisse la citation telle quelle, marqueur visible. Pour écrire le marqueur sans créer d'encadré, échappez le crochet : > \\[!NOTE]."
     },
     "print": {

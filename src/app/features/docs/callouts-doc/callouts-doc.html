@@ -35,14 +35,11 @@
   <h2>{{ 'docs.callouts.keywords.title' | transloco }}</h2>
   <p>{{ 'docs.callouts.keywords.body' | transloco }}</p>
   <ul class="doc-rules">
-    <li><code>NOTE</code> → {{ 'docs.callouts.keywords.note' | transloco }}</li>
-    <li><code>TIP</code>, <code>METHOD</code> → {{ 'docs.callouts.keywords.tip' | transloco }}</li>
-    <li><code>IMPORTANT</code> → {{ 'docs.callouts.keywords.important' | transloco }}</li>
-    <li>
-      <code>WARNING</code>, <code>CAUTION</code> →
-      {{ 'docs.callouts.keywords.warning' | transloco }}
-    </li>
-    <li><code>EXAMPLE</code> → {{ 'docs.callouts.keywords.example' | transloco }}</li>
+    @for (entry of aliases; track entry.keyword) {
+      <li>
+        <code>{{ entry.keyword }}</code> — {{ 'markdownView.callouts.' + entry.kind | transloco }}
+      </li>
+    }
   </ul>
   <p>{{ 'docs.callouts.keywords.unknown' | transloco }}</p>
   <pre class="doc-source">{{ keywordsExample }}</pre>
