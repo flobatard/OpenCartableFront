@@ -33,16 +33,20 @@ audio.course-preview-document__media {
 /* Rangée de repli sous l'embed (chemin nominal iOS Safari : 1re page seule). */
 .course-preview-document__actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 8px;
 }
 
 /* Carte téléchargeable (autres documents, PDF en mode téléchargement, ou
    repli sur présignature échouée). */
+/* Passe à la ligne sur colonne étroite : nom (sans point de coupure dans un
+   `Chapitre_3_exercices.pdf`) au-dessus, taille et bouton en dessous. */
 .course-preview-document__card {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 8px 12px;
   padding: 12px 16px;
   background: var(--bg-surface);
   border: 1px solid var(--border);
@@ -50,7 +54,10 @@ audio.course-preview-document__media {
 }
 
 .course-preview-document__name {
+  flex: 1 1 12em;
+  min-width: 0;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .course-preview-document__meta {

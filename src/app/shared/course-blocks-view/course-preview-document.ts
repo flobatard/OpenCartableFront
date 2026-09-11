@@ -20,6 +20,10 @@ import { formatBytes, isPdfResource } from '../../core/resources/resource.utils'
  * l'origine S3 (cross-origin) et du `Content-Type: application/pdf` signé au
  * PUT, qui interdit au navigateur d'y rendre du HTML.
  *
+ * Navigateur sans visionneuse PDF intégrée (`navigator.pdfViewerEnabled`
+ * faux — Chrome Android) : l'iframe resterait blanche, le PDF `inline` retombe
+ * sur la carte téléchargeable.
+ *
  * Navigateur uniquement : la résolution d'URL présignée touche le réseau et
  * `window` — la page hôte (onglet Aperçu) est en `RenderMode.Client`.
  */
@@ -33,6 +37,8 @@ export class CoursePreviewDocument {
   readonly #resources = inject(COURSE_RESOURCE_RESOLVER);
   readonly #sanitizer = inject(DomSanitizer);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  /** Le navigateur sait afficher un PDF dans une iframe (faux sur Chrome Android). */
+  readonly #pdfViewer = this.#isBrowser && navigator.pdfViewerEnabled !== false;
 
   readonly courseId = input.required<string>();
   /** Ressource pointée, déjà résolue par le parent (`undefined` = supprimée/inconnue). */
@@ -95,7 +101,7 @@ export class CoursePreviewDocument {
           });
         return;
       }
-      if (this.#isPdf(resource) && display === 'inline') {
+      if (this.#isPdf(resource) && display === 'inline' && this.#pdfViewer) {
         void this.#resources
           .getDownloadUrl(courseId, resource.id, 'inline')
           .then((url) => {
@@ -137,6 +143,7 @@ export class CoursePreviewDocument {
       !!resource &&
       this.#isPdf(resource) &&
       this.display() === 'inline' &&
+      this.#pdfViewer &&
       this.pdfUrl() !== null &&
       !this.error()
     );

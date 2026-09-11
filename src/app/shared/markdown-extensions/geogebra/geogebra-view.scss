@@ -1,6 +1,10 @@
+// Largeur = celle de la config, bornée à la colonne ; hauteur déduite du ratio
+// de la config (aspect-ratio posé par le template) — sans quoi une colonne de
+// téléphone gardait 450 px de haut pour 330 de large.
 .geogebra-view__frame {
   display: block;
   max-width: 100%;
+  height: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-surface);

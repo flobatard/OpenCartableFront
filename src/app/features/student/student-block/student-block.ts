@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject } from '@angular/core';
+import { afterNextRender, Component, computed, effect, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -101,6 +101,12 @@ export class StudentBlock {
     publicCourseLink(this.#language.lang(), this.#courses.access(), 'blocks', blockId);
 
   constructor() {
+    // Arrivée sur la page (depuis le sommaire, un autre onglet, une citation) :
+    // la lecture commence en haut du bloc — sinon, sur téléphone, un bloc ouvert
+    // depuis le bas d'un long sommaire s'afficherait à mi-hauteur. L'instance
+    // survit ensuite au passage d'un bloc à l'autre (cf. `scrollToTop`).
+    afterNextRender(() => window.scrollTo({ top: 0 }));
+
     // Fils du tuteur : chargés pour chaque bloc exercice affiché à un élève
     // connecté (paramMap observé : le changement de bloc recharge).
     effect(() => {

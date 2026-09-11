@@ -9,12 +9,16 @@
       }}
     </span>
     @if (previous(); as target) {
-      <a class="btn btn--secondary" [routerLink]="blockLinkFor(target)">
+      <a class="btn btn--secondary student-block__previous" [routerLink]="blockLinkFor(target)">
         ← {{ 'student.course.previousBlock' | transloco }}
       </a>
     }
     @if (next(); as target) {
-      <a class="btn btn--secondary" [routerLink]="blockLinkFor(target)" (click)="scrollToTop()">
+      <a
+        class="btn btn--secondary student-block__next"
+        [routerLink]="blockLinkFor(target)"
+        (click)="scrollToTop()"
+      >
         {{ 'student.course.nextBlock' | transloco }} →
       </a>
     }

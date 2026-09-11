@@ -192,7 +192,7 @@ Toute la zone d'édition/lecture d'un cours vit sous `.course-content` : largeur
 - **Titre** Outfit 600, 24/20 px. **Paragraphe** Inter 400, 16 px.
 - **Encadré** (`> [!DEFINITION]`…, six types) : fond de la teinte `500` de la famille à 10 % et liseré gauche `3px` de cette teinte (`radius 0`) — mêmes valeurs dans les deux thèmes —, icône linéaire du type (16–20 px) dans le ton texte AAA de la famille, titre Outfit 600 et texte en `text-primary`. Définition = indigo (`indigo-700`) · À retenir = ambre (`amber-800`, jamais un mot en ambre) · Méthode = émeraude (`emerald-800`) · Exemple = sky (`sky-800`) · Remarque = slate (`slate-600`) · Attention = rouge (`red-800`) ; icônes en versions `300`/`400` en sombre, tons clairs à l'impression. Le type n'est jamais porté par la seule couleur : icône par type, et un titre personnalisé est précédé du libellé du type en `.sr-only`.
 - **Fichier / image** : carte icône + nom + taille, téléchargement en bouton fantôme, **légende `slate-600`**.
-- **Module interactif** : cadre `1px slate-500 dashed`, badge « interactif », iframe sandbox (hauteur pilotée par l'auto-resize du module). États vide (« aucun module choisi ») et manquant (module supprimé) : note atténuée façon `.course-resource--missing` (bordure dashed, `--text-secondary`).
+- **Module interactif** : cadre `1px slate-500 dashed`, badge « interactif », iframe sandbox (hauteur pilotée par l'auto-resize du module), bouton fantôme « Agrandir » qui bascule le cadre en calque plein écran (fond `bg-page`, « Réduire » ou Escape pour revenir). États vide (« aucun module choisi ») et manquant (module supprimé) : note atténuée façon `.course-resource--missing` (bordure dashed, `--text-secondary`).
 
 ### Spinner / loader
 
@@ -340,7 +340,8 @@ Règles :
 - Rangées d'actions : `flex-wrap: wrap`, jamais un groupe `flex: 0 0 auto` sans retour à la ligne (l'état « Confirmer … » est plus large que l'état de repos).
 - Hauteurs d'écran en `dvh`/`svh`, précédées d'un repli `vh`.
 - Champs de saisie ≥ **16 px** sur téléphone (sinon Safari iOS zoome au focus).
-- Cibles tactiles ≥ **40 px** ; sous `bp.touch`, tout ce que le desktop révèle au survol est visible d'emblée.
+- Cibles tactiles ≥ **40 px** ; sous `bp.touch`, tout ce que le desktop révèle au survol est visible d'emblée (ex. les boutons imprimer / style de lecture d'un bloc passent dans le flux, au-dessus du contenu).
+- Contenu de cours : un mot plus long que la ligne passe à la ligne (`overflow-wrap`) ; tableaux dans `.course-table` et formules centrées défilent dans leur boîte ; figures (JSXGraph, GeoGebra) gardent leur ratio ; une figure interactive ne capture jamais le défilement à un doigt ; un module interactif s'agrandit en plein écran.
 
 ---
 

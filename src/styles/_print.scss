@@ -207,6 +207,12 @@
     overflow-wrap: anywhere;
   }
 
+  /* Tableau : son conteneur ne défile pas sur papier (rien ne serait coupé
+     silencieusement au bord de la page par un défilement invisible). */
+  #oc-print-root .course-content .course-table {
+    overflow: visible;
+  }
+
   /* Encadrés : insécables quand ils tiennent sur la page ; le rythme papier des
      paragraphes ci-dessus ne doit ni écarter le titre ni creuser le bas. */
   #oc-print-root .course-content .course-callout {

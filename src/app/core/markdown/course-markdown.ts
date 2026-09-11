@@ -3,7 +3,7 @@ import katex from 'katex';
 // Side-effect : enregistre `\ce` et `\pu` (chimie, unités) sur la MÊME
 // instance que `katex` (le module importe `../katex.mjs`).
 import 'katex/contrib/mhchem';
-import { Marked, Parser, Tokens, TokenizerAndRendererExtension } from 'marked';
+import { Marked, Parser, Renderer, Tokens, TokenizerAndRendererExtension } from 'marked';
 import { BLOCK_REF_ATTR, parseBlockRef } from './course-block-ref';
 import {
   CALLOUT_FALLBACK_TITLES,
@@ -207,9 +207,16 @@ function calloutHtml(parser: Parser, callout: CalloutParts): string {
 // Override du renderer blockquote : une citation ouverte par un marqueur
 // `[!TYPE]` connu devient un encadré, toute autre citation garde le rendu
 // par défaut.
+//
+// Override du renderer table : le tableau (rendu par défaut, sémantique
+// intacte) est enveloppé d'un conteneur `.course-table` qui défile
+// horizontalement — un tableau large ne peut pas élargir la page (téléphone).
 const courseMarked = new Marked({
   extensions: [mathBlock, mathInline],
   renderer: {
+    table(token) {
+      return `<div class="course-table">${Renderer.prototype.table.call(this, token)}</div>`;
+    },
     blockquote({ tokens }) {
       const callout = splitCallout(tokens);
       return callout === null ? false : calloutHtml(this.parser, callout);

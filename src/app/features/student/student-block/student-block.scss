@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: block;
 }
@@ -34,6 +36,37 @@
 .student-block__back {
   margin: 0;
   text-align: center;
+}
+
+/* Téléphone : la barre du haut en deux lignes réglées — retour au sommaire et
+   position, puis Précédent / Suivant à parts égales (Suivant toujours à droite,
+   même sans Précédent) ; celle du bas à parts égales aussi. */
+@include bp.mobile {
+  .student-block__nav:not(.student-block__nav--footer) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .student-block__nav:not(.student-block__nav--footer) > .btn--ghost {
+    justify-self: start;
+  }
+
+  .student-block__position {
+    justify-self: end;
+  }
+
+  .student-block__next {
+    grid-column: 2;
+  }
+
+  .student-block__nav--footer {
+    gap: 8px;
+  }
+
+  .student-block__nav--footer > * {
+    flex: 1 1 0;
+  }
 }
 
 /* Seul le contenu du bloc part au PDF : la navigation n'a rien à y faire. */

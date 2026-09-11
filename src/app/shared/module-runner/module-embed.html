@@ -1,7 +1,29 @@
 @switch (state()) {
   @case ('ready') {
-    <div class="module-embed__frame">
+    <!-- « Agrandir » : le cadre passe en calque plein écran par CSS, sans
+         déplacer l'iframe dans le DOM (elle garderait sinon d'être rechargée :
+         l'état du module serait perdu). -->
+    <div class="module-embed__frame" [class.module-embed__frame--expanded]="expanded()">
       <span class="module-embed__badge">{{ 'moduleEmbed.badge' | transloco }}</span>
+      <div class="module-embed__toolbar">
+        <button
+          #expandToggle
+          type="button"
+          class="btn btn--ghost module-embed__expand"
+          [attr.aria-pressed]="expanded()"
+          (click)="toggleExpanded()"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            @if (expanded()) {
+              <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
+            } @else {
+              <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+            }
+          </svg>
+          {{ (expanded() ? 'moduleEmbed.collapse' : 'moduleEmbed.expand') | transloco }}
+        </button>
+      </div>
       <app-module-runner
         [html]="module()!.html"
         [css]="module()!.css"

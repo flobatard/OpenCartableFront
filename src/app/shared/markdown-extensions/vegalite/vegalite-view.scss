@@ -7,7 +7,10 @@
 // Padding horizontal = BOARD_PADDING de vegalite-view.ts.
 .vegalite-view__board {
   display: flex;
+  // `safe` : un graphique plus large que la planche reste atteignable par le
+  // défilement (centré, il serait rogné à gauche).
   justify-content: center;
+  justify-content: safe center;
   max-width: 100%;
   overflow-x: auto;
   padding: 0.75rem 1rem;

@@ -34,6 +34,15 @@ describe('renderCourseMarkdown', () => {
     expect(div.querySelector('.katex')).toBeNull();
   });
 
+  it('wraps a GFM table in a scroll container that survives sanitization', () => {
+    const div = render('| A | B |\n|---|---|\n| $x^2$ | 2 |');
+    const wrapper = div.querySelector('.course-table');
+    expect(wrapper?.tagName).toBe('DIV');
+    expect(wrapper?.firstElementChild?.tagName).toBe('TABLE');
+    expect(wrapper?.querySelectorAll('th')).toHaveLength(2);
+    expect(wrapper?.querySelector('td .katex')).toBeTruthy();
+  });
+
   it('renders an inline $…$ formula without display mode', () => {
     const div = render('Soit $x^2$ un carré.');
     expect(div.querySelectorAll('.katex')).toHaveLength(1);

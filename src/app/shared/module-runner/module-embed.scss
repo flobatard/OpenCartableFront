@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 // Cadre du module interactif (DESIGN_SYSTEM.md §Blocs de contenu) : cadre
 // slate dashed + badge « interactif » ; les notices (vide/manquant)
 // reprennent `.course-resource--missing`.
@@ -21,6 +23,63 @@
   color: var(--text-secondary);
   font-size: 0.75rem;
   text-transform: lowercase;
+}
+
+.module-embed__toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: -4px 0 4px;
+}
+
+.module-embed__expand {
+  padding: 6px 10px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+// Calque plein écran : au-dessus du header (sticky, z 10), du bandeau de
+// consentement (150) et de la snackbar (200) ; il défile lui-même quand le
+// module est plus haut que l'écran, sans entraîner la page derrière.
+.module-embed__frame--expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  padding: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--bg-page);
+  border: 0;
+  border-radius: 0;
+
+  .module-embed__badge {
+    display: none;
+  }
+
+  .module-embed__toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin: 0 0 8px;
+  }
+
+  .module-embed__expand {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+  }
+}
+
+// Téléphone : chaque pixel de largeur compte pour le module.
+@include bp.mobile {
+  .module-embed__frame:not(.module-embed__frame--expanded) {
+    padding: 12px 4px 4px;
+  }
+}
+
+// Sur papier, le module est substitué (print.service) ; jamais de bouton.
+@media print {
+  .module-embed__toolbar {
+    display: none;
+  }
 }
 
 .module-embed__notice {

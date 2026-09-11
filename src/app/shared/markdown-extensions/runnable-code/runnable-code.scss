@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: block;
 }
@@ -38,5 +40,13 @@
 @media print {
   .runnable__toolbar {
     display: none;
+  }
+}
+
+// Téléphone : l'éditeur de code à 16 px au moins (Safari iOS zoome au focus
+// d'un champ plus petit) ; le code en lecture seule garde sa taille.
+@include bp.mobile {
+  .runnable__editor {
+    font-size: max(16px, 0.875em);
   }
 }

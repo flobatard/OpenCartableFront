@@ -1,8 +1,11 @@
-// JSXGraph lit les dimensions du conteneur à l'init : hauteur explicite requise.
+// JSXGraph lit les dimensions du conteneur à l'init : hauteur définie requise.
+// Ratio 16:9 plutôt qu'une hauteur fixe : 640×360 sur desktop comme avant, et
+// sur une colonne de téléphone la figure garde ses proportions (360 px de haut
+// sur 330 px de large écrasaient l'axe des x).
 .jsxgraph-view__board {
   width: 100%;
   max-width: 640px;
-  height: 360px;
+  aspect-ratio: 16 / 9;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-surface);

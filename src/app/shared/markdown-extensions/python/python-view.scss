@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: block;
   margin: 1rem 0;
@@ -79,5 +81,12 @@
 @media print {
   .python-view__stdin {
     display: none;
+  }
+}
+
+// Téléphone : entrée standard à 16 px au moins (zoom au focus de Safari iOS).
+@include bp.mobile {
+  .python-view__stdin textarea {
+    font-size: 16px;
   }
 }

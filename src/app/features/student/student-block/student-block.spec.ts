@@ -170,9 +170,12 @@ describe('StudentBlock', () => {
     ]);
   });
 
-  it('scrolls back to top when following the next link only', async () => {
+  it('scrolls to top on arrival, then when following the next link only', async () => {
     const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
     const fixture = await createComponent('block-2');
+    // Arrivée sur la page (depuis le sommaire…) : lecture en haut du bloc.
+    expect(scrollTo).toHaveBeenCalledExactlyOnceWith({ top: 0 });
+    scrollTo.mockClear();
 
     const [previous, next] = Array.from(
       el(fixture).querySelectorAll<HTMLAnchorElement>('.student-block__nav--footer a'),

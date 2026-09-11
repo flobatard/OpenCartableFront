@@ -98,6 +98,18 @@ describe('CoursePreviewDocument', () => {
     expect(el(fixture).querySelector('.course-preview-document__card')).toBeTruthy();
   });
 
+  it('falls back to the card for an inline PDF when the browser has no PDF viewer', async () => {
+    Object.defineProperty(navigator, 'pdfViewerEnabled', { value: false, configurable: true });
+    try {
+      const fixture = await createComponent(PDF);
+      expect(getDownloadUrl).not.toHaveBeenCalled();
+      expect(el(fixture).querySelector('iframe')).toBeNull();
+      expect(el(fixture).querySelector('.course-preview-document__card')).toBeTruthy();
+    } finally {
+      delete (navigator as { pdfViewerEnabled?: boolean }).pdfViewerEnabled;
+    }
+  });
+
   it('the PDF action row opens a tab (inline) and downloads (attachment)', async () => {
     const fixture = await createComponent(PDF);
     const open = vi.spyOn(window, 'open').mockReturnValue(null);

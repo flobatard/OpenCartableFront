@@ -19,6 +19,13 @@ import { parseJsxgraphConfig } from './jsxgraph-config';
  */
 type Jxg = typeof import('jsxgraph');
 type Board = import('jsxgraph').Board;
+/**
+ * Attributs d'`initBoard`, plus `browserPan` : documenté et lu par JSXGraph
+ * (`JXG.Board#browserPan`) mais absent de ses typages.
+ */
+type BoardAttributes = NonNullable<Parameters<Jxg['JSXGraph']['initBoard']>[1]> & {
+  browserPan: boolean;
+};
 
 async function loadJxg(): Promise<Jxg> {
   const mod: unknown = await import('jsxgraph');
@@ -79,13 +86,21 @@ export class JsxgraphView implements MarkdownExtensionComponent {
       this.#freeBoard();
       this.error.set(false);
       const config = parseJsxgraphConfig(source);
-      const board = JXG.JSXGraph.initBoard(el, {
+      const attributes: BoardAttributes = {
         boundingbox: [...config.boundingBox],
         axis: true,
         showNavigation: false,
         showCopyright: false,
         keepAspectRatio: false,
-      });
+        // Tactile : un doigt fait défiler la PAGE (sinon une figure de la
+        // largeur de l'écran piège le défilement) ; déplacer la figure en
+        // demande deux. JSXGraph pose `touch-action: none` à l'init et ne le
+        // relâche qu'au premier contact : on le relâche d'emblée.
+        pan: { enabled: true, needTwoFingers: true },
+        browserPan: true,
+      };
+      const board = JXG.JSXGraph.initBoard(el, attributes);
+      el.style.touchAction = 'auto';
       this.#board = board;
       for (const equation of config.equations) {
         // JessieCode : parseur sandboxé, l'équation devient une fonction de x.

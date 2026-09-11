@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 /* Colonne alignée sur celle des markdown-views : mêmes police, taille et
    largeur que `.course-content` (_tokens.scss) — le `ch` de --course-width
    coïncide, les cartes ne débordent pas de la colonne de lecture. Le style de
@@ -53,9 +55,10 @@
   gap: 24px;
 }
 
+/* Padding fluide : 16 px, resserré jusqu'à 12 px sur un téléphone étroit. */
 .exercise-view__question {
   gap: 12px;
-  padding: 16px;
+  padding: min(16px, 3.2vw);
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -107,7 +110,9 @@
 
 /* Champs natifs (DS §Champs : bordure porteuse slate-500) — zone de réponse et
    composer du fil. `field-sizing` fait grandir la zone avec la saisie là où il
-   est supporté ; ailleurs, `rows` et le redimensionnement manuel font le repli. */
+   est supporté ; ailleurs, `rows` et le redimensionnement manuel font le repli.
+   Jamais sous 16 px, même avec un petit style de lecture : Safari iOS zoome au
+   focus d'un champ plus petit. */
 .exercise-view__answer,
 .exercise-view__reply {
   width: 100%;
@@ -117,7 +122,7 @@
   background: var(--bg-surface);
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 1em;
+  font-size: max(16px, 1em);
   line-height: 1.6;
   resize: vertical;
   field-sizing: content;
@@ -153,7 +158,8 @@
   gap: 12px;
 }
 
-.exercise-view__correction-title {
+.exercise-view__correction-title,
+.exercise-view__revealed-title {
   margin: 0;
   font-family: var(--font-display);
   font-size: 1em;
@@ -176,6 +182,7 @@
 
 .exercise-view__student,
 .exercise-view__revealed-answer {
+  margin: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -235,15 +242,9 @@
 }
 
 .exercise-view__revealed-title {
-  margin: 0 0 4px;
+  margin-bottom: 4px;
   color: var(--text-success);
-  font-family: var(--font-display);
   font-size: 0.95em;
-  font-weight: 600;
-}
-
-.exercise-view__revealed-answer {
-  margin: 0;
 }
 
 .exercise-view__clear-thread {
@@ -260,7 +261,6 @@
 .exercise-view__reply {
   flex: 1;
   min-width: 0;
-  font-size: 0.95em;
 }
 
 .exercise-view__footer {
@@ -278,4 +278,13 @@
 
 .exercise-view__clear--armed {
   color: var(--text-danger);
+}
+
+/* Téléphone : les retraits emboîtés (carte, fil du tuteur, bulle) laissaient
+   ~170 px à la réponse de l'élève et au retour du tuteur. Carte resserrée
+   (ci-dessus), fil aux retraits latéraux réduits. */
+@include bp.mobile {
+  .exercise-view__correction {
+    padding-inline: 8px;
+  }
 }

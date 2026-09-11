@@ -1,5 +1,16 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, effect, inject, input, PLATFORM_ID, signal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  effect,
+  ElementRef,
+  inject,
+  Injector,
+  input,
+  PLATFORM_ID,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { COURSE_MODULE_RESOLVER } from '../../core/course-content/course-content-resolvers';
 import { ModuleDetail } from '../../core/modules/module.model';
@@ -16,6 +27,10 @@ import { ModuleRunner } from './module-runner';
  *
  * L'hôte porte `data-oc-module-id` (survit au clonage) : c'est la clé de la
  * substitution « contenu interactif » à l'impression (print.service).
+ * « Agrandir » bascule le cadre en calque plein écran (CSS `position: fixed`,
+ * pas `requestFullscreen`, absent de Safari iOS sur un élément) : l'iframe n'est
+ * jamais déplacée dans le DOM, le module garde son état. Escape réduit.
+ *
  * Client-only (résolution HTTP + iframe).
  */
 @Component({
@@ -25,6 +40,7 @@ import { ModuleRunner } from './module-runner';
   styleUrl: './module-embed.scss',
   host: {
     '[attr.data-oc-module-id]': 'moduleId()',
+    '(document:keydown.escape)': 'collapse()',
   },
 })
 export class ModuleEmbed {
@@ -35,8 +51,13 @@ export class ModuleEmbed {
   /** `null` = bloc module encore vide (aucun module choisi). */
   readonly moduleId = input<string | null>(null);
 
+  readonly #injector = inject(Injector);
+
   protected readonly module = signal<ModuleDetail | null>(null);
   protected readonly state = signal<'empty' | 'loading' | 'missing' | 'ready'>('empty');
+  protected readonly expanded = signal(false);
+
+  protected readonly expandToggle = viewChild<ElementRef<HTMLButtonElement>>('expandToggle');
 
   constructor() {
     // Résolution avec stale-guard : seule la dernière paire (courseId,
@@ -69,6 +90,21 @@ export class ModuleEmbed {
           }
         },
       );
+    });
+  }
+
+  protected toggleExpanded(): void {
+    this.expanded.set(!this.expanded());
+  }
+
+  /** Escape : réduit le calque et rend le focus au bouton (resté au même endroit). */
+  protected collapse(): void {
+    if (!this.expanded()) {
+      return;
+    }
+    this.expanded.set(false);
+    afterNextRender(() => this.expandToggle()?.nativeElement.focus(), {
+      injector: this.#injector,
     });
   }
 }

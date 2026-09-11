@@ -7,7 +7,10 @@
 
 .tikz-view__container {
   display: flex;
+  // `safe` : une figure plus large que la planche déborde à droite, donc reste
+  // atteignable par le défilement (centrée, elle serait rognée à gauche).
   justify-content: center;
+  justify-content: safe center;
   // Planche claire FIXE dans les deux thèmes (comme les tokens de lecture
   // forcés clairs de _print.scss) : TikZ trace en noir par défaut, un fond
   // thémé sombre rendrait la figure invisible. La bordure délimite la

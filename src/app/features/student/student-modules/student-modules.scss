@@ -29,13 +29,18 @@
   border-color: var(--color-primary);
 }
 
+/* Deux lignes au plus : un titre de module tient rarement sur une ligne de
+   téléphone. */
 .student-modules__title {
+  display: -webkit-box;
   overflow: hidden;
   flex: 1 1 200px;
   min-width: 0;
   font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: break-word;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .student-modules__open {

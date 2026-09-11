@@ -46,14 +46,18 @@
 
 .student-summary__title {
   font-weight: 600;
+  overflow-wrap: break-word;
 }
 
+/* Deux lignes au plus (une seule ne montrait presque rien sur téléphone). */
 .student-summary__desc {
+  display: -webkit-box;
   overflow: hidden;
   color: var(--text-secondary);
   font-size: 13px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .student-summary__type {

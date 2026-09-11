@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: block;
   position: relative; /* ancre les boutons flottants */
@@ -48,6 +50,24 @@
 .markdown-view__action:focus-visible {
   opacity: 1;
   color: var(--text-primary);
+}
+
+/* Écran tactile : pas de survol pour révéler des boutons à 12 % d'opacité, qui
+   seraient à la fois invisibles et posés sur le premier titre (un tap y lancerait
+   l'impression par erreur). Ils passent dans le flux, alignés à droite au-dessus
+   du contenu, francs et à taille de doigt. */
+@include bp.touch {
+  .markdown-view__actions {
+    position: static;
+    justify-content: flex-end;
+    margin-bottom: 4px;
+  }
+
+  .markdown-view__action {
+    width: 40px;
+    height: 40px;
+    opacity: 1;
+  }
 }
 
 /* En mouvement réduit, pas de fondu : les boutons restent discrètement visibles. */

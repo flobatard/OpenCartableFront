@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 /* Contenu de cours (.course-content) — rendu markdown des blocs (markdown-view).
    Cible AAA (7:1) + présentation visuelle 1.4.8. Tokens : _tokens.scss. */
 
@@ -20,6 +22,9 @@
   max-width: var(--course-width, 68ch);
   line-height: calc(1.7 * var(--course-line-scale, 1));
   text-align: left;
+  /* Un mot plus long que la ligne (URL, `code` inline, nom de fichier) passe à
+     la ligne au lieu d'élargir la page — seulement quand il déborde. */
+  overflow-wrap: break-word;
 }
 
 .course-content p {
@@ -52,10 +57,15 @@
 }
 
 /* Formules KaTeX centrées ($$…$$) : rythme vertical des paragraphes, et
-   défilement horizontal plutôt que débordement pour les formules larges. */
+   défilement horizontal plutôt que débordement pour les formules larges.
+   `overflow-y: hidden` + un filet de padding : sans eux, `overflow-x: auto`
+   calcule aussi un défilement vertical et une barre parasite apparaît sous les
+   formules hautes (fractions, grands opérateurs). */
 .course-content .katex-display {
   margin-block: 0 1.5em;
+  padding-block: 2px;
   overflow-x: auto;
+  overflow-y: hidden;
 }
 
 /* Diagrammes Mermaid (rendus par renderCourseDiagrams) : figure centrée,
@@ -121,11 +131,17 @@
 }
 
 /* Tableaux GFM du markdown de cours : bordures discrètes, en-tête sur fond
-   subtil — tokens uniquement (documentés dans l'aide markdown). */
+   subtil — tokens uniquement (documentés dans l'aide markdown). Le renderer
+   les enveloppe dans `.course-table` (course-markdown.ts), qui porte le rythme
+   vertical et le défilement horizontal d'un tableau plus large que la colonne. */
+.course-content .course-table {
+  max-width: 100%;
+  margin: 0 0 1em;
+  overflow-x: auto;
+}
+
 .course-content table {
   border-collapse: collapse;
-  margin: 0 0 1em;
-  max-width: 100%;
 }
 
 .course-content th,
@@ -138,6 +154,26 @@
 .course-content th {
   background: var(--bg-subtle);
   font-weight: 600;
+}
+
+/* Citation ordinaire (une citation `[!TYPE]` est un encadré, ci-dessous) : filet
+   gauche au lieu des marges de 40 px du navigateur, qui mangent une colonne de
+   téléphone. */
+.course-content blockquote {
+  margin: 0 0 calc(1.5em * var(--course-para-scale, 1));
+  padding-left: 1em;
+  border-left: 3px solid var(--border-control);
+}
+
+.course-content blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+/* Listes : retrait réduit sur téléphone (40 px par niveau par défaut). */
+@include bp.mobile {
+  .course-content :is(ul, ol) {
+    padding-left: 1.25em;
+  }
 }
 
 /* Encadrés pédagogiques (`> [!DEFINITION]`…, cf. core/markdown/course-callouts.ts),
