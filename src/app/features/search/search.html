@@ -10,7 +10,7 @@
 </header>
 
 <div class="search__layout">
-  <details class="search__filters" open>
+  <details class="search__filters" [open]="filtersOpen()" (toggle)="onFiltersToggle($event)">
     <summary class="search__filters-summary">{{ 'search.filters.title' | transloco }}</summary>
     <div class="search__filters-body">
       <label class="search__filter">

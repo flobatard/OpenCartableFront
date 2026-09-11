@@ -75,6 +75,32 @@ describe('Search', () => {
     return fixture;
   }
 
+  it('folds the filters on a narrow screen, unless a filter is active', async () => {
+    // matchMedia stubbé (test-setup) : `matches: false`, donc écran étroit.
+    let fixture = await mount();
+    const details = () =>
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLDetailsElement>('.search__filters')!;
+    expect(details().open).toBe(false);
+
+    TestBed.resetTestingModule();
+    fixture = await mount({ subject: 's1' });
+    expect(details().open).toBe(true);
+  });
+
+  it('keeps the filters open on a wide screen', async () => {
+    const matchMedia = vi.spyOn(window, 'matchMedia').mockReturnValue({
+      matches: true,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+    } as unknown as MediaQueryList);
+    const fixture = await mount();
+    const details = (fixture.nativeElement as HTMLElement).querySelector<HTMLDetailsElement>(
+      '.search__filters',
+    )!;
+    expect(details.open).toBe(true);
+    matchMedia.mockRestore();
+  });
+
   it('runs a course search on mount and loads the public trees', async () => {
     await mount();
     expect(subjectsMock.load).toHaveBeenCalled();

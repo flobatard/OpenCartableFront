@@ -1,4 +1,4 @@
-import { Component, computed, inject, PLATFORM_ID, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -21,6 +21,9 @@ import { Tablist } from '../../shared/tabs/tablist.directive';
 let sequence = 0;
 
 type SearchTab = 'courses' | 'teachers';
+
+/** Largeur desktop des facettes : miroir de `bp.wide` (`styles/_breakpoints.scss`). */
+const WIDE_QUERY = '(width > 900px)';
 
 /** Ordre des onglets pour la navigation clavier ←/→ (APG tabs). */
 const TAB_ORDER: readonly SearchTab[] = ['courses', 'teachers'];
@@ -107,6 +110,14 @@ export class Search {
     () => this.subjectId() !== null || this.levelId() !== null,
   );
 
+  /**
+   * Ouverture du `<details>` des facettes (DS §8) : panneau permanent au-delà
+   * de 900 px (summary masqué), replié en dessous — sinon deux sélecteurs
+   * repoussent les résultats sous la ligne de flottaison d'un téléphone —, sauf
+   * si un filtre est déjà actif. Suivi par l'événement `toggle`.
+   */
+  protected readonly filtersOpen = signal(true);
+
   /** Pagination de l'onglet actif (bornes 1-indexées pour l'affichage). */
   protected readonly pagination = computed(() => {
     const page = this.activeTab() === 'courses' ? this.coursesPage() : this.teachersPage();
@@ -138,6 +149,17 @@ export class Search {
     if (!this.#isBrowser) {
       return;
     }
+    const wide = window.matchMedia(WIDE_QUERY);
+    this.filtersOpen.set(wide.matches || this.hasFilters());
+    // Passage en largeur desktop : le summary disparaît, le panneau doit être ouvert.
+    const onWide = (event: MediaQueryListEvent): void => {
+      if (event.matches) {
+        this.filtersOpen.set(true);
+      }
+    };
+    wide.addEventListener('change', onWide);
+    inject(DestroyRef).onDestroy(() => wide.removeEventListener('change', onWide));
+
     this.#subjects.load();
     this.#levels.load();
     this.#runActive();
@@ -167,6 +189,10 @@ export class Search {
     if ((TAB_ORDER as readonly string[]).includes(key)) {
       this.selectTab(key as SearchTab);
     }
+  }
+
+  protected onFiltersToggle(event: Event): void {
+    this.filtersOpen.set((event.target as HTMLDetailsElement).open);
   }
 
   protected onSubjectChange(event: Event): void {
