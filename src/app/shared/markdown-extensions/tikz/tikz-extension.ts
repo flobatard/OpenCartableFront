@@ -11,5 +11,11 @@ export const TIKZ_EXTENSION: MarkdownExtensionDef = {
   loadComponent: () => import('./tikz-view').then((m) => m.TikzView),
   doc: {
     loadComponent: () => import('./tikz-doc').then((m) => m.TikzDoc),
+    guides: [
+      {
+        slug: 'tikz-circuits',
+        loadComponent: () => import('./tikz-circuits-doc').then((m) => m.TikzCircuitsDoc),
+      },
+    ],
   },
 };

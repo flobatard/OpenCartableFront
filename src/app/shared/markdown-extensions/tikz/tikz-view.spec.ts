@@ -44,6 +44,18 @@ describe('TikzView', () => {
     // La compilation est asynchrone : tant que TikZJax n'a rien remplacé, on charge.
     expect(fixture.nativeElement.querySelector('.tikz-view__loading')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.tikz-view__error')).toBeNull();
+    expect(script.hasAttribute('data-tikz-libraries')).toBe(false);
+  });
+
+  it('hands \\usetikzlibrary to the preamble via data-tikz-libraries', async () => {
+    const fixture = createView(
+      '\\usetikzlibrary{circuits.ee.IEC}\n\\begin{tikzpicture}[circuit ee IEC]\n\\draw (0,0) to [resistor] (3,0);\n\\end{tikzpicture}',
+    );
+    await flush(fixture);
+
+    const script = fixture.nativeElement.querySelector('script[type="text/tikz"]');
+    expect(script.getAttribute('data-tikz-libraries')).toBe('circuits.ee.IEC');
+    expect(script.textContent).not.toContain('usetikzlibrary');
   });
 
   it('shows the re-sanitized SVG on tikzjax-load-finished', async () => {

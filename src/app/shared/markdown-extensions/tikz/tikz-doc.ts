@@ -1,13 +1,28 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { MarkdownPlayground } from '../../markdown-playground/markdown-playground';
 
 @Component({
   selector: 'app-tikz-doc',
-  imports: [MarkdownPlayground, TranslocoPipe],
+  imports: [MarkdownPlayground, RouterLink, TranslocoPipe],
   templateUrl: './tikz-doc.html',
 })
 export class TikzDoc {
+  protected readonly language = inject(LanguageService);
+
+  protected readonly librariesExample = `\`\`\`tikz
+\\usetikzlibrary{angles, quotes}
+\\coordinate (A) at (0,0);
+\\coordinate (B) at (5,0);
+\\coordinate (C) at (1.5,3);
+\\draw[thick] (A) -- (B) -- (C) -- cycle;
+% Arc et étiquette d'angle (bibliothèques angles et quotes)
+\\pic [draw, "$\\alpha$", angle eccentricity=1.5] {angle = B--A--C};
+\\pic [draw, "$\\beta$", angle eccentricity=1.5] {angle = C--B--A};
+\`\`\``;
+
   protected readonly firstExample = `\`\`\`tikz
     \\coordinate (B) at (0,0);
     \\coordinate (C) at (8,0);

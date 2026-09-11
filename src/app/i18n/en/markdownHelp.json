@@ -54,7 +54,8 @@
   },
   "tikz": {
     "title": "Figures (TikZ)",
-    "intro": "Draws precise vector diagrams in LaTeX/TikZ inside a “tikz” code block; the figure is compiled in the browser."
+    "intro": "Draws precise vector diagrams in LaTeX/TikZ inside a “tikz” code block; the figure is compiled in the browser.",
+    "circuits": "Electric circuits"
   },
   "timeline": {
     "title": "Timelines",

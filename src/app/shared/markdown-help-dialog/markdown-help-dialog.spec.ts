@@ -73,6 +73,7 @@ describe('MarkdownHelpDialog', () => {
       '/fr/markdown-language/docs/geogebra',
       '/fr/markdown-language/docs/jsxgraph',
       '/fr/markdown-language/docs/tikz',
+      '/fr/markdown-language/docs/tikz-circuits',
       '/fr/markdown-language/docs/timeline',
       '/fr/markdown-language/docs/smiles',
       '/fr/markdown-language/docs/vegalite',

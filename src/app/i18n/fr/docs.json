@@ -29,6 +29,10 @@
       "title": "Figures (TikZ)",
       "summary": "Dessiner des schémas vectoriels précis avec la syntaxe LaTeX/TikZ."
     },
+    "tikz-circuits": {
+      "title": "Circuits électriques (TikZ)",
+      "summary": "Schémas électriques normalisés et portes logiques, dessinés en TikZ."
+    },
     "timeline": {
       "title": "Frises chronologiques",
       "summary": "Placer périodes et événements sur un axe du temps, avant ou après J.-C."
@@ -217,10 +221,76 @@
       "title": "Options TikZ",
       "body": "Les options usuelles de tikzpicture (échelle, couleurs de remplissage…) sont disponibles en explicitant l'environnement avec ses crochets."
     },
+    "libraries": {
+      "title": "Bibliothèques TikZ",
+      "body": "Une ligne \\usetikzlibrary{…} en tête du bloc charge des bibliothèques TikZ : angles, quotes, arrows.meta, calc, positioning, decorations.pathmorphing, shapes.geometric, patterns, automata… Les paquets LaTeX (\\usepackage), eux, ne se chargent pas.",
+      "circuits": "Circuits électriques et portes logiques : voir leur page dédiée."
+    },
     "print": {
       "title": "Impression et export PDF",
       "body": "Le rendu est un SVG vectoriel : il part tel quel dans l'export PDF du cours, texte et traits nets."
     }
+  },
+  "tikzCircuits": {
+    "intro": "Un bloc « tikz » dessine aussi des schémas électriques : la bibliothèque TikZ circuits.ee.IEC fournit les symboles normalisés IEC — ceux des manuels de physique-chimie —, et circuits.logic les portes logiques. Le schéma est compilé dans le navigateur et s'imprime comme toute figure TikZ. Chaque exemple est modifiable.",
+    "first": {
+      "title": "Premier circuit",
+      "body": "La ligne \\usetikzlibrary{circuits.ee.IEC} en tête du bloc charge la bibliothèque, l'option circuit ee IEC de l'environnement active ses symboles. Un dipôle se pose sur un segment : to [resistor] entre deux points trace le fil et le symbole au milieu ; -- trace un simple fil."
+    },
+    "symbols": {
+      "title": "Dipôles disponibles",
+      "body": "Le nom du symbole, en anglais, se place entre les crochets de to […]. La bibliothèque fournit :",
+      "names": {
+        "resistor": "résistance (conducteur ohmique)",
+        "bulb": "lampe",
+        "battery": "pile ou batterie (le grand trait est la borne +)",
+        "dcSource": "générateur de tension continue",
+        "acSource": "générateur de tension alternative",
+        "voltageSource": "source de tension idéale",
+        "currentSource": "source de courant idéale",
+        "capacitor": "condensateur",
+        "inductor": "bobine",
+        "diode": "diode",
+        "zenerDiode": "diode Zener",
+        "makeContact": "interrupteur (contact ouvert au repos)",
+        "breakContact": "contact fermé au repos",
+        "amperemeter": "ampèremètre",
+        "voltmeter": "voltmètre",
+        "ohmmeter": "ohmmètre"
+      }
+    },
+    "values": {
+      "title": "Valeurs, étiquettes et mesures",
+      "body": "Les réglages d'un dipôle s'écrivent entre accolades après son nom : to [resistor={ohm=100}].",
+      "info": "étiquette libre, du côté gauche du sens de tracé (au-dessus pour un segment tracé vers la droite) ; entre dollars pour une formule ;",
+      "infoPrime": "même chose, de l'autre côté du fil ;",
+      "units": "valeur suivie de son unité (100Ω, 12V, 0.5A…) ;",
+      "current": "flèche de sens du courant, posée comme un dipôle sur un segment ;",
+      "contact": "point de connexion d'une dérivation."
+    },
+    "variants": {
+      "title": "DEL, rhéostat, capteurs",
+      "body": "Des annotations ajoutent une flèche à un symbole ; elles se combinent avec les étiquettes, séparées par des virgules : to [diode={light emitting, info=DEL}].",
+      "adjustable": "flèche oblique : rhéostat, résistance ou condensateur variable ;",
+      "lightEmitting": "flèches sortantes : diode électroluminescente (DEL) ;",
+      "lightDependent": "flèches entrantes : photorésistance (LDR), photodiode ;",
+      "ground": "symbole de masse, à tourner selon le fil (rotate=-90 pour pointer vers le bas)."
+    },
+    "logic": {
+      "title": "Portes logiques",
+      "body": "La bibliothèque circuits.logic.US dessine les portes à la forme américaine, la plus répandue dans les ressources de NSI et de SI. Chaque porte est un nœud nommé que l'on relie par ses ancres.",
+      "gates": "les portes disponibles ;",
+      "inputs": "nombre d'entrées (une lettre n par entrée ; i pour une entrée inversée) ;",
+      "anchors": "ancres d'entrée (numérotées de haut en bas) et de sortie d'une porte nommée x ;",
+      "iec": "à la place de circuits.logic.US (et circuit logic IEC comme option) : symboles rectangulaires normalisés, & et ≥1."
+    },
+    "limits": {
+      "title": "Ce qui n'est pas disponible",
+      "circuitikz": "Le paquet circuitikz n'est pas inclus : sa syntaxe (to[R], to[battery1]…) et tout \\usepackage échouent. Les noms de symboles de cette page le remplacent.",
+      "accents": "Évitez les accents dans les étiquettes : leur rendu n'est pas garanti (« DEL », « rheostat »).",
+      "errors": "Une erreur de syntaxe affiche « Code TikZ invalide », sans plus de détail : avancez par petits morceaux, en partant d'un exemple de cette page."
+    },
+    "more": "Manuel complet des bibliothèques circuits (tikz.dev, en anglais)"
   },
   "timeline": {
     "intro": "Un bloc de code « timeline » dessine une frise chronologique : des périodes en bandes sous l'axe, des événements au-dessus. La frise suit le thème clair ou sombre et part telle quelle à l'impression. Chaque exemple est modifiable.",

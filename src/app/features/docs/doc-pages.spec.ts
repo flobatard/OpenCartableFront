@@ -34,6 +34,20 @@ describe('allDocPages', () => {
     const pages = allDocPages([fakeDef('geogebra')]);
     await expect(pages[BUILTIN_DOC_PAGES.length].loadComponent()).resolves.toBe(FAKE_COMPONENT);
   });
+
+  it('lists an extension’s guides right after its own page', async () => {
+    const guide = { slug: 'tikz-circuits', loadComponent: () => Promise.resolve(FAKE_COMPONENT) };
+    const tikz = fakeDef('tikz');
+    const pages = allDocPages([{ ...tikz, doc: { ...tikz.doc, guides: [guide] } }, fakeDef('abc')]);
+    expect(pages.slice(BUILTIN_DOC_PAGES.length).map((p) => p.slug)).toEqual([
+      'tikz',
+      'tikz-circuits',
+      'abc',
+    ]);
+    await expect(docPageBySlug(pages, 'tikz-circuits')?.loadComponent()).resolves.toBe(
+      FAKE_COMPONENT,
+    );
+  });
 });
 
 describe('docPageBySlug', () => {

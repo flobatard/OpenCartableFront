@@ -54,7 +54,8 @@
   },
   "tikz": {
     "title": "Figures (TikZ)",
-    "intro": "Dessine des schémas vectoriels précis en LaTeX/TikZ dans un bloc de code « tikz » ; la figure est compilée dans le navigateur."
+    "intro": "Dessine des schémas vectoriels précis en LaTeX/TikZ dans un bloc de code « tikz » ; la figure est compilée dans le navigateur.",
+    "circuits": "Circuits électriques"
   },
   "timeline": {
     "title": "Frises chronologiques",

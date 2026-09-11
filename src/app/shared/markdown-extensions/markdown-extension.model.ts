@@ -33,6 +33,23 @@ export interface MarkdownExtensionDoc {
    * (il entrerait dans le bundle initial via app.config).
    */
   readonly loadComponent: () => Promise<Type<unknown>>;
+  /** Pages complémentaires, listées juste après celle du langage. */
+  readonly guides?: readonly MarkdownExtensionGuide[];
+}
+
+/**
+ * Page de doc complémentaire d'un langage : un usage thématique qui mérite sa
+ * propre page (ex. les circuits électriques en TikZ). Clés i18n
+ * `docs.pages.<slug>.{title,summary}`, comme une page de langage.
+ */
+export interface MarkdownExtensionGuide {
+  /**
+   * Slug d'URL préfixé par le langage (`tikz-circuits`) : un langage ne porte
+   * pas de tiret, aucune collision possible avec un slug de langage.
+   */
+  readonly slug: string;
+  /** Import dynamique, comme `MarkdownExtensionDoc.loadComponent`. */
+  readonly loadComponent: () => Promise<Type<unknown>>;
 }
 
 /** Déclaration d'un langage d'extension. */

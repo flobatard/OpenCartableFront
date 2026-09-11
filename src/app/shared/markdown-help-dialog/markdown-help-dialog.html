@@ -215,6 +215,14 @@
           >
             {{ 'markdownHelp.fullDocs' | transloco }}
           </a>
+          ·
+          <a
+            [routerLink]="['/', language.lang(), 'markdown-language', 'docs', 'tikz-circuits']"
+            target="_blank"
+            rel="noopener"
+          >
+            {{ 'markdownHelp.tikz.circuits' | transloco }}
+          </a>
         </p>
       </section>
 

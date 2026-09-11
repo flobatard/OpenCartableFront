@@ -1,0 +1,83 @@
+<p class="doc-intro">{{ 'docs.tikzCircuits.intro' | transloco }}</p>
+
+<section class="doc-section">
+  <h2>{{ 'docs.tikzCircuits.first.title' | transloco }}</h2>
+  <p>{{ 'docs.tikzCircuits.first.body' | transloco }}</p>
+  <app-markdown-playground [initial]="firstExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.tikzCircuits.symbols.title' | transloco }}</h2>
+  <p>{{ 'docs.tikzCircuits.symbols.body' | transloco }}</p>
+  <ul class="doc-rules">
+    @for (symbol of symbols; track symbol.code) {
+      <li>
+        <code>{{ symbol.code }}</code> — {{ 'docs.tikzCircuits.symbols.names.' + symbol.key | transloco }}
+      </li>
+    }
+  </ul>
+  <app-markdown-view [markdown]="symbolsExample" [showPrint]="false" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.tikzCircuits.values.title' | transloco }}</h2>
+  <p>{{ 'docs.tikzCircuits.values.body' | transloco }}</p>
+  <ul class="doc-rules">
+    <li><code>info=</code> — {{ 'docs.tikzCircuits.values.info' | transloco }}</li>
+    <li><code>info'=</code> — {{ 'docs.tikzCircuits.values.infoPrime' | transloco }}</li>
+    <li>
+      <code>ohm=</code>, <code>volt=</code>, <code>ampere=</code>, <code>farad=</code>,
+      <code>henry=</code>, <code>watt=</code>, <code>hertz=</code> —
+      {{ 'docs.tikzCircuits.values.units' | transloco }}
+    </li>
+    <li><code>current direction</code> — {{ 'docs.tikzCircuits.values.current' | transloco }}</li>
+    <li><code>\node [contact]</code> — {{ 'docs.tikzCircuits.values.contact' | transloco }}</li>
+  </ul>
+  <app-markdown-playground [initial]="valuesExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.tikzCircuits.variants.title' | transloco }}</h2>
+  <p>{{ 'docs.tikzCircuits.variants.body' | transloco }}</p>
+  <ul class="doc-rules">
+    <li><code>adjustable</code> — {{ 'docs.tikzCircuits.variants.adjustable' | transloco }}</li>
+    <li><code>light emitting</code> — {{ 'docs.tikzCircuits.variants.lightEmitting' | transloco }}</li>
+    <li><code>light dependent</code> — {{ 'docs.tikzCircuits.variants.lightDependent' | transloco }}</li>
+    <li><code>\node [ground]</code> — {{ 'docs.tikzCircuits.variants.ground' | transloco }}</li>
+  </ul>
+  <app-markdown-playground [initial]="variantsExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.tikzCircuits.logic.title' | transloco }}</h2>
+  <p>{{ 'docs.tikzCircuits.logic.body' | transloco }}</p>
+  <ul class="doc-rules">
+    <li>
+      <code>and gate</code>, <code>or gate</code>, <code>not gate</code>, <code>nand gate</code>,
+      <code>nor gate</code>, <code>xor gate</code>, <code>xnor gate</code> —
+      {{ 'docs.tikzCircuits.logic.gates' | transloco }}
+    </li>
+    <li><code>inputs=nn</code> — {{ 'docs.tikzCircuits.logic.inputs' | transloco }}</li>
+    <li>
+      <code>(x.input 1)</code>, <code>(x.output)</code> —
+      {{ 'docs.tikzCircuits.logic.anchors' | transloco }}
+    </li>
+    <li><code>circuits.logic.IEC</code> — {{ 'docs.tikzCircuits.logic.iec' | transloco }}</li>
+  </ul>
+  <app-markdown-playground [initial]="logicExample" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.tikzCircuits.limits.title' | transloco }}</h2>
+  <ul class="doc-rules">
+    <li>{{ 'docs.tikzCircuits.limits.circuitikz' | transloco }}</li>
+    <li>{{ 'docs.tikzCircuits.limits.accents' | transloco }}</li>
+    <li>{{ 'docs.tikzCircuits.limits.errors' | transloco }}</li>
+  </ul>
+</section>
+
+<p class="doc-more">
+  <a href="https://tikz.dev/library-circuits" target="_blank" rel="noopener noreferrer">
+    {{ 'docs.tikzCircuits.more' | transloco }}
+  </a>
+</p>

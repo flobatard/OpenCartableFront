@@ -13,6 +13,17 @@
 </section>
 
 <section class="doc-section">
+  <h2>{{ 'docs.tikz.libraries.title' | transloco }}</h2>
+  <p>{{ 'docs.tikz.libraries.body' | transloco }}</p>
+  <app-markdown-playground [initial]="librariesExample" />
+  <p>
+    <a [routerLink]="['/', language.lang(), 'markdown-language', 'docs', 'tikz-circuits']">
+      {{ 'docs.tikz.libraries.circuits' | transloco }}
+    </a>
+  </p>
+</section>
+
+<section class="doc-section">
   <h2>{{ 'docs.tikz.print.title' | transloco }}</h2>
   <p>{{ 'docs.tikz.print.body' | transloco }}</p>
 </section>

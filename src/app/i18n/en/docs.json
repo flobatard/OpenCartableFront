@@ -29,6 +29,10 @@
       "title": "Figures (TikZ)",
       "summary": "Draw precise vector diagrams using LaTeX/TikZ syntax."
     },
+    "tikz-circuits": {
+      "title": "Electric circuits (TikZ)",
+      "summary": "Standard circuit diagrams and logic gates, drawn with TikZ."
+    },
     "timeline": {
       "title": "Timelines",
       "summary": "Place periods and events on a time axis, BC or AD."
@@ -217,10 +221,76 @@
       "title": "TikZ options",
       "body": "The usual tikzpicture options (scale, fill colors…) are available by writing out the environment with its brackets."
     },
+    "libraries": {
+      "title": "TikZ libraries",
+      "body": "A \\usetikzlibrary{…} line at the top of the block loads TikZ libraries: angles, quotes, arrows.meta, calc, positioning, decorations.pathmorphing, shapes.geometric, patterns, automata… LaTeX packages (\\usepackage), however, cannot be loaded.",
+      "circuits": "Electric circuits and logic gates: see their dedicated page."
+    },
     "print": {
       "title": "Printing and PDF export",
       "body": "The rendering is a vector SVG: it goes into the course PDF export as-is, with crisp text and lines."
     }
+  },
+  "tikzCircuits": {
+    "intro": "A “tikz” block can also draw circuit diagrams: the TikZ library circuits.ee.IEC provides the standard IEC symbols — the ones used in European physics textbooks —, and circuits.logic provides logic gates. The diagram is compiled in the browser and prints like any TikZ figure. Every example is editable.",
+    "first": {
+      "title": "First circuit",
+      "body": "The line \\usetikzlibrary{circuits.ee.IEC} at the top of the block loads the library, the environment's circuit ee IEC option enables its symbols. A component sits on a segment: to [resistor] between two points draws the wire with the symbol in the middle; -- draws a plain wire."
+    },
+    "symbols": {
+      "title": "Available components",
+      "body": "The symbol's name goes between the brackets of to […]. The library provides:",
+      "names": {
+        "resistor": "resistor",
+        "bulb": "lamp",
+        "battery": "cell or battery (the long line is the + terminal)",
+        "dcSource": "DC voltage generator",
+        "acSource": "AC voltage generator",
+        "voltageSource": "ideal voltage source",
+        "currentSource": "ideal current source",
+        "capacitor": "capacitor",
+        "inductor": "inductor (coil)",
+        "diode": "diode",
+        "zenerDiode": "Zener diode",
+        "makeContact": "switch (normally open contact)",
+        "breakContact": "normally closed contact",
+        "amperemeter": "ammeter",
+        "voltmeter": "voltmeter",
+        "ohmmeter": "ohmmeter"
+      }
+    },
+    "values": {
+      "title": "Values, labels and measurements",
+      "body": "A component's settings go in braces after its name: to [resistor={ohm=100}].",
+      "info": "free label, on the left of the drawing direction (above for a segment drawn to the right); between dollars for a formula;",
+      "infoPrime": "same, on the other side of the wire;",
+      "units": "value followed by its unit (100Ω, 12V, 0.5A…);",
+      "current": "current direction arrow, placed on a segment like a component;",
+      "contact": "junction dot of a branch."
+    },
+    "variants": {
+      "title": "LEDs, rheostats, sensors",
+      "body": "Annotations add an arrow to a symbol; they combine with labels, separated by commas: to [diode={light emitting, info=LED}].",
+      "adjustable": "oblique arrow: rheostat, variable resistor or capacitor;",
+      "lightEmitting": "outgoing arrows: light-emitting diode (LED);",
+      "lightDependent": "incoming arrows: light-dependent resistor (LDR), photodiode;",
+      "ground": "ground symbol, rotated to match the wire (rotate=-90 to point down)."
+    },
+    "logic": {
+      "title": "Logic gates",
+      "body": "The circuits.logic.US library draws gates in the American shape, the most common in computer science and engineering resources. Each gate is a named node, wired through its anchors.",
+      "gates": "the available gates;",
+      "inputs": "number of inputs (one letter n per input; i for an inverted input);",
+      "anchors": "input anchors (numbered top to bottom) and output anchor of a gate named x;",
+      "iec": "instead of circuits.logic.US (with circuit logic IEC as the option): standard rectangular symbols, & and ≥1."
+    },
+    "limits": {
+      "title": "What is not available",
+      "circuitikz": "The circuitikz package is not included: its syntax (to[R], to[battery1]…) and any \\usepackage fail. The symbol names on this page replace it.",
+      "accents": "Avoid accented letters in labels: their rendering is not guaranteed.",
+      "errors": "A syntax error shows “Invalid TikZ code”, with no further detail: build up in small steps, starting from an example on this page."
+    },
+    "more": "Full manual of the circuits libraries (tikz.dev)"
   },
   "timeline": {
     "intro": "A “timeline” code block draws a timeline: periods as bands below the axis, events above it. The timeline follows the light or dark theme and prints as is. Every example is editable.",

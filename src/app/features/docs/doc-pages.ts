@@ -6,8 +6,9 @@ import { MarkdownExtensionDef } from '../../shared/markdown-extensions/markdown-
  * (`/:lang/markdown-language/docs/:slug`). Deux origines fusionnées par
  * `allDocPages` : les langages INTÉGRÉS au pipeline (KaTeX, mhchem, Mermaid —
  * déclarés ici, leurs slugs sont réservés) puis les extensions du registry, dont le
- * contrat (`MarkdownExtensionDef.doc`) impose le composant de doc. Chaque slug
- * porte ses clés i18n `docs.pages.<slug>.{title,summary}`.
+ * contrat (`MarkdownExtensionDef.doc`) impose le composant de doc — chacune
+ * suivie de ses pages complémentaires (`doc.guides`). Chaque slug porte ses
+ * clés i18n `docs.pages.<slug>.{title,summary}`.
  */
 export interface DocPage {
   /** Slug d'URL — pour une extension, c'est son `language`. */
@@ -32,11 +33,17 @@ export const BUILTIN_DOC_PAGES: readonly DocPage[] = [
   },
 ];
 
-/** Intégrés d'abord, puis les extensions dans l'ordre d'enregistrement des providers. */
+/**
+ * Intégrés d'abord, puis les extensions dans l'ordre d'enregistrement des
+ * providers, chacune suivie de ses pages complémentaires.
+ */
 export function allDocPages(defs: readonly MarkdownExtensionDef[]): readonly DocPage[] {
   return [
     ...BUILTIN_DOC_PAGES,
-    ...defs.map((def) => ({ slug: def.language, loadComponent: def.doc.loadComponent })),
+    ...defs.flatMap((def) => [
+      { slug: def.language, loadComponent: def.doc.loadComponent },
+      ...(def.doc.guides ?? []),
+    ]),
   ];
 }
 

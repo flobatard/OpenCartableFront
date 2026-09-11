@@ -80,9 +80,14 @@ export class TikzView implements MarkdownExtensionComponent {
         return;
       }
 
+      const { code, libraries } = parseTikzConfig(source);
       const script = document.createElement('script');
       script.type = 'text/tikz';
-      script.textContent = parseTikzConfig(source);
+      script.textContent = code;
+      if (libraries.length > 0) {
+        // Lu par le fork : `\usetikzlibrary{…}` posé avant `\begin{document}`.
+        script.setAttribute('data-tikz-libraries', libraries.join(','));
+      }
 
       el.innerHTML = '';
       observer.observe(el, { childList: true, subtree: true });
