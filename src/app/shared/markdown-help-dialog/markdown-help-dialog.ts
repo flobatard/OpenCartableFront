@@ -1,6 +1,7 @@
 import { Component, inject, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { CALLOUT_KINDS } from '../../core/markdown/course-callouts';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NativeDialog } from '../dialog/native-dialog.directive';
 
@@ -30,6 +31,16 @@ export class MarkdownHelpDialog {
   /** Exemples affichés dans des `<pre>` (chaînes liées : gardent les sauts). */
   protected readonly tableExample =
     '| Colonne A | Colonne B |\n| --------- | --------- |\n| valeur    | valeur    |';
+
+  /**
+   * Les six types d'encadré, dans l'ordre de la documentation : marqueur
+   * canonique et clé du titre par défaut — celui-là même qu'affiche le rendu
+   * (`markdownView.callouts.*`, la source des titres de `renderCourseMarkdown`).
+   */
+  protected readonly calloutKinds = CALLOUT_KINDS.map((kind) => ({
+    marker: `[!${kind.toUpperCase()}]`,
+    titleKey: `markdownView.callouts.${kind}`,
+  }));
 
   protected readonly calloutExample =
     '> [!DEFINITION]\n> Une fonction affine s’écrit $f(x) = ax + b$.\n\n' +

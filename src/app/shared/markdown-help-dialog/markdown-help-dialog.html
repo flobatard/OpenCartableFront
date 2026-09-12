@@ -32,7 +32,7 @@
           </thead>
           <tbody>
             <tr>
-              <td><code># Titre</code> <code>## Sous-title</code></td>
+              <td><code># Titre</code> <code>## Sous-titre</code></td>
               <td>{{ 'markdownHelp.markdown.heading' | transloco }}</td>
             </tr>
             <tr>
@@ -44,12 +44,24 @@
               <td>{{ 'markdownHelp.markdown.italic' | transloco }}</td>
             </tr>
             <tr>
+              <td><code>***gras italique***</code></td>
+              <td>{{ 'markdownHelp.markdown.boldItalic' | transloco }}</td>
+            </tr>
+            <tr>
+              <td><code>~~barré~~</code></td>
+              <td>{{ 'markdownHelp.markdown.strikethrough' | transloco }}</td>
+            </tr>
+            <tr>
               <td><code>- élément</code></td>
               <td>{{ 'markdownHelp.markdown.list' | transloco }}</td>
             </tr>
             <tr>
               <td><code>1. élément</code></td>
               <td>{{ 'markdownHelp.markdown.orderedList' | transloco }}</td>
+            </tr>
+            <tr>
+              <td><code>&nbsp;&nbsp;- élément</code></td>
+              <td>{{ 'markdownHelp.markdown.nestedList' | transloco }}</td>
             </tr>
             <tr>
               <td><code>[texte](https://…)</code></td>
@@ -68,13 +80,20 @@
               <td>{{ 'markdownHelp.markdown.code' | transloco }}</td>
             </tr>
             <tr>
+              <td><code>```</code></td>
+              <td>{{ 'markdownHelp.markdown.codeBlock' | transloco }}</td>
+            </tr>
+            <tr>
               <td><code>---</code></td>
               <td>{{ 'markdownHelp.markdown.rule' | transloco }}</td>
             </tr>
           </tbody>
         </table>
+        <p class="md-help__note">{{ 'markdownHelp.markdown.headingNote' | transloco }}</p>
+        <p class="md-help__note">{{ 'markdownHelp.markdown.lineBreakNote' | transloco }}</p>
         <p>{{ 'markdownHelp.markdown.table' | transloco }}</p>
         <pre class="md-help__code">{{ tableExample }}</pre>
+        <p class="md-help__note">{{ 'markdownHelp.markdown.tableAlignNote' | transloco }}</p>
         <p class="md-help__note">{{ 'markdownHelp.markdown.resourceNote' | transloco }}</p>
         <p class="md-help__note">
           <a
@@ -91,6 +110,23 @@
         <h3>{{ 'markdownHelp.callouts.title' | transloco }}</h3>
         <p>{{ 'markdownHelp.callouts.intro' | transloco }}</p>
         <pre class="md-help__code">{{ calloutExample }}</pre>
+        <table class="md-help__table">
+          <thead>
+            <tr>
+              <th>{{ 'markdownHelp.callouts.colMarker' | transloco }}</th>
+              <th>{{ 'markdownHelp.callouts.colTitle' | transloco }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (kind of calloutKinds; track kind.marker) {
+              <tr>
+                <td><code>{{ kind.marker }}</code></td>
+                <td>{{ kind.titleKey | transloco }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <p class="md-help__note">{{ 'markdownHelp.callouts.aliasNote' | transloco }}</p>
         <p class="md-help__note">
           <a
             [routerLink]="['/', language.lang(), 'markdown-language', 'docs', 'callouts']"

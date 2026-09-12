@@ -10,19 +10,29 @@
     "heading": "Titres, du plus grand au plus petit",
     "bold": "Gras",
     "italic": "Italique",
+    "boldItalic": "Gras et italique",
+    "strikethrough": "Barré",
     "list": "Liste à puces",
     "orderedList": "Liste numérotée",
+    "nestedList": "Sous-niveau d'une liste (deux espaces d'indentation)",
     "link": "Lien",
     "image": "Image",
     "quote": "Citation",
     "code": "Code en ligne",
+    "codeBlock": "Bloc de code : trois accents graves ouvrent, trois autres ferment",
     "rule": "Séparateur horizontal",
+    "headingNote": "Pour un bloc de texte, le titre saisi au-dessus de l'éditeur ne s'affiche pas dans la page : ouvre le bloc par un titre ## et descends à ### pour ses parties.",
+    "lineBreakNote": "Un simple retour à la ligne ne se voit pas dans le rendu : une ligne vide ouvre un paragraphe, deux espaces en fin de ligne forcent un saut de ligne.",
     "table": "Tableau : une ligne d'en-tête, une ligne de séparation, puis les lignes de données.",
+    "tableAlignNote": "Les deux-points de la ligne de séparation alignent la colonne : :---: centre, ---: aligne à droite. Un tableau plus large que la colonne de lecture défile sans déborder de la page.",
     "resourceNote": "Pour insérer un fichier de la bibliothèque (image, audio, vidéo, document), utilisez le bouton « Insérer une ressource » sous l'éditeur : le lien reste valide dans le temps, contrairement à une URL collée à la main."
   },
   "callouts": {
     "title": "Encadrés",
-    "intro": "Une citation dont la première ligne est un marqueur devient un encadré coloré : [!DEFINITION], [!KEYPOINT], [!METHOD], [!EXAMPLE], [!NOTE] ou [!WARNING] ; les mots-clés français ([!RETENIR], [!METHODE]…) et ceux des alertes GitHub (TIP, IMPORTANT, CAUTION) restent reconnus. Un texte écrit après le marqueur remplace le titre ; une ligne vide termine l'encadré."
+    "intro": "Une citation dont la première ligne est un marqueur devient un encadré coloré. Un texte écrit après le marqueur remplace le titre ; une ligne vide termine l'encadré.",
+    "colMarker": "Marqueur",
+    "colTitle": "Titre par défaut",
+    "aliasNote": "Les mots-clés français ([!RETENIR], [!METHODE]…) et ceux des alertes GitHub (TIP, IMPORTANT, CAUTION) restent reconnus ; un type inconnu laisse une simple citation, marqueur visible."
   },
   "latex": {
     "title": "Formules (LaTeX)",

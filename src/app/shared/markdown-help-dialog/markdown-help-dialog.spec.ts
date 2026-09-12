@@ -42,6 +42,25 @@ describe('MarkdownHelpDialog', () => {
     expect(examples.some((code) => code.includes('> [!DEFINITION]'))).toBe(true);
   });
 
+  it('the markdown table covers the classic syntax, callouts list their six types', async () => {
+    const fixture = await createComponent();
+    const element = fixture.nativeElement as HTMLElement;
+    const syntax = [...element.querySelectorAll('.md-help__table code')].map(
+      (code) => code.textContent ?? '',
+    );
+
+    // Lignes ajoutées au tableau markdown (la syntaxe classique, au complet).
+    expect(syntax).toContain('~~barré~~');
+    expect(syntax).toContain('***gras italique***');
+    expect(syntax).toContain('```');
+
+    // Les six types d'encadré, avec le titre par défaut qu'affiche le rendu.
+    expect(syntax).toContain('[!DEFINITION]');
+    expect(syntax).toContain('[!KEYPOINT]');
+    expect(syntax).toContain('[!WARNING]');
+    expect(element.textContent).toContain('À retenir');
+  });
+
   it('renders the GeoGebra and JSXGraph sections with their example', async () => {
     const fixture = await createComponent();
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';

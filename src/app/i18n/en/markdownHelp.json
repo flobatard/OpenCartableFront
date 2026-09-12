@@ -10,19 +10,29 @@
     "heading": "Headings, from largest to smallest",
     "bold": "Bold",
     "italic": "Italic",
+    "boldItalic": "Bold and italic",
+    "strikethrough": "Strikethrough",
     "list": "Bulleted list",
     "orderedList": "Numbered list",
+    "nestedList": "Nested list level (two spaces of indentation)",
     "link": "Link",
     "image": "Image",
     "quote": "Quote",
     "code": "Inline code",
+    "codeBlock": "Code block: three backticks open it, three more close it",
     "rule": "Horizontal separator",
+    "headingNote": "For a text block, the title typed above the editor does not show in the page: open the block with a ## heading and go down to ### for its parts.",
+    "lineBreakNote": "A plain newline does not show in the rendering: a blank line starts a paragraph, two trailing spaces force a line break.",
     "table": "Table: a header row, a separator row, then the data rows.",
+    "tableAlignNote": "Colons in the separator row align the column: :---: centers, ---: aligns right. A table wider than the reading column scrolls instead of overflowing the page.",
     "resourceNote": "To insert a library file (image, audio, video, document), use the “Insert a resource” button below the editor: the link stays valid over time, unlike a URL pasted by hand."
   },
   "callouts": {
     "title": "Callouts",
-    "intro": "A quote whose first line is a marker becomes a colored box: [!DEFINITION], [!KEYPOINT], [!METHOD], [!EXAMPLE], [!NOTE] or [!WARNING]; the French keywords ([!RETENIR], [!METHODE]…) and the GitHub ones (TIP, IMPORTANT, CAUTION) stay recognized. Text after the marker replaces the title; a blank line ends the callout."
+    "intro": "A quote whose first line is a marker becomes a colored box. Text after the marker replaces the title; a blank line ends the callout.",
+    "colMarker": "Marker",
+    "colTitle": "Default title",
+    "aliasNote": "The French keywords ([!RETENIR], [!METHODE]…) and the GitHub ones (TIP, IMPORTANT, CAUTION) stay recognized; an unknown type leaves a plain quote, marker visible."
   },
   "latex": {
     "title": "Formulas (LaTeX)",

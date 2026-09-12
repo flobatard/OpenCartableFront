@@ -156,6 +156,25 @@
   font-weight: 600;
 }
 
+/* Alignement des colonnes GFM (`:---:`, `---:`) : marked le pose en attribut
+   `align`, que DOMPurify conserve — mais la règle `text-align: left` ci-dessus
+   l'emporterait sur la feuille du navigateur. */
+.course-content :is(th, td)[align='center'] {
+  text-align: center;
+}
+
+.course-content :is(th, td)[align='right'] {
+  text-align: right;
+}
+
+/* Séparateur horizontal (`---`) : un filet de la couleur des bordures plutôt
+   que le relief gris du navigateur, et le rythme vertical des paragraphes. */
+.course-content hr {
+  margin: 0 0 calc(1.5em * var(--course-para-scale, 1));
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
 /* Citation ordinaire (une citation `[!TYPE]` est un encadré, ci-dessous) : filet
    gauche au lieu des marges de 40 px du navigateur, qui mangent une colonne de
    téléphone. */
