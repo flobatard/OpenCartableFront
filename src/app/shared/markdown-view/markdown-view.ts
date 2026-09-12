@@ -1,4 +1,5 @@
 import {
+  afterNextRender,
   afterRenderEffect,
   ApplicationRef,
   Component,
@@ -37,7 +38,14 @@ import {
   hasMarkdownExtensions,
 } from '../markdown-extensions/extension-placeholders';
 import { MarkdownExtensionRegistry } from '../markdown-extensions/markdown-extension-registry';
-import { COURSE_RESOURCE_RESOLVER } from '../../core/course-content/course-content-resolvers';
+import {
+  COURSE_MODULE_RESOLVER,
+  COURSE_RESOURCE_RESOLVER,
+} from '../../core/course-content/course-content-resolvers';
+import { AnalyticsService } from '../../core/analytics/analytics.service';
+import { NotificationService } from '../../core/notifications/notification.service';
+import { ExportDialog, ExportRequest } from '../export-dialog/export-dialog';
+import { ExportHtmlService } from '../export-html/export-html.service';
 import { CourseResource } from '../../core/resources/resource.model';
 import { CourseStyleService } from '../../core/courses/course-style.service';
 import { ThemeService } from '../../core/theme/theme.service';
@@ -64,7 +72,7 @@ import { CourseStyleDialog } from '../course-style-dialog/course-style-dialog';
  */
 @Component({
   selector: 'app-markdown-view',
-  imports: [TranslocoPipe, CourseStyleDialog],
+  imports: [TranslocoPipe, CourseStyleDialog, ExportDialog],
   templateUrl: './markdown-view.html',
   styleUrl: './markdown-view.scss',
 })
@@ -74,6 +82,9 @@ export class MarkdownView {
   readonly #transloco = inject(TranslocoService);
   readonly #resources = inject(COURSE_RESOURCE_RESOLVER);
   readonly #print = inject(PrintService);
+  readonly #exportHtml = inject(ExportHtmlService);
+  readonly #notifications = inject(NotificationService);
+  readonly #analytics = inject(AnalyticsService);
   /** Réglages de style du cours courant — exposés au template (binding `[style]`). */
   protected readonly courseStyle = inject(CourseStyleService);
   readonly #extensions = inject(MarkdownExtensionRegistry);
@@ -105,10 +116,11 @@ export class MarkdownView {
   readonly courseId = input<string | null>(null);
 
   /**
-   * Affiche le bouton d'impression flottant (défaut). Les hôtes qui rendent
-   * beaucoup de petits extraits (pages de doc, playground) le masquent.
+   * Affiche le bouton d'export flottant (défaut) — PDF ou page HTML autonome,
+   * au choix dans la modale. Les hôtes qui rendent beaucoup de petits extraits
+   * (pages de doc, playground) le masquent.
    */
-  readonly showPrint = input<boolean>(true);
+  readonly showExport = input<boolean>(true);
 
   /**
    * Affiche le bouton « style de lecture » flottant (défaut). N'apparaît de
@@ -119,6 +131,19 @@ export class MarkdownView {
 
   /** Modale de style, montée en contexte cours (cf. `showSettings`). */
   protected readonly styleDialog = viewChild(CourseStyleDialog);
+
+  /** Modale de choix du format d'export, montée au premier clic (cf. `exportMounted`). */
+  protected readonly exportDialog = viewChild(ExportDialog);
+
+  /**
+   * Une page de cours monte un `markdown-view` par bloc : la modale n'est
+   * créée qu'à la première ouverture, sinon chaque bloc poserait son `<dialog>`
+   * dans le DOM pour un bouton qu'on ne clique presque jamais.
+   */
+  protected readonly exportMounted = signal(false);
+
+  /** Export HTML en cours : la modale attend (le PDF, lui, est instantané). */
+  protected readonly exporting = signal(false);
 
   /** Cours pour lequel un chargement défensif de la biblio a déjà été tenté. */
   #loadedCourseId: string | null = null;
@@ -389,6 +414,66 @@ export class MarkdownView {
   /** Ouvre la modale de réglage du style de lecture du cours. */
   protected openStyle(): void {
     this.styleDialog()?.open();
+  }
+
+  /** Monte la modale d'export si besoin, puis l'ouvre au rendu suivant. */
+  protected openExport(): void {
+    if (this.exportMounted()) {
+      this.exportDialog()?.open();
+      return;
+    }
+    this.exportMounted.set(true);
+    afterNextRender(() => this.exportDialog()?.open(), { injector: this.#injector });
+  }
+
+  /**
+   * Exécute le format choisi. Le PDF rend la main au dialogue du navigateur ;
+   * l'export HTML peut durer (lecture des images et des modules), d'où l'état
+   * d'attente porté par la modale.
+   */
+  protected async runExport(request: ExportRequest): Promise<void> {
+    const el = this.contentEl()?.nativeElement;
+    if (!this.#isBrowser || !el) {
+      return;
+    }
+    this.exportDialog()?.close();
+    if (request.format === 'pdf') {
+      await this.print();
+      return;
+    }
+    this.exporting.set(true);
+    try {
+      await this.#exportHtml.exportCourseContent(el, {
+        courseId: this.courseId(),
+        title: this.#exportTitle(el),
+        includeModules: request.includeModules,
+        resourceUrl: (lang, courseId, resourceId) =>
+          this.#resources.contentUrl(lang, courseId, resourceId),
+        // Résolveur lu À L'EXPORT, jamais injecté au montage : l'implémentation
+        // prof tire `ModuleService → AuthService → OAuthService`, que tous les
+        // hôtes de `markdown-view` (pages de doc, chat, playground) devraient
+        // alors fournir en test comme en production.
+        getModule: (courseId, moduleId) =>
+          this.#injector.get(COURSE_MODULE_RESOLVER).getModule(courseId, moduleId),
+      });
+      this.#analytics.capture('course_html_exported', {
+        scope: 'block',
+        modules: request.includeModules,
+      });
+    } catch {
+      this.#notifications.error(this.#transloco.translate('courseExport.failed'));
+    } finally {
+      this.exporting.set(false);
+    }
+  }
+
+  /**
+   * Nom du fichier exporté : le premier titre du bloc rendu. Le composant ne
+   * connaît pas le titre du bloc (il ne reçoit que du markdown) ; à défaut de
+   * titre, `titleSlug` retombe sur `export`.
+   */
+  #exportTitle(el: HTMLElement): string {
+    return el.querySelector('h1, h2, h3')?.textContent?.trim() ?? '';
   }
 }
 

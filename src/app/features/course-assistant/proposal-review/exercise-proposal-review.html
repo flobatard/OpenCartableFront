@@ -101,7 +101,7 @@
             <app-markdown-view
               [markdown]="p.statement"
               [courseId]="courseId()"
-              [showPrint]="false"
+              [showExport]="false"
               [showSettings]="false"
             />
           </div>
@@ -141,7 +141,7 @@
               <app-markdown-view
                 [markdown]="targetQuestion()?.statement ?? ''"
                 [courseId]="courseId()"
-                [showPrint]="false"
+                [showExport]="false"
                 [showSettings]="false"
               />
             </div>

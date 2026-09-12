@@ -41,6 +41,15 @@
 
         <button
           type="button"
+          class="btn btn--ghost module-editor__download"
+          [disabled]="downloading()"
+          (click)="downloadStandalone()"
+        >
+          {{ 'courseExport.moduleDownload' | transloco }}
+        </button>
+
+        <button
+          type="button"
           class="pill module-editor__chat-toggle"
           [class.pill--active]="!chatCollapsed()"
           [attr.aria-pressed]="!chatCollapsed()"

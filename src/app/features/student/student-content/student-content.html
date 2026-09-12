@@ -2,8 +2,8 @@
   <p class="student-content__notice">{{ 'student.course.empty' | transloco }}</p>
 } @else {
   <div class="student-content__actions">
-    <button type="button" class="btn btn--secondary" (click)="download()">
-      {{ 'student.course.downloadPdf' | transloco }}
+    <button type="button" class="btn btn--secondary" (click)="openExport()">
+      {{ 'courseExport.trigger' | transloco }}
     </button>
   </div>
   <div #content [style]="courseStyle.styleVars()">
@@ -14,4 +14,5 @@
       [exerciseLink]="exerciseLink"
     />
   </div>
+  <app-export-dialog [busy]="exporting()" (export)="runExport($event)" />
 }

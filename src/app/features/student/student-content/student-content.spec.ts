@@ -1,5 +1,6 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import {
   COURSE_MODULE_RESOLVER,
@@ -7,6 +8,8 @@ import {
 } from '../../../core/course-content/course-content-resolvers';
 import { PublicCourseDetail } from '../../../core/public-courses/public-course.model';
 import { PublicCourseService } from '../../../core/public-courses/public-course.service';
+import { ExportDialog, ExportRequest } from '../../../shared/export-dialog/export-dialog';
+import { ExportHtmlService } from '../../../shared/export-html/export-html.service';
 import { PrintService } from '../../../shared/print/print.service';
 import {
   PUBLIC_COURSE_DETAIL_FIXTURE,
@@ -41,6 +44,7 @@ describe('StudentContent', () => {
     }),
   };
   const printMock = { printCourseContent: vi.fn().mockResolvedValue(undefined) };
+  const exportMock = { exportCourseContent: vi.fn().mockResolvedValue(null) };
 
   async function createComponent(): Promise<ComponentFixture<StudentContent>> {
     await TestBed.configureTestingModule({
@@ -51,6 +55,7 @@ describe('StudentContent', () => {
         { provide: COURSE_RESOURCE_RESOLVER, useValue: resolverMock },
         { provide: COURSE_MODULE_RESOLVER, useValue: moduleResolverMock },
         { provide: PrintService, useValue: printMock },
+        { provide: ExportHtmlService, useValue: exportMock },
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(StudentContent);
@@ -60,6 +65,24 @@ describe('StudentContent', () => {
 
   function el(fixture: ComponentFixture<StudentContent>): HTMLElement {
     return fixture.nativeElement as HTMLElement;
+  }
+
+  /**
+   * Ouvre la modale d'export (jsdom n'implémente ni `showModal` ni `close`)
+   * puis valide le format demandé, comme le ferait l'utilisateur.
+   */
+  async function requestExport(
+    fixture: ComponentFixture<StudentContent>,
+    request: ExportRequest,
+  ): Promise<void> {
+    const native = el(fixture).querySelector('dialog') as HTMLDialogElement;
+    native.showModal = vi.fn();
+    native.close = vi.fn();
+    el(fixture).querySelector<HTMLButtonElement>('.student-content__actions .btn')!.click();
+    fixture.debugElement
+      .query(By.directive(ExportDialog))
+      .componentInstance.export.emit(request);
+    await fixture.whenStable();
   }
 
   beforeEach(() => {
@@ -88,8 +111,7 @@ describe('StudentContent', () => {
 
   it('prints the rendered container with the public URL builder', async () => {
     const fixture = await createComponent();
-    el(fixture).querySelector<HTMLButtonElement>('.student-content__actions .btn')!.click();
-    await fixture.whenStable();
+    await requestExport(fixture, { format: 'pdf', includeModules: true });
 
     expect(printMock.printCourseContent).toHaveBeenCalledTimes(1);
     const [source, courseId, urlBuilder] = printMock.printCourseContent.mock.calls[0];
@@ -98,9 +120,27 @@ describe('StudentContent', () => {
     // Le builder doit passer par le régime PUBLIC (liens du PDF consultables sans compte).
     (urlBuilder as (l: string, c: string, r: string) => string)('fr', 'course-1', 'resource-1');
     expect(coursesMock.contentUrl).toHaveBeenCalledWith('fr', 'course-1', 'resource-1');
+    expect(exportMock.exportCourseContent).not.toHaveBeenCalled();
   });
 
-  it('shows the empty notice — and no PDF button — when the course has no block', async () => {
+  it('exports a standalone page with the public resource and module resolvers', async () => {
+    const fixture = await createComponent();
+    await requestExport(fixture, { format: 'html', includeModules: false });
+
+    expect(printMock.printCourseContent).not.toHaveBeenCalled();
+    expect(exportMock.exportCourseContent).toHaveBeenCalledTimes(1);
+    const [source, options] = exportMock.exportCourseContent.mock.calls[0];
+    expect((source as HTMLElement).querySelectorAll('.course-preview__block').length).toBe(4);
+    expect(options.courseId).toBe('course-1');
+    expect(options.includeModules).toBe(false);
+    // Les deux résolveurs sont ceux du régime public : aucun Bearer ne part.
+    options.resourceUrl('fr', 'course-1', 'resource-1');
+    expect(coursesMock.contentUrl).toHaveBeenCalledWith('fr', 'course-1', 'resource-1');
+    await options.getModule('course-1', 'module-1');
+    expect(moduleResolverMock.getModule).toHaveBeenCalledWith('course-1', 'module-1');
+  });
+
+  it('shows the empty notice — and no export button — when the course has no block', async () => {
     detail.set({ ...PUBLIC_COURSE_DETAIL_FIXTURE, blocks: [] });
     const fixture = await createComponent();
 

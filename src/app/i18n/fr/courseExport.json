@@ -1,0 +1,21 @@
+{
+  "trigger": "Exporter",
+  "triggerBlock": "Exporter ce bloc",
+  "title": "Exporter",
+  "close": "Fermer",
+  "format": "Format",
+  "pdf": "PDF",
+  "pdfHint": "Passe par l'impression du navigateur : choisissez « Enregistrer au format PDF ».",
+  "html": "Page HTML autonome",
+  "htmlHint": "Un fichier unique, consultable hors ligne, qui garde les modules interactifs.",
+  "includeModules": "Modules interactifs vivants",
+  "includeModulesHint": "Décochez pour un fichier plus léger : chaque librairie utilisée (p5, Three.js…) pèse environ 1 Mo.",
+  "cancel": "Annuler",
+  "submit": "Exporter",
+  "preparing": "Préparation du fichier…",
+  "done": "Fichier téléchargé ({{ size }}).",
+  "failed": "L'export n'a pas abouti. Réessayez.",
+  "degraded": "Fichier téléchargé ({{ size }}) — {{ images }} image(s) et {{ modules }} module(s) restent accessibles en ligne seulement.",
+  "moduleDownload": "Télécharger en HTML",
+  "moduleDownloadFailed": "Le téléchargement du module n'a pas abouti. Réessayez."
+}

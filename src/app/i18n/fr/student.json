@@ -2,7 +2,6 @@
   "course": {
     "notFound": "Ce lien n'est plus valide ou le cours n'est pas disponible.",
     "empty": "Ce cours ne contient pas encore de contenu.",
-    "downloadPdf": "Télécharger le PDF",
     "solveExercise": "Résoudre l'exercice",
     "backToCourse": "Retour au cours",
     "tabsLabel": "Sections du cours",

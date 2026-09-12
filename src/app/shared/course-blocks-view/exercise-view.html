@@ -18,7 +18,7 @@
     <app-markdown-view
       [markdown]="view().statement"
       [courseId]="courseId()"
-      [showPrint]="false"
+      [showExport]="false"
       [showSettings]="false"
     />
   </section>
@@ -37,7 +37,7 @@
         <app-markdown-view
           [markdown]="question.statement"
           [courseId]="courseId()"
-          [showPrint]="false"
+          [showExport]="false"
           [showSettings]="false"
         />
       }
@@ -107,7 +107,7 @@
                       <app-markdown-view
                         [markdown]="turn.feedback"
                         [courseId]="courseId()"
-                        [showPrint]="false"
+                        [showExport]="false"
                         [showSettings]="false"
                       />
                     } @else {
@@ -141,7 +141,7 @@
                       <app-markdown-view
                         [markdown]="live.text"
                         [courseId]="null"
-                        [showPrint]="false"
+                        [showExport]="false"
                         [showSettings]="false"
                       />
                     }

@@ -12,14 +12,13 @@ import {
   viewChild,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { composeModule } from './compose-module';
 import {
   clampFrameHeight,
-  composeModuleDocument,
   MODULE_FRAME_DEFAULT_HEIGHT,
   ModuleEventPayload,
   parseModuleMessage,
 } from './module-document';
-import { parseModuleLibraries } from './module-libraries';
 import { ModuleLibraryLoader } from './module-library-loader';
 
 /**
@@ -41,7 +40,8 @@ import { ModuleLibraryLoader } from './module-library-loader';
  *   (`parseModuleMessage`) ; la hauteur d'auto-resize est bornée.
  *
  * Librairies déclarées par le pragma `@oc-libs` : lues par le parent
- * (`ModuleLibraryLoader`) puis inlinées — composition alors ASYNCHRONE,
+ * (`ModuleLibraryLoader`) puis inlinées par `composeModule`
+ * (`compose-module.ts`, partagé avec l'export HTML) — composition ASYNCHRONE,
  * gardée par un compteur de génération (la preview live recompose à chaque
  * frappe : une lecture lente ne doit jamais écraser un code plus récent).
  * Sans pragma, le chemin reste synchrone. Échec de lecture : module composé
@@ -108,26 +108,18 @@ export class ModuleRunner implements OnDestroy {
         return;
       }
       const generation = ++this.#generation;
-      const { libraries } = parseModuleLibraries(js);
-      if (libraries.length === 0) {
+      const composed = composeModule(this.#loader, html, css, js);
+      if (!(composed instanceof Promise)) {
         this.libraryError.set(false);
-        iframe.srcdoc = composeModuleDocument(html, css, js);
+        iframe.srcdoc = composed.doc;
         return;
       }
-      this.#loader.load(libraries).then(
-        (sources) => {
-          if (generation === this.#generation) {
-            this.libraryError.set(false);
-            iframe.srcdoc = composeModuleDocument(html, css, js, sources);
-          }
-        },
-        () => {
-          if (generation === this.#generation) {
-            this.libraryError.set(true);
-            iframe.srcdoc = composeModuleDocument(html, css, js);
-          }
-        },
-      );
+      composed.then((result) => {
+        if (generation === this.#generation) {
+          this.libraryError.set(result.libraryError);
+          iframe.srcdoc = result.doc;
+        }
+      });
     });
   }
 

@@ -18,19 +18,19 @@
 
   <h3>{{ 'docs.mermaid.gallery.classes' | transloco }}</h3>
   <pre class="doc-source">{{ classExample }}</pre>
-  <app-markdown-view [markdown]="classExample" [showPrint]="false" />
+  <app-markdown-view [markdown]="classExample" [showExport]="false" />
 
   <h3>{{ 'docs.mermaid.gallery.states' | transloco }}</h3>
   <pre class="doc-source">{{ stateExample }}</pre>
-  <app-markdown-view [markdown]="stateExample" [showPrint]="false" />
+  <app-markdown-view [markdown]="stateExample" [showExport]="false" />
 
   <h3>{{ 'docs.mermaid.gallery.pie' | transloco }}</h3>
   <pre class="doc-source">{{ pieExample }}</pre>
-  <app-markdown-view [markdown]="pieExample" [showPrint]="false" />
+  <app-markdown-view [markdown]="pieExample" [showExport]="false" />
 
   <h3>{{ 'docs.mermaid.gallery.gantt' | transloco }}</h3>
   <pre class="doc-source">{{ ganttExample }}</pre>
-  <app-markdown-view [markdown]="ganttExample" [showPrint]="false" />
+  <app-markdown-view [markdown]="ganttExample" [showExport]="false" />
 </section>
 
 <section class="doc-section">
@@ -41,13 +41,13 @@
 <section class="doc-section">
   <h2>{{ 'docs.mermaid.math.title' | transloco }}</h2>
   <p>{{ 'docs.mermaid.math.body' | transloco }}</p>
-  <app-markdown-view [markdown]="mathLimitExample" [showPrint]="false" />
+  <app-markdown-view [markdown]="mathLimitExample" [showExport]="false" />
 </section>
 
 <section class="doc-section">
   <h2>{{ 'docs.mermaid.errors.title' | transloco }}</h2>
   <p>{{ 'docs.mermaid.errors.body' | transloco }}</p>
-  <app-markdown-view [markdown]="errorExample" [showPrint]="false" />
+  <app-markdown-view [markdown]="errorExample" [showExport]="false" />
 </section>
 
 <p class="doc-more">

@@ -7,15 +7,24 @@
  * pas au contrat CORS pour un nom de fichier).
  */
 
-/** Nom de l'archive d'export : `course-<slug-du-titre>.zip` (accents aplatis). */
-export function courseExportFilename(title: string): string {
+/**
+ * Slug de nom de fichier tir\u00e9 d'un titre (accents aplatis, s\u00e9parateurs
+ * normalis\u00e9s) ; `'export'` si le titre ne laisse rien d'utilisable. Partag\u00e9
+ * par l'archive `.zip` et la page HTML autonome (`shared/export-html/`).
+ */
+export function titleSlug(title: string): string {
   const slug = title
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^A-Za-z0-9._-]+/g, '-')
     .replace(/^[-._]+|[-._]+$/g, '')
     .toLowerCase();
-  return `course-${slug || 'export'}.zip`;
+  return slug || 'export';
+}
+
+/** Nom de l'archive d'export : `course-<slug-du-titre>.zip` (accents aplatis). */
+export function courseExportFilename(title: string): string {
+  return `course-${titleSlug(title)}.zip`;
 }
 
 /**

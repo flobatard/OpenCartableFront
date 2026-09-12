@@ -1,0 +1,139 @@
+/* Modale de choix du format d'export (élément <dialog> natif : focus trap,
+   Escape, backdrop). Chrome calqué sur .course-style (course-style-dialog). */
+
+.export-dialog {
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 64px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.export-dialog::backdrop {
+  background: rgb(15 23 42 / 55%);
+}
+
+.export-dialog__inner {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 64px);
+}
+
+.export-dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.export-dialog__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+.export-dialog__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.export-dialog__close:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.export-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.export-dialog__formats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.export-dialog__legend {
+  padding: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.export-dialog__choice,
+.export-dialog__option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.export-dialog__choice:has(input:checked) {
+  border-color: var(--color-primary);
+  background: var(--bg-subtle);
+}
+
+.export-dialog__choice input,
+.export-dialog__option input {
+  /* Alignement optique sur la première ligne du libellé. */
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.export-dialog__choice-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.export-dialog__choice-label {
+  font-weight: 500;
+}
+
+.export-dialog__hint {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.export-dialog__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.export-dialog__status {
+  margin-right: auto;
+  color: var(--text-secondary);
+  font-size: 13px;
+}

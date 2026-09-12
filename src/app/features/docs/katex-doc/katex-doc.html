@@ -28,7 +28,7 @@
   <h2>{{ 'docs.katex.symbols.title' | transloco }}</h2>
   <p>{{ 'docs.katex.symbols.body' | transloco }}</p>
   <pre class="doc-source">{{ symbolsExample }}</pre>
-  <app-markdown-view [markdown]="symbolsExample" [showPrint]="false" />
+  <app-markdown-view [markdown]="symbolsExample" [showExport]="false" />
 </section>
 
 <section class="doc-section">
@@ -47,13 +47,13 @@
   <h2>{{ 'docs.katex.text.title' | transloco }}</h2>
   <p>{{ 'docs.katex.text.body' | transloco }}</p>
   <pre class="doc-source">{{ textExample }}</pre>
-  <app-markdown-view [markdown]="textExample" [showPrint]="false" />
+  <app-markdown-view [markdown]="textExample" [showExport]="false" />
 </section>
 
 <section class="doc-section">
   <h2>{{ 'docs.katex.errors.title' | transloco }}</h2>
   <p>{{ 'docs.katex.errors.body' | transloco }}</p>
-  <app-markdown-view [markdown]="errorExample" [showPrint]="false" />
+  <app-markdown-view [markdown]="errorExample" [showExport]="false" />
 </section>
 
 <p class="doc-more">

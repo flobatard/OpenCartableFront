@@ -14,8 +14,9 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { debounceTime, merge } from 'rxjs';
+import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
 import { ProposalHost } from '../../../core/course-assistant/proposal-host';
 import { ProposalModeService } from '../../../core/course-assistant/proposal-mode.service';
@@ -24,16 +25,20 @@ import {
   MODULE_FILE_BY_KIND,
   ModuleProposalFile,
 } from '../../../core/course-assistant/proposals';
+import { downloadBlob, titleSlug } from '../../../core/courses/course-transfer.utils';
 import { createAutosave } from '../../../core/editing/autosave';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { NotificationService } from '../../../core/notifications/notification.service';
 import { MOBILE_QUERY } from '../../../core/layout/breakpoints';
 import { ModuleUpdatePayload } from '../../../core/modules/module.model';
 import { ModuleService } from '../../../core/modules/module.service';
 import { MarkdownEditor } from '../../../shared/markdown-editor/markdown-editor';
+import { composeModuleAsync } from '../../../shared/module-runner/compose-module';
 import {
   MODULE_LIBRARIES,
   parseModuleLibraries,
 } from '../../../shared/module-runner/module-libraries';
+import { ModuleLibraryLoader } from '../../../shared/module-runner/module-library-loader';
 import { ModuleRunner } from '../../../shared/module-runner/module-runner';
 import { ResizeHandle } from '../../../shared/resize-handle/resize-handle.directive';
 import { Tablist } from '../../../shared/tabs/tablist.directive';
@@ -97,6 +102,10 @@ let sequence = 0;
 })
 export class ModuleEditor implements OnInit, OnDestroy {
   readonly #modules = inject(ModuleService);
+  readonly #libraries = inject(ModuleLibraryLoader);
+  readonly #notifications = inject(NotificationService);
+  readonly #transloco = inject(TranslocoService);
+  readonly #analytics = inject(AnalyticsService);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   readonly #route = inject(ActivatedRoute);
   /** Params lus en snapshot (pas de withComponentInputBinding dans ce projet). */
@@ -128,6 +137,9 @@ export class ModuleEditor implements OnInit, OnDestroy {
   protected readonly previewJs = signal('');
   /** La preview ne monte l'iframe qu'une fois le module chargé. */
   protected readonly previewReady = signal(false);
+
+  /** Téléchargement du module autonome en cours (lecture des librairies). */
+  protected readonly downloading = signal(false);
 
   /** Aide de l'onglet JS : librairies préinstallées (pragma `@oc-libs`). */
   protected readonly libraryPragma = '// @oc-libs: matter, chart';
@@ -251,6 +263,37 @@ export class ModuleEditor implements OnInit, OnDestroy {
     // Sortie avant la fin du debounce : flush fire-and-forget (service root),
     // enchaîné derrière l'éventuel PATCH en vol.
     this.#autosave.flushOnDestroy();
+  }
+
+  /**
+   * Télécharge le module en page HTML autonome : le **code courant des trois
+   * éditeurs** (pas la version en base — on télécharge ce qu'on voit dans la
+   * preview), assemblé par le même `composeModuleAsync` que le bac à sable,
+   * librairies `@oc-libs` inlinées. Le fichier s'ouvre tel quel dans un
+   * navigateur : un module ne fait par construction aucune requête réseau.
+   */
+  protected async downloadStandalone(): Promise<void> {
+    if (!this.#isBrowser || this.downloading()) {
+      return;
+    }
+    this.downloading.set(true);
+    try {
+      const { doc } = await composeModuleAsync(
+        this.#libraries,
+        this.htmlControl.value,
+        this.cssControl.value,
+        this.jsControl.value,
+      );
+      downloadBlob(
+        new Blob([doc], { type: 'text/html;charset=utf-8' }),
+        `module-${titleSlug(this.title())}.html`,
+      );
+      this.#analytics.capture('module_html_exported', {});
+    } catch {
+      this.#notifications.error(this.#transloco.translate('courseExport.moduleDownloadFailed'));
+    } finally {
+      this.downloading.set(false);
+    }
   }
 
   protected reload(): void {

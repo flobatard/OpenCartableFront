@@ -1,9 +1,13 @@
-import { Component, input, signal, Type } from '@angular/core';
+import { Component, input, Provider, signal, Type } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { TranslocoService } from '@jsverse/transloco';
 import { MarkdownView } from './markdown-view';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
+import { COURSE_MODULE_RESOLVER } from '../../core/course-content/course-content-resolvers';
 import { ResourceService } from '../../core/resources/resource.service';
+import { ExportDialog } from '../export-dialog/export-dialog';
+import { ExportHtmlService } from '../export-html/export-html.service';
 import { COURSE_RESOURCES_FIXTURE } from '../../testing/resources.fixture';
 import {
   MARKDOWN_EXTENSIONS,
@@ -48,12 +52,14 @@ describe('MarkdownView', () => {
   async function createComponent(
     markdown: string,
     courseId: string | null = null,
+    extraProviders: Provider[] = [],
   ): Promise<ComponentFixture<MarkdownView>> {
     await TestBed.configureTestingModule({
       imports: [MarkdownView, provideTranslocoTesting()],
       providers: [
         { provide: ResourceService, useValue: resourcesMock },
         { provide: MARKDOWN_EXTENSIONS, useValue: FAKE_EXTENSION_DEF, multi: true },
+        ...extraProviders,
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(MarkdownView);
@@ -211,6 +217,43 @@ describe('MarkdownView', () => {
     // aria-label résolu par Transloco (langue par défaut fr).
     expect(host.querySelector('button[aria-label="Style de lecture"]')).toBeTruthy();
     expect(host.querySelector('app-course-style-dialog')).toBeTruthy();
+  });
+
+  it('mounts the export dialog only on the first click of the export button', async () => {
+    const fixture = await createComponent('## Le théorème\n\nUn texte.', 'course-1');
+    const host = fixture.nativeElement as HTMLElement;
+    // Une page de cours monte un markdown-view par bloc : rien dans le DOM
+    // tant que personne n'exporte.
+    expect(host.querySelector('app-export-dialog')).toBeNull();
+
+    host.querySelector<HTMLButtonElement>('button[aria-label="Exporter ce bloc"]')!.click();
+    await fixture.whenStable();
+
+    expect(host.querySelector('app-export-dialog')).toBeTruthy();
+  });
+
+  it('exports the rendered block as a standalone page, titled by its first heading', async () => {
+    const exportMock = { exportCourseContent: vi.fn().mockResolvedValue(null) };
+    const modulesMock = { getModule: vi.fn() };
+    const fixture = await createComponent('## Le théorème\n\nUn texte.', 'course-1', [
+      { provide: ExportHtmlService, useValue: exportMock },
+      { provide: COURSE_MODULE_RESOLVER, useValue: modulesMock },
+    ]);
+    const host = fixture.nativeElement as HTMLElement;
+    host.querySelector<HTMLButtonElement>('button[aria-label="Exporter ce bloc"]')!.click();
+    await fixture.whenStable();
+    const native = host.querySelector('dialog') as HTMLDialogElement;
+    native.showModal = vi.fn();
+    native.close = vi.fn();
+    fixture.debugElement
+      .query(By.directive(ExportDialog))
+      .componentInstance.export.emit({ format: 'html', includeModules: true });
+    await fixture.whenStable();
+
+    const [source, options] = exportMock.exportCourseContent.mock.calls[0];
+    expect((source as HTMLElement).classList.contains('markdown-view__content')).toBe(true);
+    expect(options.courseId).toBe('course-1');
+    expect(options.title).toBe('Le théorème');
   });
 
   it('hides the style button and dialog outside course context', async () => {

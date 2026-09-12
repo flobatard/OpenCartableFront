@@ -1,5 +1,6 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { CourseBlock, CourseDetail } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
 import { ModuleService } from '../../../core/modules/module.service';
@@ -7,6 +8,9 @@ import { ResourceService } from '../../../core/resources/resource.service';
 import { COURSE_DETAIL_FIXTURE } from '../../../testing/courses.fixture';
 import { COURSE_RESOURCES_FIXTURE } from '../../../testing/resources.fixture';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
+import { ExportDialog, ExportRequest } from '../../../shared/export-dialog/export-dialog';
+import { ExportHtmlService } from '../../../shared/export-html/export-html.service';
+import { PrintService } from '../../../shared/print/print.service';
 import { CoursePreview } from './course-preview';
 import { mockResourceService } from '../../../testing/service-mocks';
 
@@ -49,6 +53,9 @@ describe('CoursePreview', () => {
     }),
   };
 
+  const printMock = { printCourseContent: vi.fn().mockResolvedValue(undefined) };
+  const exportMock = { exportCourseContent: vi.fn().mockResolvedValue(null) };
+
   async function createComponent(): Promise<ComponentFixture<CoursePreview>> {
     await TestBed.configureTestingModule({
       imports: [CoursePreview, provideTranslocoTesting()],
@@ -56,6 +63,8 @@ describe('CoursePreview', () => {
         { provide: CourseService, useValue: coursesMock },
         { provide: ResourceService, useValue: resourcesMock },
         { provide: ModuleService, useValue: modulesMock },
+        { provide: PrintService, useValue: printMock },
+        { provide: ExportHtmlService, useValue: exportMock },
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(CoursePreview);
@@ -75,6 +84,47 @@ describe('CoursePreview', () => {
   beforeEach(() => {
     detail.set(DETAIL_WITH_MODULE);
     resourcesMock.loadList.mockClear();
+    printMock.printCourseContent.mockClear();
+    exportMock.exportCourseContent.mockClear();
+    modulesMock.getModule.mockClear();
+  });
+
+  /** Ouvre la modale d'export (jsdom n'implémente ni `showModal` ni `close`)
+   *  puis valide le format demandé, comme le ferait l'utilisateur. */
+  async function requestExport(
+    fixture: ComponentFixture<CoursePreview>,
+    request: ExportRequest,
+  ): Promise<void> {
+    const native = el(fixture).querySelector('dialog') as HTMLDialogElement;
+    native.showModal = vi.fn();
+    native.close = vi.fn();
+    fixture.debugElement.query(By.directive(ExportDialog)).componentInstance.export.emit(request);
+    await fixture.whenStable();
+  }
+
+  it('prints the rendered container when PDF is picked', async () => {
+    const fixture = await createComponent();
+    await requestExport(fixture, { format: 'pdf', includeModules: true });
+
+    expect(printMock.printCourseContent).toHaveBeenCalledTimes(1);
+    const [source, courseId] = printMock.printCourseContent.mock.calls[0];
+    expect((source as HTMLElement).querySelectorAll('.course-preview__block').length).toBe(4);
+    expect(courseId).toBe('course-1');
+    expect(exportMock.exportCourseContent).not.toHaveBeenCalled();
+  });
+
+  it('exports a standalone page, modules resolved through the teacher resolver', async () => {
+    const fixture = await createComponent();
+    await requestExport(fixture, { format: 'html', includeModules: true });
+
+    expect(printMock.printCourseContent).not.toHaveBeenCalled();
+    const [source, options] = exportMock.exportCourseContent.mock.calls[0];
+    expect((source as HTMLElement).querySelectorAll('.course-preview__block').length).toBe(4);
+    expect(options.courseId).toBe('course-1');
+    expect(options.title).toBe(DETAIL_WITH_MODULE.title);
+    expect(options.includeModules).toBe(true);
+    await options.getModule('course-1', 'module-1');
+    expect(modulesMock.getModule).toHaveBeenCalledWith('course-1', 'module-1');
   });
 
   it('loads the resource library on mount', async () => {

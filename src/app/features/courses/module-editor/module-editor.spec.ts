@@ -93,6 +93,30 @@ describe('ModuleEditor', () => {
     expect(el(fixture).textContent).toContain('Quiz interactif');
   });
 
+  it('downloads the module as a standalone document, from the current editors', async () => {
+    const saved: Blob[] = [];
+    URL.createObjectURL = vi.fn((blob: Blob) => {
+      saved.push(blob);
+      return 'blob:mock';
+    });
+    URL.revokeObjectURL = vi.fn();
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    const fixture = await createComponent();
+    // Frappe non encore enregistrée : c'est ce qu'on télécharge.
+    fixture.componentInstance.jsControl.setValue('draft();');
+
+    el(fixture).querySelector<HTMLButtonElement>('.module-editor__download')!.click();
+    await fixture.whenStable();
+
+    expect(saved).toHaveLength(1);
+    const doc = await saved[0].text();
+    expect(doc.startsWith('<!doctype html>')).toBe(true);
+    expect(doc).toContain('draft();');
+    expect(doc).toContain(DETAIL.html);
+    expect(doc).toContain(DETAIL.css);
+    expect(click).toHaveBeenCalledOnce();
+  });
+
   it('three HTML/CSS/JS tabs: switched via [hidden], panels never destroyed', async () => {
     const fixture = await createComponent();
     const panels = () => Array.from(el(fixture).querySelectorAll<HTMLElement>('[role="tabpanel"]'));

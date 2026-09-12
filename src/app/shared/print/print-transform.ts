@@ -253,8 +253,11 @@ export function keepHeadingsWithContent(root: HTMLElement): void {
  * interactif) : préfixe traduit, libellé éventuel et lien vers l'URL stable.
  * Construite par API DOM (jamais innerHTML). Sans URL (hors contexte cours),
  * note textuelle simple.
+ *
+ * Exportée : l'export HTML autonome (`shared/export-html/`) substitue les
+ * mêmes contenus avec les mêmes notes — une seule fabrique pour les deux.
  */
-function buildMediaNote(
+export function buildMediaNote(
   doc: Document,
   prefix: string,
   label: string,

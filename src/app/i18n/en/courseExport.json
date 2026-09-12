@@ -1,0 +1,21 @@
+{
+  "trigger": "Export",
+  "triggerBlock": "Export this block",
+  "title": "Export",
+  "close": "Close",
+  "format": "Format",
+  "pdf": "PDF",
+  "pdfHint": "Uses the browser print dialog: pick “Save as PDF”.",
+  "html": "Standalone HTML page",
+  "htmlHint": "A single file, readable offline, that keeps the interactive modules.",
+  "includeModules": "Keep interactive modules live",
+  "includeModulesHint": "Uncheck for a lighter file: each library in use (p5, Three.js…) weighs about 1 MB.",
+  "cancel": "Cancel",
+  "submit": "Export",
+  "preparing": "Preparing the file…",
+  "done": "File downloaded ({{ size }}).",
+  "failed": "The export did not complete. Try again.",
+  "degraded": "File downloaded ({{ size }}) — {{ images }} image(s) and {{ modules }} module(s) remain available online only.",
+  "moduleDownload": "Download as HTML",
+  "moduleDownloadFailed": "The module download did not complete. Try again."
+}

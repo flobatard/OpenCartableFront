@@ -33,6 +33,13 @@ export interface AnalyticsEvents {
   student_module_opened: Record<string, never>;
   student_resource_opened: Record<string, never>;
   course_pdf_exported: { role: 'teacher' | 'student' };
+  /**
+   * Export en page HTML autonome. Pas de `role` : le bouton par bloc vit dans
+   * `markdown-view`, partagé par les deux régimes, qui ne sait pas qui exporte.
+   */
+  course_html_exported: { scope: 'course' | 'block'; modules: boolean };
+  /** Téléchargement d'un module seul depuis son éditeur. */
+  module_html_exported: Record<string, never>;
 
   exercise_answer_submitted: { kind: SubmissionKind };
   /** `effort` est `null` quand le tuteur ne l'a pas qualifié (miroir du SSE `done`). */

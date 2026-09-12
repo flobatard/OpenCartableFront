@@ -11,6 +11,7 @@ import courses from './courses.json';
 import markdownField from './markdownField.json';
 import markdownView from './markdownView.json';
 import courseStyle from './courseStyle.json';
+import courseExport from './courseExport.json';
 import markdownExtensions from './markdownExtensions.json';
 import markdownPlayground from './markdownPlayground.json';
 import docs from './docs.json';
@@ -44,6 +45,7 @@ export default {
   markdownField,
   markdownView,
   courseStyle,
+  courseExport,
   markdownExtensions,
   markdownPlayground,
   docs,
