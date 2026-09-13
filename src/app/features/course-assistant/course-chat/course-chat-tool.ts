@@ -10,11 +10,12 @@ import { AssistantMessage } from '../../../core/course-assistant/assistant.model
  */
 export const TOOL_RESULT_EXCERPT_CHARS = 400;
 
-/** Outils du back (`app/course_assistant/tools.py` + tools de proposition de
-    `app/course_assistant/editing/`) : libellé i18n dédié, repli générique
-    sinon. Les tools de proposition n'apparaissent ici qu'en repli (appel
-    échoué ou args malformés) — le cas nominal est rendu en carte de
-    proposition (`app-course-chat-proposal`), jamais en ligne d'outil. */
+/** Outils du back (`app/course_assistant/tools.py`, tools de proposition de
+    `app/course_assistant/editing/`, `ask_questions`) : libellé i18n dédié,
+    repli générique sinon. Les tools de proposition et de questions
+    n'apparaissent ici qu'en repli (appel échoué ou args malformés) — le cas
+    nominal est rendu en carte (`app-course-chat-proposal`,
+    `app-course-chat-questions-card`), jamais en ligne d'outil. */
 const KNOWN_TOOLS = new Set([
   'read_block',
   'read_resource_pdf',
@@ -28,6 +29,7 @@ const KNOWN_TOOLS = new Set([
   'propose_html_edit',
   'propose_css_edit',
   'propose_js_edit',
+  'ask_questions',
 ]);
 
 /** Un appel d'outil tel que rendu par le fil : persisté ou en cours. */

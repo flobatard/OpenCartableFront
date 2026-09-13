@@ -11,7 +11,10 @@ import {
   AssistantConversationDetail,
   AssistantMessage,
 } from '../../../core/course-assistant/assistant.model';
-import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
+import {
+  AssistantChatState,
+  AssistantPendingQuestions,
+} from '../../../core/course-assistant/assistant-chat-state';
 import {
   AssistantStreamState,
   AssistantToolActivity,
@@ -115,6 +118,8 @@ function mockAssistant() {
     streamingText: signal(''),
     streamingThinking: signal(''),
     toolActivity: signal<AssistantToolActivity[]>([]),
+    pendingQuestions: signal<AssistantPendingQuestions | null>(null),
+    questionsExpired: signal(false),
     loadConversations: vi.fn().mockResolvedValue(undefined),
     startNewConversation: vi.fn(),
     openConversation: vi.fn().mockResolvedValue(undefined),
@@ -123,6 +128,7 @@ function mockAssistant() {
     deleteConversation: vi.fn().mockResolvedValue(undefined),
     sendMessage: vi.fn().mockResolvedValue(undefined),
     stopStreaming: vi.fn(),
+    answerQuestions: vi.fn().mockResolvedValue(true),
   };
 }
 
@@ -920,6 +926,158 @@ describe('CourseChat', () => {
         'blocks',
         BLOCK_UUID,
       ]);
+    });
+  });
+
+  describe("questions de l'assistant (tous modes)", () => {
+    const ASK_ARGS = {
+      questions: [
+        {
+          question: 'Quel niveau visez-vous ?',
+          multi_select: false,
+          options: [{ label: 'Seconde' }, { label: 'Première' }],
+        },
+        {
+          question: 'Quelles notions inclure ?',
+          multi_select: true,
+          options: [{ label: 'Dérivée' }, { label: 'Limites' }],
+        },
+      ],
+    };
+
+    const PENDING: AssistantPendingQuestions = {
+      id: 'call_q',
+      reoffered: false,
+      questions: [
+        {
+          text: 'Quel niveau visez-vous ?',
+          multiSelect: false,
+          options: [
+            { label: 'Seconde', description: null },
+            { label: 'Première', description: null },
+          ],
+        },
+      ],
+    };
+
+    /** Flux fermé sur les questions : activité conservée, formulaire en attente. */
+    function awaitQuestions(fixture: ComponentFixture<CourseChat>): void {
+      assistant.active.set(emptyDetail());
+      assistant.streamState.set('awaiting');
+      assistant.toolActivity.set([
+        { id: 'call_q', name: 'ask_questions', status: 'running', args: ASK_ARGS, result: null },
+      ]);
+      assistant.pendingQuestions.set(PENDING);
+      fixture.detectChanges();
+    }
+
+    it('pending questions replace the composer; the thread card waits', async () => {
+      const fixture = await createComponent();
+      awaitQuestions(fixture);
+
+      expect(el(fixture).querySelector('.course-chat__composer')).toBeNull();
+      expect(el(fixture).querySelector('app-course-chat-questions .chat-questions')).toBeTruthy();
+      const card = el(fixture).querySelector('.chat-questions-card')!;
+      expect(card.classList.contains('chat-questions-card--pending')).toBe(true);
+      expect(card.textContent).toContain("Questions de l'assistant");
+      expect(card.textContent).toContain('En attente de votre réponse');
+    });
+
+    it('also works in an editing chat', async () => {
+      const fixture = await createComponent({ blockId: 'block-1' });
+      awaitQuestions(fixture);
+      expect(el(fixture).querySelector('.chat-questions')).toBeTruthy();
+      expect(el(fixture).querySelector('.chat-proposal')).toBeNull();
+    });
+
+    it('answering or declining goes through the chat state', async () => {
+      const fixture = await createComponent();
+      awaitQuestions(fixture);
+
+      const radio = el(fixture).querySelector<HTMLInputElement>('.chat-questions__choice input')!;
+      radio.click();
+      fixture.detectChanges();
+      el(fixture).querySelector<HTMLButtonElement>('.chat-questions .btn--primary')!.click();
+      expect(assistant.answerQuestions).toHaveBeenCalledWith({
+        declined: false,
+        answers: [{ selected: [0], other: null }],
+      });
+
+      el(fixture).querySelector<HTMLButtonElement>('.chat-questions__decline')!.click();
+      expect(assistant.answerQuestions).toHaveBeenLastCalledWith({ declined: true });
+    });
+
+    it('a persisted series shows its result, or « Sans réponse » when abandoned', async () => {
+      const fixture = await createComponent();
+      assistant.active.set({
+        ...emptyDetail(),
+        messages: [
+          message({ id: 'u1', role: 'user', content: 'Crée un exercice' }),
+          message({
+            id: 'a1',
+            role: 'assistant',
+            tool_calls: [{ id: 'call_q', name: 'ask_questions', arguments: ASK_ARGS }],
+          }),
+          message({
+            id: 't1',
+            role: 'tool',
+            tool_call_id: 'call_q',
+            content: 'Le professeur a répondu à vos questions :\n1. Quel niveau visez-vous ? → Seconde',
+          }),
+          message({ id: 'u2', role: 'user', content: 'Et maintenant ?' }),
+          message({
+            id: 'a2',
+            role: 'assistant',
+            tool_calls: [{ id: 'call_old', name: 'ask_questions', arguments: ASK_ARGS }],
+          }),
+          message({ id: 'u3', role: 'user', content: 'Laisse tomber' }),
+        ],
+      });
+      fixture.detectChanges();
+
+      const [answered, abandoned] = Array.from(el(fixture).querySelectorAll('.chat-questions-card'));
+      expect(answered.querySelector('.chat-questions-card__result')?.textContent).toContain(
+        '1. Quel niveau visez-vous ? → Seconde',
+      );
+      expect(abandoned.textContent).toContain('Sans réponse.');
+      // Hors attente, le composer est là.
+      expect(el(fixture).querySelector('.course-chat__composer')).toBeTruthy();
+    });
+
+    it('a failed ask_questions call falls back to the generic tool line', async () => {
+      const fixture = await createComponent();
+      assistant.active.set({
+        ...emptyDetail(),
+        messages: [
+          message({
+            id: 'a1',
+            role: 'assistant',
+            tool_calls: [{ id: 'call_q', name: 'ask_questions', arguments: ASK_ARGS }],
+          }),
+          message({
+            id: 't1',
+            role: 'tool',
+            tool_call_id: 'call_q',
+            is_error: true,
+            content: 'Appel ignoré : un seul outil bloquant',
+          }),
+        ],
+      });
+      fixture.detectChanges();
+
+      expect(el(fixture).querySelector('.chat-questions-card')).toBeNull();
+      const tool = el(fixture).querySelector('details.chat-tool')!;
+      expect(tool.textContent).toContain('Questions au professeur');
+    });
+
+    it('shows the expiry notice when the questions were no longer pending', async () => {
+      const fixture = await createComponent();
+      assistant.active.set(emptyDetail());
+      assistant.questionsExpired.set(true);
+      fixture.detectChanges();
+      expect(el(fixture).querySelector('.course-chat__notice')?.textContent).toContain(
+        'ne sont plus en attente',
+      );
     });
   });
 });

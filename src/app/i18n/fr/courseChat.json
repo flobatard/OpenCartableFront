@@ -96,6 +96,7 @@
     "propose_html_edit": "Proposition de modification du HTML",
     "propose_css_edit": "Proposition de modification du CSS",
     "propose_js_edit": "Proposition de modification du JavaScript",
+    "ask_questions": "Questions au professeur",
     "unknown": "Utilisation d'un outil"
   },
   "proposal": {
@@ -131,6 +132,22 @@
       "targetMissing": "La question visée n'existe plus — rejetez la proposition."
     },
     "modulePreview": "Aperçu de la proposition"
+  },
+  "questions": {
+    "title": "Question de l'assistant",
+    "titleMany": "Questions de l'assistant",
+    "step": "Question {{current}} sur {{total}}",
+    "multiHint": "Plusieurs réponses possibles",
+    "other": "Autre",
+    "otherLabel": "Autre réponse",
+    "otherPlaceholder": "Précisez…",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "submit": "Répondre",
+    "decline": "Ne pas répondre",
+    "pendingHint": "En attente de votre réponse — les questions s'affichent sous la conversation.",
+    "unansweredHint": "Sans réponse.",
+    "expired": "Ces questions ne sont plus en attente (délai dépassé ou serveur redémarré) — renvoyez votre demande."
   },
   "errors": {
     "quota": "Quota quotidien de l'IA par défaut épuisé.",

@@ -31,6 +31,7 @@ import {
 } from '../../../core/courses/exercise-form';
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
 import { ProposalModeService } from '../../../core/course-assistant/proposal-mode.service';
+import { revealOnNewQuestions } from '../../../core/course-assistant/question-reveal';
 import { CourseService } from '../../../core/courses/course.service';
 import { CourseStyleService } from '../../../core/courses/course-style.service';
 import { ExerciseSubmissionsService } from '../../../core/courses/exercise-submissions.service';
@@ -252,6 +253,10 @@ export class BlockEditor implements OnInit, OnDestroy {
     // rafraîchissement du template, donc avant le montage du chat enfant et
     // son premier `loadConversations`.
     this.#assistantState.setBeforeTurn(() => this.flushContent());
+
+    // Des questions de l'assistant attendent le professeur : le chat replié
+    // se déplie (sur téléphone, la vue bascule sur l'assistant).
+    revealOnNewQuestions(this.#assistantState, () => this.chatCollapsed.set(false));
 
     // Miroir du markdown pour le diff des propositions (l'init n'émet pas).
     this.content.valueChanges

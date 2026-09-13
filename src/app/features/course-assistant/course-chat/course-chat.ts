@@ -18,6 +18,11 @@ import { AssistantChatState } from '../../../core/course-assistant/assistant-cha
 import { AssistantMessage } from '../../../core/course-assistant/assistant.model';
 import { CourseAssistantService } from '../../../core/course-assistant/course-assistant.service';
 import { parseProposal, PROPOSAL_TOOLS } from '../../../core/course-assistant/proposals';
+import {
+  ASK_QUESTIONS,
+  parseQuestions,
+  QuestionAnswer,
+} from '../../../core/course-assistant/questions';
 import { progressiveReveal } from '../../../core/course-assistant/stream-reveal';
 import { formatTokenCount, turnUsageByMessage } from '../../../core/course-assistant/usage';
 import { LanguageService } from '../../../core/i18n/language.service';
@@ -26,6 +31,8 @@ import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
 import { Spinner } from '../../../shared/spinner/spinner';
 import { CourseChatConversations } from './course-chat-conversations';
 import { CourseChatProposal } from './course-chat-proposal';
+import { CourseChatQuestions } from './course-chat-questions';
+import { CourseChatQuestionsCard, QuestionsCardStatus } from './course-chat-questions-card';
 import { CourseChatSettings } from './course-chat-settings';
 import { ChatToolView, CourseChatTool, toolRowsById, toolViewsFor } from './course-chat-tool';
 
@@ -59,6 +66,11 @@ const SCROLL_PIN_THRESHOLD_PX = 80;
  *   générique d'un hôte dont le contexte d'édition n'existerait pas côté back
  *   (aucun hôte ne la pose).
  *
+ * Dans les deux modes actifs, les **questions de l'assistant** (tool
+ * `ask_questions`, run figé) remplacent le composer par leur formulaire
+ * (`app-course-chat-questions`, une question par étape, refus par la croix) ;
+ * leur appel devient une carte dans le fil (`app-course-chat-questions-card`).
+ *
  * Deux régimes de rendu du texte assistant : pendant le stream,
  * `app-markdown-view` sans `courseId` (références oc-* inertes → re-rendus
  * bon marché) sur le signal dévoilé progressivement (`streamingRender`) ; un
@@ -74,6 +86,8 @@ const SCROLL_PIN_THRESHOLD_PX = 80;
     RouterLink,
     CourseChatConversations,
     CourseChatProposal,
+    CourseChatQuestions,
+    CourseChatQuestionsCard,
     CourseChatTool,
     CourseChatSettings,
     Spinner,
@@ -230,6 +244,7 @@ export class CourseChat {
       this.assistant.active()?.messages.length;
       this.streamingRender();
       this.assistant.toolActivity();
+      this.assistant.pendingQuestions();
       if (this.#isBrowser && this.#pinnedToBottom) {
         setTimeout(() => this.#scrollToBottom(), 0);
       }
@@ -339,5 +354,53 @@ export class CourseChat {
   protected proposalSummary(view: ChatToolView): string | null {
     const summary = view.args['summary'];
     return typeof summary === 'string' && summary ? summary : null;
+  }
+
+  // ------------------------------------------------- questions (tous modes)
+
+  /**
+   * Vrai pour un appel `ask_questions` rendu en carte : args bien formés et
+   * appel non échoué (refus de validation ou garde « un outil bloquant par
+   * réponse » : la ligne d'outil montre son message d'erreur).
+   */
+  protected isQuestions(view: ChatToolView): boolean {
+    return view.name === ASK_QUESTIONS && view.status !== 'error' && parseQuestions(view) !== null;
+  }
+
+  protected questionCount(view: ChatToolView): number {
+    return parseQuestions(view)?.length ?? 0;
+  }
+
+  /**
+   * Résultat d'une série : le tour `tool` persisté en entier s'il existe
+   * (conversation rechargée), sinon l'extrait streamé.
+   */
+  protected questionsResult(view: ChatToolView): string | null {
+    return this.#toolRowsById().get(view.id)?.content || view.result;
+  }
+
+  /**
+   * En attente tant que l'appel tourne ou que le formulaire la porte ; sans
+   * résultat hors flux, la série est restée sans réponse (pendant une reprise,
+   * le résultat arrive en tête du flux).
+   */
+  protected questionsStatus(view: ChatToolView): QuestionsCardStatus {
+    if (view.status === 'running' || this.assistant.pendingQuestions()?.id === view.id) {
+      return 'pending';
+    }
+    if (this.questionsResult(view) !== null || this.assistant.streamState() === 'streaming') {
+      return 'done';
+    }
+    return 'unanswered';
+  }
+
+  protected answerQuestions(answers: QuestionAnswer[]): void {
+    this.#pinnedToBottom = true;
+    void this.assistant.answerQuestions({ declined: false, answers });
+  }
+
+  protected declineQuestions(): void {
+    this.#pinnedToBottom = true;
+    void this.assistant.answerQuestions({ declined: true });
   }
 }

@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
+import { AnalyticsService } from '../analytics/analytics.service';
 import { AuthService } from '../auth/auth.service';
 import { AssistantConversation, AssistantConversationDetail } from './assistant.model';
 import { CourseAssistantService } from './course-assistant.service';
@@ -238,5 +239,280 @@ describe('CourseAssistantService', () => {
     const messages = service.active()!.messages;
     expect(messages[messages.length - 1].role).toBe('assistant');
     expect(messages[messages.length - 1].content).toBe('Début');
+  });
+});
+
+/**
+ * Questions de l'assistant (tool `ask_questions`) dans le contexte global :
+ * interrupt → formulaire, réponse ou refus par la route de réponse,
+ * reproposition à la réouverture, expiration (404), panneau révélé.
+ */
+describe('CourseAssistantService — questions de l’assistant', () => {
+  let service: CourseAssistantService;
+  let http: HttpTestingController;
+
+  const ASK_ARGS =
+    '{"questions":[{"question":"Quel niveau ?","multi_select":false,' +
+    '"options":[{"label":"Seconde"},{"label":"Première"}]},' +
+    '{"question":"Quelles notions ?","multi_select":true,' +
+    '"options":[{"label":"Dérivée"},{"label":"Limites"}]}]}';
+
+  const QUESTIONS_EVENTS =
+    'event: token\ndata: {"delta":"Quelques précisions. "}\n\n' +
+    `event: tool_call\ndata: {"id":"call_q","name":"ask_questions","args":${ASK_ARGS}}\n\n` +
+    'event: interrupt\ndata: {"tool_call_id":"call_q","kind":"questions","message_ids":["m1"],' +
+    '"usage":{"input_tokens":50,"output_tokens":20}}\n\n';
+
+  const ANSWERED_EVENTS = [
+    'event: tool_result\ndata: {"id":"call_q","name":"ask_questions","is_error":false,' +
+      '"excerpt":"Le professeur a répondu à vos questions :","length":42}\n\n',
+    'event: token\ndata: {"delta":"Merci."}\n\n',
+    'event: done\ndata: {"usage":{"input_tokens":30,"output_tokens":10},' +
+      '"user_message_id":null,"message_ids":["m2","m3"],"sources":{},"title":null}\n\n',
+  ];
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: AuthService,
+          useValue: { isAuthenticated: () => true, accessToken: 'jwt-token' },
+        },
+      ],
+    });
+    service = TestBed.inject(CourseAssistantService);
+    http = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  async function open(detail: AssistantConversationDetail): Promise<void> {
+    const list = service.loadConversations('c1');
+    http.expectOne(BASE).flush([CONVERSATION]);
+    await list;
+    const promise = service.openConversation('conv-1');
+    http.expectOne(`${BASE}/conv-1`).flush(detail);
+    await promise;
+  }
+
+  /** Conversation ouverte, tour envoyé, le flux se ferme sur les questions. */
+  async function reachQuestions(): Promise<void> {
+    await open(DETAIL);
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(sseResponse([QUESTIONS_EVENTS])));
+    await service.sendMessage('Crée un exercice');
+  }
+
+  it('an interrupt on ask_questions sets pendingQuestions, never pendingProposal', async () => {
+    await reachQuestions();
+    expect(service.streamState()).toBe('awaiting');
+    expect(service.pendingProposal()).toBeNull();
+    expect(service.pendingQuestions()).toEqual({
+      id: 'call_q',
+      reoffered: false,
+      questions: [
+        {
+          text: 'Quel niveau ?',
+          multiSelect: false,
+          options: [
+            { label: 'Seconde', description: null },
+            { label: 'Première', description: null },
+          ],
+        },
+        {
+          text: 'Quelles notions ?',
+          multiSelect: true,
+          options: [
+            { label: 'Dérivée', description: null },
+            { label: 'Limites', description: null },
+          ],
+        },
+      ],
+    });
+    // Le tour reste affiché en l'état, l'appel en cours.
+    expect(service.toolActivity().map((entry) => [entry.id, entry.status])).toEqual([
+      ['call_q', 'running'],
+    ]);
+  });
+
+  it('new pending questions unfold the floating panel', async () => {
+    expect(service.panelOpen()).toBe(false);
+    await reachQuestions();
+    TestBed.tick();
+    expect(service.panelOpen()).toBe(true);
+    // Replié ensuite par le professeur : la même série ne le rouvre pas.
+    service.setPanelOpen(false);
+    TestBed.tick();
+    expect(service.panelOpen()).toBe(false);
+  });
+
+  it('answerQuestions posts to the answer route and consumes the questions on open', async () => {
+    await reachQuestions();
+    const answerFetch = vi.fn().mockResolvedValue(sseResponse(ANSWERED_EVENTS));
+    vi.stubGlobal('fetch', answerFetch);
+    const answers = [
+      { selected: [1], other: null },
+      { selected: [0], other: 'Tangentes' },
+    ];
+
+    await expect(service.answerQuestions({ declined: false, answers })).resolves.toBe(true);
+
+    const [url, init] = answerFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${BASE}/conv-1/questions/call_q/answer`);
+    expect(JSON.parse(init.body as string)).toEqual({ declined: false, answers });
+    expect(service.pendingQuestions()).toBeNull();
+    expect(service.streamState()).toBe('idle');
+    // Tour replié en un message assistant : appel apparié à son résultat,
+    // usage de l'interrupt (50/20) + reprise (30/10).
+    const messages = service.active()!.messages;
+    const folded = messages.at(-1)!;
+    expect(folded.tool_calls.map((call) => call.id)).toEqual(['call_q']);
+    // Le texte de la reprise forme un paragraphe distinct (segment à part côté back).
+    expect(folded.content).toBe('Quelques précisions.\n\nMerci.');
+    expect(folded.input_tokens).toBe(80);
+    expect(messages.find((m) => m.role === 'tool')?.tool_call_id).toBe('call_q');
+  });
+
+  it('declining posts {declined: true, answers: null}', async () => {
+    await reachQuestions();
+    const capture = vi.spyOn(TestBed.inject(AnalyticsService), 'capture');
+    const answerFetch = vi.fn().mockResolvedValue(sseResponse(ANSWERED_EVENTS));
+    vi.stubGlobal('fetch', answerFetch);
+
+    await service.answerQuestions({ declined: true });
+
+    const [, init] = answerFetch.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toEqual({ declined: true, answers: null });
+    expect(capture).toHaveBeenCalledWith('assistant_questions_answered', {
+      questions: 2,
+      declined: true,
+      other: 0,
+      reoffered: false,
+    });
+  });
+
+  it('analytics count answers, never their text', async () => {
+    await reachQuestions();
+    const capture = vi.spyOn(TestBed.inject(AnalyticsService), 'capture');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(sseResponse(ANSWERED_EVENTS)));
+    await service.answerQuestions({
+      declined: false,
+      answers: [
+        { selected: [], other: 'Terminale' },
+        { selected: [0, 1], other: null },
+      ],
+    });
+    expect(capture).toHaveBeenCalledWith('assistant_questions_answered', {
+      questions: 2,
+      declined: false,
+      other: 1,
+      reoffered: false,
+    });
+  });
+
+  it('a failed answer keeps the questions retryable', async () => {
+    await reachQuestions();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('boom', { status: 503 })));
+    await expect(service.answerQuestions({ declined: true })).resolves.toBe(false);
+    expect(service.pendingQuestions()?.id).toBe('call_q');
+    expect(service.streamState()).toBe('error');
+    expect(service.questionsExpired()).toBe(false);
+  });
+
+  it('a 404 drops the questions, flags them expired and gives the composer back', async () => {
+    await reachQuestions();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('gone', { status: 404 })));
+    await expect(service.answerQuestions({ declined: true })).resolves.toBe(false);
+    expect(service.pendingQuestions()).toBeNull();
+    expect(service.questionsExpired()).toBe(true);
+    expect(service.streamState()).toBe('idle');
+    expect(service.streamErrorStatus()).toBeNull();
+  });
+
+  function reloadedDetail(): AssistantConversationDetail {
+    return {
+      ...DETAIL,
+      messages: [
+        {
+          id: 'm0',
+          role: 'user',
+          position: 0,
+          content: 'Crée un exercice',
+          tool_calls: [],
+          tool_call_id: null,
+          is_error: false,
+          sources: {},
+          input_tokens: null,
+          output_tokens: null,
+          cached_input_tokens: null,
+          created_at: '2026-09-13T10:00:00Z',
+        },
+        {
+          id: 'm1',
+          role: 'assistant',
+          position: 1,
+          content: 'Quelques précisions. ',
+          tool_calls: [{ id: 'call_q', name: 'ask_questions', arguments: JSON.parse(ASK_ARGS) }],
+          tool_call_id: null,
+          is_error: false,
+          sources: {},
+          input_tokens: 50,
+          output_tokens: 20,
+          cached_input_tokens: null,
+          created_at: '2026-09-13T10:00:00Z',
+        },
+      ],
+    };
+  }
+
+  it('openConversation re-offers the questions still ending the conversation', async () => {
+    await open(reloadedDetail());
+    expect(service.streamState()).toBe('awaiting');
+    expect(service.pendingQuestions()?.id).toBe('call_q');
+    expect(service.pendingQuestions()?.reoffered).toBe(true);
+    expect(service.pendingQuestions()?.questions).toHaveLength(2);
+  });
+
+  it('answering re-offered questions pairs the persisted call with a local tool row', async () => {
+    await open(reloadedDetail());
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(sseResponse(ANSWERED_EVENTS)));
+
+    await service.answerQuestions({ declined: true });
+
+    const messages = service.active()!.messages;
+    expect(messages.map((m) => [m.role, m.tool_call_id])).toEqual([
+      ['user', null],
+      ['assistant', null],
+      ['tool', 'call_q'],
+      ['assistant', null],
+    ]);
+    // Le repli ne duplique pas l'appel persisté : le nouveau segment n'a que du texte.
+    expect(messages.at(-1)?.tool_calls).toEqual([]);
+    expect(messages.at(-1)?.content).toBe('Merci.');
+  });
+
+  it('expired questions are not re-offered again by the same instance', async () => {
+    await open(reloadedDetail());
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('gone', { status: 404 })));
+    await service.answerQuestions({ declined: true });
+
+    const promise = service.openConversation('conv-1');
+    http.expectOne(`${BASE}/conv-1`).flush(reloadedDetail());
+    await promise;
+    expect(service.pendingQuestions()).toBeNull();
+    expect(service.streamState()).toBe('idle');
+  });
+
+  it('sending a new message abandons the questions locally', async () => {
+    await reachQuestions();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(sseResponse(['event: token\ndata: {"delta":"Entendu."}\n\n'])),
+    );
+    await service.sendMessage('Laisse tomber');
+    expect(service.pendingQuestions()).toBeNull();
   });
 });

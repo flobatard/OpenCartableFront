@@ -153,6 +153,16 @@
   text-decoration: underline;
 }
 
+/* Information du fil sans gravité (questions expirées) : ligne atténuée. */
+.course-chat__notice {
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px dashed var(--border-control);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-size: 0.95em;
+}
+
 /* L'historique des conversations vit dans app-course-chat-conversations. */
 
 /* Fil : seule la question du prof est une bulle ; la réponse assistant est

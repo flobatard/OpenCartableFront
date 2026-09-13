@@ -96,6 +96,7 @@
     "propose_html_edit": "Proposed HTML change",
     "propose_css_edit": "Proposed CSS change",
     "propose_js_edit": "Proposed JavaScript change",
+    "ask_questions": "Questions for the teacher",
     "unknown": "Using a tool"
   },
   "proposal": {
@@ -131,6 +132,22 @@
       "targetMissing": "The targeted question no longer exists — reject the proposal."
     },
     "modulePreview": "Preview of the proposal"
+  },
+  "questions": {
+    "title": "Question from the assistant",
+    "titleMany": "Questions from the assistant",
+    "step": "Question {{current}} of {{total}}",
+    "multiHint": "Several answers allowed",
+    "other": "Other",
+    "otherLabel": "Other answer",
+    "otherPlaceholder": "Specify…",
+    "previous": "Previous",
+    "next": "Next",
+    "submit": "Answer",
+    "decline": "Don't answer",
+    "pendingHint": "Waiting for your answer — the questions are shown below the conversation.",
+    "unansweredHint": "No answer.",
+    "expired": "These questions are no longer pending (timed out or server restarted) — send your request again."
   },
   "errors": {
     "quota": "Daily quota of the default AI exhausted.",

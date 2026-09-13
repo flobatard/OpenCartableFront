@@ -14,6 +14,14 @@ import {
 } from './assistant.model';
 import { AssistantConversationsApi } from './conversations-api';
 import { AssistantPendingProposal, parseProposal } from './proposals';
+import {
+  ASK_QUESTIONS,
+  AssistantPendingQuestions,
+  parseQuestions,
+  pendingQuestionsFromHistory,
+  QuestionsReply,
+  questionsReplyBody,
+} from './questions';
 import { postSseStream } from './sse';
 import {
   applyToolResult,
@@ -21,16 +29,20 @@ import {
   foldTurnMessages,
   LocalMessage,
   toolActivityFromCall,
+  toolRowFromResult,
 } from './turn-reducer';
 import { addUsage } from './usage';
 
 export type { AssistantPendingProposal } from './proposals';
+export type { AssistantPendingQuestions } from './questions';
 export type { AssistantToolActivity } from './turn-reducer';
 
 /**
- * `awaiting` : le flux s'est fermé sur une proposition d'édition (événement
- * `interrupt`, flux HITL d'un contexte d'édition) — le run est figé côté back
- * jusqu'à la décision (`resumeProposal`), le composer attend.
+ * `awaiting` : le flux s'est fermé sur un tool bloquant (événement
+ * `interrupt`, flux HITL) — le run est figé côté back jusqu'à la réponse du
+ * professeur : décision sur une proposition d'édition (`resumeProposal`, le
+ * composer attend) ou réponse à des questions (`answerQuestions`, le
+ * formulaire des questions remplace le composer).
  */
 export type AssistantStreamState = 'idle' | 'streaming' | 'awaiting' | 'error';
 
@@ -54,7 +66,7 @@ export interface AssistantChatScope {
  * Portée (`configure`) : contexte `course` (défaut — aucun query param ni
  * champ ajouté) ou contexte d'édition scopé à sa cible (bloc ou module) ;
  * l'hôte éditeur peut poser un hook `setBeforeTurn` awaité avant chaque tour
- * ET chaque décision HITL (flush d'autosave : le back lit la cible EN BASE).
+ * ET chaque reprise HITL (flush d'autosave : le back lit la cible EN BASE).
  * La vue d'entrée est une conversation **brouillon** (id vide, locale) :
  * `active` ne vaut `null` que quand l'historique est affiché ; `sendMessage`
  * matérialise le brouillon (POST) avant de streamer le premier tour. Pendant
@@ -128,6 +140,26 @@ export class AssistantChatState implements OnDestroy {
   readonly #pendingProposal = signal<AssistantPendingProposal | null>(null);
   readonly pendingProposal = this.#pendingProposal.asReadonly();
 
+  /**
+   * Questions de l'assistant en attente de réponse (tool `ask_questions`, tous
+   * contextes, typées par `parseQuestions`) : posées à l'événement `interrupt`
+   * — ou reproposées à la réouverture d'une conversation dont elles restent le
+   * dernier appel sans réponse —, consommées par `answerQuestions`. Distinctes
+   * de `pendingProposal` : la revue et le mode « édition auto » ne les voient
+   * jamais.
+   */
+  readonly #pendingQuestions = signal<AssistantPendingQuestions | null>(null);
+  readonly pendingQuestions = this.#pendingQuestions.asReadonly();
+
+  /**
+   * Des questions n'attendaient plus côté back au moment d'y répondre (404 :
+   * délai dépassé, redémarrage) : le fil l'affiche jusqu'au prochain tour ou
+   * changement de vue. Leurs ids ne sont plus reproposés par cette instance.
+   */
+  readonly #questionsExpired = signal(false);
+  readonly questionsExpired = this.#questionsExpired.asReadonly();
+  readonly #expiredQuestionIds = new Set<string>();
+
   constructor() {
     this.#active.set(this.#draft());
     effect(() => {
@@ -159,9 +191,9 @@ export class AssistantChatState implements OnDestroy {
   }
 
   /**
-   * Hook awaité avant chaque tour (`sendMessage`) et chaque décision
-   * (`resumeProposal`) — l'hôte éditeur y branche son flush d'autosave. Un
-   * échec du hook n'empêche jamais l'envoi (`null` désarme).
+   * Hook awaité avant chaque tour (`sendMessage`) et chaque reprise HITL
+   * (`resumeProposal`, `answerQuestions`) — l'hôte éditeur y branche son flush
+   * d'autosave. Un échec du hook n'empêche jamais l'envoi (`null` désarme).
    */
   setBeforeTurn(hook: (() => Promise<void>) | null): void {
     this.#beforeTurn = hook;
@@ -200,6 +232,9 @@ export class AssistantChatState implements OnDestroy {
     this.#toolActivity.set([]);
     this.#turnUsage = null;
     this.#pendingProposal.set(null);
+    this.#pendingQuestions.set(null);
+    this.#questionsExpired.set(false);
+    this.#expiredQuestionIds.clear();
   }
 
   /** Query params de la liste : aucun en portée `course`, contexte + cible sinon. */
@@ -279,7 +314,12 @@ export class AssistantChatState implements OnDestroy {
     }
   }
 
-  /** Ouvre une conversation existante (recharge ses messages persistés). */
+  /**
+   * Ouvre une conversation existante (recharge ses messages persistés). Si
+   * elle se termine sur des questions de l'assistant restées sans réponse,
+   * elles sont reproposées : le run attend peut-être encore côté back (sinon
+   * la réponse recevra un 404 — questions expirées).
+   */
   async openConversation(conversationId: string): Promise<void> {
     const courseId = this.#courseId;
     if (!courseId) {
@@ -293,6 +333,7 @@ export class AssistantChatState implements OnDestroy {
       const detail = await this.#api.get(courseId, conversationId);
       if (this.#courseId === courseId) {
         this.#active.set(detail);
+        this.#reofferQuestions(detail);
       }
     } catch {
       this.#activeError.set(true);
@@ -423,6 +464,7 @@ export class AssistantChatState implements OnDestroy {
     if (this.#beforeTurn) {
       await this.#runBeforeTurn(this.#beforeTurn);
     }
+    this.#separateResumedText();
     const status = await this.#streamTurn(
       this.#api.decisionUrl(courseId, conversationId, pending.id),
       { accepted: decision.accepted, comment: decision.comment ?? null },
@@ -436,6 +478,85 @@ export class AssistantChatState implements OnDestroy {
       return false;
     }
     return true;
+  }
+
+  /**
+   * Réponse du professeur aux questions en attente — ou refus de répondre
+   * (la croix) : REPREND le run figé côté back, dont la réponse est le **flux
+   * SSE de la suite du tour** (`tool_result`… `done`, ou un nouvel
+   * `interrupt`). Les questions sont consommées dès l'ouverture du flux ; sur
+   * échec d'envoi elles restent en place (réessayables), sauf 404 — plus rien
+   * n'attend côté back (délai dépassé, redémarrage) : elles sont abandonnées,
+   * `questionsExpired` passe à vrai et le composer revient. Retourne `false`
+   * si le flux n'a pas pu s'ouvrir.
+   *
+   * Le hook `beforeTurn` est awaité AVANT le POST (la reprise recharge la
+   * cible d'édition EN BASE).
+   */
+  async answerQuestions(reply: QuestionsReply): Promise<boolean> {
+    const courseId = this.#courseId;
+    const conversationId = this.#active()?.id;
+    const pending = this.#pendingQuestions();
+    if (!courseId || !conversationId || !pending || !this.#isBrowser) {
+      return false;
+    }
+    if (this.#streamState() === 'streaming') {
+      return false;
+    }
+    this.#streamState.set('streaming');
+    this.#streamErrorStatus.set(null);
+    this.#questionsExpired.set(false);
+    // Des compteurs seulement, jamais le texte des questions ni des réponses.
+    this.#analytics.capture('assistant_questions_answered', {
+      questions: pending.questions.length,
+      declined: reply.declined,
+      other: reply.declined ? 0 : reply.answers.filter((answer) => answer.other !== null).length,
+      reoffered: pending.reoffered,
+    });
+    if (this.#beforeTurn) {
+      await this.#runBeforeTurn(this.#beforeTurn);
+    }
+    this.#separateResumedText();
+    const status = await this.#streamTurn(
+      this.#api.answerUrl(courseId, conversationId, pending.id),
+      questionsReplyBody(reply),
+      () => this.#pendingQuestions.set(null),
+    );
+    if (status === null) {
+      return true;
+    }
+    if (status === 404) {
+      this.#pendingQuestions.set(null);
+      this.#expiredQuestionIds.add(pending.id);
+      this.#questionsExpired.set(true);
+      this.#streamState.set('idle');
+    } else {
+      this.#failStream(status);
+    }
+    return false;
+  }
+
+  /**
+   * Le texte de la reprise est un nouveau segment côté back (rendu en
+   * paragraphe distinct une fois la conversation rechargée) : le texte déjà
+   * streamé du tour s'en sépare d'un saut de paragraphe, sinon les deux
+   * phrases se colleraient dans le message replié.
+   */
+  #separateResumedText(): void {
+    this.#streamingText.update((text) =>
+      text.trim() && !text.endsWith('\n\n') ? `${text.trimEnd()}\n\n` : text,
+    );
+  }
+
+  /** Questions de fin de conversation restées sans réponse : reproposées, sauf
+      si cette instance les sait expirées. */
+  #reofferQuestions(detail: AssistantConversationDetail): void {
+    const pending = pendingQuestionsFromHistory(detail.messages);
+    if (pending === null || this.#expiredQuestionIds.has(pending.id)) {
+      return;
+    }
+    this.#pendingQuestions.set({ ...pending, reoffered: true });
+    this.#streamState.set('awaiting');
   }
 
   /** Hook avant-tour de l'hôte, non bloquant : l'IA travaillera sur le dernier
@@ -508,19 +629,31 @@ export class AssistantChatState implements OnDestroy {
         this.#toolActivity.update((activity) => [...activity, toolActivityFromCall(event)]);
         return false;
       case 'tool_result':
-        this.#toolActivity.update((activity) => applyToolResult(activity, event));
+        if (this.#toolActivity().some((entry) => entry.id === event.id)) {
+          this.#toolActivity.update((activity) => applyToolResult(activity, event));
+        } else {
+          // Reprise de questions reproposées à la réouverture : leur appel est
+          // dans les messages persistés, ce résultat s'y apparie.
+          this.#appendMessage(toolRowFromResult(event));
+        }
         return false;
       case 'interrupt': {
         // Usage des rounds déjà joués par le run figé, cumulé AVANT toute
         // branche (le repli défensif ci-dessous le porte aussi).
         this.#turnUsage = addUsage(this.#turnUsage, event.usage);
-        // Proposition d'édition (HITL) : le run est figé côté back, le flux
-        // se ferme — la revue (hôte éditeur) s'adosse à `pendingProposal`,
-        // typée depuis l'appel figé de l'activité d'outils ; le tour reste
-        // affiché en l'état, il reprendra via `resumeProposal`.
+        // Tool bloquant (HITL) : le run est figé côté back, le flux se ferme —
+        // questions de l'assistant (`pendingQuestions`, le formulaire remplace
+        // le composer) ou proposition d'édition (`pendingProposal`, la revue
+        // de l'hôte éditeur s'y adosse), typées depuis l'appel figé de
+        // l'activité d'outils ; le tour reste affiché en l'état, il reprendra
+        // via `answerQuestions` ou `resumeProposal`.
         const entry = this.#toolActivity().find((e) => e.id === event.tool_call_id);
-        const proposal = entry ? parseProposal(entry) : null;
-        if (proposal !== null) {
+        const questions = entry?.name === ASK_QUESTIONS ? parseQuestions(entry) : null;
+        const proposal = entry && questions === null ? parseProposal(entry) : null;
+        if (entry && questions !== null) {
+          this.#pendingQuestions.set({ id: entry.id, questions, reoffered: false });
+          this.#streamState.set('awaiting');
+        } else if (proposal !== null) {
           this.#pendingProposal.set(proposal);
           this.#streamState.set('awaiting');
         } else {
@@ -587,10 +720,13 @@ export class AssistantChatState implements OnDestroy {
     this.#turnUsage = null;
     this.#streamState.set('idle');
     this.#streamErrorStatus.set(null);
-    // Nouvelle vue/nouveau tour : une proposition encore en attente est
-    // abandonnée localement (le back purge la sienne au prochain message,
-    // ou à son TTL).
+    // Nouvelle vue/nouveau tour : une proposition ou des questions encore en
+    // attente sont abandonnées localement (le back purge la reprise au
+    // prochain message, ou à son TTL — des questions sont reproposées si la
+    // conversation est rouverte avant).
     this.#pendingProposal.set(null);
+    this.#pendingQuestions.set(null);
+    this.#questionsExpired.set(false);
   }
 
   #appendMessage(partial: LocalMessage): void {

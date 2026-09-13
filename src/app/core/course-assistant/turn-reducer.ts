@@ -44,25 +44,44 @@ export function toolActivityFromCall(event: ToolCallEvent): AssistantToolActivit
 }
 
 /**
+ * Extrait affichable d'un `tool_result` (« … » ajouté s'il est tronqué),
+ * `null` s'il est vide. Contrat additif : un back plus ancien n'envoie ni
+ * `excerpt` ni `length`.
+ */
+function resultExcerpt(event: ToolResultEvent): string | null {
+  const excerpt = event.excerpt ?? '';
+  const truncated = (event.length ?? excerpt.length) > excerpt.length;
+  return excerpt ? excerpt + (truncated ? '…' : '') : null;
+}
+
+/**
  * Applique un `tool_result` à l'entrée de même id : état `done`/`error` et
- * extrait du résultat (« … » ajouté s'il est tronqué). Contrat additif : un
- * back plus ancien n'envoie ni `excerpt` ni `length`.
+ * extrait du résultat.
  */
 export function applyToolResult(
   activity: readonly AssistantToolActivity[],
   event: ToolResultEvent,
 ): AssistantToolActivity[] {
-  const excerpt = event.excerpt ?? '';
-  const truncated = (event.length ?? excerpt.length) > excerpt.length;
   return activity.map((entry) =>
     entry.id === event.id
-      ? {
-          ...entry,
-          status: event.is_error ? 'error' : 'done',
-          result: excerpt ? excerpt + (truncated ? '…' : '') : null,
-        }
+      ? { ...entry, status: event.is_error ? 'error' : 'done', result: resultExcerpt(event) }
       : entry,
   );
+}
+
+/**
+ * Tour `tool` local d'un `tool_result` qui ne vise aucune activité du tour :
+ * la reprise de questions reproposées à la réouverture d'une conversation —
+ * leur appel est dans les messages persistés, ce tour s'y apparie (même forme
+ * qu'un tour replié : l'extrait streamé).
+ */
+export function toolRowFromResult(event: ToolResultEvent): LocalMessage {
+  return {
+    role: 'tool',
+    content: resultExcerpt(event) ?? '',
+    tool_call_id: event.id,
+    is_error: event.is_error,
+  };
 }
 
 /**

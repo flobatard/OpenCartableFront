@@ -1,0 +1,205 @@
+@use 'breakpoints' as bp;
+
+/* Questions de l'assistant à la place du composer : même bande basse du chat
+   (filet haut), hauteur bornée pour que le fil reste visible — seul le corps
+   défile, en-tête et boutons restent épinglés. Tailles en em : la base
+   compacte du chat (`--chat-font`) est héritée. */
+:host {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 70%;
+  border-top: 1px solid var(--border);
+}
+
+.chat-questions {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.chat-questions__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 10px 16px 0;
+}
+
+.chat-questions__title {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.chat-questions__step {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Croix du refus : bouton discret de l'en-tête, cousin de .course-chat__collapse. */
+.chat-questions__decline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.chat-questions__decline:hover:not(:disabled) {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.chat-questions__decline:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.chat-questions__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 16px;
+}
+
+.chat-questions__fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.chat-questions__question {
+  margin-bottom: 8px;
+  padding: 0;
+  color: var(--text-primary);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.chat-questions__hint {
+  margin: -4px 0 8px;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+.chat-questions__choices {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Carte de choix — motif de la modale d'export : contour décoratif, contour
+   primaire et fond atténué une fois cochée (l'état reste porté par la case). */
+.chat-questions__choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.chat-questions__choice:has(input:checked) {
+  border-color: var(--color-primary);
+  background: var(--bg-subtle);
+}
+
+.chat-questions__choice input[type='radio'],
+.chat-questions__choice input[type='checkbox'] {
+  flex-shrink: 0;
+  /* Alignement optique sur la première ligne du libellé. */
+  margin: 0.25em 0 0;
+  accent-color: var(--color-primary);
+}
+
+.chat-questions__choice-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.chat-questions__choice-label {
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.chat-questions__choice-hint {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  overflow-wrap: anywhere;
+}
+
+/* « Autre » : la case et son champ, qui passe à la ligne quand la colonne est étroite. */
+.chat-questions__choice--other {
+  flex-wrap: wrap;
+  align-items: center;
+  cursor: default;
+}
+
+.chat-questions__other-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.chat-questions__other-input {
+  flex: 1 1 12em;
+  min-width: 0;
+  padding: 5px 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.chat-questions__other-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.chat-questions__foot {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 16px 12px;
+}
+
+/* Boutons du chat : le `.btn` global est figé à 14px, plus gros que le corps
+   réduit du panneau. */
+.btn {
+  font-size: 0.95em;
+}
+
+@include bp.touch {
+  .chat-questions__choice,
+  .chat-questions__foot .btn {
+    min-height: 40px;
+  }
+
+  .chat-questions__decline {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Téléphone : la saisie ne descend pas sous 16 px (Safari iOS zoome au focus). */
+@include bp.mobile {
+  .chat-questions__other-input {
+    font-size: max(16px, 1em);
+  }
+}

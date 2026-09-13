@@ -1,5 +1,6 @@
 import { effect, Injectable, signal } from '@angular/core';
 import { AssistantChatState } from './assistant-chat-state';
+import { revealOnNewQuestions } from './question-reveal';
 
 export type { AssistantStreamState, AssistantToolActivity } from './assistant-chat-state';
 
@@ -30,6 +31,8 @@ export class CourseAssistantService extends AssistantChatState {
         this.#panelOpen.set(false);
       }
     });
+    // Des questions attendent le professeur : le panneau replié se déplie.
+    revealOnNewQuestions(this, () => this.#panelOpen.set(true));
   }
 
   setPanelOpen(open: boolean): void {

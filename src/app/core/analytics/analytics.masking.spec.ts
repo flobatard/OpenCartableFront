@@ -15,6 +15,7 @@ describe('REPLAY_MASK_SELECTOR', () => {
       'course-chat__thread',
       'course-chat__thinking',
     ],
+    'features/course-assistant/course-chat/course-chat-questions.html': ['chat-questions'],
     'shared/course-blocks-view/exercise-view.html': [
       'exercise-view__thread',
       'exercise-view__revealed-answer',

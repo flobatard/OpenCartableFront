@@ -1,0 +1,43 @@
+<div class="chat-questions-card" [class.chat-questions-card--pending]="status() === 'pending'">
+  <div class="chat-questions-card__head">
+    <svg
+      class="chat-questions-card__icon"
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.75"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+      <path d="M12 17h.01" />
+    </svg>
+    <span class="chat-questions-card__title">
+      {{
+        (count() > 1 ? 'courseChat.questions.titleMany' : 'courseChat.questions.title') | transloco
+      }}
+    </span>
+  </div>
+
+  @switch (status()) {
+    @case ('pending') {
+      <p class="chat-questions-card__pending" role="status">
+        {{ 'courseChat.questions.pendingHint' | transloco }}
+      </p>
+    }
+    @case ('unanswered') {
+      <p class="chat-questions-card__unanswered">
+        {{ 'courseChat.questions.unansweredHint' | transloco }}
+      </p>
+    }
+    @default {
+      @if (result(); as result) {
+        <p class="chat-questions-card__result">{{ result }}</p>
+      }
+    }
+  }
+</div>

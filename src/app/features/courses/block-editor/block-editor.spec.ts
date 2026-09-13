@@ -698,6 +698,32 @@ describe('BlockEditor', () => {
     expect(el(fixture).querySelector('.block-editor__chat-reopen')).toBeNull();
   });
 
+  it('new pending questions of the assistant unfold a collapsed chat', async () => {
+    const fixture = await createComponent();
+    el(fixture).querySelector<HTMLButtonElement>('.block-editor__chat-toggle')!.click();
+    fixture.detectChanges();
+    const chat = el(fixture).querySelector<HTMLElement>('app-course-chat')!;
+    expect(chat.hidden).toBe(true);
+
+    assistantState.pendingQuestions.set({
+      id: 'call_q',
+      reoffered: false,
+      questions: [
+        {
+          text: 'Quel niveau visez-vous ?',
+          multiSelect: false,
+          options: [
+            { label: 'Seconde', description: null },
+            { label: 'Première', description: null },
+          ],
+        },
+      ],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(chat.hidden).toBe(false);
+  });
+
   it('resizes via keyboard through the handle (aria-valuenow clamped)', async () => {
     const fixture = await createComponent();
     const divider = el(fixture).querySelector<HTMLElement>('.block-editor__divider')!;

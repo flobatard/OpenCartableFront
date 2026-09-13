@@ -20,6 +20,7 @@ import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
 import { ProposalHost } from '../../../core/course-assistant/proposal-host';
 import { ProposalModeService } from '../../../core/course-assistant/proposal-mode.service';
+import { revealOnNewQuestions } from '../../../core/course-assistant/question-reveal';
 import {
   AssistantModuleProposal,
   MODULE_FILE_BY_KIND,
@@ -224,6 +225,10 @@ export class ModuleEditor implements OnInit, OnDestroy {
     // awaité avant chaque tour ET avant chaque décision HITL.
     this.#assistantState.configure({ context: 'module', moduleId: this.moduleId });
     this.#assistantState.setBeforeTurn(() => this.flushContent());
+
+    // Des questions de l'assistant attendent le professeur : le chat replié
+    // se déplie (sur téléphone, la vue bascule sur l'assistant).
+    revealOnNewQuestions(this.#assistantState, () => this.chatCollapsed.set(false));
 
     // Fermeture d'une revue (décision partie, ou proposition abandonnée) :
     // état de l'hôte remis à zéro et focus rendu à l'éditeur ré-affiché — un

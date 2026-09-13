@@ -1,0 +1,55 @@
+/* Carte des questions dans le fil : cousine de la carte de proposition,
+   toujours visible — la réponse, elle, se donne sous le fil. */
+:host {
+  display: block;
+}
+
+.chat-questions-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-size: 0.95em;
+  color: var(--text-secondary);
+}
+
+.chat-questions-card--pending {
+  border-color: var(--color-primary);
+}
+
+.chat-questions-card__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-primary);
+}
+
+.chat-questions-card__icon {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.chat-questions-card--pending .chat-questions-card__icon {
+  color: var(--color-primary);
+}
+
+.chat-questions-card__title {
+  font-weight: 600;
+}
+
+.chat-questions-card__pending {
+  margin: 6px 0 0;
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.chat-questions-card__unanswered {
+  margin: 6px 0 0;
+  font-style: italic;
+}
+
+/* Résultat du back : une ligne par question, sauts de ligne conservés. */
+.chat-questions-card__result {
+  margin: 6px 0 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}

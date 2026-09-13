@@ -5,9 +5,10 @@
 
 /**
  * Contextes de conversation LIVRÉS (`ai_conversations.context`) : `course`
- * (chat global) et les contextes d'édition (flux HITL, cf. `proposals.ts`) —
- * d'un bloc (`block_text`, `block_exercise`, cible `block_id`) ou d'un module
- * interactif (`module`, cible `module_id`).
+ * (chat global) et les contextes d'édition (flux HITL des propositions, cf.
+ * `proposals.ts`) — d'un bloc (`block_text`, `block_exercise`, cible
+ * `block_id`) ou d'un module interactif (`module`, cible `module_id`). Les
+ * questions de l'assistant (`questions.ts`) existent dans tous.
  */
 export type AssistantContext = 'course' | 'block_text' | 'block_exercise' | 'module';
 
@@ -91,6 +92,12 @@ export type AssistantStreamEvent =
   | {
       type: 'interrupt';
       tool_call_id: string;
+      /**
+       * Ce qui attend le professeur : une proposition d'édition ou des
+       * questions (absent chez un back plus ancien — l'état se fie au tool
+       * de l'appel figé).
+       */
+      kind?: 'proposal' | 'questions';
       message_ids: string[];
       /** Usage des rounds déjà joués (absent chez un back plus ancien). */
       usage?: AssistantUsage | null;

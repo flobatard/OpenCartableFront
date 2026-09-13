@@ -2,6 +2,7 @@ import { signal } from '@angular/core';
 import { vi } from 'vitest';
 import {
   AssistantPendingProposal,
+  AssistantPendingQuestions,
   AssistantStreamState,
   AssistantToolActivity,
 } from '../core/course-assistant/assistant-chat-state';
@@ -39,6 +40,8 @@ export function mockAssistantChatState() {
     streamingThinking: signal(''),
     toolActivity: signal<AssistantToolActivity[]>([]),
     pendingProposal: signal<AssistantPendingProposal | null>(null),
+    pendingQuestions: signal<AssistantPendingQuestions | null>(null),
+    questionsExpired: signal(false),
     configure: vi.fn(),
     setBeforeTurn: vi.fn(),
     loadConversations: vi.fn().mockResolvedValue(undefined),
@@ -50,6 +53,7 @@ export function mockAssistantChatState() {
     stopStreaming: vi.fn(),
     sendMessage: vi.fn().mockResolvedValue(undefined),
     resumeProposal: vi.fn().mockResolvedValue(true),
+    answerQuestions: vi.fn().mockResolvedValue(true),
   };
 }
 

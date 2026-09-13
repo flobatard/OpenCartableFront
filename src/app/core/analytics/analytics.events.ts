@@ -53,6 +53,17 @@ export interface AnalyticsEvents {
   /** `auto` : décision prise par le mode « édition auto », sans revue. */
   assistant_proposal_decided: { accepted: boolean; auto: boolean };
   assistant_proposal_mode_changed: { mode: ProposalMode };
+  /**
+   * Réponse aux questions de l'assistant — des compteurs seulement, jamais le
+   * texte des questions ni des réponses : `other` = réponses libres
+   * « Autre », `reoffered` = questions reproposées à la réouverture.
+   */
+  assistant_questions_answered: {
+    questions: number;
+    declined: boolean;
+    other: number;
+    reoffered: boolean;
+  };
 
   /** La requête elle-même n'est JAMAIS envoyée. */
   search_performed: { scope: 'courses' | 'teachers'; hasFilters: boolean };

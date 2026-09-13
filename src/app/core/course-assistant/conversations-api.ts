@@ -7,9 +7,10 @@ import { AssistantConversation, AssistantConversationDetail } from './assistant.
 /**
  * Accès HTTP aux conversations de l'assistant d'un cours
  * (`/v1/courses/{id}/assistant/conversations`) : CRUD par `HttpClient`
- * (Bearer automatique, URL sous `apiUrl`) et URLs des deux flux SSE —
- * consommés par `postSseStream`, hors HttpClient. Sans état : l'état vit dans
- * `AssistantChatState`.
+ * (Bearer automatique, URL sous `apiUrl`) et URLs des flux SSE — un tour, et
+ * les deux reprises HITL (décision sur une proposition, réponse à des
+ * questions) — consommés par `postSseStream`, hors HttpClient. Sans état :
+ * l'état vit dans `AssistantChatState`.
  */
 @Injectable({ providedIn: 'root' })
 export class AssistantConversationsApi {
@@ -55,5 +56,10 @@ export class AssistantConversationsApi {
   /** Flux SSE de reprise d'un run figé (décision sur une proposition HITL). */
   decisionUrl(courseId: string, conversationId: string, toolCallId: string): string {
     return `${this.base(courseId)}/${conversationId}/proposals/${toolCallId}/decision`;
+  }
+
+  /** Flux SSE de reprise d'un run figé (réponse aux questions de l'assistant). */
+  answerUrl(courseId: string, conversationId: string, toolCallId: string): string {
+    return `${this.base(courseId)}/${conversationId}/questions/${toolCallId}/answer`;
   }
 }

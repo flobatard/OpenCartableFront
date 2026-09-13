@@ -1,0 +1,131 @@
+<form
+  class="chat-questions"
+  [attr.aria-labelledby]="titleId"
+  novalidate
+  (submit)="onSubmit($event)"
+>
+  <header class="chat-questions__head">
+    <span class="chat-questions__title" [id]="titleId">
+      {{
+        (total() > 1 ? 'courseChat.questions.titleMany' : 'courseChat.questions.title') | transloco
+      }}
+    </span>
+    @if (total() > 1) {
+      <span class="chat-questions__step" aria-live="polite">
+        {{ 'courseChat.questions.step' | transloco: { current: step() + 1, total: total() } }}
+      </span>
+    }
+    <button
+      type="button"
+      class="chat-questions__decline"
+      [attr.aria-label]="'courseChat.questions.decline' | transloco"
+      [title]="'courseChat.questions.decline' | transloco"
+      [disabled]="busy()"
+      (click)="decline()"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        width="18"
+        height="18"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M6 6l12 12M18 6 6 18" />
+      </svg>
+    </button>
+  </header>
+
+  <div class="chat-questions__body">
+    <fieldset class="chat-questions__fieldset" [disabled]="busy()">
+      <legend #questionText class="chat-questions__question" tabindex="-1">
+        {{ question().text }}
+      </legend>
+      @if (question().multiSelect) {
+        <p class="chat-questions__hint">{{ 'courseChat.questions.multiHint' | transloco }}</p>
+      }
+
+      <div class="chat-questions__choices">
+        @for (option of question().options; track $index) {
+          <label class="chat-questions__choice">
+            @if (question().multiSelect) {
+              <input
+                type="checkbox"
+                [name]="fieldName()"
+                [checked]="draft().selected.includes($index)"
+                (change)="selectOption($index)"
+              />
+            } @else {
+              <input
+                type="radio"
+                [name]="fieldName()"
+                [checked]="draft().selected.includes($index)"
+                (change)="selectOption($index)"
+              />
+            }
+            <span class="chat-questions__choice-text">
+              <span class="chat-questions__choice-label">{{ option.label }}</span>
+              @if (option.description) {
+                <span class="chat-questions__choice-hint">{{ option.description }}</span>
+              }
+            </span>
+          </label>
+        }
+
+        <!-- Choix libre « Autre » : sa case (ou son bouton radio) et son champ,
+             hors du label — saisir coche le choix. -->
+        <div class="chat-questions__choice chat-questions__choice--other">
+          <label class="chat-questions__other-toggle">
+            @if (question().multiSelect) {
+              <input
+                type="checkbox"
+                [name]="fieldName()"
+                [checked]="draft().otherChecked"
+                (change)="onOtherToggle($event)"
+              />
+            } @else {
+              <input
+                type="radio"
+                [name]="fieldName()"
+                [checked]="draft().otherChecked"
+                (change)="onOtherToggle($event)"
+              />
+            }
+            <span class="chat-questions__choice-label">
+              {{ 'courseChat.questions.other' | transloco }}
+            </span>
+          </label>
+          <input
+            #otherInput
+            type="text"
+            class="chat-questions__other-input"
+            [value]="draft().otherText"
+            [attr.maxlength]="maxOtherChars"
+            [attr.aria-label]="'courseChat.questions.otherLabel' | transloco"
+            [attr.placeholder]="'courseChat.questions.otherPlaceholder' | transloco"
+            (input)="onOtherInput($event)"
+          />
+        </div>
+      </div>
+    </fieldset>
+  </div>
+
+  <footer class="chat-questions__foot">
+    @if (total() > 1) {
+      <button
+        type="button"
+        class="btn btn--ghost"
+        [disabled]="step() === 0 || busy()"
+        (click)="previous()"
+      >
+        {{ 'courseChat.questions.previous' | transloco }}
+      </button>
+    }
+    <button type="submit" class="btn btn--primary" [disabled]="!answeredNow() || busy()">
+      {{ (isLast() ? 'courseChat.questions.submit' : 'courseChat.questions.next') | transloco }}
+    </button>
+  </footer>
+</form>
