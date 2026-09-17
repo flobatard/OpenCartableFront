@@ -34,6 +34,12 @@
     "colTitle": "Titre par défaut",
     "aliasNote": "Les mots-clés français ([!RETENIR], [!METHODE]…) et ceux des alertes GitHub (TIP, IMPORTANT, CAUTION) restent reconnus ; un type inconnu laisse une simple citation, marqueur visible."
   },
+  "columns": {
+    "title": "Colonnes",
+    "intro": "Pour mettre deux contenus côte à côte — une définition et son exemple, une figure et son explication : ::: columns ouvre les colonnes, +++ passe à la colonne de droite et ::: les ferme, chaque marqueur seul sur sa ligne. Chaque colonne accepte tout ce que permet l'éditeur : texte, encadrés, formules, images, modules, code.",
+    "ratioNote": "::: columns 1:2 donne un tiers à gauche et deux tiers à droite, ::: columns 2:1 l'inverse. Sur un écran étroit, les colonnes s'empilent : la gauche au-dessus de la droite.",
+    "rulesNote": "Une ligne vide est nécessaire avant ::: columns quand il suit une citation, une liste ou un tableau. Le bouton « Insérer des colonnes » sous l'éditeur pose le squelette et y place le texte sélectionné."
+  },
   "latex": {
     "title": "Formules (LaTeX)",
     "intro": "Rendues par KaTeX. Une formule invalide s'affiche en rouge sans bloquer le reste du bloc.",

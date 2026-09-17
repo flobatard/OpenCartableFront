@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
-import { MarkdownEditor } from './markdown-editor';
+import { MarkdownEditor, positionInText } from './markdown-editor';
 
 /**
  * En jsdom, le wrapper ngx-monaco-editor est inerte par construction : le
@@ -95,24 +95,83 @@ describe('MarkdownEditor', () => {
     expect(fixture.componentInstance.control.value).toBe('');
   });
 
-  it('insertAtCursor delegates to the monaco instance’s executeEdits then refocuses', async () => {
+  type Range = {
+    startLineNumber: number;
+    startColumn: number;
+    endLineNumber: number;
+    endColumn: number;
+  };
+
+  /** Faux Monaco : sélection et texte sélectionné fixés, appels tracés dans l'ordre. */
+  function fakeMonaco(selection: Range, selected = '') {
+    const calls: string[] = [];
+    const instance = {
+      getModel: () => ({ getValueInRange: vi.fn(() => selected) }),
+      getSelection: () => selection,
+      executeEdits: vi.fn(() => calls.push('edit')),
+      pushUndoStop: vi.fn(() => calls.push('stop')),
+      setSelection: vi.fn(() => calls.push('select')),
+      focus: vi.fn(() => calls.push('focus')),
+    };
+    return { instance, calls };
+  }
+
+  it('insertAtCursor replaces the selection in one undo step then refocuses', async () => {
     const fixture = await createHost();
     const editor = editorOf(fixture);
-    const executeEdits = vi.fn();
-    const focus = vi.fn();
     const selection = { startLineNumber: 1, startColumn: 1, endLineNumber: 1, endColumn: 1 };
-    (editor as unknown as MarkdownEditorInternals).onEditorInit({
-      getSelection: () => selection,
-      executeEdits,
-      focus,
-    });
+    const { instance, calls } = fakeMonaco(selection);
+    (editor as unknown as MarkdownEditorInternals).onEditorInit(instance);
 
     editor.insertAtCursor('SNIPPET');
 
-    expect(executeEdits).toHaveBeenCalledWith('insert-resource', [
+    expect(instance.executeEdits).toHaveBeenCalledWith('insert-resource', [
       { range: selection, text: 'SNIPPET', forceMoveMarkers: true },
     ]);
-    expect(focus).toHaveBeenCalledOnce();
+    // Curseur laissé après le texte : aucune sélection posée.
+    expect(calls).toEqual(['stop', 'edit', 'stop', 'focus']);
+  });
+
+  it('replaceSelection reports false and builds nothing until monaco is initialized', async () => {
+    const fixture = await createHost();
+    const build = vi.fn(() => ({ text: 'x' }));
+
+    expect(editorOf(fixture).replaceSelection(build)).toBe(false);
+    expect(build).not.toHaveBeenCalled();
+  });
+
+  it('replaceSelection builds from the selected text, then selects the requested range', async () => {
+    const fixture = await createHost();
+    const editor = editorOf(fixture);
+    const selection = { startLineNumber: 3, startColumn: 5, endLineNumber: 4, endColumn: 2 };
+    const { instance, calls } = fakeMonaco(selection, 'a\r\nb');
+    (editor as unknown as MarkdownEditorInternals).onEditorInit(instance);
+    const text = '\n\n::: columns\na\nb\n+++\nDroite\n:::\n\n';
+    const build = vi.fn(() => ({ text, select: { start: 22, end: 28 } }));
+
+    expect(editor.replaceSelection(build)).toBe(true);
+
+    // Sélection relue en fins de ligne `\n`, quel que soit l'EOL du modèle.
+    expect(build).toHaveBeenCalledWith('a\nb');
+    expect(instance.executeEdits).toHaveBeenCalledWith('insert-snippet', [
+      { range: selection, text, forceMoveMarkers: true },
+    ]);
+    // « Droite » : 7e ligne du texte inséré à partir de la ligne 3, colonnes 1 à 7.
+    expect(text.slice(22, 28)).toBe('Droite');
+    expect(instance.setSelection).toHaveBeenCalledWith({
+      startLineNumber: 9,
+      startColumn: 1,
+      endLineNumber: 9,
+      endColumn: 7,
+    });
+    expect(calls).toEqual(['stop', 'edit', 'stop', 'select', 'focus']);
+  });
+
+  it('positionInText counts columns on the insertion line, then restarts at 1', () => {
+    const start = { lineNumber: 2, column: 5 };
+    expect(positionInText(start, 'abc\ndef', 2)).toEqual({ lineNumber: 2, column: 7 });
+    expect(positionInText(start, 'abc\ndef', 5)).toEqual({ lineNumber: 3, column: 2 });
+    expect(positionInText(start, '\n\nxy', 4)).toEqual({ lineNumber: 4, column: 3 });
   });
 
   it('replaceAll reports false until monaco is initialized (caller falls back)', async () => {

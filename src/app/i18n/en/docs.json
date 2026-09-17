@@ -21,6 +21,10 @@
       "title": "Callouts",
       "summary": "Definitions, methods, key points, warnings: colored boxes, written like GitHub alerts."
     },
+    "columns": {
+      "title": "Columns",
+      "summary": "Set two contents side by side: a definition and its example, a figure and its explanation."
+    },
     "geogebra": {
       "title": "GeoGebra",
       "summary": "Embed an activity published on geogebra.org into a course."
@@ -194,6 +198,38 @@
     "print": {
       "title": "Printing and PDF export",
       "body": "Callouts go into the PDF export with their background, side bar and icon, in light colors; a callout that fits on a page is not split."
+    }
+  },
+  "columns": {
+    "intro": "Columns set two contents against each other — a definition and its example, a figure and its explanation, a program and its commentary — instead of reading one below the other. Each column is full markdown. Every example is editable.",
+    "first": {
+      "title": "Two columns",
+      "body": "::: columns opens the columns, +++ moves to the right column and ::: closes them, each marker alone on its line. Text after the closing marker spans the full width again. In the editor, the “Insert columns” button sets up this skeleton and puts the selected text in it."
+    },
+    "ratio": {
+      "title": "Widths",
+      "body": "By default, both columns have the same width. ::: columns 1:2 gives one third to the left column and two thirds to the right one — handy for a figure next to its explanation; ::: columns 2:1 does the reverse."
+    },
+    "content": {
+      "title": "Anything in a column",
+      "body": "Each column accepts what the editor offers: text, lists, callouts, formulas, figures, runnable code. In a course, a library image or an interactive module goes in the same way."
+    },
+    "rules": {
+      "title": "Writing rules",
+      "body": "Markers are read line by line:",
+      "alone": "each marker is alone on its line: ::: columns (or ::: columns 1:2, ::: columns 2:1), then +++, then :::;",
+      "separator": "a single +++ per container; a column may stay empty;",
+      "blankLine": "after a quote, a callout, a list or a table, leave a blank line before ::: columns: glued to it, the opener would be absorbed by what comes before;",
+      "code": "a code block may contain +++ or ::: without splitting anything; elsewhere, to write these characters alone on a line, escape them: \\+++;",
+      "invalid": "a malformed container — no closing marker, no separator, two separators or an unknown ratio — stays text, markers visible:"
+    },
+    "narrow": {
+      "title": "Narrow screens",
+      "body": "When room runs out — phone, narrow window or panel —, the columns stack: left above right, each at full width. The threshold depends on the width actually available to the course, not on the screen width."
+    },
+    "print": {
+      "title": "Printing and export",
+      "body": "In the PDF export, the columns stay side by side, and a container that fits on a page is not split. The exported HTML page keeps them too, and stacks them on a narrow screen."
     }
   },
   "geogebra": {

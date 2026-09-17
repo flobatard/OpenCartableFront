@@ -6,7 +6,7 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { NativeDialog } from '../dialog/native-dialog.directive';
 
 /**
- * Modale d'aide à la mise en forme (markdown et encadrés + LaTeX/KaTeX et mhchem + Mermaid +
+ * Modale d'aide à la mise en forme (markdown, encadrés et colonnes + LaTeX/KaTeX et mhchem + Mermaid +
  * extensions GeoGebra/JSXGraph/TikZ/frise/SMILES/Vega-Lite/ABC/SQL/Python/passage), réutilisable par tout éditeur de
  * contenu de cours. Élément `<dialog>` natif : focus-trap, Escape et backdrop gérés par
  * la plateforme. Présentational — pilotée par le parent via les méthodes
@@ -45,6 +45,10 @@ export class MarkdownHelpDialog {
   protected readonly calloutExample =
     '> [!DEFINITION]\n> Une fonction affine s’écrit $f(x) = ax + b$.\n\n' +
     '> [!WARNING] Titre libre\n> Le texte après le marqueur remplace le titre.';
+
+  protected readonly columnsExample =
+    '::: columns\n> [!DEFINITION] Nombre premier\n> Il a exactement deux diviseurs.\n' +
+    '+++\n> [!EXAMPLE]\n> $13$ est premier, $15 = 3 \\times 5$ ne l’est pas.\n:::';
 
   protected readonly mhchemExample = '$\\ce{2H2 + O2 -> 2H2O}$\n$\\pu{9.81 m.s^-2}$';
 

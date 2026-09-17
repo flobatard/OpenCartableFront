@@ -58,7 +58,8 @@
   text-align: center;
 }
 
-/* Barre d'actions sous l'éditeur : insertion de ressource + aide (pilules globales). */
+/* Barre d'actions sous l'éditeur : insertions (ressource, module, colonnes) + aide
+   (pilules globales). */
 .markdown-field__actions {
   display: flex;
   flex-wrap: wrap;
@@ -66,7 +67,8 @@
   margin-top: 8px;
 }
 
-.markdown-field__insert-btn {
+.markdown-field__insert-btn,
+.markdown-field__columns-btn {
   padding: 4px 12px;
 }
 

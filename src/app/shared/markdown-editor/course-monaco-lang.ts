@@ -130,8 +130,9 @@ export const ocMarkdownConf = {
 // --- Grammaire oc-markdown = markdown intégré (recopié) + règles math ---------
 //
 // Recopie fidèle de `basic-languages/markdown/markdown.js` (monaco 0.55.1). Les
-// SEULS ajouts OpenCartable sont marqués « OC » : la règle de bloc math dans
-// `root`, l'état `ocMathBlock`, et les règles de math en ligne dans `linecontent`.
+// SEULS ajouts OpenCartable sont marqués « OC » : dans `root`, le fence
+// vegalite, la règle de bloc math et les marqueurs de colonnes ; l'état
+// `ocMathBlock` ; les règles de math en ligne dans `linecontent`.
 // La grammaire markdown amont est gelée : le coût de resync est négligeable.
 
 export const ocMarkdownLanguage = {
@@ -177,6 +178,13 @@ export const ocMarkdownLanguage = {
       // qu'un $$…$$ en milieu de ligne tombe plutôt dans @linecontent (math
       // « display » en ligne), comme le distingue le renderer (BLOCK_RULE = ^$$).
       [/^\$\$/, { token: 'keyword.math.delimiter', next: '@ocMathBlock', nextEmbedded: 'latex' }],
+      // OC — marqueurs de colonnes (core/markdown/course-columns.ts), ligne
+      // entière : ouvrant `::: columns` (casse épelée, Monarch n'a pas de drapeau
+      // par règle), fermeture `:::` nue, séparateur `+++`. Mêmes bornes que le
+      // parseur : au plus 3 espaces d'indentation (au-delà, code indenté).
+      [/^ {0,3}:{3,}[ \t]*[Cc][Oo][Ll][Uu][Mm][Nn][Ss]\b.*$/, 'keyword.columns'],
+      [/^ {0,3}:{3,}[ \t]*$/, 'keyword.columns'],
+      [/^ {0,3}\+{3,}[ \t]*$/, 'keyword.columns'],
       // markup within lines
       { include: '@linecontent' },
     ],

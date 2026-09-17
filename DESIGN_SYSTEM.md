@@ -191,6 +191,7 @@ Toute la zone d'édition/lecture d'un cours vit sous `.course-content` : largeur
 
 - **Titre** Outfit 600, 24/20 px. **Paragraphe** Inter 400, 16 px.
 - **Encadré** (`> [!DEFINITION]`…, six types) : fond de la teinte `500` de la famille à 10 % et liseré gauche `3px` de cette teinte (`radius 0`) — mêmes valeurs dans les deux thèmes —, icône linéaire du type (16–20 px) dans le ton texte AAA de la famille, titre Outfit 600 et texte en `text-primary`. Définition = indigo (`indigo-700`) · À retenir = ambre (`amber-800`, jamais un mot en ambre) · Méthode = émeraude (`emerald-800`) · Exemple = sky (`sky-800`) · Remarque = slate (`slate-600`) · Attention = rouge (`red-800`) ; icônes en versions `300`/`400` en sombre, tons clairs à l'impression. Le type n'est jamais porté par la seule couleur : icône par type, et un titre personnalisé est précédé du libellé du type en `.sr-only`.
+- **Colonnes** (`::: columns` … `+++` … `:::`, ratio facultatif `1:2` / `2:1`) : deux contenus côte à côte dans la largeur de lecture, gouttière `2em`, ni filet ni fond ; un encadré seul dans sa colonne s'étire à la hauteur de la rangée (définition et exemple finissent ensemble). Sous `26em` de largeur disponible, les colonnes s'empilent — gauche au-dessus, écart d'un paragraphe — ; côte à côte à l'impression.
 - **Fichier / image** : carte icône + nom + taille, téléchargement en bouton fantôme, **légende `slate-600`**.
 - **Module interactif** : cadre `1px slate-500 dashed`, badge « interactif », iframe sandbox (hauteur pilotée par l'auto-resize du module), bouton fantôme « Agrandir » qui bascule le cadre en calque plein écran (fond `bg-page`, « Réduire » ou Escape pour revenir). États vide (« aucun module choisi ») et manquant (module supprimé) : note atténuée façon `.course-resource--missing` (bordure dashed, `--text-secondary`).
 
@@ -346,7 +347,7 @@ Règles :
 - Champs de saisie ≥ **16 px** sur téléphone (sinon Safari iOS zoome au focus).
 - Cibles tactiles ≥ **40 px** ; sous `bp.touch`, tout ce que le desktop révèle au survol est visible d'emblée (ex. les boutons imprimer / style de lecture d'un bloc passent dans le flux, au-dessus du contenu).
 - Éditeurs prof sur téléphone : bascule de vue Éditeur ⇄ Assistant (pastille « Assistant ») au lieu d'un empilement ; rangées d'actions des listes (blocs, ressources, modules, liens, questions) sur leur propre ligne.
-- Contenu de cours : un mot plus long que la ligne passe à la ligne (`overflow-wrap`) ; tableaux dans `.course-table` et formules centrées défilent dans leur boîte ; figures (JSXGraph, GeoGebra) gardent leur ratio ; une figure interactive ne capture jamais le défilement à un doigt ; un module interactif s'agrandit en plein écran.
+- Contenu de cours : un mot plus long que la ligne passe à la ligne (`overflow-wrap`) ; tableaux dans `.course-table` et formules centrées défilent dans leur boîte ; figures (JSXGraph, GeoGebra) gardent leur ratio ; une figure interactive ne capture jamais le défilement à un doigt ; un module interactif s'agrandit en plein écran ; les colonnes s'empilent selon la **largeur disponible** (`flex-wrap`, seuil `26em`), jamais selon le viewport — le même markdown se lit aussi dans l'aperçu d'un éditeur, le chat ou un bac à sable de doc.
 
 ---
 

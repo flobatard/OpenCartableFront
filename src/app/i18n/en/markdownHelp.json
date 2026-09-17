@@ -34,6 +34,12 @@
     "colTitle": "Default title",
     "aliasNote": "The French keywords ([!RETENIR], [!METHODE]…) and the GitHub ones (TIP, IMPORTANT, CAUTION) stay recognized; an unknown type leaves a plain quote, marker visible."
   },
+  "columns": {
+    "title": "Columns",
+    "intro": "To set two contents side by side — a definition and its example, a figure and its explanation: ::: columns opens the columns, +++ moves to the right column and ::: closes them, each marker alone on its line. Each column accepts everything the editor offers: text, callouts, formulas, images, modules, code.",
+    "ratioNote": "::: columns 1:2 gives one third to the left and two thirds to the right, ::: columns 2:1 the reverse. On a narrow screen the columns stack: left above right.",
+    "rulesNote": "A blank line is needed before ::: columns when it follows a quote, a list or a table. The “Insert columns” button below the editor sets up the skeleton and puts the selected text in it."
+  },
   "latex": {
     "title": "Formulas (LaTeX)",
     "intro": "Rendered by KaTeX. An invalid formula shows in red without breaking the rest of the block.",

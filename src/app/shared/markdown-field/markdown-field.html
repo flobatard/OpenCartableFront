@@ -55,6 +55,9 @@
           {{ 'markdownField.insertModule' | transloco }}
         </button>
       }
+      <button type="button" class="pill markdown-field__columns-btn" (click)="insertColumns()">
+        {{ 'markdownField.insertColumns' | transloco }}
+      </button>
       <button type="button" class="pill markdown-field__help-btn" (click)="openHelp()">
         <span class="markdown-field__help-icon" aria-hidden="true">?</span>
         {{ 'markdownHelp.trigger' | transloco }}

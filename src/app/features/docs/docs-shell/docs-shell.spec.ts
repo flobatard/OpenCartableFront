@@ -72,6 +72,7 @@ describe('DocsShell', () => {
       '/fr/markdown-language/docs/mhchem',
       '/fr/markdown-language/docs/mermaid',
       '/fr/markdown-language/docs/callouts',
+      '/fr/markdown-language/docs/columns',
       '/fr/markdown-language/docs/fakelang',
       '/fr/markdown-language/docs/otherlang',
     ]);

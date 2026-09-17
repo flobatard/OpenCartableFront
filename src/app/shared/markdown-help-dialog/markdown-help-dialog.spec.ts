@@ -40,6 +40,9 @@ describe('MarkdownHelpDialog', () => {
     expect(examples.some((code) => code.includes('graph TD'))).toBe(true);
     expect(examples.some((code) => code.includes('\\ce{2H2 + O2 -> 2H2O}'))).toBe(true);
     expect(examples.some((code) => code.includes('> [!DEFINITION]'))).toBe(true);
+    const columns = examples.find((code) => code.startsWith('::: columns\n'));
+    expect(columns).toContain('\n+++\n');
+    expect(columns?.endsWith('\n:::')).toBe(true);
   });
 
   it('the markdown table covers the classic syntax, callouts list their six types', async () => {
@@ -89,6 +92,7 @@ describe('MarkdownHelpDialog', () => {
     expect(links.map((a) => a.getAttribute('href'))).toEqual([
       '/fr/markdown-language/docs',
       '/fr/markdown-language/docs/callouts',
+      '/fr/markdown-language/docs/columns',
       '/fr/markdown-language/docs/katex',
       '/fr/markdown-language/docs/mhchem',
       '/fr/markdown-language/docs/mermaid',

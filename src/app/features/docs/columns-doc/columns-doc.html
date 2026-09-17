@@ -1,0 +1,43 @@
+<p class="doc-intro">{{ 'docs.columns.intro' | transloco }}</p>
+
+<section class="doc-section">
+  <h2>{{ 'docs.columns.first.title' | transloco }}</h2>
+  <p>{{ 'docs.columns.first.body' | transloco }}</p>
+  <app-markdown-playground [initial]="firstExample" stacked />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.columns.ratio.title' | transloco }}</h2>
+  <p>{{ 'docs.columns.ratio.body' | transloco }}</p>
+  <app-markdown-playground [initial]="ratioExample" stacked />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.columns.content.title' | transloco }}</h2>
+  <p>{{ 'docs.columns.content.body' | transloco }}</p>
+  <app-markdown-playground [initial]="contentExample" stacked />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.columns.rules.title' | transloco }}</h2>
+  <p>{{ 'docs.columns.rules.body' | transloco }}</p>
+  <ul class="doc-rules">
+    <li>{{ 'docs.columns.rules.alone' | transloco }}</li>
+    <li>{{ 'docs.columns.rules.separator' | transloco }}</li>
+    <li>{{ 'docs.columns.rules.blankLine' | transloco }}</li>
+    <li>{{ 'docs.columns.rules.code' | transloco }}</li>
+    <li>{{ 'docs.columns.rules.invalid' | transloco }}</li>
+  </ul>
+  <pre class="doc-source">{{ invalidExample }}</pre>
+  <app-markdown-view [markdown]="invalidExample" [showExport]="false" />
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.columns.narrow.title' | transloco }}</h2>
+  <p>{{ 'docs.columns.narrow.body' | transloco }}</p>
+</section>
+
+<section class="doc-section">
+  <h2>{{ 'docs.columns.print.title' | transloco }}</h2>
+  <p>{{ 'docs.columns.print.body' | transloco }}</p>
+</section>

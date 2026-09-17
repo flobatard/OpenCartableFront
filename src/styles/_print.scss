@@ -227,6 +227,15 @@
     margin-bottom: 0;
   }
 
+  /* Colonnes : côte à côte sur la page A4 (≈ 46em de large pour un seuil
+     d'empilement de 26em) ; insécables quand elles tiennent sur la page, au
+     rythme papier des paragraphes. */
+  #oc-print-root .course-content .course-columns {
+    margin-block: 0 calc(0.9em * var(--course-para-scale, 1));
+    row-gap: calc(0.9em * var(--course-para-scale, 1));
+    break-inside: avoid;
+  }
+
   /* Carte d'un document non visionnable : empilée (le layout horizontal de
      l'écran fait déborder l'URL). Nom cliquable souligné + URL en clair copiable. */
   #oc-print-root .course-preview-document__card {

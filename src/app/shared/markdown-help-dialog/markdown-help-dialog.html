@@ -139,6 +139,23 @@
       </section>
 
       <section class="md-help__section">
+        <h3>{{ 'markdownHelp.columns.title' | transloco }}</h3>
+        <p>{{ 'markdownHelp.columns.intro' | transloco }}</p>
+        <pre class="md-help__code">{{ columnsExample }}</pre>
+        <p class="md-help__note">{{ 'markdownHelp.columns.ratioNote' | transloco }}</p>
+        <p class="md-help__note">{{ 'markdownHelp.columns.rulesNote' | transloco }}</p>
+        <p class="md-help__note">
+          <a
+            [routerLink]="['/', language.lang(), 'markdown-language', 'docs', 'columns']"
+            target="_blank"
+            rel="noopener"
+          >
+            {{ 'markdownHelp.fullDocs' | transloco }}
+          </a>
+        </p>
+      </section>
+
+      <section class="md-help__section">
         <h3>{{ 'markdownHelp.latex.title' | transloco }}</h3>
         <p>{{ 'markdownHelp.latex.intro' | transloco }}</p>
         <table class="md-help__table">

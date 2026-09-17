@@ -80,4 +80,34 @@ describe('ocMarkdownLanguage', () => {
     expect(codeIdx).toBeGreaterThanOrEqual(0);
     expect(mathIdx).toBeGreaterThan(codeIdx);
   });
+
+  it('colors column markers as whole lines, within the parser bounds', () => {
+    const tokenizer = ocMarkdownLanguage.tokenizer as unknown as Record<string, unknown[]>;
+    const root = tokenizer['root'];
+    const columnRules = root.flatMap((rule, index) =>
+      Array.isArray(rule) && rule[1] === 'keyword.columns'
+        ? [{ regex: rule[0] as RegExp, index }]
+        : [],
+    );
+    const inlineIdx = root.findIndex(
+      (rule) => (rule as { include?: string }).include === '@linecontent',
+    );
+    expect(columnRules).toHaveLength(3);
+    expect(columnRules.every((rule) => rule.index < inlineIdx)).toBe(true);
+
+    const colored = (line: string) => columnRules.some((rule) => rule.regex.test(line));
+    for (const line of [
+      '::: columns',
+      '::: columns 1:2',
+      '   :::Columns',
+      ':::',
+      '::::  ',
+      '  +++  ',
+    ]) {
+      expect(colored(line), line).toBe(true);
+    }
+    for (const line of ['    :::', 'a +++', '::: note', '++', '+++ suite']) {
+      expect(colored(line), line).toBe(false);
+    }
+  });
 });

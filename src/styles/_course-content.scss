@@ -265,6 +265,58 @@ $callout-kinds:
   }
 }
 
+/* Colonnes (`::: columns` … `+++` … `:::`, cf. core/markdown/course-columns.ts),
+   DS §8 « Colonnes ». Empilement INTRINSÈQUE, sans requête de largeur : le
+   markdown de cours vit aussi dans des panneaux plus étroits que le viewport
+   (aperçu d'éditeur, chat, playground de doc). `flex-basis: 0` + largeur
+   minimale : pour répartir les lignes, flex compte chaque colonne à sa largeur
+   minimale — les deux tiennent côte à côte tant que leurs minimums et la
+   gouttière (24em + 2em = 26em) tiennent dans le conteneur, sinon chacune prend
+   sa ligne, pleine largeur. Seuil calé sous la plus étroite des largeurs de
+   lecture : 54ch en Source Serif 4 font 27em (Inter, 34em). Les minimums d'un
+   ratio suivent ses parts : même seuil pour tous les ratios, et ratio exact
+   au-dessus. `min(…, 100%)` : jamais plus large que le conteneur. Ni
+   transform, ni filter, ni contain, ni overflow
+   sur les colonnes : le plein écran « Agrandir » d'un module est en position
+   fixed. Global : injecté en innerHTML. */
+.course-content .course-columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(1.5em * var(--course-para-scale, 1)) 2em;
+  margin: 0 0 calc(1.5em * var(--course-para-scale, 1));
+}
+
+.course-content .course-columns__column {
+  flex: 1 1 0;
+  min-width: min(12em, 100%);
+}
+
+.course-content .course-columns--1-2 > .course-columns__column:first-child,
+.course-content .course-columns--2-1 > .course-columns__column:last-child {
+  min-width: min(8em, 100%);
+}
+
+.course-content .course-columns--1-2 > .course-columns__column:last-child,
+.course-content .course-columns--2-1 > .course-columns__column:first-child {
+  flex-grow: 2;
+  min-width: min(16em, 100%);
+}
+
+.course-content .course-columns__column > :first-child {
+  margin-top: 0;
+}
+
+.course-content .course-columns__column > :last-child {
+  margin-bottom: 0;
+}
+
+/* Encadré seul dans sa colonne : il prend la hauteur de la rangée (la colonne
+   est étirée par flex) — une définition et son exemple finissent à la même
+   hauteur. Sans effet une fois les colonnes empilées. */
+.course-content .course-columns__column > .course-callout:only-child {
+  height: 100%;
+}
+
 /* Hôte d'une extension markdown (```geogebra…, cf. shared/markdown-extensions) :
    le composant est monté dedans par markdown-view ; avant montage il affiche la
    source du fence (repli à la mermaid), en fonte mono discrète. */

@@ -1,4 +1,4 @@
-import { Component, effect, input, signal } from '@angular/core';
+import { booleanAttribute, Component, effect, input, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime } from 'rxjs';
@@ -13,7 +13,7 @@ const PREVIEW_DEBOUNCE_MS = 400;
 
 /**
  * Bac à sable markdown des pages de documentation : éditeur Monaco et rendu
- * live côte à côte — l'utilisateur reprend l'exemple, le modifie et voit le
+ * live côte à côte (ou empilés, `stacked`) — l'utilisateur reprend l'exemple, le modifie et voit le
  * résultat (formule KaTeX, diagramme mermaid, extension geogebra/jsxgraph…).
  *
  * `initial` est lu UNE seule fois (patron [initial] de l'exercise-editor).
@@ -30,6 +30,13 @@ const PREVIEW_DEBOUNCE_MS = 400;
 export class MarkdownPlayground {
   /** Contenu d'exemple initial du bac à sable (lu une seule fois). */
   readonly initial = input.required<string>();
+
+  /**
+   * Éditeur au-dessus de l'aperçu à toute largeur, plutôt que côte à côte : pour
+   * un exemple qui a besoin de la largeur du cours (les colonnes s'empileraient
+   * dans un aperçu d'une demi-page).
+   */
+  readonly stacked = input(false, { transform: booleanAttribute });
 
   readonly control = new FormControl<string>('', { nonNullable: true });
 

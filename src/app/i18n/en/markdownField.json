@@ -9,5 +9,8 @@
   "mermaidError": "Invalid Mermaid diagram:",
   "insertResource": "Insert a resource",
   "insertModule": "Insert a module",
+  "insertColumns": "Insert columns",
+  "columnsLeft": "Left column",
+  "columnsRight": "Right column",
   "resourceMissing": "Resource unavailable"
 }

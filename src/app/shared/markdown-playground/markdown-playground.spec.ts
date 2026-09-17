@@ -47,6 +47,16 @@ describe('MarkdownPlayground', () => {
     }
   });
 
+  it('lays the editor above the preview when stacked', async () => {
+    const fixture = createPlayground('## Bonjour');
+    const grid = () => fixture.nativeElement.querySelector('.markdown-playground') as HTMLElement;
+    expect(grid().classList).not.toContain('markdown-playground--stacked');
+
+    fixture.componentRef.setInput('stacked', '');
+    fixture.detectChanges();
+    expect(grid().classList).toContain('markdown-playground--stacked');
+  });
+
   it('does not reset the input when the initial input changes (read once)', async () => {
     const fixture = createPlayground('premier');
     fixture.componentInstance.control.setValue('saisie en cours');

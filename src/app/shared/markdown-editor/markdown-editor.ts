@@ -47,6 +47,37 @@ const EDITOR_OPTIONS: editor.IStandaloneEditorConstructionOptions = {
 
 type MonacoGlobal = { editor: { setTheme(theme: string): void; remeasureFonts(): void } };
 
+/** Position Monaco (lignes et colonnes indexées à 1). */
+export interface EditorPosition {
+  readonly lineNumber: number;
+  readonly column: number;
+}
+
+/** Texte qui remplace la sélection (`MarkdownEditor.replaceSelection`). */
+export interface SelectionReplacement {
+  /** Texte inséré, fins de ligne `\n`. */
+  readonly text: string;
+  /** Plage de `text` (décalages) à sélectionner ensuite ; absente = curseur après le texte. */
+  readonly select?: { readonly start: number; readonly end: number };
+}
+
+/**
+ * Position atteinte à `offset` caractères dans `text` inséré à `start`,
+ * calculée en lignes et colonnes : insensible à la fin de ligne du modèle
+ * (Monaco convertit le texte inséré à la sienne). `text` en fins de ligne `\n`.
+ */
+export function positionInText(
+  start: EditorPosition,
+  text: string,
+  offset: number,
+): EditorPosition {
+  const lines = text.slice(0, offset).split('\n');
+  const last = lines[lines.length - 1];
+  return lines.length === 1
+    ? { lineNumber: start.lineNumber, column: start.column + last.length }
+    : { lineNumber: start.lineNumber + lines.length - 1, column: last.length + 1 };
+}
+
 function monacoGlobal(): MonacoGlobal | undefined {
   return (globalThis as { monaco?: MonacoGlobal }).monaco;
 }
@@ -100,7 +131,7 @@ export class MarkdownEditor implements ControlValueAccessor {
   readonly #ready = signal(false);
   /** Vrai une fois monaco initialisé ; pilote l'overlay de chargement. */
   protected readonly ready = this.#ready.asReadonly();
-  /** Instance monaco captée à l'init — support de `insertAtCursor`. */
+  /** Instance monaco captée à l'init — support des édits (`replaceSelection`, `replaceAll`). */
   #editor: editor.IStandaloneCodeEditor | null = null;
   #value = '';
   #touched = false;
@@ -140,18 +171,50 @@ export class MarkdownEditor implements ControlValueAccessor {
 
   /**
    * Insère `text` à la position du curseur (ou remplace la sélection) et rend le
-   * focus à l'éditeur. La mutation du modèle passe la garde anti-écho
-   * ci-dessus et se propage seule au contrôle hôte — pas de `#onChange` manuel.
+   * focus à l'éditeur, en une étape d'annulation (cf. `replaceSelection`).
    * Sans instance monaco (SSR/jsdom, non initialisé), l'appel est sans effet.
    */
   insertAtCursor(text: string): void {
+    this.replaceSelection(() => ({ text }), 'insert-resource');
+  }
+
+  /**
+   * Remplace la sélection (ou insère au curseur) par le texte que `build`
+   * construit à partir du texte sélectionné (fins de ligne `\n`), puis
+   * sélectionne la plage `select` du texte inséré — un texte de remplissage que
+   * la frappe remplace — et rend le focus. Bornée par des `pushUndoStop` comme
+   * `replaceAll` : UNE étape d'annulation, séparée de la frappe adjacente. La
+   * mutation du modèle passe la garde anti-écho ci-dessus et se propage seule
+   * au contrôle hôte — pas de `#onChange` manuel. Retourne `false` sans instance
+   * Monaco (SSR/jsdom, non initialisé) : `build` n'est alors pas appelé.
+   */
+  replaceSelection(
+    build: (selected: string) => SelectionReplacement,
+    source = 'insert-snippet',
+  ): boolean {
     const ed = this.#editor;
+    const model = ed?.getModel();
     const selection = ed?.getSelection();
-    if (!ed || !selection) {
-      return;
+    if (!ed || !model || !selection) {
+      return false;
     }
-    ed.executeEdits('insert-resource', [{ range: selection, text, forceMoveMarkers: true }]);
+    const { text, select } = build(model.getValueInRange(selection).replace(/\r\n?/g, '\n'));
+    ed.pushUndoStop();
+    ed.executeEdits(source, [{ range: selection, text, forceMoveMarkers: true }]);
+    ed.pushUndoStop();
+    if (select !== undefined) {
+      const start = { lineNumber: selection.startLineNumber, column: selection.startColumn };
+      const from = positionInText(start, text, select.start);
+      const to = positionInText(start, text, select.end);
+      ed.setSelection({
+        startLineNumber: from.lineNumber,
+        startColumn: from.column,
+        endLineNumber: to.lineNumber,
+        endColumn: to.column,
+      });
+    }
     ed.focus();
+    return true;
   }
 
   /**
@@ -161,7 +224,7 @@ export class MarkdownEditor implements ControlValueAccessor {
    * Ctrl-Y/Maj-Ctrl-Z la remet (flux HITL : appliquer une proposition comme
    * n'importe quelle frappe). Bornée par des `pushUndoStop` pour former UNE
    * étape, séparée de la frappe adjacente ; la propagation au contrôle hôte
-   * suit le même chemin qu'`insertAtCursor` (garde anti-écho comprise).
+   * suit le même chemin que `replaceSelection` (garde anti-écho comprise).
    * Retourne `false` sans instance Monaco (SSR/jsdom, non initialisé) —
    * l'appelant se replie sur une écriture de contrôle classique.
    */
@@ -194,7 +257,7 @@ export class MarkdownEditor implements ControlValueAccessor {
       // Écho d'une valeur déjà en place : ne JAMAIS redescendre au wrapper —
       // son writeValue fait un `editor.setValue` ASYNCHRONE (setTimeout) qui
       // viderait la pile d'annulation, même à valeur identique (vérifié en
-      // vrai navigateur) — les édits Monaco (replaceAll, insertAtCursor)
+      // vrai navigateur) — les édits Monaco (replaceAll, replaceSelection)
       // resteraient inannulables.
       return;
     }

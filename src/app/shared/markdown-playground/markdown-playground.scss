@@ -9,7 +9,11 @@
   margin: 12px 0 0;
 }
 
-// Sous 900px : empilement.
+// Sous 900px, ou à la demande (`stacked`) : empilement.
+.markdown-playground--stacked {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 @include bp.stacked {
   .markdown-playground {
     grid-template-columns: minmax(0, 1fr);

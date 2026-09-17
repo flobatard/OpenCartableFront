@@ -3,7 +3,16 @@ import katex from 'katex';
 // Side-effect : enregistre `\ce` et `\pu` (chimie, unités) sur la MÊME
 // instance que `katex` (le module importe `../katex.mjs`).
 import 'katex/contrib/mhchem';
-import { Marked, Parser, Renderer, Tokens, TokenizerAndRendererExtension } from 'marked';
+import {
+  Marked,
+  Parser,
+  Renderer,
+  RendererThis,
+  Token,
+  Tokens,
+  TokenizerAndRendererExtension,
+  TokenizerThis,
+} from 'marked';
 import { BLOCK_REF_ATTR, parseBlockRef } from './course-block-ref';
 import {
   CALLOUT_FALLBACK_TITLES,
@@ -11,6 +20,7 @@ import {
   CalloutTitles,
   splitCallout,
 } from './course-callouts';
+import { ColumnsRatio, columnsStart, splitColumns } from './course-columns';
 import { MODULE_REF_ATTR, parseModuleRef } from './course-module-ref';
 import { parseResourceRef, RESOURCE_REF_ATTR } from './course-resource-ref';
 
@@ -27,7 +37,8 @@ export type { ResolvedResource } from './course-resource-pass';
  * Rendu du markdown des blocs de cours (contrat `texte` de
  * app/models/block.py) : markdown GFM + formules LaTeX — `$…$` en ligne,
  * `$$…$$` centrée — rendues par KaTeX, extension mhchem comprise (`\ce{…}`,
- * `\pu{…}`) + encadrés `> [!DEFINITION]…` (`course-callouts.ts`). Première
+ * `\pu{…}`) + encadrés `> [!DEFINITION]…` (`course-callouts.ts`) + colonnes
+ * `::: columns` … `+++` … `:::` (`course-columns.ts`). Première
  * passe, synchrone ; les diagrammes Mermaid (`course-diagrams.ts`) et les
  * ressources de la bibliothèque (`course-resource-pass.ts`) sont des passes
  * asynchrones enchaînées par `markdown-view`.
@@ -125,6 +136,57 @@ const mathInline: TokenizerAndRendererExtension = {
   },
 };
 
+/** Token des colonnes (cf. course-columns.ts) : chaque colonne relexée en tokens de bloc. */
+interface ColumnsToken extends Tokens.Generic {
+  type: 'courseColumns';
+  raw: string;
+  ratio: ColumnsRatio;
+  left: Token[];
+  right: Token[];
+}
+
+/** Modificateur de classe d'un ratio ; colonnes égales = aucun. */
+const COLUMNS_RATIO_CLASS: Readonly<Record<ColumnsRatio, string>> = {
+  '1:1': '',
+  '1:2': ' course-columns--1-2',
+  '2:1': ' course-columns--2-1',
+};
+
+const courseColumns: TokenizerAndRendererExtension = {
+  name: 'courseColumns',
+  level: 'block',
+  // Coupe un paragraphe collé au-dessus d'un ouvrant (cf. columnsStart).
+  start: columnsStart,
+  // Un walkTokens (aucun aujourd'hui) descendrait dans les deux colonnes : le
+  // token n'a pas de `tokens`.
+  childTokens: ['left', 'right'],
+  tokenizer(this: TokenizerThis, src: string): ColumnsToken | undefined {
+    const parts = splitColumns(src);
+    if (parts === null) {
+      return undefined;
+    }
+    // Chaque colonne est lexée comme un document (paragraphes, hints) ; comme
+    // le blockquote natif, on restaure ensuite `state.top` de l'appelant —
+    // blockTokens le remet à true en sortant, or un item de liste serrée le
+    // tient à false (sans cela, la suite de l'item deviendrait des <p>).
+    const top = this.lexer.state.top;
+    this.lexer.state.top = true;
+    const left = this.lexer.blockTokens(parts.left, []);
+    const right = this.lexer.blockTokens(parts.right, []);
+    this.lexer.state.top = top;
+    return { type: 'courseColumns', raw: parts.raw, ratio: parts.ratio, left, right };
+  },
+  renderer(this: RendererThis, token: Tokens.Generic): string {
+    const { ratio, left, right } = token as ColumnsToken;
+    return (
+      `<div class="course-columns${COLUMNS_RATIO_CLASS[ratio]}">\n` +
+      `<div class="course-columns__column">\n${this.parser.parse(left)}</div>\n` +
+      `<div class="course-columns__column">\n${this.parser.parse(right)}</div>\n` +
+      `</div>\n`
+    );
+  },
+};
+
 /** Échappe un texte destiné à une valeur d'attribut HTML (id, alt). */
 function escapeHtmlAttr(value: string): string {
   return value
@@ -211,8 +273,13 @@ function calloutHtml(parser: Parser, callout: CalloutParts): string {
 // Override du renderer table : le tableau (rendu par défaut, sémantique
 // intacte) est enveloppé d'un conteneur `.course-table` qui défile
 // horizontalement — un tableau large ne peut pas élargir la page (téléphone).
+//
+// Extension de bloc des colonnes : `div.course-columns` et ses deux
+// `div.course-columns__column`, dont le contenu passe par ce même pipeline —
+// les passes suivantes (Mermaid, ressources, extensions, embeds de module)
+// cherchent leurs cibles à toute profondeur.
 const courseMarked = new Marked({
-  extensions: [mathBlock, mathInline],
+  extensions: [mathBlock, mathInline, courseColumns],
   renderer: {
     table(token) {
       return `<div class="course-table">${Renderer.prototype.table.call(this, token)}</div>`;

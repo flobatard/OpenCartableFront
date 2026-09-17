@@ -15,7 +15,8 @@ import {
   NG_VALUE_ACCESSOR,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { buildColumnsMarkdown } from '../../core/markdown/course-columns';
 import { buildModuleMarkdown } from '../../core/markdown/course-module-ref';
 import { buildResourceMarkdown } from '../../core/markdown/course-resource-ref';
 import { ModuleSummary } from '../../core/modules/module.model';
@@ -84,6 +85,7 @@ export class MarkdownField implements ControlValueAccessor {
 
   readonly #resources = inject(ResourceService);
   readonly #modules = inject(ModuleService);
+  readonly #transloco = inject(TranslocoService);
 
   /**
    * Cours propriétaire des ressources insérables. `null` (défaut) : pas de
@@ -164,7 +166,7 @@ export class MarkdownField implements ControlValueAccessor {
     this.help()?.open();
   }
 
-  // --- Insertion de ressource / module ------------------------------------------
+  // --- Insertion de ressource / module / colonnes -------------------------------
 
   protected openPicker(): void {
     this.picker()?.open();
@@ -182,6 +184,20 @@ export class MarkdownField implements ControlValueAccessor {
   /** Module choisi : insère `[title](oc-module:<id>)` au curseur de l'éditeur. */
   protected onModulePick(module: ModuleSummary): void {
     this.editorRef()?.insertAtCursor(buildModuleMarkdown(module));
+  }
+
+  /**
+   * Insère un conteneur `::: columns` au curseur, en une étape d'annulation : le
+   * texte sélectionné devient la colonne de gauche, et le texte de remplissage
+   * à taper ensuite est sélectionné. Proposé même hors contexte cours : la
+   * syntaxe ne référence rien à résoudre.
+   */
+  protected insertColumns(): void {
+    const placeholders = {
+      left: this.#transloco.translate('markdownField.columnsLeft'),
+      right: this.#transloco.translate('markdownField.columnsRight'),
+    };
+    this.editorRef()?.replaceSelection((selected) => buildColumnsMarkdown(selected, placeholders));
   }
 
   /**

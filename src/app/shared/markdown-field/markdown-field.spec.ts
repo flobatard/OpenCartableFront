@@ -161,6 +161,30 @@ describe('MarkdownField', () => {
     expect(insert).toHaveBeenCalledWith('[schema-suites.pdf](oc-resource:resource-1)');
   });
 
+  it('the columns button is offered even without courseId', async () => {
+    const fixture = await createComponent();
+    expect(el(fixture).querySelector('.markdown-field__columns-btn')).toBeTruthy();
+    expect(el(fixture).querySelector('.markdown-field__insert-btn')).toBeNull();
+  });
+
+  it('the columns button turns the selection into the left column of a container', async () => {
+    const fixture = await createComponent();
+    const editor = fixture.debugElement.query(By.directive(MarkdownEditor))
+      .componentInstance as MarkdownEditor;
+    const replace = vi.spyOn(editor, 'replaceSelection').mockReturnValue(true);
+
+    el(fixture).querySelector<HTMLButtonElement>('.markdown-field__columns-btn')!.click();
+
+    expect(replace).toHaveBeenCalledOnce();
+    const build = replace.mock.calls[0][0];
+    expect(build('').text).toBe(
+      '\n\n::: columns\nColonne de gauche\n+++\nColonne de droite\n:::\n\n',
+    );
+    expect(build('Ma définition').text).toContain(
+      '::: columns\nMa définition\n+++\nColonne de droite\n:::',
+    );
+  });
+
   it('replaceAll delegates to the monaco editor and reports its outcome', async () => {
     const fixture = await createComponent();
     const editor = fixture.debugElement.query(By.directive(MarkdownEditor))

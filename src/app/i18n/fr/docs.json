@@ -21,6 +21,10 @@
       "title": "Encadrés",
       "summary": "Définitions, méthodes, points à retenir, mises en garde : des encadrés colorés, écrits comme les alertes de GitHub."
     },
+    "columns": {
+      "title": "Colonnes",
+      "summary": "Mettre deux contenus côte à côte : une définition et son exemple, une figure et son explication."
+    },
     "geogebra": {
       "title": "GeoGebra",
       "summary": "Intégrer une activité publiée sur geogebra.org dans un cours."
@@ -194,6 +198,38 @@
     "print": {
       "title": "Impression et export PDF",
       "body": "Les encadrés partent dans l'export PDF avec leur fond, leur liseré et leur icône, en couleurs claires ; un encadré qui tient sur une page n'y est pas coupé."
+    }
+  },
+  "columns": {
+    "intro": "Les colonnes mettent deux contenus en regard — une définition et son exemple, une figure et son explication, un programme et son commentaire — au lieu de les lire l'un sous l'autre. Chaque colonne est du markdown complet. Chaque exemple est modifiable.",
+    "first": {
+      "title": "Deux colonnes",
+      "body": "::: columns ouvre les colonnes, +++ passe à la colonne de droite et ::: les ferme, chaque marqueur seul sur sa ligne. Le texte qui suit la fermeture reprend sur toute la largeur. Dans l'éditeur, le bouton « Insérer des colonnes » pose ce squelette et y place le texte sélectionné."
+    },
+    "ratio": {
+      "title": "Largeurs",
+      "body": "Par défaut, les deux colonnes ont la même largeur. ::: columns 1:2 donne un tiers à la colonne de gauche et deux tiers à celle de droite — pratique pour une figure à côté de son explication ; ::: columns 2:1 fait l'inverse."
+    },
+    "content": {
+      "title": "Tout dans une colonne",
+      "body": "Chaque colonne accepte ce que permet l'éditeur : texte, listes, encadrés, formules, figures, code exécutable. Dans un cours, une image de la bibliothèque ou un module interactif s'y insèrent de la même façon."
+    },
+    "rules": {
+      "title": "Règles d'écriture",
+      "body": "Les marqueurs sont lus ligne par ligne :",
+      "alone": "chaque marqueur est seul sur sa ligne : ::: columns (ou ::: columns 1:2, ::: columns 2:1), puis +++, puis ::: ;",
+      "separator": "un seul +++ par conteneur ; une colonne peut rester vide ;",
+      "blankLine": "après une citation, un encadré, une liste ou un tableau, laissez une ligne vide avant ::: columns : collé, l'ouvrant serait absorbé par ce qui précède ;",
+      "code": "un bloc de code peut contenir +++ ou ::: sans rien couper ; ailleurs, pour écrire ces caractères seuls sur une ligne, échappez-les : \\+++ ;",
+      "invalid": "un conteneur mal formé — sans fermeture, sans séparateur, avec deux séparateurs ou un ratio inconnu — reste du texte, marqueurs visibles :"
+    },
+    "narrow": {
+      "title": "Écrans étroits",
+      "body": "Quand la place manque — téléphone, fenêtre ou panneau étroit —, les colonnes s'empilent : la gauche au-dessus de la droite, chacune sur toute la largeur. Le seuil dépend de la largeur réellement disponible pour le cours, pas de celle de l'écran."
+    },
+    "print": {
+      "title": "Impression et export",
+      "body": "Dans l'export PDF, les colonnes restent côte à côte, et un conteneur qui tient sur une page n'y est pas coupé. La page HTML exportée les garde aussi, et les empile sur un écran étroit."
     }
   },
   "geogebra": {
