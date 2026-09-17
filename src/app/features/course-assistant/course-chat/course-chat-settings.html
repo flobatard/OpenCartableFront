@@ -144,11 +144,33 @@
     }
   }
 
-  <!-- Mode de décision des propositions, chats d'édition seulement (les seuls
-       à flux HITL) : désactivé = chaque proposition attend sa revue dans
-       l'éditeur ; activé = appliquée et acceptée sans revue (sauf suppression
-       de question). Préférence du navigateur, commune à tous les éditeurs. -->
-  @if (editing()) {
+  <!-- Édition globale, panneau flottant seulement : activée, l'assistant du
+       cours peut confier un bloc ou un module à un sous-assistant d'édition
+       (chaque proposition revue dans la fenêtre globale). Préférence du
+       navigateur, envoyée à chaque tour. -->
+  @if (globalEditable()) {
+    <button
+      type="button"
+      role="switch"
+      class="chat-settings__global-edit"
+      [attr.aria-checked]="globalEdit()"
+      [attr.title]="
+        (globalEdit() ? 'courseChat.globalEdit.hintOn' : 'courseChat.globalEdit.hintOff')
+          | transloco
+      "
+      (click)="toggleGlobalEdit()"
+    >
+      <span class="chat-settings__switch" aria-hidden="true"></span>
+      {{ 'courseChat.globalEdit.label' | transloco }}
+    </button>
+  }
+
+  <!-- Mode de décision des propositions : chats d'édition (flux HITL) et
+       panneau global à édition globale activée. Désactivé = chaque
+       proposition attend sa revue (éditeur ou fenêtre globale) ; activé =
+       appliquée et acceptée sans revue (sauf suppression de question).
+       Préférence du navigateur, commune à tous les hôtes. -->
+  @if (showAutoEdit()) {
     <button
       type="button"
       role="switch"

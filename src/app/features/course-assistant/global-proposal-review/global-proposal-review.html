@@ -1,0 +1,66 @@
+<dialog
+  ocDialog
+  class="global-proposal-review"
+  [attr.aria-labelledby]="titleId"
+  (close)="onClose()"
+>
+  <div class="global-proposal-review__inner">
+    <header class="global-proposal-review__head">
+      <h2 [id]="titleId" class="global-proposal-review__title">
+        {{ 'courseChat.globalReview.title' | transloco: { target: targetTitle() } }}
+      </h2>
+      <button
+        type="button"
+        class="global-proposal-review__close"
+        [attr.aria-label]="'courseChat.globalReview.close' | transloco"
+        (click)="onClose()"
+      >
+        ×
+      </button>
+    </header>
+
+    <div class="global-proposal-review__body">
+      @if (textReview(); as review) {
+        <app-proposal-review
+          [proposal]="textProposal()!"
+          [original]="review.original"
+          [busy]="host.busy()"
+          [errorKey]="errorKey()"
+          (accepted)="accept($event)"
+          (rejected)="reject($event)"
+        />
+      } @else if (exerciseReview(); as review) {
+        <app-exercise-proposal-review
+          [proposal]="review.proposal"
+          [current]="review.current"
+          [courseId]="courseId()"
+          [busy]="host.busy()"
+          [errorKey]="errorKey()"
+          (accepted)="accept($event)"
+          (rejected)="reject($event)"
+        />
+      } @else if (moduleReview(); as review) {
+        <app-module-proposal-review
+          [proposal]="review.proposal"
+          [original]="review.original"
+          [busy]="host.busy()"
+          [errorKey]="errorKey()"
+          (accepted)="accept($event)"
+          (rejected)="reject($event)"
+        />
+      } @else if (loading()) {
+        <div class="global-proposal-review__loading">
+          <p role="status">{{ 'courseChat.globalReview.loading' | transloco }}</p>
+          <button
+            type="button"
+            class="btn btn--secondary"
+            [disabled]="host.busy()"
+            (click)="reject('')"
+          >
+            {{ 'courseChat.proposal.reject' | transloco }}
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</dialog>

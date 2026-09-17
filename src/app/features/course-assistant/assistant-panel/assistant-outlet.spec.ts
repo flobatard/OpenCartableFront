@@ -89,9 +89,18 @@ describe('AssistantOutlet', () => {
     );
   });
 
+  it('mounts the global proposal review next to the panel (never inside it)', async () => {
+    const fixture = await createComponent('/fr/courses/course-1/blocks/block-2');
+    const review = el(fixture).querySelector('app-global-proposal-review');
+    expect(review).toBeTruthy();
+    expect(review!.closest('app-assistant-panel')).toBeNull();
+    expect(review!.querySelector('dialog.global-proposal-review')).toBeTruthy();
+  });
+
   it('mounts nothing outside the course space', async () => {
     const fixture = await createComponent('/fr/search');
     expect(el(fixture).querySelector('app-assistant-panel')).toBeNull();
+    expect(el(fixture).querySelector('app-global-proposal-review')).toBeNull();
   });
 
   it('mounts nothing when unauthenticated (belt and braces over the guards)', async () => {

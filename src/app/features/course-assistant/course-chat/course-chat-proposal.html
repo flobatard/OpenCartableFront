@@ -24,8 +24,13 @@
 
   @if (status() === 'running') {
     <p class="chat-proposal__pending" role="status">
-      {{ 'courseChat.proposal.pendingHint' | transloco }}
+      {{ pendingKey() | transloco }}
     </p>
+    @if (reviewable()) {
+      <button type="button" class="btn btn--secondary chat-proposal__review" (click)="review.emit()">
+        {{ 'courseChat.proposal.review' | transloco }}
+      </button>
+    }
   } @else if (result(); as result) {
     <p class="chat-proposal__decision">{{ result }}</p>
   }

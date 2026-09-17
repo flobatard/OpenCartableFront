@@ -1,0 +1,85 @@
+<div
+  class="chat-delegation"
+  [class.chat-delegation--running]="status() === 'running'"
+  [class.chat-delegation--error]="status() === 'error'"
+>
+  <div class="chat-delegation__head">
+    <svg
+      class="chat-delegation__icon"
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.75"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 8V4H8" />
+      <rect width="16" height="12" x="4" y="8" rx="2" />
+      <path d="M2 14h2" />
+      <path d="M20 14h2" />
+      <path d="M15 13v2" />
+      <path d="M9 13v2" />
+    </svg>
+    <span class="chat-delegation__title">{{ 'courseChat.delegation.title' | transloco }}</span>
+    @if (delegation().targetTitle) {
+      <span class="chat-delegation__target">
+        {{ 'courseChat.delegation.target' | transloco: { title: delegation().targetTitle } }}
+      </span>
+    }
+  </div>
+
+  <details class="chat-delegation__instructions">
+    <summary>{{ 'courseChat.delegation.instructions' | transloco }}</summary>
+    <p class="chat-delegation__instructions-text">{{ delegation().instructions }}</p>
+  </details>
+
+  @if (children().length > 0 || agentText()) {
+    <div class="chat-delegation__activity">
+      @for (child of children(); track child.tool.id) {
+        @switch (child.kind) {
+          @case ('questions') {
+            <app-course-chat-questions-card
+              [count]="child.count"
+              [status]="child.status"
+              [result]="child.result"
+            />
+          }
+          @case ('proposal') {
+            <app-course-chat-proposal
+              [toolName]="child.tool.name"
+              [summary]="child.summary"
+              [status]="child.tool.status"
+              [result]="child.tool.result"
+              [reviewable]="true"
+              (review)="review.emit()"
+            />
+          }
+          @default {
+            <app-course-chat-tool [tool]="child.tool" />
+          }
+        }
+      }
+      @if (agentText()) {
+        <div class="chat-delegation__text">
+          <app-markdown-view
+            [markdown]="agentText()"
+            [courseId]="null"
+            [showExport]="false"
+            [showSettings]="false"
+          />
+        </div>
+      }
+    </div>
+  }
+
+  @if (status() === 'running') {
+    <p class="chat-delegation__pending" role="status">
+      {{ 'courseChat.delegation.running' | transloco }}
+    </p>
+  } @else if (result(); as result) {
+    <p class="chat-delegation__result">{{ result }}</p>
+  }
+</div>

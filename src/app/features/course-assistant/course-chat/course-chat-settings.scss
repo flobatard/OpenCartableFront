@@ -56,11 +56,13 @@
   opacity: 0.6;
 }
 
-/* Interrupteur « Édition auto » (chats d'édition) : piste + pastille en
+/* Interrupteurs « Édition auto » (chats d'édition, global à édition globale)
+   et « Édition globale » (panneau flottant) : piste + pastille en
    pseudo-élément devant le libellé, piste en teinte primaire quand activé
    (l'état est porté par `aria-checked`, jamais par la seule couleur : la
    pastille change de côté). */
-.chat-settings__auto-edit {
+.chat-settings__auto-edit,
+.chat-settings__global-edit {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
@@ -77,11 +79,14 @@
 }
 
 .chat-settings__auto-edit:hover,
-.chat-settings__auto-edit[aria-checked='true'] {
+.chat-settings__auto-edit[aria-checked='true'],
+.chat-settings__global-edit:hover,
+.chat-settings__global-edit[aria-checked='true'] {
   color: var(--text-primary);
 }
 
-.chat-settings__auto-edit:hover {
+.chat-settings__auto-edit:hover,
+.chat-settings__global-edit:hover {
   background: var(--bg-subtle);
 }
 
@@ -109,12 +114,14 @@
   transition: transform 120ms ease;
 }
 
-.chat-settings__auto-edit[aria-checked='true'] .chat-settings__switch {
+.chat-settings__auto-edit[aria-checked='true'] .chat-settings__switch,
+.chat-settings__global-edit[aria-checked='true'] .chat-settings__switch {
   background: var(--color-primary);
   border-color: var(--color-primary);
 }
 
-.chat-settings__auto-edit[aria-checked='true'] .chat-settings__switch::after {
+.chat-settings__auto-edit[aria-checked='true'] .chat-settings__switch::after,
+.chat-settings__global-edit[aria-checked='true'] .chat-settings__switch::after {
   background: var(--bg-surface);
   transform: translateX(10px);
 }

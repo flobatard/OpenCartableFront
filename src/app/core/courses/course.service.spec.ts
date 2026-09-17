@@ -70,6 +70,28 @@ describe('CourseService', () => {
     expect(service.detail()?.id).toBe('course-2');
   });
 
+  describe('fetchBlock', () => {
+    it('reads the loaded detail of the same course without any request', async () => {
+      loadDetail();
+      const [first] = COURSE_DETAIL_FIXTURE.blocks;
+      await expect(service.fetchBlock(COURSE_DETAIL_FIXTURE.id, first.id)).resolves.toEqual(first);
+      await expect(service.fetchBlock(COURSE_DETAIL_FIXTURE.id, 'nope')).resolves.toBeNull();
+    });
+
+    it('fetches another course without touching the detail signals', async () => {
+      loadDetail();
+      const promise = service.fetchBlock('course-2', 'b-x');
+      httpMock.expectOne(`${url}/course-2`).flush({
+        ...COURSE_DETAIL_FIXTURE,
+        id: 'course-2',
+        blocks: [{ ...COURSE_DETAIL_FIXTURE.blocks[0], id: 'b-x' }],
+      });
+      expect((await promise)?.id).toBe('b-x');
+      expect(service.detail()?.id).toBe(COURSE_DETAIL_FIXTURE.id);
+      expect(service.detailLoading()).toBe(false);
+    });
+  });
+
   it('loadDetail reports the error (course not found or network)', () => {
     service.loadDetail('course-x');
     httpMock

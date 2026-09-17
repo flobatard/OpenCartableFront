@@ -100,6 +100,22 @@ export class CourseService {
     });
   }
 
+  /**
+   * Un bloc du cours, pour un lecteur qui n'a pas la page cours sous les yeux
+   * (revue globale d'une proposition de sous-assistant) : celui du détail
+   * chargé s'il porte ce cours, sinon un GET du détail SANS toucher aux
+   * signaux (pas de « chargement » sur une page cours affichée). `null` si le
+   * bloc n'existe pas (ou plus). Il n'y a pas de route GET par bloc.
+   */
+  async fetchBlock(courseId: string, blockId: string): Promise<CourseBlock | null> {
+    const detail = this.#detail();
+    if (detail?.id === courseId) {
+      return detail.blocks.find((block) => block.id === blockId) ?? null;
+    }
+    const course = await firstValueFrom(this.#http.get<CourseDetail>(`${this.#url}/${courseId}`));
+    return course.blocks.find((block) => block.id === blockId) ?? null;
+  }
+
   /** Crée un cours ; la liste sera refetchée à la prochaine visite. */
   async createCourse(payload: CourseCreatePayload): Promise<CourseSummary> {
     const course = await firstValueFrom(this.#http.post<CourseSummary>(this.#url, payload));

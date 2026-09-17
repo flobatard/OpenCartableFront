@@ -59,10 +59,24 @@ export function mockAssistantChatState() {
 
 export function mockCourseAssistantService() {
   const panelOpen = signal(false);
+  const reviewVisible = signal(false);
   return {
     ...mockAssistantChatState(),
     panelOpen: panelOpen.asReadonly(),
     setPanelOpen: vi.fn((open: boolean) => panelOpen.set(open)),
+    /** Hôte des propositions de sous-assistants (édition globale), sans revue par défaut. */
+    proposals: {
+      review: signal<unknown>(null),
+      pending: signal<AssistantPendingProposal | null>(null),
+      busy: signal(false),
+      error: signal<string | null>(null),
+      accept: vi.fn().mockResolvedValue(undefined),
+      reject: vi.fn().mockResolvedValue(undefined),
+      reset: vi.fn(),
+    },
+    reviewVisible: reviewVisible.asReadonly(),
+    showReview: vi.fn(() => reviewVisible.set(true)),
+    hideReview: vi.fn(() => reviewVisible.set(false)),
   };
 }
 

@@ -184,6 +184,15 @@
                   [status]="questionsStatus(tool)"
                   [result]="questionsResult(tool)"
                 />
+              } @else if (delegationOf(tool); as delegation) {
+                <app-course-chat-delegation
+                  [delegation]="delegation"
+                  [status]="tool.status"
+                  [result]="tool.result"
+                  [children]="childrenOf(tool.id)"
+                  [agentText]="agentTextOf(tool.id)"
+                  (review)="showReview()"
+                />
               } @else if (isProposal(tool)) {
                 <app-course-chat-proposal
                   [toolName]="tool.name"
@@ -239,6 +248,15 @@
                 [count]="questionCount(tool)"
                 [status]="questionsStatus(tool)"
                 [result]="questionsResult(tool)"
+              />
+            } @else if (delegationOf(tool); as delegation) {
+              <app-course-chat-delegation
+                [delegation]="delegation"
+                [status]="tool.status"
+                [result]="tool.result"
+                [children]="childrenOf(tool.id)"
+                [agentText]="agentTextOf(tool.id)"
+                (review)="showReview()"
               />
             } @else if (isProposal(tool)) {
               <app-course-chat-proposal
@@ -342,6 +360,11 @@
   <!-- Pied de panneau discret : modèle en service (config personnelle ou IA
        par défaut + quota) et roue crantée ouvrant la modale de réglages IA —
        câblé sur l'instance d'état du panneau (globale ou ancrée) ; bascule
-       « édition auto » dans les seuls chats d'édition (flux HITL). -->
-  <app-course-chat-settings [assistant]="assistant" [editing]="mode() === 'edit'" />
+       « édition auto » dans les chats d'édition (flux HITL) et, en global,
+       bascule « édition globale » (délégation à des sous-assistants). -->
+  <app-course-chat-settings
+    [assistant]="assistant"
+    [editing]="mode() === 'edit'"
+    [globalEditable]="mode() === 'global'"
+  />
 }

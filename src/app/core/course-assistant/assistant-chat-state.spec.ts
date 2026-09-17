@@ -148,6 +148,59 @@ describe('AssistantChatState (portée block_text)', () => {
     expect(state.toolActivity().map((entry) => entry.id)).toEqual(['call_p']);
   });
 
+  it('agent-tagged events feed the delegation entry, never the main text; the proposal carries its delegation', async () => {
+    await loadList();
+    const BLOCK = '11111111-1111-4111-8111-111111111111';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        sseResponse([
+          'event: token\ndata: {"delta":"Je délègue. "}\n\n',
+          'event: tool_call\ndata: {"id":"call_d","name":"edit_block","args":{"target_ref":"B1",' +
+            `"instructions":"x","block_id":"${BLOCK}","context":"block_text","target_title":"Intro"}}\n\n`,
+          'event: thinking\ndata: {"delta":"hmm","agent":"call_d"}\n\n',
+          'event: token\ndata: {"delta":"Je lis. ","agent":"call_d"}\n\n',
+          'event: tool_call\ndata: {"id":"call_r","name":"read_block","args":{"block_ref":"B1"},' +
+            '"agent":"call_d"}\n\n',
+          'event: tool_result\ndata: {"id":"call_r","name":"read_block","is_error":false,' +
+            '"excerpt":"# V1","length":4,"agent":"call_d"}\n\n',
+          'event: tool_call\ndata: {"id":"call_c","name":"propose_block_edit",' +
+            '"args":{"new_markdown":"# V2","summary":"S"},"agent":"call_d"}\n\n',
+          'event: interrupt\ndata: {"tool_call_id":"call_c","kind":"proposal","agent":"call_d",' +
+            '"message_ids":["m1"]}\n\n',
+        ]),
+      ),
+    );
+    const send = state.sendMessage('Améliore');
+    http.expectOne((r) => r.url === BASE).flush({ ...BLOCK_CONVERSATION, id: 'conv-b2' });
+    await send;
+
+    expect(state.streamState()).toBe('awaiting');
+    expect(state.streamingText()).toBe('Je délègue. ');
+    expect(state.streamingThinking()).toBe('');
+    const activity = state.toolActivity();
+    expect(activity.map((entry) => [entry.id, entry.agent ?? null])).toEqual([
+      ['call_d', null],
+      ['call_r', 'call_d'],
+      ['call_c', 'call_d'],
+    ]);
+    expect(activity[0].agentText).toBe('Je lis. ');
+    expect(activity[1]).toMatchObject({ status: 'done', result: '# V1' });
+    expect(state.pendingProposal()).toEqual({
+      kind: 'block_text',
+      id: 'call_c',
+      summary: 'S',
+      markdown: '# V2',
+      delegation: {
+        id: 'call_d',
+        context: 'block_text',
+        targetId: BLOCK,
+        targetTitle: 'Intro',
+        instructions: 'x',
+      },
+    });
+  });
+
   it('resumeProposal awaits the beforeTurn hook (autosave flush) before the POST', async () => {
     await reachAwaiting();
     const resumeFetch = vi.fn().mockResolvedValue(sseResponse([DONE_EVENT]));

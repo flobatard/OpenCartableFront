@@ -18,6 +18,11 @@ import { Directive, ElementRef, inject } from '@angular/core';
 export class NativeDialog {
   readonly #element = inject<ElementRef<HTMLDialogElement>>(ElementRef);
 
+  /** Vrai tant que la modale est affichée (`showModal()` sur une modale ouverte lève). */
+  get isOpen(): boolean {
+    return this.#element.nativeElement.open;
+  }
+
   open(): void {
     this.#element.nativeElement.showModal();
   }

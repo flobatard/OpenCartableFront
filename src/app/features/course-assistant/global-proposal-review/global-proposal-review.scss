@@ -1,0 +1,94 @@
+/* Fenêtre de revue d'une proposition de sous-assistant (élément <dialog>
+   natif : focus trap, Escape, backdrop). Chrome calqué sur .export-dialog ;
+   large et haute : le diff Monaco (régime fill) remplit le corps. */
+
+.global-proposal-review {
+  width: min(1100px, calc(100vw - 32px));
+  height: min(calc(100dvh - 48px), 900px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.global-proposal-review::backdrop {
+  background: rgb(15 23 42 / 55%);
+}
+
+.global-proposal-review__inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.global-proposal-review__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 0 0 auto;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.global-proposal-review__title {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+.global-proposal-review__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.global-proposal-review__close:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+/* Corps : colonne flex à hauteur définie — les revues (:host flex column,
+   min-height 0) remplissent, leur pied de décision reste visible. */
+.global-proposal-review__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 12px 16px 16px;
+}
+
+.global-proposal-review__body > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.global-proposal-review__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  color: var(--text-secondary);
+}
+
+.global-proposal-review__loading p {
+  margin: 0;
+}

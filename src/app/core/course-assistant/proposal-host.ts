@@ -5,9 +5,10 @@ import { AssistantPendingProposal } from './proposals';
 /**
  * `decision` : l'envoi de la décision a échoué (réessayable) ; `target` : la
  * cible de la proposition n'existe plus dans l'éditeur (rien n'a été
- * appliqué — le professeur rejette).
+ * appliqué — le professeur rejette) ; `apply` : l'application a échoué (hôte
+ * headless : PATCH refusé — réessayable, ou à rejeter).
  */
-export type ProposalHostError = 'decision' | 'target';
+export type ProposalHostError = 'decision' | 'target' | 'apply';
 
 export interface ProposalHostDeps<V> {
   /** Instance d'état du chat ancré (proposition en attente + reprise). */
@@ -19,8 +20,12 @@ export interface ProposalHostDeps<V> {
    * son éditeur est masqué pendant toute la revue.
    */
   buildReview: (proposal: AssistantPendingProposal) => V | null;
-  /** Applique la proposition dans l'éditeur ; `false` = cible introuvable. */
-  apply: (proposal: AssistantPendingProposal) => boolean;
+  /**
+   * Applique la proposition ; `false` = cible introuvable. Synchrone dans un
+   * éditeur (Monaco, formulaire), asynchrone chez un hôte headless (PATCH de
+   * la cible avant la décision — une promesse rejetée vaut erreur `apply`).
+   */
+  apply: (proposal: AssistantPendingProposal) => boolean | Promise<boolean>;
   /**
    * Mode « édition auto » (`ProposalModeService.shouldAutoAccept`) : `true` =
    * la proposition est appliquée et acceptée sans revue. Consulté UNE fois, à
@@ -141,7 +146,20 @@ export class ProposalHost<V> {
     auto: boolean,
   ): Promise<boolean> {
     this.error.set(null);
-    if (!this.#deps.apply(proposal)) {
+    this.busy.set(true);
+    let applied: boolean;
+    try {
+      // Une application synchrone reste synchrone (pas d'`await` inutile :
+      // la décision part dans le même tick, contrat des hôtes éditeurs).
+      const outcome = this.#deps.apply(proposal);
+      applied = typeof outcome === 'boolean' ? outcome : await outcome;
+    } catch {
+      this.busy.set(false);
+      this.error.set('apply');
+      return false;
+    }
+    if (!applied) {
+      this.busy.set(false);
       this.error.set('target');
       return false;
     }

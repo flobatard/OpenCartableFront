@@ -49,10 +49,13 @@ export interface AnalyticsEvents {
     revealed: boolean;
   };
 
-  assistant_message_sent: { context: AssistantContext };
+  /** `allowEdit` : édition globale activée pour ce tour (panneau flottant). */
+  assistant_message_sent: { context: AssistantContext; allowEdit: boolean };
   /** `auto` : décision prise par le mode « édition auto », sans revue. */
   assistant_proposal_decided: { accepted: boolean; auto: boolean };
   assistant_proposal_mode_changed: { mode: ProposalMode };
+  /** Bascule de l'édition globale du panneau flottant. */
+  assistant_global_edit_changed: { enabled: boolean };
   /**
    * Réponse aux questions de l'assistant — des compteurs seulement, jamais le
    * texte des questions ni des réponses : `other` = réponses libres

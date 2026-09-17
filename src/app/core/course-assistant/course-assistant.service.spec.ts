@@ -4,8 +4,14 @@ import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
 import { AnalyticsService } from '../analytics/analytics.service';
 import { AuthService } from '../auth/auth.service';
+import { CourseDetail } from '../courses/course.model';
+import { ModuleDetail } from '../modules/module.model';
 import { AssistantConversation, AssistantConversationDetail } from './assistant.model';
 import { CourseAssistantService } from './course-assistant.service';
+import { GlobalEditService } from './global-edit.service';
+import { ProposalModeService } from './proposal-mode.service';
+import { AssistantPendingProposal } from './proposals';
+import { TargetApplierRegistry } from './target-applier.registry';
 import { sseResponse } from '../../testing/sse.fixture';
 
 const BASE = `${environment.apiUrl}/v1/courses/c1/assistant/conversations`;
@@ -514,5 +520,331 @@ describe('CourseAssistantService — questions de l’assistant', () => {
     );
     await service.sendMessage('Laisse tomber');
     expect(service.pendingQuestions()).toBeNull();
+  });
+});
+
+/**
+ * Édition globale : `allow_edit` envoyé avec le message, délégation à un
+ * sous-assistant (cible préchargée dès l'appel `edit_*`), revue globale de
+ * sa proposition et application SUR LA CIBLE — via l'éditeur monté, sinon
+ * par un PATCH headless — avant la reprise du run.
+ */
+describe('CourseAssistantService — édition globale', () => {
+  let service: CourseAssistantService;
+  let http: HttpTestingController;
+
+  const BLOCK = '11111111-1111-4111-8111-111111111111';
+  const MODULE = '22222222-2222-4222-8222-222222222222';
+  const COURSE_URL = `${environment.apiUrl}/v1/courses/c1`;
+
+  const DELEGATION_EVENTS =
+    'event: token\ndata: {"delta":"Je délègue. "}\n\n' +
+    'event: tool_call\ndata: {"id":"call_d","name":"edit_block","args":{"target_ref":"B1",' +
+    `"instructions":"Réécris.","block_id":"${BLOCK}","context":"block_text","target_title":"Intro"}}\n\n` +
+    'event: token\ndata: {"delta":"Je lis. ","agent":"call_d"}\n\n' +
+    'event: tool_call\ndata: {"id":"call_r","name":"read_block","args":{"block_ref":"B1"},' +
+    '"agent":"call_d"}\n\n' +
+    'event: tool_result\ndata: {"id":"call_r","name":"read_block","is_error":false,' +
+    '"excerpt":"# V1","length":4,"agent":"call_d"}\n\n' +
+    'event: tool_call\ndata: {"id":"call_c","name":"propose_block_edit",' +
+    '"args":{"new_markdown":"# V2","summary":"Réécriture"},"agent":"call_d"}\n\n' +
+    'event: interrupt\ndata: {"tool_call_id":"call_c","kind":"proposal","agent":"call_d",' +
+    '"message_ids":["m1"],"usage":{"input_tokens":50,"output_tokens":20}}\n\n';
+
+  const MODULE_DELEGATION_EVENTS =
+    'event: tool_call\ndata: {"id":"call_d","name":"edit_module","args":{"target_ref":"M1",' +
+    `"instructions":"Un bouton.","module_id":"${MODULE}","context":"module","target_title":"Compteur"}}\n\n` +
+    'event: tool_call\ndata: {"id":"call_c","name":"propose_js_edit",' +
+    '"args":{"new_code":"new","summary":"JS"},"agent":"call_d"}\n\n' +
+    'event: interrupt\ndata: {"tool_call_id":"call_c","kind":"proposal","agent":"call_d",' +
+    '"message_ids":["m1"]}\n\n';
+
+  const RESUMED_EVENTS = [
+    'event: tool_result\ndata: {"id":"call_c","name":"propose_block_edit","is_error":false,' +
+      '"excerpt":"ACCEPTÉ","length":7,"agent":"call_d"}\n\n',
+    'event: token\ndata: {"delta":"Fait.","agent":"call_d"}\n\n',
+    'event: tool_result\ndata: {"id":"call_d","name":"edit_block","is_error":false,' +
+      '"excerpt":"Sous-assistant terminé.","length":23}\n\n',
+    'event: token\ndata: {"delta":"Parfait."}\n\n',
+    'event: done\ndata: {"usage":{"input_tokens":30,"output_tokens":10},"user_message_id":null,' +
+      '"message_ids":["m2","m3"],"sources":{},"title":null}\n\n',
+  ];
+
+  function courseDetail(markdown = '# V1'): CourseDetail {
+    return {
+      id: 'c1',
+      title: 'Géométrie',
+      description: null,
+      subject_ids: [],
+      education_level_ids: [],
+      block_count: 1,
+      visibility: 'draft',
+      created_at: '2026-09-17T10:00:00Z',
+      updated_at: '2026-09-17T10:00:00Z',
+      blocks: [
+        {
+          id: BLOCK,
+          position: 0,
+          type: 'text',
+          title: 'Intro',
+          description: null,
+          content: { markdown },
+          resource_id: null,
+          module_id: null,
+        },
+      ],
+    };
+  }
+
+  function moduleDetail(js = 'old'): ModuleDetail {
+    return {
+      id: MODULE,
+      title: 'Compteur',
+      html: '<b></b>',
+      css: '',
+      js,
+      created_at: '2026-09-17T10:00:00Z',
+      updated_at: '2026-09-17T10:00:00Z',
+    };
+  }
+
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: AuthService,
+          useValue: { isAuthenticated: () => true, accessToken: 'jwt-token' },
+        },
+      ],
+    });
+    service = TestBed.inject(CourseAssistantService);
+    http = TestBed.inject(HttpTestingController);
+    TestBed.inject(GlobalEditService).setEnabled(true);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    localStorage.removeItem('oc-assistant-global-edit');
+    localStorage.removeItem('oc-assistant-proposal-mode');
+  });
+
+  async function open(): Promise<void> {
+    const list = service.loadConversations('c1');
+    http.expectOne(BASE).flush([CONVERSATION]);
+    await list;
+    const promise = service.openConversation('conv-1');
+    http.expectOne(`${BASE}/conv-1`).flush(DETAIL);
+    await promise;
+  }
+
+  /** Tour envoyé : délégation puis proposition du sous-assistant ; cible préchargée. */
+  async function reachProposal(events = DELEGATION_EVENTS): Promise<void> {
+    await open();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(sseResponse([events])));
+    await service.sendMessage('Améliore l’intro');
+    TestBed.tick(); // préchargement de la cible (effect sur l'activité d'outils)
+  }
+
+  async function loadBlockTarget(markdown = '# V1'): Promise<void> {
+    http.expectOne(COURSE_URL).flush(courseDetail(markdown));
+    await settle();
+    TestBed.tick();
+  }
+
+  it('sends allow_edit with the message when global editing is on', async () => {
+    await open();
+    const capture = vi.spyOn(TestBed.inject(AnalyticsService), 'capture');
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(sseResponse(['event: token\ndata: {"delta":"Ok"}\n\n']));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await service.sendMessage('Améliore');
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.body).toBe(JSON.stringify({ content: 'Améliore', allow_edit: true }));
+    expect(capture).toHaveBeenCalledWith('assistant_message_sent', {
+      context: 'course',
+      allowEdit: true,
+    });
+  });
+
+  it('a sub-assistant proposal carries its delegation; the review builds once the target is loaded', async () => {
+    await reachProposal();
+    expect(service.pendingProposal()).toMatchObject({
+      kind: 'block_text',
+      id: 'call_c',
+      delegation: { id: 'call_d', context: 'block_text', targetId: BLOCK, targetTitle: 'Intro' },
+    });
+    // Le texte du sous-assistant reste sur sa carte, jamais dans le texte de l'assistant.
+    expect(service.streamingText()).toBe('Je délègue. ');
+    expect(service.toolActivity()[0].agentText).toBe('Je lis. ');
+    // Cible pas encore chargée : rien à revoir, la fenêtre reste fermée.
+    expect(service.proposals.review()).toBeNull();
+    expect(service.reviewVisible()).toBe(false);
+
+    await loadBlockTarget();
+    expect(service.proposals.review()).toEqual({
+      kind: 'text',
+      proposal: service.pendingProposal(),
+      original: '# V1',
+      targetTitle: 'Intro',
+    });
+    expect(service.reviewVisible()).toBe(true);
+    expect(service.panelOpen()).toBe(true);
+
+    // Refermée sans décider, puis rouverte par « Revoir ».
+    service.hideReview();
+    expect(service.reviewVisible()).toBe(false);
+    service.showReview();
+    expect(service.reviewVisible()).toBe(true);
+  });
+
+  it('accepting applies headless (PATCH of the block) before the decision, then resumes', async () => {
+    await reachProposal();
+    await loadBlockTarget();
+    const resumeFetch = vi.fn().mockResolvedValue(sseResponse(RESUMED_EVENTS));
+    vi.stubGlobal('fetch', resumeFetch);
+
+    const accepted = service.proposals.accept('Bien');
+    await settle();
+    const patch = http.expectOne(`${COURSE_URL}/blocks/${BLOCK}`);
+    expect(patch.request.method).toBe('PATCH');
+    expect(patch.request.body).toEqual({ content: { markdown: '# V2' } });
+    // Rien n'est envoyé au back tant que la cible n'est pas modifiée.
+    expect(resumeFetch).not.toHaveBeenCalled();
+    patch.flush(courseDetail('# V2').blocks[0]);
+    await accepted;
+
+    const [url, init] = resumeFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${BASE}/conv-1/proposals/call_c/decision`);
+    expect(JSON.parse(init.body as string)).toEqual({ accepted: true, comment: 'Bien' });
+    expect(service.pendingProposal()).toBeNull();
+    TestBed.tick(); // la fenêtre suit la revue (effect)
+    expect(service.reviewVisible()).toBe(false);
+    expect(service.streamState()).toBe('idle');
+    expect(service.proposals.error()).toBeNull();
+
+    // Tour replié : seul l'appel edit_block et son compte rendu (l'activité
+    // du sous-assistant n'est jamais persistée) ; le texte de l'assistant
+    // après le compte rendu forme un paragraphe distinct.
+    const messages = service.active()!.messages;
+    const folded = messages.at(-1)!;
+    expect(folded.tool_calls.map((call) => call.id)).toEqual(['call_d']);
+    expect(folded.content).toBe('Je délègue.\n\nParfait.');
+    expect(messages.find((m) => m.role === 'tool')?.content).toBe('Sous-assistant terminé.');
+  });
+
+  it('an editor mounted on the target applies through it and flushes before the decision', async () => {
+    await reachProposal();
+    await loadBlockTarget();
+    const applier = {
+      apply: vi.fn((_proposal: AssistantPendingProposal) => true),
+      flush: vi.fn().mockResolvedValue(undefined),
+    };
+    TestBed.inject(TargetApplierRegistry).register(BLOCK, applier);
+    const resumeFetch = vi.fn().mockResolvedValue(sseResponse(RESUMED_EVENTS));
+    vi.stubGlobal('fetch', resumeFetch);
+
+    await service.proposals.accept('');
+
+    http.expectNone(`${COURSE_URL}/blocks/${BLOCK}`);
+    expect(applier.apply).toHaveBeenCalledTimes(1);
+    expect(applier.apply.mock.calls[0][0]).toMatchObject({ kind: 'block_text', id: 'call_c' });
+    expect(applier.flush).toHaveBeenCalledTimes(1);
+    expect(resumeFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('a refused PATCH reports `apply`, sends nothing and keeps the review', async () => {
+    await reachProposal();
+    await loadBlockTarget();
+    const resumeFetch = vi.fn();
+    vi.stubGlobal('fetch', resumeFetch);
+
+    const accepted = service.proposals.accept('');
+    await settle();
+    http
+      .expectOne(`${COURSE_URL}/blocks/${BLOCK}`)
+      .flush('boom', { status: 503, statusText: 'Unavailable' });
+    await accepted;
+
+    expect(resumeFetch).not.toHaveBeenCalled();
+    expect(service.proposals.error()).toBe('apply');
+    expect(service.pendingProposal()?.id).toBe('call_c');
+    expect(service.proposals.review()?.kind).toBe('text');
+  });
+
+  it('auto mode waits for the target in flight, freezes the original, applies and accepts', async () => {
+    TestBed.inject(ProposalModeService).setMode('auto');
+    const resumeFetch = vi.fn().mockResolvedValue(sseResponse(RESUMED_EVENTS));
+    await open();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValueOnce(sseResponse([DELEGATION_EVENTS])).mockImplementation(resumeFetch),
+    );
+    await service.sendMessage('Améliore l’intro');
+    TestBed.tick(); // préchargement + acceptation automatique (en attente de la cible)
+    expect(service.reviewVisible()).toBe(false);
+
+    http.expectOne(COURSE_URL).flush(courseDetail('# V1'));
+    await settle();
+    const patch = http.expectOne(`${COURSE_URL}/blocks/${BLOCK}`);
+    expect(patch.request.body).toEqual({ content: { markdown: '# V2' } });
+    patch.flush(courseDetail('# V2').blocks[0]);
+    await settle();
+    await settle();
+    TestBed.tick();
+
+    expect(resumeFetch).toHaveBeenCalledTimes(1);
+    const [, init] = resumeFetch.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toEqual({ accepted: true, comment: null });
+    expect(service.pendingProposal()).toBeNull();
+    // Jamais de fenêtre de revue en mode auto.
+    expect(service.reviewVisible()).toBe(false);
+  });
+
+  it('a module delegation preloads the module and reviews the targeted file', async () => {
+    await reachProposal(MODULE_DELEGATION_EVENTS);
+    http.expectOne(`${COURSE_URL}/modules/${MODULE}`).flush(moduleDetail('old'));
+    await settle();
+    TestBed.tick();
+    expect(service.proposals.review()).toEqual({
+      kind: 'module',
+      proposal: service.pendingProposal(),
+      original: 'old',
+      targetTitle: 'Compteur',
+    });
+
+    const resumeFetch = vi.fn().mockResolvedValue(
+      sseResponse([
+        'event: done\ndata: {"usage":null,"user_message_id":null,"message_ids":[],' +
+          '"sources":{},"title":null}\n\n',
+      ]),
+    );
+    vi.stubGlobal('fetch', resumeFetch);
+    const accepted = service.proposals.accept('');
+    await settle();
+    const patch = http.expectOne(`${COURSE_URL}/modules/${MODULE}`);
+    expect(patch.request.method).toBe('PATCH');
+    expect(patch.request.body).toEqual({ js: 'new' });
+    patch.flush(moduleDetail('new'));
+    await accepted;
+    expect(resumeFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('changing course drops the loaded targets and frozen reviews', async () => {
+    await reachProposal();
+    await loadBlockTarget();
+    expect(service.proposals.review()).not.toBeNull();
+
+    const list = service.loadConversations('c2');
+    http.expectOne(`${environment.apiUrl}/v1/courses/c2/assistant/conversations`).flush([]);
+    await list;
+    expect(service.pendingProposal()).toBeNull();
+    expect(service.proposals.review()).toBeNull();
   });
 });

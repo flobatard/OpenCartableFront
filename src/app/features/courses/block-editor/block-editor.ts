@@ -1,6 +1,7 @@
 import {
   Component,
   computed,
+  DestroyRef,
   effect,
   inject,
   OnDestroy,
@@ -31,7 +32,9 @@ import {
 } from '../../../core/courses/exercise-form';
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
 import { ProposalModeService } from '../../../core/course-assistant/proposal-mode.service';
+import { AssistantPendingProposal } from '../../../core/course-assistant/proposals';
 import { revealOnNewQuestions } from '../../../core/course-assistant/question-reveal';
+import { TargetApplierRegistry } from '../../../core/course-assistant/target-applier.registry';
 import { CourseService } from '../../../core/courses/course.service';
 import { CourseStyleService } from '../../../core/courses/course-style.service';
 import { ExerciseSubmissionsService } from '../../../core/courses/exercise-submissions.service';
@@ -154,6 +157,7 @@ export class BlockEditor implements OnInit, OnDestroy {
   /** Instance d'état du chat ancré (contexte d'édition du bloc), propre à la page. */
   readonly #assistantState = inject(AssistantChatState);
   readonly #proposalMode = inject(ProposalModeService);
+  readonly #appliers = inject(TargetApplierRegistry);
 
   /**
    * Orchestration des revues HITL (proposition en attente → revue → décision
@@ -253,6 +257,16 @@ export class BlockEditor implements OnInit, OnDestroy {
     // rafraîchissement du template, donc avant le montage du chat enfant et
     // son premier `loadConversations`.
     this.#assistantState.setBeforeTurn(() => this.flushContent());
+
+    // Éditeur monté sur ce bloc : une proposition de sous-assistant (édition
+    // globale) visant ce bloc s'applique ICI — Monaco, Ctrl-Z, autosave —
+    // plutôt qu'en headless, que la prochaine frappe écraserait ; retiré à
+    // la destruction.
+    const unregister = this.#appliers.register(this.blockId, {
+      apply: (proposal) => this.#applyDelegated(proposal),
+      flush: () => this.flushContent(),
+    });
+    inject(DestroyRef).onDestroy(unregister);
 
     // Des questions de l'assistant attendent le professeur : le chat replié
     // se déplie (sur téléphone, la vue bascule sur l'assistant).
@@ -509,6 +523,23 @@ export class BlockEditor implements OnInit, OnDestroy {
       case 'exercise_question_delete':
         return editor.applyQuestionDelete(proposal.questionId);
     }
+  }
+
+  /**
+   * Application d'une proposition de sous-assistant visant ce bloc
+   * (`TargetApplierRegistry`) : réécriture d'un bloc texte ou opération
+   * d'exercice, selon le type du bloc monté ; `false` = proposition d'un autre
+   * genre ou cible introuvable.
+   */
+  #applyDelegated(proposal: AssistantPendingProposal): boolean {
+    if (proposal.kind === 'block_text') {
+      if (this.block()?.type !== 'text') {
+        return false;
+      }
+      this.#applyText(proposal.markdown);
+      return true;
+    }
+    return proposal.kind.startsWith('exercise_') && this.#applyExercise(proposal as ExerciseProposal);
   }
 
   /** Payload de contenu courant selon le type du bloc (`null` = pas d'éditeur). */

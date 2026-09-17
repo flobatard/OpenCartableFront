@@ -1,7 +1,10 @@
 <!-- @defer : le chunk du panneau ne se charge qu'à la première entrée dans un
-     cours ; une fois chargé, c'est le @if qui monte/démonte selon l'URL. -->
+     cours ; une fois chargé, c'est le @if qui monte/démonte selon l'URL. La
+     fenêtre de revue globale vit À CÔTÉ du panneau (jamais dedans) : elle
+     s'ouvre sur toute page du cours, même là où le panneau s'efface. -->
 @defer (when courseId() !== null) {
   @if (courseId(); as id) {
     <app-assistant-panel [courseId]="id" [inEditor]="inEditor()" />
+    <app-global-proposal-review [courseId]="id" />
   }
 }

@@ -5,6 +5,7 @@ import { AiCredentialsService } from '../../../core/ai-credentials/ai-credential
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
 import { ProposalModeService } from '../../../core/course-assistant/proposal-mode.service';
 import { AssistantPendingProposal } from '../../../core/course-assistant/proposals';
+import { TargetApplierRegistry } from '../../../core/course-assistant/target-applier.registry';
 import { ModuleDetail } from '../../../core/modules/module.model';
 import { ModuleService } from '../../../core/modules/module.service';
 import { ModuleRunner } from '../../../shared/module-runner/module-runner';
@@ -91,6 +92,25 @@ describe('ModuleEditor', () => {
     expect(fixture.componentInstance.cssControl.value).toBe(DETAIL.css);
     expect(fixture.componentInstance.jsControl.value).toBe(DETAIL.js);
     expect(el(fixture).textContent).toContain('Quiz interactif');
+  });
+
+  it('registers an applier for the module while mounted (global editing): a code proposal lands in its control', async () => {
+    const fixture = await createComponent();
+    const registry = TestBed.inject(TargetApplierRegistry);
+    const applier = registry.get('module-1');
+    expect(applier).not.toBeNull();
+
+    expect(applier!.apply({ kind: 'module_js', id: 'c', summary: null, code: 'alert(1)' })).toBe(
+      true,
+    );
+    expect(fixture.componentInstance.jsControl.value).toBe('alert(1)');
+    // Proposition d'un autre hôte (bloc) : refusée.
+    expect(applier!.apply({ kind: 'block_text', id: 'c2', summary: null, markdown: '#' })).toBe(
+      false,
+    );
+
+    fixture.destroy();
+    expect(registry.get('module-1')).toBeNull();
   });
 
   it('downloads the module as a standalone document, from the current editors', async () => {

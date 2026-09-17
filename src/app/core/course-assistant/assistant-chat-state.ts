@@ -13,6 +13,7 @@ import {
   AssistantUsage,
 } from './assistant.model';
 import { AssistantConversationsApi } from './conversations-api';
+import { DELEGATION_TOOLS, parseDelegation } from './delegation';
 import { AssistantPendingProposal, parseProposal } from './proposals';
 import {
   ASK_QUESTIONS,
@@ -24,6 +25,7 @@ import {
 } from './questions';
 import { postSseStream } from './sse';
 import {
+  applyAgentToken,
   applyToolResult,
   AssistantToolActivity,
   foldTurnMessages,
@@ -197,6 +199,20 @@ export class AssistantChatState implements OnDestroy {
    */
   setBeforeTurn(hook: (() => Promise<void>) | null): void {
     this.#beforeTurn = hook;
+  }
+
+  /**
+   * Options ajoutées au corps de chaque message envoyé (relues à l'envoi) :
+   * rien par défaut ; le service root y pose l'édition globale du panneau
+   * flottant (`allow_edit`).
+   */
+  protected turnOptions(): Record<string, unknown> {
+    return {};
+  }
+
+  /** Cours de la portée courante (`loadConversations`) ; `null` avant tout chargement. */
+  protected currentCourseId(): string | null {
+    return this.#courseId;
   }
 
   /**
@@ -401,8 +417,12 @@ export class AssistantChatState implements OnDestroy {
     this.#appendMessage({ role: 'user', content: trimmed });
     this.#clearTurn();
     this.#streamState.set('streaming');
-    // Le contexte du chat seulement : la demande du prof ne sort jamais d'ici.
-    this.#analytics.capture('assistant_message_sent', { context: this.#context });
+    const options = this.turnOptions();
+    // Le contexte du chat et le mode seulement : la demande du prof ne sort jamais d'ici.
+    this.#analytics.capture('assistant_message_sent', {
+      context: this.#context,
+      allowEdit: options['allow_edit'] === true,
+    });
     if (this.#beforeTurn) {
       await this.#runBeforeTurn(this.#beforeTurn);
     }
@@ -420,6 +440,7 @@ export class AssistantChatState implements OnDestroy {
 
     const status = await this.#streamTurn(this.#api.streamUrl(courseId, conversationId), {
       content: trimmed,
+      ...options,
     });
     if (status !== null) {
       this.#failStream(status);
@@ -620,10 +641,19 @@ export class AssistantChatState implements OnDestroy {
   #handleEvent(event: AssistantStreamEvent): boolean {
     switch (event.type) {
       case 'token':
-        this.#streamingText.update((text) => text + event.delta);
+        if (event.agent !== undefined) {
+          // Texte d'un sous-assistant : sur sa carte de délégation, jamais
+          // dans le texte de l'assistant.
+          const agent = event.agent;
+          this.#toolActivity.update((activity) => applyAgentToken(activity, agent, event.delta));
+        } else {
+          this.#streamingText.update((text) => text + event.delta);
+        }
         return false;
       case 'thinking':
-        this.#streamingThinking.update((text) => text + event.delta);
+        if (event.agent === undefined) {
+          this.#streamingThinking.update((text) => text + event.delta);
+        }
         return false;
       case 'tool_call':
         this.#toolActivity.update((activity) => [...activity, toolActivityFromCall(event)]);
@@ -631,6 +661,11 @@ export class AssistantChatState implements OnDestroy {
       case 'tool_result':
         if (this.#toolActivity().some((entry) => entry.id === event.id)) {
           this.#toolActivity.update((activity) => applyToolResult(activity, event));
+          if (event.agent === undefined && DELEGATION_TOOLS.has(event.name)) {
+            // Compte rendu d'un sous-assistant : le texte qui suit est un
+            // nouveau segment côté back.
+            this.#separateResumedText();
+          }
         } else {
           // Reprise de questions reproposées à la réouverture : leur appel est
           // dans les messages persistés, ce résultat s'y apparie.
@@ -644,12 +679,14 @@ export class AssistantChatState implements OnDestroy {
         // Tool bloquant (HITL) : le run est figé côté back, le flux se ferme —
         // questions de l'assistant (`pendingQuestions`, le formulaire remplace
         // le composer) ou proposition d'édition (`pendingProposal`, la revue
-        // de l'hôte éditeur s'y adosse), typées depuis l'appel figé de
-        // l'activité d'outils ; le tour reste affiché en l'état, il reprendra
-        // via `answerQuestions` ou `resumeProposal`.
+        // de l'hôte s'y adosse — éditeur, ou revue globale d'une proposition
+        // de sous-assistant, rattachée à sa délégation), typées depuis l'appel
+        // figé de l'activité d'outils ; le tour reste affiché en l'état, il
+        // reprendra via `answerQuestions` ou `resumeProposal`.
         const entry = this.#toolActivity().find((e) => e.id === event.tool_call_id);
         const questions = entry?.name === ASK_QUESTIONS ? parseQuestions(entry) : null;
-        const proposal = entry && questions === null ? parseProposal(entry) : null;
+        const proposal =
+          entry && questions === null ? this.#withDelegation(parseProposal(entry), entry) : null;
         if (entry && questions !== null) {
           this.#pendingQuestions.set({ id: entry.id, questions, reoffered: false });
           this.#streamState.set('awaiting');
@@ -673,6 +710,24 @@ export class AssistantChatState implements OnDestroy {
         this.#failStream(event.status);
         return true;
     }
+  }
+
+  /**
+   * Proposition d'un sous-assistant (appel figé tagué `agent`) : rattachée à
+   * sa délégation, parsée depuis l'appel `edit_*` parent de l'activité — sans
+   * délégation lisible, la proposition reste nue (l'hôte ne saura pas la
+   * revoir : ligne d'outil générique).
+   */
+  #withDelegation(
+    proposal: AssistantPendingProposal | null,
+    entry: AssistantToolActivity,
+  ): AssistantPendingProposal | null {
+    if (proposal === null || entry.agent === undefined) {
+      return proposal;
+    }
+    const parent = this.#toolActivity().find((e) => e.id === entry.agent);
+    const delegation = parent ? parseDelegation(parent) : null;
+    return delegation === null ? proposal : { ...proposal, delegation };
   }
 
   /**

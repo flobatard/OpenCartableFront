@@ -7,6 +7,7 @@ import { AiCredentialsService } from '../../../core/ai-credentials/ai-credential
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
 import { ProposalModeService } from '../../../core/course-assistant/proposal-mode.service';
 import { AssistantPendingProposal } from '../../../core/course-assistant/proposals';
+import { TargetApplierRegistry } from '../../../core/course-assistant/target-applier.registry';
 import { CourseBlock, CourseDetail } from '../../../core/courses/course.model';
 import { CourseService } from '../../../core/courses/course.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
@@ -737,6 +738,30 @@ describe('BlockEditor', () => {
     divider.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
     fixture.detectChanges();
     expect(divider.getAttribute('aria-valuenow')).toBe('85'); // borné au max
+  });
+
+  describe('registre des appliqueurs (édition globale)', () => {
+    it('registers an applier for the block while mounted: a text proposal lands in the field, then flushes', async () => {
+      const fixture = await createComponent();
+      const registry = TestBed.inject(TargetApplierRegistry);
+      const applier = registry.get('block-1');
+      expect(applier).not.toBeNull();
+
+      expect(
+        applier!.apply({ kind: 'block_text', id: 'c', summary: null, markdown: '# Global' }),
+      ).toBe(true);
+      expect(fixture.componentInstance.content.value).toBe('# Global');
+      await applier!.flush();
+      expect(coursesMock.updateBlockContent).toHaveBeenCalledWith('course-1', 'block-1', {
+        markdown: '# Global',
+      });
+
+      // Proposition d'un autre hôte (module) : refusée, rien n'est appliqué.
+      expect(applier!.apply({ kind: 'module_js', id: 'c2', summary: null, code: 'x' })).toBe(false);
+
+      fixture.destroy();
+      expect(registry.get('block-1')).toBeNull();
+    });
   });
 
   describe('chat ancré HITL (bloc texte, contexte block_text)', () => {

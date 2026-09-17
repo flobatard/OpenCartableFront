@@ -74,6 +74,22 @@
     "hintAsk": "Désactivée : chaque proposition de l'assistant attend votre validation dans l'éditeur.",
     "hintAuto": "Activée : les propositions de l'assistant sont appliquées sans revue (sauf suppression de question) — Ctrl-Z annule une réécriture."
   },
+  "globalEdit": {
+    "label": "Édition globale",
+    "hintOff": "Désactivée : l'assistant du cours lit, critique et conseille, sans rien modifier.",
+    "hintOn": "Activée : l'assistant peut confier la modification d'un bloc ou d'un module à un sous-assistant — chaque proposition vous est soumise, où que vous soyez dans le cours."
+  },
+  "delegation": {
+    "title": "Sous-assistant d'édition",
+    "target": "Cible : {{title}}",
+    "instructions": "Consignes transmises",
+    "running": "Le sous-assistant travaille — ses propositions vous seront soumises."
+  },
+  "globalReview": {
+    "title": "Modification proposée — {{target}}",
+    "close": "Fermer",
+    "loading": "Chargement de la cible…"
+  },
   "tokens": {
     "turn": "{{input}} entrée · {{output}} sortie",
     "total": "Total : {{total}} tokens ({{input}} entrée · {{output}} sortie)",
@@ -97,6 +113,8 @@
     "propose_css_edit": "Proposition de modification du CSS",
     "propose_js_edit": "Proposition de modification du JavaScript",
     "ask_questions": "Questions au professeur",
+    "edit_block": "Modification d'un bloc par un sous-assistant",
+    "edit_module": "Modification d'un module par un sous-assistant",
     "unknown": "Utilisation d'un outil"
   },
   "proposal": {
@@ -112,6 +130,9 @@
       "propose_js_edit": "Fichier JavaScript"
     },
     "pendingHint": "En attente de votre décision — le comparatif est affiché dans l'éditeur.",
+    "pendingHintGlobal": "En attente de votre décision — le comparatif s'ouvre dans une fenêtre.",
+    "review": "Revoir la proposition",
+    "applyError": "L'application de la proposition a échoué — réessayez, ou rejetez-la.",
     "original": "Contenu actuel",
     "proposed": "Proposition",
     "accept": "Accepter et appliquer",

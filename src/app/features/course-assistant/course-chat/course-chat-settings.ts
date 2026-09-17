@@ -23,6 +23,7 @@ import {
 } from '../../../core/ai-credentials/ai-credentials.model';
 import { AiCredentialsService } from '../../../core/ai-credentials/ai-credentials.service';
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
+import { GlobalEditService } from '../../../core/course-assistant/global-edit.service';
 import { ProposalModeService } from '../../../core/course-assistant/proposal-mode.service';
 import { conversationUsage, formatTokenCount } from '../../../core/course-assistant/usage';
 import { LanguageService } from '../../../core/i18n/language.service';
@@ -77,9 +78,16 @@ export class CourseChatSettings {
   readonly assistant = input.required<AssistantChatState>();
   /** Chat d'édition (bloc, module — flux HITL) : bascule du mode « édition auto ». */
   readonly editing = input(false);
+  /**
+   * Panneau global : bascule « édition globale » (délégation à des
+   * sous-assistants, `GlobalEditService`) — et, une fois activée, la bascule
+   * « édition auto » qui vaut aussi pour leurs propositions.
+   */
+  readonly globalEditable = input(false);
 
   readonly #credentials = inject(AiCredentialsService);
   readonly #proposalMode = inject(ProposalModeService);
+  readonly #globalEdit = inject(GlobalEditService);
   readonly #language = inject(LanguageService);
   readonly #notifications = inject(NotificationService);
   readonly #transloco = inject(TranslocoService);
@@ -139,6 +147,14 @@ export class CourseChatSettings {
   /** Mode « édition auto » des propositions HITL activé. */
   protected readonly autoEdit = computed(() => this.#proposalMode.mode() === 'auto');
 
+  /** Édition globale du panneau flottant activée. */
+  protected readonly globalEdit = computed(() => this.#globalEdit.enabled());
+
+  /** La bascule « édition auto » a un sens : chat d'édition, ou global à édition globale activée. */
+  protected readonly showAutoEdit = computed(
+    () => this.editing() || (this.globalEditable() && this.globalEdit()),
+  );
+
   /** Messages restants du quota quotidien (jamais négatif). */
   protected readonly quotaRemaining = computed(() => {
     const creds = this.aiCreds();
@@ -185,6 +201,10 @@ export class CourseChatSettings {
 
   protected toggleAutoEdit(): void {
     this.#proposalMode.toggle();
+  }
+
+  protected toggleGlobalEdit(): void {
+    this.#globalEdit.toggle();
   }
 
   protected toggleMenu(): void {

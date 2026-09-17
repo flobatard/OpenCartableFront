@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
+import { GlobalProposalReview } from '../global-proposal-review/global-proposal-review';
 import { AssistantPanel } from './assistant-panel';
 
 /**
@@ -39,10 +40,15 @@ export function courseIdFromUrl(url: string): string | null {
  * Le `@defer` garde la chaîne du chat (markdown-view →
  * marked/KaTeX/DOMPurify…) HORS du bundle initial : `App` est eager, le
  * panneau ne se charge qu'à la première entrée authentifiée dans un cours.
+ *
+ * Il héberge aussi la fenêtre de revue globale des propositions de
+ * sous-assistants (`app-global-proposal-review`, édition globale) — à côté
+ * du panneau, jamais dedans : elle doit s'ouvrir sur toute page du cours, y
+ * compris les éditeurs sur téléphone où le panneau s'efface.
  */
 @Component({
   selector: 'app-assistant-outlet',
-  imports: [AssistantPanel],
+  imports: [AssistantPanel, GlobalProposalReview],
   templateUrl: './assistant-outlet.html',
 })
 export class AssistantOutlet {

@@ -23,6 +23,8 @@
  *   d'un module n'est pas du markdown de cours).
  */
 
+import type { AssistantDelegation } from './delegation';
+
 export const PROPOSE_BLOCK_EDIT = 'propose_block_edit';
 export const PROPOSE_STATEMENT_EDIT = 'propose_statement_edit';
 export const PROPOSE_QUESTION_EDIT = 'propose_question_edit';
@@ -49,6 +51,13 @@ interface ProposalBase {
   id: string;
   /** Résumé du changement fourni par le modèle (`null` s'il l'a omis). */
   summary: string | null;
+  /**
+   * Proposition d'un sous-assistant (édition globale, `delegation.ts`) : la
+   * délégation dont elle relève — sa cible est celle de la revue et de
+   * l'application. Posée par l'état du chat depuis l'appel `edit_*` parent,
+   * jamais par `parseProposal`.
+   */
+  delegation?: AssistantDelegation;
 }
 
 /** Proposition d'édition en attente de décision (le run est figé côté back). */

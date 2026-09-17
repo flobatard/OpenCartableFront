@@ -141,6 +141,51 @@ describe('ProposalHost', () => {
     expect(host.review()).toEqual({ id: 'call_x', original: '# V1' });
   });
 
+  it('an asynchronous apply (headless host) is awaited before the decision', async () => {
+    let release!: (applied: boolean) => void;
+    apply.mockImplementationOnce(
+      () => new Promise<boolean>((resolve) => (release = resolve)) as unknown as boolean,
+    );
+    const host = new ProposalHost<Review>(deps(false));
+    pending.set(textProposal('call_1'));
+
+    const promise = host.accept('ok');
+    await flush();
+    expect(host.busy()).toBe(true);
+    expect(resumeProposal).not.toHaveBeenCalled();
+
+    release(true);
+    await promise;
+    expect(resumeProposal).toHaveBeenCalledWith({ accepted: true, comment: 'ok' });
+    expect(host.busy()).toBe(false);
+    expect(host.error()).toBeNull();
+  });
+
+  it('a rejected apply promise reports `apply`, sends nothing and stays retryable', async () => {
+    apply.mockImplementationOnce(() => Promise.reject(new Error('PATCH 503')) as unknown as boolean);
+    const host = new ProposalHost<Review>(deps(false));
+    pending.set(textProposal('call_1'));
+
+    await host.accept('');
+    expect(resumeProposal).not.toHaveBeenCalled();
+    expect(host.error()).toBe('apply');
+    expect(host.busy()).toBe(false);
+    expect(host.review()).toEqual({ id: 'call_1', original: '# V1' });
+
+    // Réessai : l'application réussit cette fois.
+    await host.accept('');
+    expect(resumeProposal).toHaveBeenCalledTimes(1);
+  });
+
+  it('an asynchronous apply resolving false reports `target`', async () => {
+    apply.mockImplementationOnce(() => Promise.resolve(false) as unknown as boolean);
+    const host = new ProposalHost<Review>(deps(false));
+    pending.set(textProposal('call_1'));
+    await host.accept('');
+    expect(host.error()).toBe('target');
+    expect(resumeProposal).not.toHaveBeenCalled();
+  });
+
   it('auto mode with a failed resume: review with `decision` and the pre-apply original, one attempt only', async () => {
     autoMode = true;
     resumeProposal.mockResolvedValue(false); // la proposition reste en attente

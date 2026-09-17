@@ -17,12 +17,11 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
 import { AssistantMessage } from '../../../core/course-assistant/assistant.model';
 import { CourseAssistantService } from '../../../core/course-assistant/course-assistant.service';
-import { parseProposal, PROPOSAL_TOOLS } from '../../../core/course-assistant/proposals';
 import {
-  ASK_QUESTIONS,
-  parseQuestions,
-  QuestionAnswer,
-} from '../../../core/course-assistant/questions';
+  AssistantDelegation,
+  parseDelegation,
+} from '../../../core/course-assistant/delegation';
+import { parseQuestions, QuestionAnswer } from '../../../core/course-assistant/questions';
 import { progressiveReveal } from '../../../core/course-assistant/stream-reveal';
 import { formatTokenCount, turnUsageByMessage } from '../../../core/course-assistant/usage';
 import { LanguageService } from '../../../core/i18n/language.service';
@@ -30,11 +29,19 @@ import { BlockCitations } from '../../../shared/block-citations/block-citations.
 import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
 import { Spinner } from '../../../shared/spinner/spinner';
 import { CourseChatConversations } from './course-chat-conversations';
+import { CourseChatDelegation, DelegationChildView } from './course-chat-delegation';
 import { CourseChatProposal } from './course-chat-proposal';
 import { CourseChatQuestions } from './course-chat-questions';
 import { CourseChatQuestionsCard, QuestionsCardStatus } from './course-chat-questions-card';
 import { CourseChatSettings } from './course-chat-settings';
-import { ChatToolView, CourseChatTool, toolRowsById, toolViewsFor } from './course-chat-tool';
+import {
+  ChatToolView,
+  CourseChatTool,
+  isProposalView,
+  isQuestionsView,
+  toolRowsById,
+  toolViewsFor,
+} from './course-chat-tool';
 
 export { STREAM_REVEAL_TICK_MS } from '../../../core/course-assistant/stream-reveal';
 
@@ -71,6 +78,13 @@ const SCROLL_PIN_THRESHOLD_PX = 80;
  * (`app-course-chat-questions`, une question par étape, refus par la croix) ;
  * leur appel devient une carte dans le fil (`app-course-chat-questions-card`).
  *
+ * Édition globale (mode global, `GlobalEditService`) : un appel `edit_*` de
+ * l'assistant devient une carte de délégation (`app-course-chat-delegation`)
+ * qui imbrique, en direct, l'activité de son sous-assistant (événements
+ * tagués `agent`) — ses propositions y sont des cartes « revues dans la
+ * fenêtre globale » (`CourseAssistantService.proposals`), jamais dans le
+ * fil de premier niveau.
+ *
  * Deux régimes de rendu du texte assistant : pendant le stream,
  * `app-markdown-view` sans `courseId` (références oc-* inertes → re-rendus
  * bon marché) sur le signal dévoilé progressivement (`streamingRender`) ; un
@@ -85,6 +99,7 @@ const SCROLL_PIN_THRESHOLD_PX = 80;
     MarkdownView,
     RouterLink,
     CourseChatConversations,
+    CourseChatDelegation,
     CourseChatProposal,
     CourseChatQuestions,
     CourseChatQuestionsCard,
@@ -189,16 +204,55 @@ export class CourseChat {
     turnUsageByMessage(this.assistant.active()?.messages ?? []),
   );
 
-  /** Activité d'outils du tour en cours, dans la forme rendue par `app-course-chat-tool`. */
+  /**
+   * Activité d'outils du tour en cours, dans la forme rendue par
+   * `app-course-chat-tool` — celle de l'assistant lui-même ; l'activité d'un
+   * sous-assistant (`agent`) est rendue DANS sa carte de délégation.
+   */
   protected readonly liveToolViews = computed<ChatToolView[]>(() =>
-    this.assistant.toolActivity().map((entry) => ({
-      id: entry.id,
-      name: entry.name,
-      args: entry.args,
-      status: entry.status,
-      result: entry.result,
-    })),
+    this.assistant
+      .toolActivity()
+      .filter((entry) => entry.agent === undefined)
+      .map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+        args: entry.args,
+        status: entry.status,
+        result: entry.result,
+      })),
   );
+
+  /** Activité des sous-assistants du tour en cours, par appel de délégation. */
+  readonly #liveChildren = computed(() => {
+    const children = new Map<string, DelegationChildView[]>();
+    for (const entry of this.assistant.toolActivity()) {
+      if (entry.agent === undefined) {
+        continue;
+      }
+      const view: ChatToolView = {
+        id: entry.id,
+        name: entry.name,
+        args: entry.args,
+        status: entry.status,
+        result: entry.result,
+      };
+      const list = children.get(entry.agent) ?? [];
+      list.push(this.#childView(view));
+      children.set(entry.agent, list);
+    }
+    return children;
+  });
+
+  /** Texte streamé par chaque sous-assistant du tour en cours. */
+  readonly #liveAgentText = computed(() => {
+    const texts = new Map<string, string>();
+    for (const entry of this.assistant.toolActivity()) {
+      if (entry.agentText) {
+        texts.set(entry.id, entry.agentText);
+      }
+    }
+    return texts;
+  });
 
   protected readonly log = viewChild<ElementRef<HTMLElement>>('log');
   #pinnedToBottom = true;
@@ -333,22 +387,11 @@ export class CourseChat {
     return formatTokenCount(value, this.language.lang());
   }
 
-  // -------------------------------------------------- propositions (mode edit)
+  // ------------------------------------------- propositions (tous modes actifs)
 
-  /**
-   * Vrai pour un appel d'un tool de proposition rendu en carte : mode edit
-   * uniquement, args bien formés (`parseProposal` — malformés → ligne d'outil
-   * générique) et appel non échoué (l'échec — plafond dépassé, référence
-   * inconnue… — s'explique mieux en ligne d'outil, son message d'erreur
-   * visible).
-   */
+  /** Appel d'un tool de proposition rendu en carte (`isProposalView`). */
   protected isProposal(view: ChatToolView): boolean {
-    return (
-      this.mode() === 'edit' &&
-      PROPOSAL_TOOLS.has(view.name) &&
-      view.status !== 'error' &&
-      parseProposal(view) !== null
-    );
+    return isProposalView(view);
   }
 
   protected proposalSummary(view: ChatToolView): string | null {
@@ -356,15 +399,55 @@ export class CourseChat {
     return typeof summary === 'string' && summary ? summary : null;
   }
 
+  // ------------------------------------------- délégations (édition globale)
+
+  /** Appel `edit_*` rendu en carte de délégation : args réécrits lisibles. */
+  protected isDelegation(view: ChatToolView): boolean {
+    return parseDelegation(view) !== null;
+  }
+
+  protected delegationOf(view: ChatToolView): AssistantDelegation | null {
+    return parseDelegation(view);
+  }
+
+  /** Activité du sous-assistant d'une délégation en cours (vide hors direct). */
+  protected childrenOf(id: string): DelegationChildView[] {
+    return this.#liveChildren().get(id) ?? [];
+  }
+
+  protected agentTextOf(id: string): string {
+    return this.#liveAgentText().get(id) ?? '';
+  }
+
+  /** Rouvre la fenêtre de revue globale (proposition de sous-assistant en attente). */
+  protected showReview(): void {
+    const assistant = this.assistant;
+    if (assistant instanceof CourseAssistantService) {
+      assistant.showReview();
+    }
+  }
+
+  #childView(view: ChatToolView): DelegationChildView {
+    if (this.isQuestions(view)) {
+      return {
+        kind: 'questions',
+        tool: view,
+        count: this.questionCount(view),
+        status: this.questionsStatus(view),
+        result: this.questionsResult(view),
+      };
+    }
+    if (this.isProposal(view)) {
+      return { kind: 'proposal', tool: view, summary: this.proposalSummary(view) };
+    }
+    return { kind: 'tool', tool: view };
+  }
+
   // ------------------------------------------------- questions (tous modes)
 
-  /**
-   * Vrai pour un appel `ask_questions` rendu en carte : args bien formés et
-   * appel non échoué (refus de validation ou garde « un outil bloquant par
-   * réponse » : la ligne d'outil montre son message d'erreur).
-   */
+  /** Appel `ask_questions` rendu en carte (`isQuestionsView`). */
   protected isQuestions(view: ChatToolView): boolean {
-    return view.name === ASK_QUESTIONS && view.status !== 'error' && parseQuestions(view) !== null;
+    return isQuestionsView(view);
   }
 
   protected questionCount(view: ChatToolView): number {

@@ -76,11 +76,15 @@ export interface AssistantUsage {
  * voyage jamais sur le flux (persisté, servi par le détail de conversation) :
  * `tool_result` n'en porte qu'un extrait borné (`excerpt`, 400 caractères côté
  * back — un message d'échec tient toujours dedans) et la longueur totale.
+ *
+ * `agent` (champ additif, édition globale — `delegation.ts`) : l'événement
+ * vient d'un **sous-assistant d'édition** lancé par l'appel `edit_*` dont il
+ * porte l'id ; absent, l'événement est celui de l'assistant lui-même.
  */
 export type AssistantStreamEvent =
-  | { type: 'token'; delta: string }
-  | { type: 'thinking'; delta: string }
-  | { type: 'tool_call'; id: string; name: string; args: Record<string, unknown> }
+  | { type: 'token'; delta: string; agent?: string }
+  | { type: 'thinking'; delta: string; agent?: string }
+  | { type: 'tool_call'; id: string; name: string; args: Record<string, unknown>; agent?: string }
   | {
       type: 'tool_result';
       id: string;
@@ -88,6 +92,7 @@ export type AssistantStreamEvent =
       is_error: boolean;
       excerpt: string;
       length: number;
+      agent?: string;
     }
   | {
       type: 'interrupt';
@@ -101,6 +106,7 @@ export type AssistantStreamEvent =
       message_ids: string[];
       /** Usage des rounds déjà joués (absent chez un back plus ancien). */
       usage?: AssistantUsage | null;
+      agent?: string;
     }
   | {
       type: 'done';

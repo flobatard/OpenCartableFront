@@ -74,6 +74,22 @@
     "hintAsk": "Off: every assistant proposal waits for your approval in the editor.",
     "hintAuto": "On: assistant proposals are applied without review (except question removals) — Ctrl-Z undoes a rewrite."
   },
+  "globalEdit": {
+    "label": "Global editing",
+    "hintOff": "Off: the course assistant reads, critiques and advises without changing anything.",
+    "hintOn": "On: the assistant can hand the editing of a block or a module to a sub-assistant — every proposal is submitted to you, wherever you are in the course."
+  },
+  "delegation": {
+    "title": "Editing sub-assistant",
+    "target": "Target: {{title}}",
+    "instructions": "Instructions given",
+    "running": "The sub-assistant is working — its proposals will be submitted to you."
+  },
+  "globalReview": {
+    "title": "Proposed change — {{target}}",
+    "close": "Close",
+    "loading": "Loading the target…"
+  },
   "tokens": {
     "turn": "{{input}} in · {{output}} out",
     "total": "Total: {{total}} tokens ({{input}} in · {{output}} out)",
@@ -97,6 +113,8 @@
     "propose_css_edit": "Proposed CSS change",
     "propose_js_edit": "Proposed JavaScript change",
     "ask_questions": "Questions for the teacher",
+    "edit_block": "Block change by a sub-assistant",
+    "edit_module": "Module change by a sub-assistant",
     "unknown": "Using a tool"
   },
   "proposal": {
@@ -112,6 +130,9 @@
       "propose_js_edit": "JavaScript file"
     },
     "pendingHint": "Awaiting your decision — the comparison is shown in the editor.",
+    "pendingHintGlobal": "Awaiting your decision — the comparison opens in a window.",
+    "review": "Review the proposal",
+    "applyError": "Applying the proposal failed — try again, or reject it.",
     "original": "Current content",
     "proposed": "Proposal",
     "accept": "Accept and apply",

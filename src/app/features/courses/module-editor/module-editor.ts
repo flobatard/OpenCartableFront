@@ -2,6 +2,7 @@ import { isPlatformBrowser } from '@angular/common';
 import {
   Component,
   computed,
+  DestroyRef,
   effect,
   inject,
   OnDestroy,
@@ -21,6 +22,7 @@ import { AssistantChatState } from '../../../core/course-assistant/assistant-cha
 import { ProposalHost } from '../../../core/course-assistant/proposal-host';
 import { ProposalModeService } from '../../../core/course-assistant/proposal-mode.service';
 import { revealOnNewQuestions } from '../../../core/course-assistant/question-reveal';
+import { TargetApplierRegistry } from '../../../core/course-assistant/target-applier.registry';
 import {
   AssistantModuleProposal,
   MODULE_FILE_BY_KIND,
@@ -171,6 +173,7 @@ export class ModuleEditor implements OnInit, OnDestroy {
 
   readonly #assistantState = inject(AssistantChatState);
   readonly #proposalMode = inject(ProposalModeService);
+  readonly #appliers = inject(TargetApplierRegistry);
 
   /** Revue d'une proposition de code en attente de décision (cf. doc de classe) ;
       aucune revue en mode « édition auto », qui applique et accepte d'emblée. */
@@ -225,6 +228,21 @@ export class ModuleEditor implements OnInit, OnDestroy {
     // awaité avant chaque tour ET avant chaque décision HITL.
     this.#assistantState.configure({ context: 'module', moduleId: this.moduleId });
     this.#assistantState.setBeforeTurn(() => this.flushContent());
+
+    // Éditeur monté sur ce module : une proposition de sous-assistant
+    // (édition globale) visant ce module s'applique ICI — Monaco, Ctrl-Z,
+    // autosave — plutôt qu'en headless ; retiré à la destruction.
+    const unregister = this.#appliers.register(this.moduleId, {
+      apply: (proposal) => {
+        if (!proposal.kind.startsWith('module_')) {
+          return false;
+        }
+        const modular = proposal as AssistantModuleProposal;
+        return this.#applyCode(MODULE_FILE_BY_KIND[modular.kind], modular.code);
+      },
+      flush: () => this.flushContent(),
+    });
+    inject(DestroyRef).onDestroy(unregister);
 
     // Des questions de l'assistant attendent le professeur : le chat replié
     // se déplie (sur téléphone, la vue bascule sur l'assistant).

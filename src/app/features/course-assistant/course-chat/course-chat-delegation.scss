@@ -1,0 +1,94 @@
+/* Carte de délégation dans le fil : cousine de .chat-proposal, avec
+   l'activité du sous-assistant imbriquée (retrait + filet à gauche). */
+:host {
+  display: block;
+}
+
+.chat-delegation {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-size: 0.95em;
+  color: var(--text-secondary);
+}
+
+.chat-delegation--running {
+  border-color: var(--color-primary);
+}
+
+.chat-delegation--error {
+  border-color: var(--text-danger);
+}
+
+.chat-delegation__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  color: var(--text-primary);
+}
+
+.chat-delegation__icon {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.chat-delegation--running .chat-delegation__icon {
+  color: var(--color-primary);
+}
+
+.chat-delegation__title {
+  font-weight: 600;
+}
+
+.chat-delegation__target {
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.chat-delegation__instructions {
+  margin: 6px 0 0;
+}
+
+.chat-delegation__instructions > summary {
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.chat-delegation__instructions > summary:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.chat-delegation__instructions-text {
+  margin: 4px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.chat-delegation__activity {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding-inline-start: 10px;
+  border-inline-start: 2px solid var(--border);
+}
+
+.chat-delegation__text {
+  color: var(--text-primary);
+}
+
+.chat-delegation__pending {
+  margin: 6px 0 0;
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.chat-delegation__result {
+  margin: 6px 0 0;
+  font-style: italic;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

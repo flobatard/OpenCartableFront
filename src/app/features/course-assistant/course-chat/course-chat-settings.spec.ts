@@ -8,6 +8,7 @@ import {
   EMPTY_REASONING_OPTIONS,
 } from '../../../core/ai-credentials/ai-credentials.model';
 import { AiCredentialsService } from '../../../core/ai-credentials/ai-credentials.service';
+import { GlobalEditService } from '../../../core/course-assistant/global-edit.service';
 import { ProposalModeService } from '../../../core/course-assistant/proposal-mode.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
@@ -143,14 +144,48 @@ describe('CourseChatSettings', () => {
   });
 
   describe('auto-edit switch', () => {
-    afterEach(() => localStorage.removeItem('oc-assistant-proposal-mode'));
+    afterEach(() => {
+      localStorage.removeItem('oc-assistant-proposal-mode');
+      localStorage.removeItem('oc-assistant-global-edit');
+    });
 
     function autoEdit(fixture: ComponentFixture<CourseChatSettings>): HTMLButtonElement | null {
       return el(fixture).querySelector<HTMLButtonElement>('.chat-settings__auto-edit');
     }
 
-    it('is absent outside editing chats (global panel)', async () => {
+    function globalEdit(fixture: ComponentFixture<CourseChatSettings>): HTMLButtonElement | null {
+      return el(fixture).querySelector<HTMLButtonElement>('.chat-settings__global-edit');
+    }
+
+    it('is absent outside editing chats and outside the global panel', async () => {
       const fixture = await setup(CUSTOM);
+      expect(autoEdit(fixture)).toBeNull();
+      expect(globalEdit(fixture)).toBeNull();
+    });
+
+    it('global panel: the global editing switch, then the auto-edit switch once enabled', async () => {
+      const fixture = await setup(CUSTOM);
+      fixture.componentRef.setInput('globalEditable', true);
+      fixture.detectChanges();
+
+      const toggle = globalEdit(fixture)!;
+      expect(toggle.getAttribute('role')).toBe('switch');
+      expect(toggle.textContent!.trim()).toBe('Édition globale');
+      expect(toggle.getAttribute('aria-checked')).toBe('false');
+      expect(toggle.title).toContain('sans rien modifier');
+      // Édition globale désactivée : le mode auto n'a pas d'objet.
+      expect(autoEdit(fixture)).toBeNull();
+
+      toggle.click();
+      fixture.detectChanges();
+      expect(TestBed.inject(GlobalEditService).enabled()).toBe(true);
+      expect(toggle.getAttribute('aria-checked')).toBe('true');
+      expect(toggle.title).toContain('sous-assistant');
+      expect(autoEdit(fixture)).not.toBeNull();
+
+      toggle.click();
+      fixture.detectChanges();
+      expect(TestBed.inject(GlobalEditService).enabled()).toBe(false);
       expect(autoEdit(fixture)).toBeNull();
     });
 

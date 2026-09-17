@@ -1,6 +1,8 @@
 import { Component, computed, input } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AssistantMessage } from '../../../core/course-assistant/assistant.model';
+import { parseProposal, PROPOSAL_TOOLS } from '../../../core/course-assistant/proposals';
+import { ASK_QUESTIONS, parseQuestions } from '../../../core/course-assistant/questions';
 
 /**
  * Longueur de l'extrait de résultat affiché — même valeur que
@@ -11,11 +13,13 @@ import { AssistantMessage } from '../../../core/course-assistant/assistant.model
 export const TOOL_RESULT_EXCERPT_CHARS = 400;
 
 /** Outils du back (`app/course_assistant/tools.py`, tools de proposition de
-    `app/course_assistant/editing/`, `ask_questions`) : libellé i18n dédié,
-    repli générique sinon. Les tools de proposition et de questions
+    `app/course_assistant/editing/`, `ask_questions`, tools de délégation de
+    `app/course_assistant/delegation.py`) : libellé i18n dédié, repli générique
+    sinon. Les tools de proposition, de questions et de délégation
     n'apparaissent ici qu'en repli (appel échoué ou args malformés) — le cas
     nominal est rendu en carte (`app-course-chat-proposal`,
-    `app-course-chat-questions-card`), jamais en ligne d'outil. */
+    `app-course-chat-questions-card`, `app-course-chat-delegation`), jamais en
+    ligne d'outil. */
 const KNOWN_TOOLS = new Set([
   'read_block',
   'read_resource_pdf',
@@ -30,6 +34,8 @@ const KNOWN_TOOLS = new Set([
   'propose_css_edit',
   'propose_js_edit',
   'ask_questions',
+  'edit_block',
+  'edit_module',
 ]);
 
 /** Un appel d'outil tel que rendu par le fil : persisté ou en cours. */
@@ -40,6 +46,26 @@ export interface ChatToolView {
   status: 'running' | 'done' | 'error';
   /** Extrait du résultat (message d'échec complet en erreur) ; `null` si inconnu ou en cours. */
   result: string | null;
+}
+
+/**
+ * Vrai pour un appel d'un tool de proposition rendu en carte : args bien
+ * formés (`parseProposal` — malformés → ligne d'outil générique) et appel
+ * non échoué (l'échec — plafond dépassé, référence inconnue… — s'explique
+ * mieux en ligne d'outil, son message d'erreur visible). Tous modes : une
+ * proposition de sous-assistant apparaît aussi dans le panneau global.
+ */
+export function isProposalView(view: ChatToolView): boolean {
+  return PROPOSAL_TOOLS.has(view.name) && view.status !== 'error' && parseProposal(view) !== null;
+}
+
+/**
+ * Vrai pour un appel `ask_questions` rendu en carte : args bien formés et
+ * appel non échoué (refus de validation ou garde « un outil bloquant par
+ * réponse » : la ligne d'outil montre son message d'erreur).
+ */
+export function isQuestionsView(view: ChatToolView): boolean {
+  return view.name === ASK_QUESTIONS && view.status !== 'error' && parseQuestions(view) !== null;
 }
 
 /** Extrait affichable du contenu d'un tour `tool` persisté (servi complet par l'API). */
