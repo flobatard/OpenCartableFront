@@ -29,6 +29,7 @@ import student from './student.json';
 import avatarCrop from './avatarCrop.json';
 import consent from './consent.json';
 import privacy from './privacy.json';
+import admin from './admin.json';
 
 /** Bundle de traduction plat réassemblé — une entrée par fichier de domaine. */
 export default {
@@ -63,4 +64,5 @@ export default {
   avatarCrop,
   consent,
   privacy,
+  admin,
 };

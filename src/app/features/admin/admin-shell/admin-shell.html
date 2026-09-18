@@ -1,0 +1,16 @@
+<div class="admin-shell">
+  <nav class="admin-shell__nav" [attr.aria-label]="'admin.nav.label' | transloco">
+    <p class="admin-shell__title">{{ 'admin.title' | transloco }}</p>
+    <a
+      class="admin-shell__link"
+      routerLink="jobs"
+      routerLinkActive="admin-shell__link--active"
+      ariaCurrentWhenActive="page"
+    >
+      {{ 'admin.nav.jobs' | transloco }}
+    </a>
+  </nav>
+  <div class="admin-shell__content">
+    <router-outlet />
+  </div>
+</div>

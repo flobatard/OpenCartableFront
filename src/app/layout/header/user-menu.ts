@@ -15,6 +15,7 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
 import { LanguageService } from '../../core/i18n/language.service';
+import { isSuperAdmin } from '../../core/users/user-profile.model';
 import { UserProfileService } from '../../core/users/user-profile.service';
 import { UserAvatar } from '../../shared/user-avatar/user-avatar';
 
@@ -23,7 +24,9 @@ let menuUid = 0;
 
 /**
  * Menu utilisateur du header (pattern APG « menu button ») : le nom de
- * l'utilisateur connecté déclenche un menu « Mon profil » / « Se déconnecter ».
+ * l'utilisateur connecté déclenche un menu « Paramètres » / « Se déconnecter »,
+ * précédé d'« Administration » pour un super admin (le menu ne fait que
+ * masquer : `superAdminGuard` et le 403 du back barrent).
  * Mécanique d'ouverture reprise du disclosure d'`EducationLevelPicker` :
  * Escape ferme et rend le focus au déclencheur, un focus sortant du composant
  * ferme, les flèches ouvrent puis cyclent entre les items.
@@ -50,6 +53,9 @@ export class UserMenu implements OnInit {
 
   /** Avatar du profil applicatif (le nom, lui, vient du claim OIDC). */
   protected readonly avatarUrl = computed(() => this.#profiles.profile()?.avatar_url ?? null);
+
+  /** Entrée « Administration » : rôle de plateforme lu dans le profil. */
+  protected readonly isSuperAdmin = computed(() => isSuperAdmin(this.#profiles.profile()));
 
   ngOnInit(): void {
     // Le composant n'est monté que sous `@if (auth.isAuthenticated())` :

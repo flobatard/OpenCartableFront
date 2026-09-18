@@ -22,6 +22,16 @@
       [attr.aria-label]="'header.userMenu' | transloco"
       (keydown)="onMenuKeydown($event)"
     >
+      @if (isSuperAdmin()) {
+        <a
+          class="user-menu__item"
+          role="menuitem"
+          [routerLink]="['/', language.lang(), 'admin']"
+          (click)="closeMenu()"
+        >
+          {{ 'header.admin' | transloco }}
+        </a>
+      }
       <a
         class="user-menu__item"
         role="menuitem"

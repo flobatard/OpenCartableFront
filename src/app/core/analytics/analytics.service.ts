@@ -11,12 +11,14 @@ import { isStudentUrl, scrubEvent } from './scrub';
 const MAX_QUEUE = 50;
 
 /**
- * Textes masqués dans les enregistrements de session : sorties du modèle et
- * corrigés. Le sélecteur masque l'élément **et sa descendance** (rrweb remonte
- * les ancêtres), donc viser le conteneur du fil suffit.
+ * Textes masqués dans les enregistrements de session : sorties du modèle,
+ * corrigés et données d'exploitation du backoffice. Le sélecteur masque
+ * l'élément **et sa descendance** (rrweb remonte les ancêtres), donc viser le
+ * conteneur suffit.
  *
  * Couplage assumé à des classes de template — `course-chat.html`,
- * `course-chat-questions.html` et `exercise-view.html`. Il est gardé par
+ * `course-chat-questions.html`, `global-proposal-review.html`,
+ * `exercise-view.html` et `admin-jobs.html`. Il est gardé par
  * `analytics.masking.spec.ts` : sans ce test, un renommage de classe
  * désactiverait le masquage en silence.
  */
@@ -27,6 +29,7 @@ export const REPLAY_MASK_SELECTOR = [
   '.global-proposal-review', // revue globale d'une proposition de sous-assistant
   '.exercise-view__thread', // fil du tuteur de l'élève
   '.exercise-view__revealed-answer', // corrigé dévoilé
+  '.admin-jobs', // backoffice : clés S3, erreurs de passe, volumétrie
 ].join(', ');
 
 interface QueuedEvent {

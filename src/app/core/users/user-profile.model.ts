@@ -12,6 +12,14 @@ export interface ProfileContext {
   subject_ids: string[];
 }
 
+/**
+ * Rôle de PLATEFORME (droits d'administration), distinct des rôles
+ * pédagogiques `is_teacher`/`is_student`. Posé côté back par une commande
+ * opérateur, jamais par une route. Miroir de `PLATFORM_ROLES` du back.
+ */
+export const PLATFORM_ROLES = ['public', 'super_admin'] as const;
+export type PlatformRole = (typeof PLATFORM_ROLES)[number];
+
 export interface UserProfile {
   /** Identifiant interne (UUID) — jamais le `sub` OIDC. */
   id: string;
@@ -41,8 +49,19 @@ export interface UserProfile {
   avatar_url: string | null;
   /** `false` tant que l'onboarding bloquant n'a pas été soumis. */
   onboarding_complete: boolean;
+  /** Rôle de plateforme : `super_admin` ouvre le backoffice (`/:lang/admin`). */
+  platform_role: PlatformRole;
   teaching: ProfileContext | null;
   learning: ProfileContext | null;
+}
+
+/**
+ * Le compte ouvre-t-il le backoffice ? Helper pur (et non membre de
+ * `UserProfileService`) : il s'applique à `profile()`, que les mocks du service
+ * exposent déjà. Il ne fait que MASQUER — c'est le 403 de `/admin/*` qui barre.
+ */
+export function isSuperAdmin(profile: UserProfile | null): boolean {
+  return profile?.platform_role === 'super_admin';
 }
 
 /** Corps du `PUT /api/v1/users/me/onboarding` (remplacement complet du profil). */

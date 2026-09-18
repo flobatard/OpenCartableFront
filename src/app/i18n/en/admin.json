@@ -1,0 +1,110 @@
+{
+  "title": "Administration",
+  "nav": {
+    "label": "Administration sections",
+    "jobs": "Jobs"
+  },
+  "jobs": {
+    "title": "Maintenance jobs",
+    "intro": "Periodic tasks run by the scheduler service: data purges and read-only checks. Running a job files a request: the scheduler picks it up within a few seconds, after the pass in progress if there is one.",
+    "refresh": "Refresh",
+    "loading": "Loading job status…",
+    "loadError": "Couldn't load the job status. Check your connection, then try again.",
+    "retry": "Try again",
+    "scheduler": {
+      "started": "Scheduler started on {{date}}",
+      "timezone": "cron time zone: {{timezone}}",
+      "running": "running: {{job}}, since {{time}}",
+      "idle": "no pass running",
+      "noStatus": "No status published by the scheduler",
+      "noStatusHint": "It's stopped or hasn't started yet: a requested pass will wait for it to start, and expires if it waits too long.",
+      "controlDown": "Control channel unreachable",
+      "controlDownHint": "Redis isn't responding: the scheduler status and manual runs are unavailable. The last passes are still shown."
+    },
+    "schedule": "Schedule",
+    "nextRun": "next pass on {{date}}",
+    "notScheduled": "not scheduled",
+    "retention": "Retention",
+    "retentionDays": "{{days}} days",
+    "retentionDisabled": "disabled (retention 0): every pass is skipped",
+    "readOnlyCheck": "not applicable — read-only check",
+    "lastRun": "Last pass",
+    "neverRun": "never run",
+    "finishedAt": "finished on {{date}}",
+    "duration": "in {{duration}}",
+    "count": "items processed: {{count}}",
+    "consecutiveFailures": "Consecutive failures: {{count}}",
+    "detail": "Pass details",
+    "status": {
+      "ok": "Succeeded",
+      "failed": "Failed",
+      "skipped": "Skipped"
+    },
+    "skipReasons": {
+      "retention_disabled": "Pass skipped: the task is disabled (retention 0).",
+      "schema_not_current": "Pass skipped: the database schema wasn't up to date (pending migration).",
+      "busy": "Pass skipped: another job held the lock for too long."
+    },
+    "activity": {
+      "requested": "Requested, waiting for the scheduler",
+      "running": "Running"
+    },
+    "run": "Run now",
+    "runConfirm": "Confirm run",
+    "requested": "Pass requested: {{job}}. The scheduler starts it within a few seconds.",
+    "errors": {
+      "conflict": "This job is already requested or running.",
+      "controlDown": "The control channel (Redis) isn't responding: a pass can't be requested right now.",
+      "forbidden": "Your account no longer has access to administration.",
+      "generic": "The request didn't go through. Try again in a moment.",
+      "refresh": "Couldn't refresh the job status. Try again in a moment."
+    },
+    "names": {
+      "ai_usage_counters": {
+        "label": "AI quota counters",
+        "description": "Deletes the daily call counters of the default AI older than the retention.",
+        "count": "counters deleted: {{count}}"
+      },
+      "tool_turn_content": {
+        "label": "Tool turn content",
+        "description": "Trims the content of the assistant's tool results (PDF reads…) past the retention. The messages remain.",
+        "count": "turns trimmed: {{count}}"
+      },
+      "ai_conversations": {
+        "label": "Assistant conversations",
+        "description": "Deletes assistant conversations with no activity since the retention.",
+        "count": "conversations deleted: {{count}}"
+      },
+      "exercise_submissions": {
+        "label": "Student attempts",
+        "description": "Deletes exercise attempts older than the retention.",
+        "count": "attempts deleted: {{count}}"
+      },
+      "share_links": {
+        "label": "Expired share links",
+        "description": "Deletes share links that expired longer ago than the retention.",
+        "count": "links deleted: {{count}}"
+      },
+      "pending_resources": {
+        "label": "Never-confirmed resources",
+        "description": "Deletes resources whose upload was never confirmed, along with their S3 object.",
+        "count": "resources deleted: {{count}}"
+      },
+      "s3_orphans": {
+        "label": "S3 bucket orphans",
+        "description": "Deletes S3 objects that no database row references (in dry-run mode, only logs them).",
+        "count": "orphans found: {{count}}"
+      },
+      "missing_s3_objects": {
+        "label": "Missing S3 objects",
+        "description": "Read-only check: finds rows whose S3 object has disappeared. Rotating coverage, bounded on each pass.",
+        "count": "missing keys: {{count}}"
+      },
+      "storage_inventory": {
+        "label": "Storage inventory",
+        "description": "Read-only check: rows per table, bytes on disk, S3 objects and bytes per prefix.",
+        "count": "S3 objects inventoried: {{count}}"
+      }
+    }
+  }
+}

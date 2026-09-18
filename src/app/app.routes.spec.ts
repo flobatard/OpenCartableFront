@@ -1,8 +1,10 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRouteSnapshot, provideRouter, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, provideRouter, RedirectFunction, Router } from '@angular/router';
 import { routes } from './app.routes';
 import { provideTranslocoTesting } from './testing/transloco-testing';
 import { serverRoutes } from './app.routes.server';
+import { authGuard } from './core/auth/auth.guard';
+import { superAdminGuard } from './core/users/super-admin.guard';
 
 /**
  * Résolution des routes élèves — l'arbre public mélange des **pages pleines**
@@ -121,5 +123,35 @@ describe('routes élèves', () => {
         expect(clientPaths).toContain(`${base}${sub}`);
       }
     }
+  });
+});
+
+describe('routes du backoffice', () => {
+  const admin = routes
+    .find((route) => route.path === ':lang')!
+    .children!.find((route) => route.path === 'admin')!;
+
+  it('guards the admin shell with authGuard then superAdminGuard, no onboarding', () => {
+    // Même ordre que l'espace prof : superAdminGuard laisse passer les
+    // non-authentifiés, authGuard les renvoie au login.
+    expect(admin.canActivate).toEqual([authGuard, superAdminGuard]);
+  });
+
+  it('redirects the bare admin entry to the jobs page with a function', () => {
+    // Fonction et non chaîne (cf. `exercises/:blockId`) : @angular/ssr
+    // résoudrait mal une chaîne relative.
+    expect(admin.children!.map((route) => route.path)).toEqual(['', 'jobs']);
+    const entry = admin.children![0];
+    expect(typeof entry.redirectTo).toBe('function');
+    expect((entry.redirectTo as RedirectFunction)({} as never)).toBe('jobs');
+  });
+
+  it('declares the admin routes as client-rendered', () => {
+    // Routes sous authGuard : jamais authentifiées au SSR, donc toujours Client.
+    const clientPaths = serverRoutes
+      .filter((r) => r.renderMode === 1 /* RenderMode.Client */)
+      .map((r) => r.path);
+    expect(clientPaths).toContain(':lang/admin');
+    expect(clientPaths).toContain(':lang/admin/jobs');
   });
 });

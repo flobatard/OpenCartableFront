@@ -21,8 +21,9 @@ Un enseignant produit beaucoup de supports hétérogènes (PDF, images, schémas
 |------|------------------|------|
 | **Prof** (toi) | OIDC / Zitadel | Créer / organiser / éditer cours, ressources et modules ; gérer les liens de partage |
 | **Élève** | Optionnelle : aucune (lien public) ou compte OIDC / Zitadel | Consulter un cours partagé, télécharger les documents, lancer les modules interactifs — sans compte ; un compte (facultatif) porte un profil (système scolaire, niveaux, matières apprises) |
+| **Super admin** | OIDC / Zitadel (compte promu par l'opérateur) | Ouvrir le backoffice : suivre le scheduler de maintenance, en lancer les jobs à la main |
 
-Les rôles applicatifs sont **cumulables** : un même compte peut être prof *et* élève (ex. enseignant en reprise d'études). Tout compte passe par un **onboarding bloquant** à la première connexion (rôles → système scolaire → niveaux → matières, par contexte « teaching »/« learning »). L'accès par lien public reste le mode par défaut pour les élèves : le compte élève est une commodité de profil, jamais une condition d'accès aux cours partagés.
+Les rôles applicatifs sont **cumulables** : un même compte peut être prof *et* élève (ex. enseignant en reprise d'études). Tout compte passe par un **onboarding bloquant** à la première connexion (rôles → système scolaire → niveaux → matières, par contexte « teaching »/« learning »). L'accès par lien public reste le mode par défaut pour les élèves : le compte élève est une commodité de profil, jamais une condition d'accès aux cours partagés. Super admin n'est pas un rôle pédagogique mais un **rôle de plateforme**, unique par compte (`public` par défaut), qui ne s'attribue que par une commande opérateur.
 
 ### Cas d'usage clés (user stories)
 - *En tant que prof*, je crée un cours « Suites numériques » et j'y agence un texte d'introduction, deux PDF, trois images et un quiz interactif, dans l'ordre que je veux.
@@ -68,6 +69,8 @@ flowchart TB
     end
     subgraph Serveur["Backend auto-hébergé"]
         B["API Python / FastAPI"]
+        C["Scheduler de maintenance<br/>(APScheduler, même image)"]
+        R[("Redis<br/>(sans persistance)")]
         D[("PostgreSQL")]
     end
     Z["Zitadel<br/>(OIDC Provider)"]
@@ -79,6 +82,10 @@ flowchart TB
     B -- SQL --> D
     B -- "presigned URL (PUT/GET)" --> S
     A -. "upload / download direct<br/>via presigned URL" .-> S
+    B -- "demandes de passe" --> R
+    C -- "relève, statut" --> R
+    C -- "SQL (passes seulement)" --> D
+    C -- "purge, inventaire" --> S
 ```
 
 ### Composants & responsabilités
@@ -86,6 +93,8 @@ flowchart TB
 - **API FastAPI** — logique métier, autorisation, modèle de données, signature des URL S3, recherche. Choix de Python pour préparer la couche IA.
 - **PostgreSQL** — source de vérité des métadonnées, du contenu éditorial (blocs) et de l'indexation plein texte. Si une indexation sémantique est actée plus tard, elle passera par une base vectorielle dédiée (ChromaDB pressenti), pas par une extension Postgres.
 - **S3** — stockage des binaires (fichiers, images, bundles de modules). Bucket **privé** ; tout accès passe par des URL présignées.
+- **Scheduler de maintenance** — process résident (même image que l'API) qui exécute les purges et contrôles périodiques ; le backoffice en suit l'état et lui demande des passes, par l'API.
+- **Redis** — canal éphémère entre l'API et le scheduler (demandes de passe manuelle, statut publié), sans persistance ; le front ne le voit jamais.
 - **Zitadel** — fournisseur OIDC, gère uniquement l'identité du/des profs.
 
 ### Stack retenue
@@ -107,10 +116,11 @@ C'est le cœur du projet. Chaque point ci-dessous est un vrai arbitrage à tranc
 
 ### 5.1 Authentification & double régime d'accès
 Le point structurant : **deux populations, deux modèles d'accès** sur la même API.
-- **Prof** : flow OIDC *Authorization Code + PKCE* entièrement géré **côté front** (client public Angular, pas de secret). Le back ne reçoit que le token : il ne fait **pas** de session, il valide le JWT Zitadel à chaque requête (signature via JWKS découvert depuis l'issuer, vérif `issuer` / `audience` / expiration) et lit les rôles dans les claims. Seuls deux réglages côté API : `OIDC_ISSUER` et `OIDC_AUDIENCE`.
+- **Prof** : flow OIDC *Authorization Code + PKCE* entièrement géré **côté front** (client public Angular, pas de secret). Le back ne reçoit que le token : il ne fait **pas** de session, il valide le JWT Zitadel à chaque requête (signature via JWKS découvert depuis l'issuer, vérif `issuer` / `audience` / expiration) ; les rôles, eux, se lisent en base (ci-dessous). Seuls deux réglages côté API : `OIDC_ISSUER` et `OIDC_AUDIENCE`.
 - **Élève** : **non authentifié** pour la consultation. L'accès aux cours partagés est porté par un *token de partage* opaque (cf. 5.6), pas par une identité. Un élève *peut* toutefois créer un compte OIDC pour disposer d'un profil — cela ne change rien au régime d'accès aux liens publics.
-- Conséquence : des routes « admin » (JWT requis) et des routes « publiques » (token de partage requis) bien séparées, avec deux dépendances d'autorisation distinctes côté FastAPI.
+- Conséquence : des routes « prof » (JWT requis) et des routes « publiques » (token de partage requis) bien séparées, avec deux dépendances d'autorisation distinctes côté FastAPI.
 - **Comptes & profil** : le back auto-provisionne la ligne `users` (clé : `sub` OIDC) au premier `GET /api/v1/users/me` ; le front lit le flag `onboarding_complete` au retour du callback OIDC et redirige vers l'onboarding bloquant tant qu'il est faux (guard `onboardingGuard` sur les routes protégées). Les rôles applicatifs (`is_teacher`/`is_student`, cumulables) vivent en base, indépendants des rôles Zitadel des claims.
+- **Backoffice** : `GET /api/v1/users/me` expose aussi le **rôle de plateforme** (`platform_role` : `public` par défaut, `super_admin`), posé par une commande opérateur et jamais par l'interface. Un super admin voit l'entrée « Administration » du menu utilisateur, qui mène à `/:lang/admin` (coquille à menu latéral ; premier écran : les jobs du scheduler de maintenance, leur état et leur lancement manuel). Le front ne fait que **masquer** — entrée de menu et guard `superAdminGuard`, fail-closed — ; c'est le **403** des routes `/api/v1/admin/*` qui barre.
 
 ### 5.2 Stockage & gestion des fichiers (S3)
 - **Bucket privé**, jamais exposé directement. L'API mint des **URL présignées** : `PUT` pour l'upload, `GET` (TTL court) pour la lecture/téléchargement.

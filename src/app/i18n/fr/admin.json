@@ -1,0 +1,110 @@
+{
+  "title": "Administration",
+  "nav": {
+    "label": "Sections de l'administration",
+    "jobs": "Jobs"
+  },
+  "jobs": {
+    "title": "Jobs de maintenance",
+    "intro": "Tâches périodiques exécutées par le service scheduler : purges de données et contrôles en lecture seule. Lancer un job dépose une demande : le scheduler la prend en charge sous quelques secondes, après la passe en cours s'il y en a une.",
+    "refresh": "Actualiser",
+    "loading": "Chargement de l'état des jobs…",
+    "loadError": "Impossible de charger l'état des jobs. Vérifiez votre connexion, puis réessayez.",
+    "retry": "Réessayer",
+    "scheduler": {
+      "started": "Scheduler démarré le {{date}}",
+      "timezone": "fuseau des crons : {{timezone}}",
+      "running": "en cours : {{job}}, depuis {{time}}",
+      "idle": "aucune passe en cours",
+      "noStatus": "Aucun statut publié par le scheduler",
+      "noStatusHint": "Il est arrêté ou n'a pas encore démarré : une passe demandée attendra qu'il démarre, et expirera si elle attend trop longtemps.",
+      "controlDown": "Canal de contrôle injoignable",
+      "controlDownHint": "Redis ne répond pas : le statut du scheduler et les lancements manuels sont indisponibles. L'état des dernières passes reste affiché."
+    },
+    "schedule": "Planification",
+    "nextRun": "prochaine passe le {{date}}",
+    "notScheduled": "non planifié",
+    "retention": "Rétention",
+    "retentionDays": "{{days}} jours",
+    "retentionDisabled": "désactivée (rétention 0) : chaque passe est sautée",
+    "readOnlyCheck": "sans objet — contrôle en lecture seule",
+    "lastRun": "Dernière passe",
+    "neverRun": "jamais exécuté",
+    "finishedAt": "terminée le {{date}}",
+    "duration": "en {{duration}}",
+    "count": "éléments traités : {{count}}",
+    "consecutiveFailures": "Échecs consécutifs : {{count}}",
+    "detail": "Détail de la passe",
+    "status": {
+      "ok": "Réussie",
+      "failed": "Échec",
+      "skipped": "Sautée"
+    },
+    "skipReasons": {
+      "retention_disabled": "Passe sautée : la tâche est désactivée (rétention 0).",
+      "schema_not_current": "Passe sautée : le schéma de la base n'était pas à jour (migration en attente).",
+      "busy": "Passe sautée : un autre job tenait le verrou trop longtemps."
+    },
+    "activity": {
+      "requested": "Demandé, en attente du scheduler",
+      "running": "En cours"
+    },
+    "run": "Lancer maintenant",
+    "runConfirm": "Confirmer le lancement",
+    "requested": "Passe demandée : {{job}}. Le scheduler la lance sous quelques secondes.",
+    "errors": {
+      "conflict": "Ce job est déjà demandé ou en cours.",
+      "controlDown": "Le canal de contrôle (Redis) ne répond pas : impossible de demander une passe pour l'instant.",
+      "forbidden": "Votre compte n'a plus accès à l'administration.",
+      "generic": "La demande n'a pas abouti. Réessayez dans un instant.",
+      "refresh": "Impossible d'actualiser l'état des jobs. Réessayez dans un instant."
+    },
+    "names": {
+      "ai_usage_counters": {
+        "label": "Compteurs de quota IA",
+        "description": "Supprime les compteurs quotidiens d'appels à l'IA par défaut plus anciens que la rétention.",
+        "count": "compteurs supprimés : {{count}}"
+      },
+      "tool_turn_content": {
+        "label": "Contenu des tours d'outil",
+        "description": "Allège le contenu des résultats d'outils de l'assistant (lectures de PDF…) passé la rétention. Les messages restent.",
+        "count": "tours allégés : {{count}}"
+      },
+      "ai_conversations": {
+        "label": "Conversations de l'assistant",
+        "description": "Supprime les conversations de l'assistant sans activité depuis la rétention.",
+        "count": "conversations supprimées : {{count}}"
+      },
+      "exercise_submissions": {
+        "label": "Tentatives d'élèves",
+        "description": "Supprime les tentatives d'exercices plus anciennes que la rétention.",
+        "count": "tentatives supprimées : {{count}}"
+      },
+      "share_links": {
+        "label": "Liens de partage expirés",
+        "description": "Supprime les liens de partage expirés depuis plus longtemps que la rétention.",
+        "count": "liens supprimés : {{count}}"
+      },
+      "pending_resources": {
+        "label": "Ressources jamais confirmées",
+        "description": "Supprime les ressources dont l'envoi n'a jamais été confirmé, avec leur objet S3.",
+        "count": "ressources supprimées : {{count}}"
+      },
+      "s3_orphans": {
+        "label": "Orphelins du bucket S3",
+        "description": "Supprime les objets S3 qu'aucune ligne de la base ne référence (en simulation, les journalise seulement).",
+        "count": "orphelins trouvés : {{count}}"
+      },
+      "missing_s3_objects": {
+        "label": "Objets S3 manquants",
+        "description": "Contrôle en lecture seule : repère les lignes dont l'objet S3 a disparu. Couverture tournante, bornée à chaque passe.",
+        "count": "clés manquantes : {{count}}"
+      },
+      "storage_inventory": {
+        "label": "Inventaire de volumétrie",
+        "description": "Contrôle en lecture seule : lignes par table, octets sur disque, objets et octets par préfixe S3.",
+        "count": "objets S3 inventoriés : {{count}}"
+      }
+    }
+  }
+}

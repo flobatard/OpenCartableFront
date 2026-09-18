@@ -6,7 +6,10 @@ import { UserMenu } from './user-menu';
 import { AuthService } from '../../core/auth/auth.service';
 import { UserProfileService } from '../../core/users/user-profile.service';
 import { UserProfile } from '../../core/users/user-profile.model';
-import { USER_PROFILE_ONBOARDED_FIXTURE } from '../../testing/user-profile.fixture';
+import {
+  USER_PROFILE_ONBOARDED_FIXTURE,
+  USER_PROFILE_SUPER_ADMIN_FIXTURE,
+} from '../../testing/user-profile.fixture';
 import { provideTranslocoTesting } from '../../testing/transloco-testing';
 
 describe('UserMenu', () => {
@@ -101,6 +104,35 @@ describe('UserMenu', () => {
     await openMenu(fixture);
 
     expect(trigger(fixture).getAttribute('aria-expanded')).toBe('true');
+    expect(items(fixture).map((i) => i.textContent?.trim())).toEqual([
+      'Paramètres',
+      'Se déconnecter',
+    ]);
+  });
+
+  it('a super admin gets “Administration” first, linking to /fr/admin', async () => {
+    profileSignal.set(USER_PROFILE_SUPER_ADMIN_FIXTURE);
+    const fixture = await createComponent();
+    await openMenu(fixture);
+
+    expect(items(fixture).map((i) => i.textContent?.trim())).toEqual([
+      'Administration',
+      'Paramètres',
+      'Se déconnecter',
+    ]);
+    const link = items(fixture)[0] as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toBe('/fr/admin');
+
+    link.click();
+    await fixture.whenStable();
+    expect(el(fixture).querySelector('[role="menu"]')).toBeNull();
+  });
+
+  it('a public account never sees “Administration”', async () => {
+    profileSignal.set(USER_PROFILE_ONBOARDED_FIXTURE);
+    const fixture = await createComponent();
+    await openMenu(fixture);
+
     expect(items(fixture).map((i) => i.textContent?.trim())).toEqual([
       'Paramètres',
       'Se déconnecter',

@@ -18,6 +18,7 @@ const PROFILE: UserProfile = {
   searchable: true,
   avatar_url: null,
   onboarding_complete: true,
+  platform_role: 'public',
   teaching: { education_level_ids: ['college'], subject_ids: ['math'] },
   learning: { education_level_ids: ['superieur'], subject_ids: ['francais'] },
 };

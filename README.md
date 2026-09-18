@@ -12,6 +12,7 @@ Stack : Angular 22 (zoneless, SSR + prerender), [Transloco](https://jsverse.gitb
 - **Pages élèves** (`/<lang>/shared/:token`, `/<lang>/p/courses/:id`, `/<lang>/p/:teacherId`) : sommaire, blocs, ressources, modules, cours entier et export PDF, résolution des exercices (réponses conservées sur l'appareil) et, pour un élève connecté, correction par un tuteur IA question par question.
 - **Recherche publique** (`/<lang>/search`) : cours publics et enseignants qui ont choisi d'être visibles, avec facettes matière et niveau.
 - **Documentation** des langages du markdown de cours (`/<lang>/markdown-language/docs`), avec bacs à sable.
+- **Backoffice** (`/<lang>/admin`, rôle de plateforme `super_admin`, entrée « Administration » du menu utilisateur) : état des jobs de maintenance du scheduler et lancement manuel d'une passe.
 - Onboarding, profil (avatar, nom public), thème clair/sombre, interface fr/en.
 
 ## Développement

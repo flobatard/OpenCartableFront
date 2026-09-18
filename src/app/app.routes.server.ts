@@ -81,6 +81,9 @@ export const serverRoutes: ServerRoute[] = [
     ':lang/courses/:id/resources/:resourceId',
   ]),
 
+  // Backoffice super admin (routes protégées, appels API).
+  ...clientOnly([':lang/admin', ':lang/admin/jobs']),
+
   {
     path: '**',
     renderMode: RenderMode.Server,

@@ -12,6 +12,7 @@ export const USER_PROFILE_FIXTURE: UserProfile = {
   searchable: false,
   avatar_url: null,
   onboarding_complete: false,
+  platform_role: 'public',
   teaching: null,
   learning: null,
 };
@@ -35,4 +36,10 @@ export const USER_PROFILE_ALIGNED_FIXTURE: UserProfile = {
   ...USER_PROFILE_ONBOARDED_FIXTURE,
   teaching: { education_level_ids: ['college'], subject_ids: ['math'] },
   learning: { education_level_ids: ['superieur'], subject_ids: ['francais'] },
+};
+
+/** Profil onboardé qui ouvre le backoffice (rôle de plateforme `super_admin`). */
+export const USER_PROFILE_SUPER_ADMIN_FIXTURE: UserProfile = {
+  ...USER_PROFILE_ONBOARDED_FIXTURE,
+  platform_role: 'super_admin',
 };

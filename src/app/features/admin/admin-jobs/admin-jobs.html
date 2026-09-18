@@ -1,0 +1,179 @@
+<section class="admin-jobs">
+  <div class="admin-jobs__header">
+    <div>
+      <h1 class="admin-jobs__title">{{ 'admin.jobs.title' | transloco }}</h1>
+      <p class="admin-jobs__intro">{{ 'admin.jobs.intro' | transloco }}</p>
+    </div>
+    <button
+      type="button"
+      class="btn btn--secondary"
+      [disabled]="loading() || refreshing()"
+      (click)="refresh()"
+    >
+      {{ 'admin.jobs.refresh' | transloco }}
+    </button>
+  </div>
+
+  @if (loading()) {
+    <p class="admin-jobs__status" aria-live="polite">{{ 'admin.jobs.loading' | transloco }}</p>
+  } @else if (loadError()) {
+    <p class="admin-jobs__load-error" role="alert">{{ 'admin.jobs.loadError' | transloco }}</p>
+    <button type="button" class="btn btn--secondary" (click)="load()">
+      {{ 'admin.jobs.retry' | transloco }}
+    </button>
+  } @else if (overview(); as view) {
+    @if (!view.control_available) {
+      <div class="admin-jobs__scheduler admin-jobs__scheduler--down">
+        <p class="admin-jobs__scheduler-state">
+          <span class="admin-jobs__dot" aria-hidden="true"></span>
+          {{ 'admin.jobs.scheduler.controlDown' | transloco }}
+        </p>
+        <p class="admin-jobs__meta">{{ 'admin.jobs.scheduler.controlDownHint' | transloco }}</p>
+      </div>
+    } @else if (view.scheduler; as scheduler) {
+      <div class="admin-jobs__scheduler">
+        <p class="admin-jobs__scheduler-state">
+          <span class="admin-jobs__dot" aria-hidden="true"></span>
+          {{
+            'admin.jobs.scheduler.started' | transloco: { date: formatDate(scheduler.started_at) }
+          }}
+        </p>
+        <p class="admin-jobs__meta">
+          {{ 'admin.jobs.scheduler.timezone' | transloco: { timezone: scheduler.timezone } }}
+          @if (scheduler.running_job; as running) {
+            ·
+            {{
+              'admin.jobs.scheduler.running'
+                | transloco: { job: jobLabel(running), time: formatTime(scheduler.running_since!) }
+            }}
+          } @else {
+            · {{ 'admin.jobs.scheduler.idle' | transloco }}
+          }
+        </p>
+      </div>
+    } @else {
+      <div class="admin-jobs__scheduler admin-jobs__scheduler--unknown">
+        <p class="admin-jobs__scheduler-state">
+          <span class="admin-jobs__dot" aria-hidden="true"></span>
+          {{ 'admin.jobs.scheduler.noStatus' | transloco }}
+        </p>
+        <p class="admin-jobs__meta">{{ 'admin.jobs.scheduler.noStatusHint' | transloco }}</p>
+      </div>
+    }
+
+    <ul class="admin-jobs__list">
+      @for (job of view.jobs; track job.name) {
+        <li class="admin-jobs__row">
+          <div class="admin-jobs__row-main">
+            <div class="admin-jobs__heading">
+              <h2 class="admin-jobs__name">{{ jobLabel(job.name) }}</h2>
+              @switch (activity(job)) {
+                @case ('running') {
+                  <span class="admin-jobs__activity">{{
+                    'admin.jobs.activity.running' | transloco
+                  }}</span>
+                }
+                @case ('requested') {
+                  <span class="admin-jobs__activity">{{
+                    'admin.jobs.activity.requested' | transloco
+                  }}</span>
+                }
+              }
+            </div>
+            @if (jobDescription(job.name); as description) {
+              <p class="admin-jobs__description">{{ description }}</p>
+            }
+            <dl class="admin-jobs__facts">
+              <div>
+                <dt>{{ 'admin.jobs.schedule' | transloco }}</dt>
+                <dd>
+                  <code>{{ job.cron || '—' }}</code>
+                  @if (job.next_run_at) {
+                    · {{ 'admin.jobs.nextRun' | transloco: { date: formatDate(job.next_run_at) } }}
+                  } @else if (view.scheduler) {
+                    · {{ 'admin.jobs.notScheduled' | transloco }}
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt>{{ 'admin.jobs.retention' | transloco }}</dt>
+                <dd>
+                  @if (job.retention_days === null) {
+                    {{ 'admin.jobs.readOnlyCheck' | transloco }}
+                  } @else if (job.retention_days <= 0) {
+                    {{ 'admin.jobs.retentionDisabled' | transloco }}
+                  } @else {
+                    {{ 'admin.jobs.retentionDays' | transloco: { days: job.retention_days } }}
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt>{{ 'admin.jobs.lastRun' | transloco }}</dt>
+                <dd>
+                  @if (job.last_run; as run) {
+                    <span
+                      class="admin-jobs__run-status"
+                      [class.admin-jobs__run-status--ok]="run.status === 'ok'"
+                      [class.admin-jobs__run-status--failed]="run.status === 'failed'"
+                    >
+                      {{ 'admin.jobs.status.' + run.status | transloco }}
+                    </span>
+                    ·
+                    {{ 'admin.jobs.finishedAt' | transloco: { date: formatDate(run.finished_at) } }}
+                    ·
+                    {{
+                      'admin.jobs.duration'
+                        | transloco: { duration: formatDuration(run.duration_ms) }
+                    }}
+                    · {{ countLabel(job, run) }}
+                  } @else {
+                    {{ 'admin.jobs.neverRun' | transloco }}
+                  }
+                </dd>
+              </div>
+            </dl>
+            @if (job.last_run; as run) {
+              @if (errorText(run); as error) {
+                <p
+                  class="admin-jobs__error"
+                  [class.admin-jobs__error--failed]="run.status === 'failed'"
+                >
+                  {{ error }}
+                </p>
+              }
+              @if (run.consecutive_failures > 0) {
+                <p class="admin-jobs__failures">
+                  {{
+                    'admin.jobs.consecutiveFailures'
+                      | transloco: { count: formatNumber(run.consecutive_failures) }
+                  }}
+                </p>
+              }
+              @if (run.detail) {
+                <details class="admin-jobs__detail">
+                  <summary>{{ 'admin.jobs.detail' | transloco }}</summary>
+                  <pre>{{ detailJson(run) }}</pre>
+                </details>
+              }
+            }
+          </div>
+          <div class="admin-jobs__row-actions">
+            <button
+              type="button"
+              class="btn btn--secondary admin-jobs__run"
+              [class.admin-jobs__run--armed]="runArmed.isArmed(job.name)"
+              [disabled]="!canRun(job)"
+              (click)="run(job)"
+              (blur)="runArmed.disarm()"
+            >
+              {{
+                (runArmed.isArmed(job.name) ? 'admin.jobs.runConfirm' : 'admin.jobs.run')
+                  | transloco
+              }}
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

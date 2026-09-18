@@ -23,6 +23,7 @@ describe('REPLAY_MASK_SELECTOR', () => {
       'exercise-view__thread',
       'exercise-view__revealed-answer',
     ],
+    'features/admin/admin-jobs/admin-jobs.html': ['admin-jobs'],
   } as const;
 
   it('ne vise que des classes qui existent encore dans les templates', () => {

@@ -1,0 +1,224 @@
+@use 'breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+.admin-jobs__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.admin-jobs__title {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+
+.admin-jobs__intro {
+  max-width: 70ch;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.admin-jobs__status {
+  color: var(--text-secondary);
+}
+
+.admin-jobs__load-error {
+  color: var(--text-danger);
+}
+
+/* Bandeau du scheduler : liseré vert (statut publié), neutre (aucun statut) ou
+   rouge (canal injoignable) — aplats non-texte ; le sens est porté par le
+   libellé, jamais par la seule couleur. */
+.admin-jobs__scheduler {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--emerald-500);
+  border-radius: var(--radius-lg);
+
+  --admin-jobs-dot: var(--emerald-500);
+}
+
+.admin-jobs__scheduler--down {
+  border-left-color: var(--red-500);
+
+  --admin-jobs-dot: var(--red-500);
+}
+
+.admin-jobs__scheduler--unknown {
+  border-left-color: var(--border-control);
+
+  --admin-jobs-dot: var(--border-control);
+}
+
+.admin-jobs__scheduler-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.admin-jobs__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  background: var(--admin-jobs-dot);
+}
+
+.admin-jobs__meta {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.admin-jobs__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-jobs__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.admin-jobs__row-main {
+  flex: 1 1 420px;
+  min-width: 0;
+}
+
+.admin-jobs__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.admin-jobs__name {
+  margin: 0;
+  font-size: 16px;
+}
+
+.admin-jobs__description {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.admin-jobs__facts {
+  display: grid;
+  gap: 4px;
+  margin: 12px 0 0;
+  font-size: 14px;
+
+  div {
+    display: grid;
+    grid-template-columns: 9rem minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  dt {
+    color: var(--text-secondary);
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+}
+
+.admin-jobs__run-status {
+  font-weight: 600;
+}
+
+.admin-jobs__run-status--ok {
+  color: var(--text-success);
+}
+
+.admin-jobs__run-status--failed,
+.admin-jobs__error--failed,
+.admin-jobs__failures,
+.admin-jobs__run--armed {
+  color: var(--text-danger);
+}
+
+.admin-jobs__error,
+.admin-jobs__failures {
+  margin: 8px 0 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.admin-jobs__detail {
+  margin-top: 8px;
+  font-size: 14px;
+
+  summary {
+    color: var(--link);
+    cursor: pointer;
+  }
+
+  /* Le JSON défile dans son cadre, jamais la page (§12). */
+  pre {
+    max-height: 240px;
+    margin: 8px 0 0;
+    padding: 8px 12px;
+    overflow: auto;
+    background: var(--bg-subtle);
+    border-radius: var(--radius);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+}
+
+.admin-jobs__row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Pas de style global pour un bouton désactivé : slate-400 (`--text-muted`)
+   est réservé à cet usage (DESIGN_SYSTEM.md §4), sans survol. */
+.admin-jobs__run:disabled {
+  border-color: var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.admin-jobs__activity {
+  color: var(--text-info);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@include bp.mobile {
+  .admin-jobs__facts div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}

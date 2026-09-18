@@ -11,6 +11,7 @@ import {
   PublicResourceResolver,
 } from './core/public-courses/public-content-resolvers';
 import { onboardingGuard } from './core/users/onboarding.guard';
+import { superAdminGuard } from './core/users/super-admin.guard';
 
 /**
  * Guards de l'espace prof — **dans cet ordre** : `onboardingGuard` laisse
@@ -20,6 +21,13 @@ import { onboardingGuard } from './core/users/onboarding.guard';
  * cf. `app.routes.server.ts`.
  */
 const TEACHER_GUARDS: CanActivateFn[] = [authGuard, onboardingGuard];
+
+/**
+ * Guards du backoffice — même ordre, même rendu Client. Pas d'onboarding : un
+ * super admin n'a pas à être prof. `superAdminGuard` est fail-closed ; le 403
+ * de `/admin/*` côté back reste le vrai barrage.
+ */
+const ADMIN_GUARDS: CanActivateFn[] = [authGuard, superAdminGuard];
 
 /**
  * Providers des sous-arbres élèves : substituent les résolveurs publics
@@ -240,6 +248,24 @@ export const routes: Routes = [
         // Ancienne URL du profil (favoris) : redirection vers le hub.
         path: 'profile',
         redirectTo: 'settings/profile',
+      },
+      {
+        // Backoffice (rôle de plateforme super_admin) : coquille à menu
+        // latéral, une sous-page par domaine d'administration. Guards sur le
+        // parent ; redirection en fonction (cf. `exercises/:blockId`).
+        path: 'admin',
+        canActivate: ADMIN_GUARDS,
+        loadComponent: () =>
+          import('./features/admin/admin-shell/admin-shell').then((m) => m.AdminShell),
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: () => 'jobs' },
+          {
+            // État du scheduler de maintenance et lancement manuel d'un job.
+            path: 'jobs',
+            loadComponent: () =>
+              import('./features/admin/admin-jobs/admin-jobs').then((m) => m.AdminJobs),
+          },
+        ],
       },
       {
         // Espace prof « Mes cours » : liste des cours, entrée vers création et blocs.

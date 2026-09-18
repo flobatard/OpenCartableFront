@@ -1,0 +1,75 @@
+@use 'breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+/* Écran de données : la largeur d'exception de la recherche (DESIGN_SYSTEM.md §8). */
+.admin-shell {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+}
+
+.admin-shell__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-self: start;
+}
+
+/* Libellé de section, pas un titre : le `h1` est celui de la sous-page. */
+.admin-shell__title {
+  margin: 0 0 12px;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.admin-shell__link {
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.admin-shell__link:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+/* `--link` et non `--color-primary` : AA sur `--bg-surface` dans les deux thèmes. */
+.admin-shell__link--active {
+  background: var(--bg-surface);
+  color: var(--link);
+  font-weight: 500;
+}
+
+/* Empilement : le menu passe au-dessus du contenu, en ligne. */
+@include bp.stacked {
+  .admin-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-shell__nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .admin-shell__title {
+    width: 100%;
+  }
+}
+
+/* Téléphone : la gouttière latérale est celle d'.app-main (DESIGN_SYSTEM.md §12). */
+@include bp.mobile {
+  .admin-shell {
+    padding-inline: 0;
+    padding-top: 0;
+  }
+}
