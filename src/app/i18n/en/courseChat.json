@@ -115,7 +115,10 @@
     "ask_questions": "Questions for the teacher",
     "edit_block": "Block change by a sub-assistant",
     "edit_module": "Module change by a sub-assistant",
-    "unknown": "Using a tool"
+    "unknown": "Using a tool",
+    "propose_block_add": "Proposed new block",
+    "propose_block_delete": "Proposed block removal",
+    "propose_blocks_reorder": "Proposed block reordering"
   },
   "proposal": {
     "title": "Proposed rewrite",
@@ -127,7 +130,10 @@
       "propose_question_delete": "Question removal",
       "propose_html_edit": "HTML file",
       "propose_css_edit": "CSS file",
-      "propose_js_edit": "JavaScript file"
+      "propose_js_edit": "JavaScript file",
+      "propose_block_add": "New block",
+      "propose_block_delete": "Block removal",
+      "propose_blocks_reorder": "New block order"
     },
     "pendingHint": "Awaiting your decision — the comparison is shown in the editor.",
     "pendingHintGlobal": "Awaiting your decision — the comparison opens in a window.",
@@ -152,7 +158,19 @@
       "deleteWarning": "This question will be removed from the exercise.",
       "targetMissing": "The targeted question no longer exists — reject the proposal."
     },
-    "modulePreview": "Preview of the proposal"
+    "modulePreview": "Preview of the proposal",
+    "structure": {
+      "positionAfter": "Inserted after “{{title}}”",
+      "positionEnd": "Added at the end of the course",
+      "resource": "Resource: {{name}}",
+      "module": "Module: {{title}}",
+      "emptyHint": "The block is created empty; the assistant will then propose its content.",
+      "deleteWarning": "This block will be removed from the course, along with its content and the students' answers. This cannot be undone.",
+      "newOrder": "Proposed order",
+      "movedFrom": "(was in position {{from}})",
+      "targetMissing": "The course has changed since this proposal — reject it.",
+      "targetError": "This proposal cannot be applied: the course has changed since, or the targeted block is open in its editor (close it and retry). You can also reject it."
+    }
   },
   "questions": {
     "title": "Question from the assistant",

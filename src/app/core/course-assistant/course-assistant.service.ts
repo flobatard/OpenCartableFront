@@ -1,8 +1,9 @@
 import { effect, inject, Injectable, signal, untracked } from '@angular/core';
-import { CourseBlock, ExerciseContentPayload } from '../courses/course.model';
+import { CourseBlock, CourseDetail, ExerciseContentPayload } from '../courses/course.model';
 import { CourseService } from '../courses/course.service';
 import { applyExerciseProposal } from '../courses/exercise-apply';
 import { payloadFromBlockContent } from '../courses/exercise-form';
+import { orderWithInsert, reorderTarget } from '../courses/structure-apply';
 import { ModuleDetail } from '../modules/module.model';
 import { ModuleService } from '../modules/module.service';
 import { AssistantChatState } from './assistant-chat-state';
@@ -14,7 +15,10 @@ import {
   AssistantExerciseProposal,
   AssistantModuleProposal,
   AssistantPendingProposal,
+  AssistantStructureProposal,
+  isStructureProposal,
   MODULE_FILE_BY_KIND,
+  STRUCTURE_TOOLS,
 } from './proposals';
 import { revealOnNewQuestions } from './question-reveal';
 import { TargetApplierRegistry } from './target-applier.registry';
@@ -25,10 +29,11 @@ export type { AssistantStreamState, AssistantToolActivity } from './assistant-ch
 export type AssistantTextProposal = Extract<AssistantPendingProposal, { kind: 'block_text' }>;
 
 /**
- * Ce que la revue globale affiche pour une proposition de sous-assistant :
+ * Ce que la revue globale affiche : pour une proposition de sous-assistant,
  * la revue texte (diff sur l'« original » figé), exercice (état courant de
  * l'exercice) ou module (code courant du fichier visé), avec le titre de la
- * cible.
+ * cible ; pour une proposition structurelle de l'assistant global, les blocs
+ * courants du cours (`targetTitle` = titre du cours).
  */
 export type GlobalReviewView =
   | { kind: 'text'; proposal: AssistantTextProposal; original: string; targetTitle: string }
@@ -38,7 +43,13 @@ export type GlobalReviewView =
       current: ExerciseContentPayload;
       targetTitle: string;
     }
-  | { kind: 'module'; proposal: AssistantModuleProposal; original: string; targetTitle: string };
+  | { kind: 'module'; proposal: AssistantModuleProposal; original: string; targetTitle: string }
+  | {
+      kind: 'structure';
+      proposal: AssistantStructureProposal;
+      blocks: CourseBlock[];
+      targetTitle: string;
+    };
 
 type ReviewTarget = CourseBlock | ModuleDetail;
 
@@ -74,6 +85,17 @@ function markdownOf(block: CourseBlock): string {
  * proposition (une application en mode auto ne doit pas vider le diff du
  * repli sur la revue manuelle). Le mode « Édition auto » (`ProposalModeService`)
  * s'applique comme dans les éditeurs.
+ *
+ * Propositions **structurelles** (`propose_block_add`/`_delete`/
+ * `propose_blocks_reorder`) : émises par l'assistant global lui-même, donc
+ * SANS `delegation` ni éditeur hôte — revues dans la même fenêtre sur les
+ * blocs courants du cours (le détail chargé de `CourseService` s'il porte ce
+ * cours, sinon un GET muet), appliquées en headless par `addBlock` (puis
+ * ressource/module pointé, puis `reorderBlocks` pour la position),
+ * `deleteBlock` ou `reorderBlocks`. Une suppression est refusée tant que
+ * l'éditeur du bloc est monté (son autosave écrirait dans le vide). Un ajout
+ * interrompu à mi-parcours (bloc créé, PATCH suivant refusé) laisse un bloc en
+ * fin de cours : « réessayer » en créerait un second — rejeter et redemander.
  */
 @Injectable({ providedIn: 'root' })
 export class CourseAssistantService extends AssistantChatState {
@@ -101,6 +123,14 @@ export class CourseAssistantService extends AssistantChatState {
   readonly #fetchedDelegations = new Set<string>();
   /** Revues figées par id de proposition (« original » d'avant l'application). */
   readonly #frozen = new Map<string, GlobalReviewView>();
+  /**
+   * Cours lu pour une proposition structurelle quand la page cours n'est pas
+   * chargée ; vidé après chaque application (il ne suit pas les mutations).
+   */
+  readonly #structure = signal<CourseDetail | null>(null);
+  #structureRequest: Promise<CourseDetail | null> | null = null;
+  /** Appels structurels dont le cours a été demandé (une requête par appel). */
+  readonly #fetchedStructures = new Set<string>();
 
   /** Hôte des propositions de sous-assistants (doc de classe). */
   readonly proposals = new ProposalHost<GlobalReviewView>({
@@ -132,6 +162,12 @@ export class CourseAssistantService extends AssistantChatState {
     // proposition à venir en a besoin (contenu courant = « original »).
     effect(() => {
       for (const entry of this.toolActivity()) {
+        if (STRUCTURE_TOOLS.has(entry.name) && !this.#fetchedStructures.has(entry.id)) {
+          // Proposition structurelle : ses blocs courants, relus à chaque appel.
+          this.#fetchedStructures.add(entry.id);
+          untracked(() => void this.#loadStructure());
+          continue;
+        }
         if (!DELEGATION_TOOLS.has(entry.name)) {
           continue;
         }
@@ -198,6 +234,9 @@ export class CourseAssistantService extends AssistantChatState {
       this.#targetRequests.clear();
       this.#fetchedDelegations.clear();
       this.#frozen.clear();
+      this.#structure.set(null);
+      this.#structureRequest = null;
+      this.#fetchedStructures.clear();
     }
     await super.loadConversations(courseId);
   }
@@ -245,10 +284,133 @@ export class CourseAssistantService extends AssistantChatState {
     this.#targets.update((targets) => new Map(targets).set(id, target));
   }
 
+  /**
+   * Le cours d'une proposition structurelle (`fetchDetail` : le détail chargé
+   * s'il porte ce cours, sinon un GET muet), retenu pour la revue. `null` si
+   * injoignable : la revue reste en attente, le professeur peut rejeter.
+   */
+  #loadStructure(): Promise<CourseDetail | null> {
+    const courseId = this.currentCourseId();
+    if (courseId === null) {
+      return Promise.resolve(null);
+    }
+    const request = this.#courses.fetchDetail(courseId).then(
+      (course) => {
+        if (this.#structureRequest === request && this.currentCourseId() === courseId) {
+          this.#structure.set(course);
+        }
+        return course;
+      },
+      () => null,
+    );
+    this.#structureRequest = request;
+    return request;
+  }
+
+  /** Lecture TRACKÉE du cours de la revue structurelle : la page cours d'abord. */
+  #structureCourse(): CourseDetail | null {
+    const courseId = this.currentCourseId();
+    const detail = this.#courses.detail();
+    if (detail !== null && detail.id === courseId) {
+      return detail;
+    }
+    const fetched = this.#structure();
+    return fetched !== null && fetched.id === courseId ? fetched : null;
+  }
+
+  #buildStructureReview(proposal: AssistantStructureProposal): GlobalReviewView | null {
+    const course = this.#structureCourse();
+    if (course === null) {
+      return null;
+    }
+    const view: GlobalReviewView = {
+      kind: 'structure',
+      proposal,
+      blocks: course.blocks,
+      targetTitle: course.title,
+    };
+    this.#frozen.set(proposal.id, view);
+    return view;
+  }
+
+  /**
+   * Application headless d'une proposition structurelle (doc de classe).
+   * `false` = inapplicable (cours injoignable ou changé depuis, éditeur du
+   * bloc à supprimer ouvert) ; une requête refusée rejette (erreur `apply`).
+   */
+  async #applyStructure(courseId: string, proposal: AssistantStructureProposal): Promise<boolean> {
+    const course =
+      this.#structureCourse() ?? (await (this.#structureRequest ?? this.#loadStructure()));
+    if (course === null || course.id !== courseId) {
+      return false;
+    }
+    // Blocs figés AVANT la mutation : un repli sur la revue montre l'avant.
+    if (!this.#frozen.has(proposal.id)) {
+      this.#frozen.set(proposal.id, {
+        kind: 'structure',
+        proposal,
+        blocks: course.blocks,
+        targetTitle: course.title,
+      });
+    }
+    const currentIds = course.blocks.map((block) => block.id);
+    try {
+      switch (proposal.kind) {
+        case 'block_add': {
+          const block = await this.#courses.addBlock(courseId, proposal.blockType, {
+            title: proposal.title,
+            description: proposal.description,
+          });
+          if (proposal.resourceId !== null) {
+            await this.#courses.updateBlockResource(courseId, block.id, proposal.resourceId);
+          }
+          if (proposal.moduleId !== null) {
+            await this.#courses.updateBlockModule(courseId, block.id, proposal.moduleId);
+          }
+          const appended = [...currentIds, block.id];
+          const order =
+            proposal.afterId === null
+              ? null
+              : orderWithInsert(appended, block.id, proposal.afterId);
+          // Position introuvable (bloc repère disparu) : le bloc reste en fin.
+          if (order !== null && order.some((id, index) => id !== appended[index])) {
+            await this.#courses.reorderBlocks(courseId, order);
+          }
+          return true;
+        }
+        case 'block_delete': {
+          if (
+            this.#appliers.get(proposal.blockId) !== null ||
+            !currentIds.includes(proposal.blockId)
+          ) {
+            return false;
+          }
+          await this.#courses.deleteBlock(courseId, proposal.blockId);
+          return true;
+        }
+        case 'blocks_reorder': {
+          const order = reorderTarget(currentIds, proposal.blockIds);
+          if (order === null) {
+            return false;
+          }
+          await this.#courses.reorderBlocks(courseId, order);
+          return true;
+        }
+      }
+    } finally {
+      // Le cours lu hors page ne suit pas les mutations : relu au prochain appel.
+      this.#structure.set(null);
+      this.#structureRequest = null;
+    }
+  }
+
   #buildReview(proposal: AssistantPendingProposal): GlobalReviewView | null {
     const frozen = this.#frozen.get(proposal.id);
     if (frozen) {
       return frozen;
+    }
+    if (isStructureProposal(proposal)) {
+      return this.#buildStructureReview(proposal);
     }
     const delegation = proposal.delegation;
     if (!delegation) {
@@ -294,6 +456,9 @@ export class CourseAssistantService extends AssistantChatState {
   async #apply(proposal: AssistantPendingProposal): Promise<boolean> {
     const delegation = proposal.delegation;
     const courseId = this.currentCourseId();
+    if (courseId !== null && isStructureProposal(proposal)) {
+      return this.#applyStructure(courseId, proposal);
+    }
     if (!delegation || courseId === null) {
       return false;
     }

@@ -1,0 +1,122 @@
+/* Revue d'une proposition structurelle (ajout, suppression, réordonnancement
+   de blocs) : même ossature que la revue d'exercice — en-tête, CORPS DÉFILANT
+   (un long cours réordonné dépasse la fenêtre), pied de décision toujours
+   visible. */
+:host {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.structure-review {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 12px;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius);
+  padding: 12px;
+  background: var(--bg-surface);
+}
+
+.structure-review__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.structure-review__title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.structure-review__summary,
+.structure-review__position,
+.structure-review__hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.structure-review__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.structure-review__card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+.structure-review__card--added {
+  border-left-color: var(--text-success);
+}
+
+.structure-review__card--removed {
+  border-left-color: var(--text-danger);
+}
+
+.structure-review__type {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.structure-review__name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.structure-review__description,
+.structure-review__pointer {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.structure-review__order {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding-left: 28px;
+}
+
+.structure-review__row {
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+
+  > span + span {
+    margin-left: 8px;
+  }
+}
+
+.structure-review__row--moved {
+  background: var(--bg-subtle);
+}
+
+.structure-review__moved {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-style: italic;
+}
+
+.structure-review__warning,
+.structure-review__missing {
+  margin: 0;
+  color: var(--text-danger);
+  font-size: 13px;
+  font-weight: 500;
+}

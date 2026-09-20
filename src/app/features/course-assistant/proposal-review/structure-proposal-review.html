@@ -1,0 +1,108 @@
+<section class="structure-review" aria-live="polite">
+  @if (proposal(); as p) {
+    <header class="structure-review__head">
+      <h2 class="structure-review__title">{{ titleKey() | transloco }}</h2>
+      @if (p.summary; as summary) {
+        <p class="structure-review__summary">{{ summary }}</p>
+      }
+    </header>
+
+    <div class="structure-review__body">
+      @if (p.kind === 'block_add') {
+        <p class="structure-review__position">
+          @if (afterBlock(); as after) {
+            {{
+              'courseChat.proposal.structure.positionAfter'
+                | transloco: { title: after.title || ('courses.blocks.untitled' | transloco) }
+            }}
+          } @else {
+            {{ 'courseChat.proposal.structure.positionEnd' | transloco }}
+          }
+        </p>
+        <div class="structure-review__card structure-review__card--added">
+          <span class="structure-review__type">
+            {{ 'courses.blocks.types.' + p.blockType | transloco }}
+          </span>
+          <span class="structure-review__name">
+            {{ p.title || ('courses.blocks.untitled' | transloco) }}
+          </span>
+          @if (p.description; as description) {
+            <span class="structure-review__description">{{ description }}</span>
+          }
+          @if (p.resourceName; as resource) {
+            <span class="structure-review__pointer">
+              {{ 'courseChat.proposal.structure.resource' | transloco: { name: resource } }}
+            </span>
+          }
+          @if (p.moduleTitle; as module) {
+            <span class="structure-review__pointer">
+              {{ 'courseChat.proposal.structure.module' | transloco: { title: module } }}
+            </span>
+          }
+        </div>
+        @if (p.blockType === 'text' || p.blockType === 'exercise') {
+          <p class="structure-review__hint">
+            {{ 'courseChat.proposal.structure.emptyHint' | transloco }}
+          </p>
+        }
+      } @else if (p.kind === 'block_delete') {
+        @if (deleted(); as target) {
+          <p class="structure-review__warning" role="alert">
+            {{ 'courseChat.proposal.structure.deleteWarning' | transloco }}
+          </p>
+          <div class="structure-review__card structure-review__card--removed">
+            <span class="structure-review__type">
+              {{ target.position }} ·
+              {{ 'courses.blocks.types.' + target.block.type | transloco }}
+            </span>
+            <span class="structure-review__name">
+              {{ target.block.title || ('courses.blocks.untitled' | transloco) }}
+            </span>
+            @if (target.block.description; as description) {
+              <span class="structure-review__description">{{ description }}</span>
+            }
+          </div>
+        } @else {
+          <p class="structure-review__missing" role="alert">
+            {{ 'courseChat.proposal.structure.targetMissing' | transloco }}
+          </p>
+        }
+      } @else if (p.kind === 'blocks_reorder') {
+        @if (reordered(); as rows) {
+          <p class="structure-review__position">
+            {{ 'courseChat.proposal.structure.newOrder' | transloco }}
+          </p>
+          <ol class="structure-review__order">
+            @for (row of rows; track row.block.id) {
+              <li class="structure-review__row" [class.structure-review__row--moved]="row.moved">
+                <span class="structure-review__name">
+                  {{ row.block.title || ('courses.blocks.untitled' | transloco) }}
+                </span>
+                <span class="structure-review__type">
+                  {{ 'courses.blocks.types.' + row.block.type | transloco }}
+                </span>
+                @if (row.moved) {
+                  <span class="structure-review__moved">
+                    {{ 'courseChat.proposal.structure.movedFrom' | transloco: { from: row.from } }}
+                  </span>
+                }
+              </li>
+            }
+          </ol>
+        } @else {
+          <p class="structure-review__missing" role="alert">
+            {{ 'courseChat.proposal.structure.targetMissing' | transloco }}
+          </p>
+        }
+      }
+    </div>
+
+    <app-proposal-decision
+      [busy]="busy()"
+      [errorKey]="errorKey()"
+      [acceptDisabled]="targetMissing()"
+      (accepted)="accepted.emit($event)"
+      (rejected)="rejected.emit($event)"
+    />
+  }
+</section>

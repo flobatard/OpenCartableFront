@@ -199,6 +199,8 @@
                   [summary]="proposalSummary(tool)"
                   [status]="tool.status"
                   [result]="tool.result"
+                  [reviewable]="mode() === 'global'"
+                  (review)="showReview()"
                 />
               } @else {
                 <app-course-chat-tool [tool]="tool" />
@@ -264,6 +266,8 @@
                 [summary]="proposalSummary(tool)"
                 [status]="tool.status"
                 [result]="tool.result"
+                [reviewable]="mode() === 'global'"
+                (review)="showReview()"
               />
             } @else {
               <app-course-chat-tool [tool]="tool" />

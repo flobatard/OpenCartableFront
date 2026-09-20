@@ -848,3 +848,244 @@ describe('CourseAssistantService — édition globale', () => {
     expect(service.proposals.review()).toBeNull();
   });
 });
+
+describe('CourseAssistantService — propositions structurelles', () => {
+  let service: CourseAssistantService;
+  let http: HttpTestingController;
+
+  const B1 = '11111111-1111-4111-8111-111111111111';
+  const B2 = '22222222-2222-4222-8222-222222222222';
+  const NEW = '33333333-3333-4333-8333-333333333333';
+  const RESOURCE = '44444444-4444-4444-8444-444444444444';
+  const COURSE_URL = `${environment.apiUrl}/v1/courses/c1`;
+
+  function proposes(name: string, args: Record<string, unknown>): string {
+    return (
+      'event: token\ndata: {"delta":"Je vous le propose. "}\n\n' +
+      `event: tool_call\ndata: ${JSON.stringify({ id: 'call_s', name, args })}\n\n` +
+      'event: interrupt\ndata: {"tool_call_id":"call_s","kind":"proposal","message_ids":["m1"]}\n\n'
+    );
+  }
+
+  const ADD_EVENTS = proposes('propose_block_add', {
+    type: 'document',
+    title: 'Fiche',
+    after_ref: 'B1',
+    resource_ref: 'R1',
+    summary: 'Ajout',
+    after_id: B1,
+    resource_id: RESOURCE,
+    resource_name: 'fiche.pdf',
+    module_id: null,
+    module_title: null,
+  });
+  const DELETE_EVENTS = proposes('propose_block_delete', {
+    target_ref: 'B2',
+    summary: 'Retrait',
+    block_id: B2,
+    target_title: 'Bilan',
+  });
+  const REORDER_EVENTS = proposes('propose_blocks_reorder', {
+    order: ['B2', 'B1'],
+    summary: 'Ordre',
+    block_ids: [B2, B1],
+  });
+
+  function resumed(name: string): string[] {
+    return [
+      `event: tool_result\ndata: {"id":"call_s","name":"${name}","is_error":false,` +
+        '"excerpt":"ACCEPTÉ","length":7}\n\n',
+      'event: done\ndata: {"usage":null,"user_message_id":null,"message_ids":["m2"],' +
+        '"sources":{},"title":null}\n\n',
+    ];
+  }
+
+  function block(id: string, title: string, position: number): CourseDetail['blocks'][number] {
+    return {
+      id,
+      position,
+      type: 'text',
+      title,
+      description: null,
+      content: { markdown: '' },
+      resource_id: null,
+      module_id: null,
+    };
+  }
+
+  function courseDetail(): CourseDetail {
+    return {
+      id: 'c1',
+      title: 'Géométrie',
+      description: null,
+      subject_ids: [],
+      education_level_ids: [],
+      block_count: 2,
+      visibility: 'draft',
+      created_at: '2026-09-17T10:00:00Z',
+      updated_at: '2026-09-17T10:00:00Z',
+      blocks: [block(B1, 'Intro', 0), block(B2, 'Bilan', 1)],
+    };
+  }
+
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: AuthService,
+          useValue: { isAuthenticated: () => true, accessToken: 'jwt-token' },
+        },
+      ],
+    });
+    service = TestBed.inject(CourseAssistantService);
+    http = TestBed.inject(HttpTestingController);
+    TestBed.inject(GlobalEditService).setEnabled(true);
+  });
+
+  afterEach(() => {
+    http.verify();
+    vi.unstubAllGlobals();
+    localStorage.removeItem('oc-assistant-global-edit');
+    localStorage.removeItem('oc-assistant-proposal-mode');
+  });
+
+  /** Tour envoyé jusqu'à la proposition ; le cours (page non chargée) est lu par un GET muet. */
+  async function reachProposal(events: string): Promise<void> {
+    const list = service.loadConversations('c1');
+    http.expectOne(BASE).flush([CONVERSATION]);
+    await list;
+    const opened = service.openConversation('conv-1');
+    http.expectOne(`${BASE}/conv-1`).flush(DETAIL);
+    await opened;
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(sseResponse([events])));
+    await service.sendMessage('Réorganise');
+    TestBed.tick();
+    http.expectOne(COURSE_URL).flush(courseDetail());
+    await settle();
+    TestBed.tick();
+  }
+
+  function decisionBody(resumeFetch: ReturnType<typeof vi.fn>): unknown {
+    const [url, init] = resumeFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${BASE}/conv-1/proposals/call_s/decision`);
+    return JSON.parse(init.body as string);
+  }
+
+  it('reviews a structure proposal on the current blocks, without any delegation', async () => {
+    await reachProposal(REORDER_EVENTS);
+    expect(service.pendingProposal()).toMatchObject({ kind: 'blocks_reorder', id: 'call_s' });
+    expect(service.pendingProposal()?.delegation).toBeUndefined();
+    const review = service.proposals.review();
+    expect(review?.kind).toBe('structure');
+    expect(review?.targetTitle).toBe('Géométrie');
+    expect(review?.kind === 'structure' && review.blocks.map((b) => b.id)).toEqual([B1, B2]);
+    expect(service.reviewVisible()).toBe(true);
+  });
+
+  it('accepting an addition creates the block, points its resource, places it, then decides', async () => {
+    await reachProposal(ADD_EVENTS);
+    const resumeFetch = vi.fn().mockResolvedValue(sseResponse(resumed('propose_block_add')));
+    vi.stubGlobal('fetch', resumeFetch);
+
+    const accepted = service.proposals.accept('Oui');
+    await settle();
+    const post = http.expectOne(`${COURSE_URL}/blocks`);
+    expect(post.request.method).toBe('POST');
+    expect(post.request.body).toEqual({ type: 'document', title: 'Fiche', description: null });
+    post.flush({ ...block(NEW, 'Fiche', 2), type: 'document', content: {} });
+    await settle();
+    const patch = http.expectOne(`${COURSE_URL}/blocks/${NEW}`);
+    expect(patch.request.body).toEqual({ resource_id: RESOURCE });
+    expect(resumeFetch).not.toHaveBeenCalled();
+    patch.flush({ ...block(NEW, 'Fiche', 2), type: 'document', resource_id: RESOURCE });
+    await settle();
+    const order = http.expectOne(`${COURSE_URL}/blocks/order`);
+    expect(order.request.method).toBe('PUT');
+    expect(order.request.body).toEqual({ block_ids: [B1, NEW, B2] });
+    order.flush(null);
+    await accepted;
+
+    expect(decisionBody(resumeFetch)).toEqual({ accepted: true, comment: 'Oui' });
+    expect(service.pendingProposal()).toBeNull();
+    expect(service.proposals.error()).toBeNull();
+  });
+
+  it('accepting a removal deletes the block before the decision', async () => {
+    await reachProposal(DELETE_EVENTS);
+    const resumeFetch = vi.fn().mockResolvedValue(sseResponse(resumed('propose_block_delete')));
+    vi.stubGlobal('fetch', resumeFetch);
+
+    const accepted = service.proposals.accept('');
+    await settle();
+    const request = http.expectOne(`${COURSE_URL}/blocks/${B2}`);
+    expect(request.request.method).toBe('DELETE');
+    expect(resumeFetch).not.toHaveBeenCalled();
+    request.flush(null);
+    await accepted;
+    expect(decisionBody(resumeFetch)).toEqual({ accepted: true, comment: null });
+  });
+
+  it('refuses a removal while the editor of that block is mounted', async () => {
+    await reachProposal(DELETE_EVENTS);
+    TestBed.inject(TargetApplierRegistry).register(B2, {
+      apply: () => true,
+      flush: () => Promise.resolve(),
+    });
+    const resumeFetch = vi.fn();
+    vi.stubGlobal('fetch', resumeFetch);
+
+    await service.proposals.accept('');
+
+    expect(service.proposals.error()).toBe('target');
+    expect(resumeFetch).not.toHaveBeenCalled();
+    expect(service.pendingProposal()?.id).toBe('call_s');
+  });
+
+  it('accepting a reordering PUTs the full order', async () => {
+    await reachProposal(REORDER_EVENTS);
+    const resumeFetch = vi.fn().mockResolvedValue(sseResponse(resumed('propose_blocks_reorder')));
+    vi.stubGlobal('fetch', resumeFetch);
+
+    const accepted = service.proposals.accept('');
+    await settle();
+    const order = http.expectOne(`${COURSE_URL}/blocks/order`);
+    expect(order.request.body).toEqual({ block_ids: [B2, B1] });
+    order.flush(null);
+    await accepted;
+    expect(resumeFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports `target` when the order no longer matches the course', async () => {
+    await reachProposal(
+      proposes('propose_blocks_reorder', { order: ['B2', 'B1'], block_ids: [B2, B1, NEW] }),
+    );
+    const resumeFetch = vi.fn();
+    vi.stubGlobal('fetch', resumeFetch);
+
+    await service.proposals.accept('');
+
+    expect(service.proposals.error()).toBe('target');
+    expect(resumeFetch).not.toHaveBeenCalled();
+  });
+
+  it('rejecting sends the decision alone', async () => {
+    await reachProposal(DELETE_EVENTS);
+    const resumeFetch = vi.fn().mockResolvedValue(sseResponse(resumed('propose_block_delete')));
+    vi.stubGlobal('fetch', resumeFetch);
+
+    await service.proposals.reject('Non');
+
+    expect(decisionBody(resumeFetch)).toEqual({ accepted: false, comment: 'Non' });
+  });
+
+  it('auto mode still reviews a removal (never auto-accepted)', async () => {
+    TestBed.inject(ProposalModeService).setMode('auto');
+    await reachProposal(DELETE_EVENTS);
+    expect(service.proposals.review()?.kind).toBe('structure');
+    expect(service.reviewVisible()).toBe(true);
+  });
+});

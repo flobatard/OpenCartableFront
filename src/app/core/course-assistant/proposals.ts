@@ -20,9 +20,14 @@
  * - `module` (par fichier) : `propose_html_edit`,
  *   `propose_css_edit`, `propose_js_edit` — `new_code` INTÉGRAL de
  *   remplacement du fichier visé (aucune référence courte à résoudre : le code
- *   d'un module n'est pas du markdown de cours).
+ *   d'un module n'est pas du markdown de cours) ;
+ * - **structure du cours** (assistant global en édition globale, back
+ *   `app/course_assistant/structure.py` — jamais un sous-assistant, donc sans
+ *   `delegation`) : `propose_block_add` (méta seule : le bloc est créé vide),
+ *   `propose_block_delete`, `propose_blocks_reorder` (ordre COMPLET).
  */
 
+import type { BlockType } from '../courses/course.model';
 import type { AssistantDelegation } from './delegation';
 
 export const PROPOSE_BLOCK_EDIT = 'propose_block_edit';
@@ -33,6 +38,16 @@ export const PROPOSE_QUESTION_DELETE = 'propose_question_delete';
 export const PROPOSE_HTML_EDIT = 'propose_html_edit';
 export const PROPOSE_CSS_EDIT = 'propose_css_edit';
 export const PROPOSE_JS_EDIT = 'propose_js_edit';
+export const PROPOSE_BLOCK_ADD = 'propose_block_add';
+export const PROPOSE_BLOCK_DELETE = 'propose_block_delete';
+export const PROPOSE_BLOCKS_REORDER = 'propose_blocks_reorder';
+
+/** Propositions structurelles de l'assistant global (revue globale, sans cible). */
+export const STRUCTURE_TOOLS: ReadonlySet<string> = new Set([
+  PROPOSE_BLOCK_ADD,
+  PROPOSE_BLOCK_DELETE,
+  PROPOSE_BLOCKS_REORDER,
+]);
 
 /** Tools HITL connus (carte de proposition dans le fil, revue chez l'hôte). */
 export const PROPOSAL_TOOLS: ReadonlySet<string> = new Set([
@@ -44,7 +59,10 @@ export const PROPOSAL_TOOLS: ReadonlySet<string> = new Set([
   PROPOSE_HTML_EDIT,
   PROPOSE_CSS_EDIT,
   PROPOSE_JS_EDIT,
+  ...STRUCTURE_TOOLS,
 ]);
+
+const BLOCK_TYPES: ReadonlySet<string> = new Set(['text', 'exercise', 'document', 'module']);
 
 interface ProposalBase {
   /** Id de l'appel d'outil (clé de la reprise côté back). */
@@ -79,7 +97,27 @@ export type AssistantPendingProposal =
       afterId: string | null;
     })
   | (ProposalBase & { kind: 'exercise_question_delete'; questionId: string })
-  | (ProposalBase & { kind: 'module_html' | 'module_css' | 'module_js'; code: string });
+  | (ProposalBase & { kind: 'module_html' | 'module_css' | 'module_js'; code: string })
+  | (ProposalBase & {
+      kind: 'block_add';
+      blockType: BlockType;
+      title: string | null;
+      description: string | null;
+      /** Bloc après lequel insérer ; `null` = en fin de cours. */
+      afterId: string | null;
+      /** Ressource d'un bloc `document` (nom affiché par la revue). */
+      resourceId: string | null;
+      resourceName: string | null;
+      /** Module d'un bloc `module`. */
+      moduleId: string | null;
+      moduleTitle: string | null;
+    })
+  | (ProposalBase & { kind: 'block_delete'; blockId: string; targetTitle: string | null })
+  | (ProposalBase & {
+      kind: 'blocks_reorder';
+      /** Ordre COMPLET proposé (ids résolus par le back). */
+      blockIds: string[];
+    });
 
 export type AssistantProposalKind = AssistantPendingProposal['kind'];
 
@@ -94,6 +132,22 @@ export type AssistantModuleProposal = Extract<
   AssistantPendingProposal,
   { kind: `module_${string}` }
 >;
+
+/** Propositions structurelles de l'assistant global (ajout, suppression, ordre). */
+export type AssistantStructureProposal = Extract<
+  AssistantPendingProposal,
+  { kind: 'block_add' | 'block_delete' | 'blocks_reorder' }
+>;
+
+export function isStructureProposal(
+  proposal: AssistantPendingProposal,
+): proposal is AssistantStructureProposal {
+  return (
+    proposal.kind === 'block_add' ||
+    proposal.kind === 'block_delete' ||
+    proposal.kind === 'blocks_reorder'
+  );
+}
 
 /** Fichier d'un module visé par une proposition (clé du payload d'autosave). */
 export type ModuleProposalFile = 'html' | 'css' | 'js';
@@ -116,6 +170,9 @@ export const PROPOSAL_TOOL_BY_KIND: Readonly<Record<AssistantProposalKind, strin
   module_html: PROPOSE_HTML_EDIT,
   module_css: PROPOSE_CSS_EDIT,
   module_js: PROPOSE_JS_EDIT,
+  block_add: PROPOSE_BLOCK_ADD,
+  block_delete: PROPOSE_BLOCK_DELETE,
+  blocks_reorder: PROPOSE_BLOCKS_REORDER,
 };
 
 /**
@@ -128,10 +185,12 @@ export type ProposalMode = 'ask' | 'auto';
  * Genres de proposition toujours soumis à la revue, même en mode « édition
  * auto » (`ProposalModeService`) : une suppression de question n'est pas
  * annulable par Ctrl-Z (elle passe par le formulaire) et des tentatives
- * d'élèves référencent l'id de la question.
+ * d'élèves référencent l'id de la question ; une suppression de bloc est
+ * irréversible (contenu et tentatives perdus).
  */
 export const ALWAYS_REVIEWED_KINDS: ReadonlySet<AssistantProposalKind> = new Set([
   'exercise_question_delete',
+  'block_delete',
 ]);
 
 /** Un appel d'outil tel que tracé (activité live ou `tool_calls` persistés). */
@@ -143,6 +202,11 @@ export interface ProposalToolCall {
 
 function optionalString(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
+}
+
+/** Chaîne non vide une fois rognée, sinon `null` (méta facultative d'un bloc). */
+function filledString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
 /**
@@ -209,6 +273,48 @@ export function parseProposal(call: ProposalToolCall): AssistantPendingProposal 
             ? 'module_css'
             : 'module_js';
       return { kind, id, summary, code };
+    }
+    case PROPOSE_BLOCK_ADD: {
+      const blockType = args['type'];
+      if (typeof blockType !== 'string' || !BLOCK_TYPES.has(blockType)) {
+        return null;
+      }
+      return {
+        kind: 'block_add',
+        id,
+        summary,
+        blockType: blockType as BlockType,
+        title: filledString(args['title']),
+        description: filledString(args['description']),
+        afterId: optionalString(args['after_id']),
+        resourceId: optionalString(args['resource_id']),
+        resourceName: optionalString(args['resource_name']),
+        moduleId: optionalString(args['module_id']),
+        moduleTitle: optionalString(args['module_title']),
+      };
+    }
+    case PROPOSE_BLOCK_DELETE: {
+      const blockId = args['block_id'];
+      return typeof blockId === 'string'
+        ? {
+            kind: 'block_delete',
+            id,
+            summary,
+            blockId,
+            targetTitle: optionalString(args['target_title']),
+          }
+        : null;
+    }
+    case PROPOSE_BLOCKS_REORDER: {
+      const blockIds = args['block_ids'];
+      if (
+        !Array.isArray(blockIds) ||
+        blockIds.length === 0 ||
+        !blockIds.every((value) => typeof value === 'string')
+      ) {
+        return null;
+      }
+      return { kind: 'blocks_reorder', id, summary, blockIds: [...blockIds] };
     }
     default:
       return null;

@@ -7,6 +7,7 @@ import { AssistantPendingProposal } from '../../../core/course-assistant/proposa
 import { mockCourseAssistantService } from '../../../testing/assistant.fixture';
 import { provideTranslocoTesting } from '../../../testing/transloco-testing';
 import { ProposalReview } from '../proposal-review/proposal-review';
+import { StructureProposalReview } from '../proposal-review/structure-proposal-review';
 import { GlobalProposalReview } from './global-proposal-review';
 
 const DELEGATION = {
@@ -140,5 +141,36 @@ describe('GlobalProposalReview', () => {
     fixture.detectChanges();
     const review = fixture.debugElement.query(By.directive(ProposalReview));
     expect(review.componentInstance.errorKey()).toBe('courseChat.proposal.applyError');
+  });
+
+  it('renders a structure proposal of the global assistant, named after the course', async () => {
+    const fixture = await createComponent();
+    const proposal: AssistantPendingProposal = {
+      kind: 'block_delete',
+      id: 'call_s',
+      summary: null,
+      blockId: 'b-1',
+      targetTitle: 'Intro',
+    };
+    assistant.pendingProposal.set(proposal);
+    assistant.proposals.pending.set(proposal);
+    assistant.proposals.review.set({
+      kind: 'structure',
+      proposal,
+      blocks: [],
+      targetTitle: 'Géométrie',
+    });
+    (assistant.proposals.error as ReturnType<typeof signal<string | null>>).set('target');
+    fixture.detectChanges();
+
+    const review = fixture.debugElement.query(By.directive(StructureProposalReview));
+    expect(review).toBeTruthy();
+    expect(el(fixture).querySelector('.global-proposal-review__title')?.textContent).toContain(
+      'Géométrie',
+    );
+    // Cible = le cours : l'erreur `target` a son propre message.
+    expect(review.componentInstance.errorKey()).toBe('courseChat.proposal.structure.targetError');
+    review.componentInstance.rejected.emit('Non');
+    expect(assistant.proposals.reject).toHaveBeenCalledWith('Non');
   });
 });

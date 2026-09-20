@@ -101,18 +101,26 @@ export class CourseService {
   }
 
   /**
-   * Un bloc du cours, pour un lecteur qui n'a pas la page cours sous les yeux
-   * (revue globale d'une proposition de sous-assistant) : celui du détail
-   * chargé s'il porte ce cours, sinon un GET du détail SANS toucher aux
-   * signaux (pas de « chargement » sur une page cours affichée). `null` si le
-   * bloc n'existe pas (ou plus). Il n'y a pas de route GET par bloc.
+   * Le cours et ses blocs, pour un lecteur qui n'a pas la page cours sous les
+   * yeux (revue globale de l'assistant) : le détail chargé s'il porte ce
+   * cours, sinon un GET SANS toucher aux signaux (pas de « chargement » sur
+   * une page cours affichée — `loadDetail` la blanchirait).
    */
-  async fetchBlock(courseId: string, blockId: string): Promise<CourseBlock | null> {
+  async fetchDetail(courseId: string): Promise<CourseDetail> {
     const detail = this.#detail();
     if (detail?.id === courseId) {
-      return detail.blocks.find((block) => block.id === blockId) ?? null;
+      return detail;
     }
-    const course = await firstValueFrom(this.#http.get<CourseDetail>(`${this.#url}/${courseId}`));
+    return firstValueFrom(this.#http.get<CourseDetail>(`${this.#url}/${courseId}`));
+  }
+
+  /**
+   * Un bloc du cours, par `fetchDetail` (revue globale d'une proposition de
+   * sous-assistant). `null` si le bloc n'existe pas (ou plus). Il n'y a pas de
+   * route GET par bloc.
+   */
+  async fetchBlock(courseId: string, blockId: string): Promise<CourseBlock | null> {
+    const course = await this.fetchDetail(courseId);
     return course.blocks.find((block) => block.id === blockId) ?? null;
   }
 

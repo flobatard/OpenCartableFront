@@ -48,6 +48,15 @@
           (accepted)="accept($event)"
           (rejected)="reject($event)"
         />
+      } @else if (structureReview(); as review) {
+        <app-structure-proposal-review
+          [proposal]="review.proposal"
+          [blocks]="review.blocks"
+          [busy]="host.busy()"
+          [errorKey]="errorKey()"
+          (accepted)="accept($event)"
+          (rejected)="reject($event)"
+        />
       } @else if (loading()) {
         <div class="global-proposal-review__loading">
           <p role="status">{{ 'courseChat.globalReview.loading' | transloco }}</p>

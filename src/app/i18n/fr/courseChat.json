@@ -115,7 +115,10 @@
     "ask_questions": "Questions au professeur",
     "edit_block": "Modification d'un bloc par un sous-assistant",
     "edit_module": "Modification d'un module par un sous-assistant",
-    "unknown": "Utilisation d'un outil"
+    "unknown": "Utilisation d'un outil",
+    "propose_block_add": "Proposition d'ajout de bloc",
+    "propose_block_delete": "Proposition de suppression de bloc",
+    "propose_blocks_reorder": "Proposition de réordonnancement des blocs"
   },
   "proposal": {
     "title": "Proposition de réécriture",
@@ -127,7 +130,10 @@
       "propose_question_delete": "Suppression d'une question",
       "propose_html_edit": "Fichier HTML",
       "propose_css_edit": "Fichier CSS",
-      "propose_js_edit": "Fichier JavaScript"
+      "propose_js_edit": "Fichier JavaScript",
+      "propose_block_add": "Nouveau bloc",
+      "propose_block_delete": "Suppression d'un bloc",
+      "propose_blocks_reorder": "Nouvel ordre des blocs"
     },
     "pendingHint": "En attente de votre décision — le comparatif est affiché dans l'éditeur.",
     "pendingHintGlobal": "En attente de votre décision — le comparatif s'ouvre dans une fenêtre.",
@@ -152,7 +158,19 @@
       "deleteWarning": "Cette question sera supprimée de l'exercice.",
       "targetMissing": "La question visée n'existe plus — rejetez la proposition."
     },
-    "modulePreview": "Aperçu de la proposition"
+    "modulePreview": "Aperçu de la proposition",
+    "structure": {
+      "positionAfter": "Inséré après « {{title}} »",
+      "positionEnd": "Ajouté en fin de cours",
+      "resource": "Ressource : {{name}}",
+      "module": "Module : {{title}}",
+      "emptyHint": "Le bloc est créé vide ; l'assistant proposera ensuite son contenu.",
+      "deleteWarning": "Ce bloc sera supprimé du cours, avec son contenu et les réponses des élèves. Cette action est irréversible.",
+      "newOrder": "Ordre proposé",
+      "movedFrom": "(était en position {{from}})",
+      "targetMissing": "Le cours a changé depuis cette proposition — rejetez-la.",
+      "targetError": "Proposition inapplicable : le cours a changé depuis, ou le bloc visé est ouvert dans son éditeur (fermez-le puis réessayez). Vous pouvez aussi la rejeter."
+    }
   },
   "questions": {
     "title": "Question de l'assistant",

@@ -92,6 +92,21 @@ describe('CourseService', () => {
     });
   });
 
+  describe('fetchDetail', () => {
+    it('returns the loaded detail of the same course without any request', async () => {
+      loadDetail();
+      await expect(service.fetchDetail(COURSE_DETAIL_FIXTURE.id)).resolves.toBe(service.detail());
+    });
+
+    it('fetches silently when the course page is not loaded', async () => {
+      const promise = service.fetchDetail('course-2');
+      httpMock.expectOne(`${url}/course-2`).flush({ ...COURSE_DETAIL_FIXTURE, id: 'course-2' });
+      expect((await promise).id).toBe('course-2');
+      expect(service.detail()).toBeNull();
+      expect(service.detailLoading()).toBe(false);
+    });
+  });
+
   it('loadDetail reports the error (course not found or network)', () => {
     service.loadDetail('course-x');
     httpMock
