@@ -276,6 +276,9 @@ export class AssistantChatState implements OnDestroy {
 
   #reset(): void {
     this.stopStreaming();
+    // AVANT de perdre le courseId : c'est lui qui permet de supprimer côté
+    // serveur les pièces jointes préparées et jamais envoyées.
+    this.#discardDraftAttachments();
     this.#courseId = null;
     this.#conversations.set(null);
     this.#active.set(this.#draft());
@@ -291,17 +294,33 @@ export class AssistantChatState implements OnDestroy {
     this.#pendingQuestions.set(null);
     this.#questionsExpired.set(false);
     this.#expiredQuestionIds.clear();
-    this.#discardDraftAttachments();
   }
 
   /**
-   * Oublie les pièces jointes préparées mais jamais envoyées (changement de
-   * conversation ou de vue, déconnexion). Rien n'est supprimé côté serveur :
-   * une pièce sans message est du déchet que le job de maintenance
-   * `ai_attachments` ramasse — inutile de bloquer une navigation dessus.
+   * Abandonne les pièces jointes préparées mais jamais envoyées (changement de
+   * conversation ou de vue, déconnexion).
+   *
+   * Les pièces déjà uploadées sont **aussi supprimées côté serveur**, sans
+   * attendre le résultat : une navigation ne doit jamais bloquer dessus. Le
+   * job de maintenance `ai_attachments` reste le filet (échec réseau, onglet
+   * fermé), mais il ne passe qu'une fois par jour avec 7 jours de rétention —
+   * sans ce ménage, chaque brouillon abandonné laisserait un objet S3 payé
+   * une semaine.
    */
   #discardDraftAttachments(): void {
+    const courseId = this.#courseId;
+    const abandoned = this.#draftAttachments();
     this.#draftAttachments.set([]);
+    if (!courseId) {
+      return;
+    }
+    for (const attachment of abandoned) {
+      if (attachment.id) {
+        void this.#attachments.remove(courseId, attachment.id).catch(() => {
+          // Le filet de maintenance ramassera : rien à signaler au professeur.
+        });
+      }
+    }
   }
 
   /** Query params de la liste : aucun en portée `course`, contexte + cible sinon. */

@@ -74,6 +74,46 @@ describe('AssistantChatState (portée block_text)', () => {
     expect(state.conversations()).toEqual([BLOCK_CONVERSATION]);
   });
 
+  it('deletes the attachments abandoned when the view changes', async () => {
+    // Sans ce ménage, chaque brouillon abandonné laisserait un objet S3 payé
+    // jusqu'au job de maintenance (7 jours).
+    await loadList();
+    const file = new File(['x'], 'photo.png', { type: 'image/png' });
+    const attached = state.attachFiles([file]);
+    // Chaque temps du flow est un await : on laisse tourner la boucle.
+    const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+    await tick();
+
+    const presign = http.expectOne((r) => r.url.endsWith('/assistant/attachments'));
+    presign.flush({
+      attachment_id: 'att-1',
+      upload_url: 'https://s3.test/put/att-1',
+      status: 'pending',
+      expires_in: 900,
+    });
+    await tick();
+    http.expectOne('https://s3.test/put/att-1').flush('');
+    await tick();
+    http.expectOne((r) => r.url.endsWith('/attachments/att-1/confirm')).flush({
+      id: 'att-1',
+      original_name: 'photo.png',
+      mime: 'image/png',
+      kind: 'image',
+      size: 1,
+      status: 'available',
+      created_at: '2026-09-24T10:00:00Z',
+    });
+    await attached;
+    expect(state.draftAttachments()).toHaveLength(1);
+
+    state.startNewConversation();
+
+    expect(state.draftAttachments()).toEqual([]);
+    const removal = http.expectOne((r) => r.url.endsWith('/attachments/att-1'));
+    expect(removal.request.method).toBe('DELETE');
+    removal.flush(null);
+  });
+
   it('the entry draft carries the configured scope', async () => {
     await loadList();
     expect(state.active()?.id).toBe('');
