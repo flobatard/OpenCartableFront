@@ -16,6 +16,7 @@ describe('REPLAY_MASK_SELECTOR', () => {
       'course-chat__thinking',
     ],
     'features/course-assistant/course-chat/course-chat-questions.html': ['chat-questions'],
+    'features/course-assistant/course-chat/course-chat-attachments.html': ['chat-attachments'],
     'features/course-assistant/global-proposal-review/global-proposal-review.html': [
       'global-proposal-review',
     ],

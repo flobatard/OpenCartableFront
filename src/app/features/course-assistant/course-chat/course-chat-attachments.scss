@@ -1,0 +1,142 @@
+/* Bande des pièces jointes du chat — au-dessus du composer (ajout, retrait,
+   dépôt) ou sous une bulle du professeur (puces figées). Tailles en em : la
+   base compacte du chat (`--chat-font`) est héritée. Tout le style vit ici et
+   non dans `course-chat.scss`, qui frôle le plafond d'erreur du budget
+   `anyComponentStyle`. */
+:host {
+  display: block;
+}
+
+.chat-attachments {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 6px 8px 0;
+  border: 1px dashed transparent;
+  border-radius: var(--radius-sm);
+}
+
+/* Survol d'un fichier glissé : la cible du dépôt est la bande entière. */
+.chat-attachments--dragover {
+  border-color: var(--color-primary);
+  background: var(--bg-subtle);
+}
+
+.chat-attachments__add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 2em;
+  height: 2em;
+  padding: 0;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.chat-attachments__add:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--color-primary);
+}
+
+.chat-attachments__add:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chat-attachments__add svg {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.chat-attachments__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: 0;
+}
+
+.chat-attachments__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--bg-subtle);
+  font-size: 0.85em;
+}
+
+.chat-attachments__chip--error {
+  border-color: var(--text-danger);
+}
+
+.chat-attachments__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 14em;
+  color: var(--text-primary);
+}
+
+.chat-attachments__name--link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--link);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.chat-attachments__size {
+  flex: 0 0 auto;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.chat-attachments__progress {
+  flex: 0 0 auto;
+  width: 4em;
+  height: 0.4em;
+}
+
+.chat-attachments__failed {
+  color: var(--text-danger);
+}
+
+.chat-attachments__remove {
+  flex: 0 0 auto;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 1.1em;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.chat-attachments__remove:hover:not(:disabled) {
+  color: var(--text-danger);
+}
+
+.chat-attachments__remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chat-attachments__drop {
+  flex: 1 0 100%;
+  margin: 0;
+  padding: 2px 0 4px;
+  color: var(--text-secondary);
+  font-size: 0.85em;
+}

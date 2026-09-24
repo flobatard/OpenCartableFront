@@ -670,6 +670,7 @@ describe('CourseAssistantService — édition globale', () => {
     expect(capture).toHaveBeenCalledWith('assistant_message_sent', {
       context: 'course',
       allowEdit: true,
+      attachments: 0,
     });
   });
 

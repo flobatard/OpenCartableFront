@@ -195,5 +195,15 @@
     "unavailable": "Fournisseur IA injoignable — réessayez dans un instant.",
     "generic": "La génération a échoué — réessayez.",
     "settingsLink": "Ouvrir les réglages IA"
+  },
+  "attachments": {
+    "add": "Joindre un fichier",
+    "dropHere": "Déposez vos fichiers ici",
+    "openFailed": "Impossible d'ouvrir cette pièce jointe.",
+    "remove": "Retirer la pièce jointe",
+    "tooLarge": "Fichier trop volumineux pour être joint.",
+    "tooMany": "Pas plus de 5 pièces jointes par message.",
+    "unsupported": "Format non pris en charge (images, PDF, texte, Word, PowerPoint, OpenDocument).",
+    "uploadFailed": "Échec de l'envoi"
   }
 }

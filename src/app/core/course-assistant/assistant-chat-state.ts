@@ -12,7 +12,17 @@ import {
   AssistantStreamEvent,
   AssistantUsage,
 } from './assistant.model';
+import {
+  Attachment,
+  AttachmentKind,
+  ATTACHMENT_MAX_BYTES,
+  attachmentKindOf,
+  attachmentMimeOf,
+  MAX_ATTACHMENTS_PER_MESSAGE,
+} from './attachment.model';
+import { AssistantAttachmentsService } from './attachments.service';
 import { AssistantConversationsApi } from './conversations-api';
+import { downscaleImage } from './image-downscale';
 import { DELEGATION_TOOLS, parseDelegation } from './delegation';
 import { AssistantPendingProposal, parseProposal } from './proposals';
 import {
@@ -47,6 +57,25 @@ export type { AssistantToolActivity } from './turn-reducer';
  * formulaire des questions remplace le composer).
  */
 export type AssistantStreamState = 'idle' | 'streaming' | 'awaiting' | 'error';
+
+/**
+ * Pièce jointe du composer, du choix du fichier à son envoi. `uploading` et
+ * `error` ne valent que localement : seule une pièce `ready` porte un `id`
+ * serveur et part avec le message.
+ */
+export interface DraftAttachment {
+  /** Clé locale stable (le temps de l'upload), puis id serveur une fois prêt. */
+  key: string;
+  id: string | null;
+  name: string;
+  kind: AttachmentKind;
+  size: number;
+  phase: 'uploading' | 'ready' | 'error';
+  progress: number;
+}
+
+/** Pourquoi un fichier a été refusé avant même le presign. */
+export type AttachmentRejection = 'unsupported' | 'tooLarge' | 'tooMany';
 
 /**
  * Portée d'une instance d'état de chat : le contexte de conversation côté back
@@ -85,6 +114,7 @@ export interface AssistantChatScope {
 @Injectable()
 export class AssistantChatState implements OnDestroy {
   readonly #api = inject(AssistantConversationsApi);
+  readonly #attachments = inject(AssistantAttachmentsService);
   /** Exposé aux sous-classes (purge du panneau global à la déconnexion). */
   protected readonly auth = inject(AuthService);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
@@ -161,6 +191,16 @@ export class AssistantChatState implements OnDestroy {
   readonly #questionsExpired = signal(false);
   readonly questionsExpired = this.#questionsExpired.asReadonly();
   readonly #expiredQuestionIds = new Set<string>();
+
+  /**
+   * Pièces jointes préparées pour le PROCHAIN message : uploadées en S3 dès
+   * qu'on les choisit (le back les rattache au message à l'envoi), retirables
+   * tant qu'elles n'ont pas été envoyées. Vidées au changement de
+   * conversation, jamais par `#clearTurn` — un nouveau tour dans la même
+   * conversation les a déjà consommées.
+   */
+  readonly #draftAttachments = signal<DraftAttachment[]>([]);
+  readonly draftAttachments = this.#draftAttachments.asReadonly();
 
   constructor() {
     this.#active.set(this.#draft());
@@ -251,6 +291,17 @@ export class AssistantChatState implements OnDestroy {
     this.#pendingQuestions.set(null);
     this.#questionsExpired.set(false);
     this.#expiredQuestionIds.clear();
+    this.#discardDraftAttachments();
+  }
+
+  /**
+   * Oublie les pièces jointes préparées mais jamais envoyées (changement de
+   * conversation ou de vue, déconnexion). Rien n'est supprimé côté serveur :
+   * une pièce sans message est du déchet que le job de maintenance
+   * `ai_attachments` ramasse — inutile de bloquer une navigation dessus.
+   */
+  #discardDraftAttachments(): void {
+    this.#draftAttachments.set([]);
   }
 
   /** Query params de la liste : aucun en portée `course`, contexte + cible sinon. */
@@ -299,6 +350,7 @@ export class AssistantChatState implements OnDestroy {
     this.stopStreaming();
     this.#active.set(this.#draft());
     this.#clearTurn();
+    this.#discardDraftAttachments();
   }
 
   /**
@@ -345,6 +397,7 @@ export class AssistantChatState implements OnDestroy {
     this.#activeLoading.set(true);
     this.#activeError.set(false);
     this.#clearTurn();
+    this.#discardDraftAttachments();
     try {
       const detail = await this.#api.get(courseId, conversationId);
       if (this.#courseId === courseId) {
@@ -363,6 +416,7 @@ export class AssistantChatState implements OnDestroy {
     this.stopStreaming();
     this.#active.set(null);
     this.#clearTurn();
+    this.#discardDraftAttachments();
   }
 
   async renameConversation(conversationId: string, title: string): Promise<void> {
@@ -414,14 +468,25 @@ export class AssistantChatState implements OnDestroy {
       return;
     }
 
-    this.#appendMessage({ role: 'user', content: trimmed });
+    // Seules les pièces prêtes partent : une qui a échoué reste au composer,
+    // le professeur la retire ou la rejoue.
+    const attachments = this.#draftAttachments().filter((a) => a.phase === 'ready');
+    const attachmentIds = attachments.map((a) => a.id!).filter(Boolean);
+
+    this.#appendMessage({
+      role: 'user',
+      content: trimmed,
+      attachments: attachments.map((a) => this.#localAttachment(a)),
+    });
     this.#clearTurn();
     this.#streamState.set('streaming');
     const options = this.turnOptions();
-    // Le contexte du chat et le mode seulement : la demande du prof ne sort jamais d'ici.
+    // Le contexte du chat, le mode et un COMPTE : ni la demande du prof, ni un
+    // nom de fichier ne sortent d'ici.
     this.#analytics.capture('assistant_message_sent', {
       context: this.#context,
       allowEdit: options['allow_edit'] === true,
+      attachments: attachmentIds.length,
     });
     if (this.#beforeTurn) {
       await this.#runBeforeTurn(this.#beforeTurn);
@@ -438,13 +503,129 @@ export class AssistantChatState implements OnDestroy {
       conversationId = created.id;
     }
 
+    // Les brouillons ne sont vidés qu'une fois le tour parti : si le POST de
+    // matérialisation échoue au-dessus, ils restent joints et réessayables.
+    this.#draftAttachments.set([]);
     const status = await this.#streamTurn(this.#api.streamUrl(courseId, conversationId), {
       content: trimmed,
       ...options,
+      ...(attachmentIds.length ? { attachment_ids: attachmentIds } : {}),
     });
     if (status !== null) {
       this.#failStream(status);
     }
+  }
+
+  /**
+   * Joint des fichiers au prochain message : validation locale (whitelist et
+   * plafond de la famille, nombre), puis upload immédiat en S3 — le back
+   * rattachera à l'envoi. Retourne les refus, à afficher par l'hôte.
+   *
+   * Le mime est déduit de l'extension quand le navigateur ne sait pas typer
+   * le fichier : le `Content-Type` du PUT est figé dans la signature du
+   * presign, se tromper ferait échouer l'upload sur S3.
+   */
+  async attachFiles(files: File[]): Promise<AttachmentRejection[]> {
+    const courseId = this.#courseId;
+    if (!courseId || !this.#isBrowser) {
+      return [];
+    }
+    const rejections: AttachmentRejection[] = [];
+    const accepted: { file: File; mime: string; kind: AttachmentKind }[] = [];
+    for (const file of files) {
+      if (this.#draftAttachments().length + accepted.length >= MAX_ATTACHMENTS_PER_MESSAGE) {
+        rejections.push('tooMany');
+        continue;
+      }
+      let candidate = file;
+      let mime = attachmentMimeOf(candidate);
+      let kind = mime ? attachmentKindOf(mime) : null;
+      if (!mime || !kind) {
+        rejections.push('unsupported');
+        continue;
+      }
+      // Une photo de tableau pèse couramment plus que le plafond : on la
+      // réduit AVANT de refuser — le back, lui, ne redimensionne rien.
+      if (kind === 'image' && candidate.size > ATTACHMENT_MAX_BYTES.image) {
+        candidate = await downscaleImage(candidate, ATTACHMENT_MAX_BYTES.image);
+        // Le format produit peut différer (repli PNG) : on re-déduit tout.
+        mime = attachmentMimeOf(candidate);
+        kind = mime ? attachmentKindOf(mime) : null;
+        if (!mime || !kind) {
+          rejections.push('unsupported');
+          continue;
+        }
+      }
+      if (candidate.size > ATTACHMENT_MAX_BYTES[kind]) {
+        rejections.push('tooLarge');
+        continue;
+      }
+      accepted.push({ file: candidate, mime, kind });
+    }
+
+    await Promise.all(
+      accepted.map(({ file, mime, kind }) => this.#uploadDraft(courseId, file, mime, kind)),
+    );
+    return rejections;
+  }
+
+  /**
+   * Retire une pièce jointe du composer. Une pièce déjà uploadée est aussi
+   * supprimée côté serveur (ligne + objet S3) ; l'échec de cet appel ne bloque
+   * pas le retrait local — le job de maintenance ramassera.
+   */
+  async removeAttachment(key: string): Promise<void> {
+    const attachment = this.#draftAttachments().find((a) => a.key === key);
+    this.#draftAttachments.update((list) => list.filter((a) => a.key !== key));
+    const courseId = this.#courseId;
+    if (!attachment?.id || !courseId) {
+      return;
+    }
+    try {
+      await this.#attachments.remove(courseId, attachment.id);
+    } catch {
+      // Silencieux : la pièce a disparu du composer, c'est ce qui compte.
+    }
+  }
+
+  async #uploadDraft(
+    courseId: string,
+    file: File,
+    mime: string,
+    kind: AttachmentKind,
+  ): Promise<void> {
+    const key = `draft-${this.#localSequence++}`;
+    this.#draftAttachments.update((list) => [
+      ...list,
+      { key, id: null, name: file.name, kind, size: file.size, phase: 'uploading', progress: 0 },
+    ]);
+    const patch = (patchValues: Partial<DraftAttachment>) =>
+      this.#draftAttachments.update((list) =>
+        list.map((a) => (a.key === key ? { ...a, ...patchValues } : a)),
+      );
+    try {
+      const uploaded = await this.#attachments.upload(courseId, file, mime, (progress) =>
+        patch({ progress }),
+      );
+      patch({ id: uploaded.id, phase: 'ready', progress: 100 });
+      // Famille seulement : jamais le nom du fichier ni sa taille exacte.
+      this.#analytics.capture('assistant_attachment_added', { kind });
+    } catch {
+      patch({ phase: 'error' });
+    }
+  }
+
+  /** Vue « pièce jointe du fil » d'un brouillon envoyé (bulle optimiste). */
+  #localAttachment(draft: DraftAttachment): Attachment {
+    return {
+      id: draft.id!,
+      original_name: draft.name,
+      mime: '',
+      kind: draft.kind,
+      size: draft.size,
+      status: 'available',
+      created_at: new Date().toISOString(),
+    };
   }
 
   /**

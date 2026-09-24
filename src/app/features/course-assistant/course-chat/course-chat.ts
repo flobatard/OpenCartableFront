@@ -13,10 +13,12 @@ import {
   viewChild,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AssistantChatState } from '../../../core/course-assistant/assistant-chat-state';
 import { AssistantMessage } from '../../../core/course-assistant/assistant.model';
+import { AssistantAttachmentsService } from '../../../core/course-assistant/attachments.service';
 import { CourseAssistantService } from '../../../core/course-assistant/course-assistant.service';
+import { NotificationService } from '../../../core/notifications/notification.service';
 import {
   AssistantDelegation,
   parseDelegation,
@@ -28,6 +30,11 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { BlockCitations } from '../../../shared/block-citations/block-citations.directive';
 import { MarkdownView } from '../../../shared/markdown-view/markdown-view';
 import { Spinner } from '../../../shared/spinner/spinner';
+import {
+  AttachmentChip,
+  chipFromDraft,
+  CourseChatAttachments,
+} from './course-chat-attachments';
 import { CourseChatConversations } from './course-chat-conversations';
 import { CourseChatDelegation, DelegationChildView } from './course-chat-delegation';
 import { CourseChatProposal } from './course-chat-proposal';
@@ -98,6 +105,7 @@ const SCROLL_PIN_THRESHOLD_PX = 80;
     TranslocoPipe,
     MarkdownView,
     RouterLink,
+    CourseChatAttachments,
     CourseChatConversations,
     CourseChatDelegation,
     CourseChatProposal,
@@ -130,6 +138,9 @@ export class CourseChat {
   protected readonly language = inject(LanguageService);
   readonly #router = inject(Router);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  readonly #attachments = inject(AssistantAttachmentsService);
+  readonly #notifications = inject(NotificationService);
+  readonly #transloco = inject(TranslocoService);
 
   /**
    * Régime du panneau (doc de classe) : `placeholder` prime, puis une cible
@@ -356,6 +367,72 @@ export class CourseChat {
 
   protected stop(): void {
     this.assistant.stopStreaming();
+  }
+
+  // ------------------------------------------------------ pièces jointes
+
+  /** Brouillons du composer, en puces. */
+  protected readonly draftAttachments = computed(() =>
+    this.assistant.draftAttachments().map(chipFromDraft),
+  );
+
+  /** Pièces jointes d'un message envoyé : figées, toujours « prêtes ». */
+  protected sentAttachments(message: AssistantMessage): AttachmentChip[] {
+    return (message.attachments ?? []).map((attachment) => ({
+      key: attachment.id,
+      name: attachment.original_name,
+      kind: attachment.kind,
+      size: attachment.size,
+      phase: 'ready' as const,
+      progress: 100,
+    }));
+  }
+
+  /** Fichiers choisis, déposés ou collés : uploadés, refus signalés par un toast. */
+  protected async onAttachFiles(files: File[]): Promise<void> {
+    const rejections = await this.assistant.attachFiles(files);
+    for (const reason of new Set(rejections)) {
+      this.#notifications.error(
+        this.#transloco.translate(`courseChat.attachments.${reason}`),
+      );
+    }
+  }
+
+  protected onRemoveAttachment(key: string): void {
+    void this.assistant.removeAttachment(key);
+  }
+
+  /**
+   * Collage dans le composer : on n'intercepte QUE des fichiers (capture
+   * d'écran en Ctrl+V), jamais du texte — sinon coller une citation cesserait
+   * de marcher.
+   */
+  protected onComposerPaste(event: ClipboardEvent): void {
+    const files = Array.from(event.clipboardData?.items ?? [])
+      .filter((item) => item.kind === 'file')
+      .map((item) => item.getAsFile())
+      .filter((file): file is File => file !== null);
+    if (!files.length) {
+      return;
+    }
+    event.preventDefault();
+    void this.onAttachFiles(files);
+  }
+
+  /** Ouvre une pièce jointe envoyée dans un onglet (URL présignée, TTL court). */
+  protected async openAttachment(attachmentId: string): Promise<void> {
+    const courseId = this.courseId();
+    if (!courseId || !this.#isBrowser) {
+      return;
+    }
+    try {
+      const url = await this.#attachments.downloadUrl(courseId, attachmentId);
+      window.open(url, '_blank', 'noopener');
+    } catch {
+      this.#notifications.error(
+        this.#transloco.translate('courseChat.attachments.openFailed'),
+      );
+    }
   }
 
   protected newConversation(): void {

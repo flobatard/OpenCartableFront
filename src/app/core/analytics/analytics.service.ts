@@ -26,6 +26,7 @@ export const REPLAY_MASK_SELECTOR = [
   '.course-chat__thread', // conversation de l'assistant du prof
   '.course-chat__thinking', // raisonnement streamé
   '.chat-questions', // questions de l'assistant, sous le fil
+  '.chat-attachments', // noms de fichiers joints (le composer est hors du fil)
   '.global-proposal-review', // revue globale d'une proposition de sous-assistant
   '.exercise-view__thread', // fil du tuteur de l'élève
   '.exercise-view__revealed-answer', // corrigé dévoilé

@@ -1,0 +1,84 @@
+<!-- Bande des pièces jointes : composer (ajout, retrait, dépôt) ou fil (puces
+     figées, nom cliquable). Se rend même vide côté composer — c'est elle qui
+     porte la zone de dépôt et le bouton trombone. -->
+@if (editable() || items().length) {
+  <div
+    class="chat-attachments"
+    [class.chat-attachments--dragover]="dragging()"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave()"
+    (drop)="onDrop($event)"
+  >
+    @if (editable()) {
+      <input
+        type="file"
+        hidden
+        multiple
+        #fileInput
+        [accept]="accept"
+        (change)="onPicked($event)"
+      />
+      <button
+        type="button"
+        class="chat-attachments__add"
+        [disabled]="!canAdd()"
+        [attr.title]="
+          (full() ? 'courseChat.attachments.tooMany' : 'courseChat.attachments.add') | transloco
+        "
+        [attr.aria-label]="'courseChat.attachments.add' | transloco"
+        (click)="openPicker()"
+      >
+        <!-- Trombone : décoratif, le bouton porte déjà son libellé accessible. -->
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M21 11.5 12.5 20a5 5 0 0 1-7-7l8.5-8.5a3.5 3.5 0 1 1 5 5L10.5 18a2 2 0 0 1-3-3l8-8"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+    }
+
+    <ul class="chat-attachments__list">
+      @for (item of items(); track item.key) {
+        <li class="chat-attachments__chip" [class.chat-attachments__chip--error]="item.phase === 'error'">
+          @if (editable()) {
+            <span class="chat-attachments__name">{{ item.name }}</span>
+          } @else {
+            <button type="button" class="chat-attachments__name chat-attachments__name--link" (click)="open.emit(item.key)">
+              {{ item.name }}
+            </button>
+          }
+          <span class="chat-attachments__size">{{ size(item.size) }}</span>
+
+          @if (item.phase === 'uploading') {
+            <progress class="chat-attachments__progress" [value]="item.progress" max="100"></progress>
+          } @else if (item.phase === 'error') {
+            <span class="chat-attachments__failed">{{
+              'courseChat.attachments.uploadFailed' | transloco
+            }}</span>
+          }
+
+          @if (editable()) {
+            <button
+              type="button"
+              class="chat-attachments__remove"
+              [disabled]="busy()"
+              [attr.aria-label]="'courseChat.attachments.remove' | transloco"
+              (click)="remove.emit(item.key)"
+            >
+              ×
+            </button>
+          }
+        </li>
+      }
+    </ul>
+
+    @if (dragging()) {
+      <p class="chat-attachments__drop">{{ 'courseChat.attachments.dropHere' | transloco }}</p>
+    }
+  </div>
+}

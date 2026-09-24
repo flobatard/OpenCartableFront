@@ -3,6 +3,8 @@
  * (`/v1/courses/{id}/assistant/*`, OpenCartableBack app/course_assistant/).
  */
 
+import { Attachment } from './attachment.model';
+
 /**
  * Contextes de conversation LIVRÉS (`ai_conversations.context`) : `course`
  * (chat global) et les contextes d'édition (flux HITL des propositions, cf.
@@ -49,6 +51,11 @@ export interface AssistantMessage {
   /** Part de `input_tokens` servie depuis le cache de prompt du provider (`null` s'il ne le relaie pas). */
   cached_input_tokens: number | null;
   created_at: string;
+  /**
+   * Pièces jointes du professeur (tours `user` seulement). Champ ADDITIF du
+   * back : absent des messages d'avant la fonctionnalité, d'où l'optionnel.
+   */
+  attachments?: Attachment[];
 }
 
 export interface AssistantConversationDetail extends AssistantConversation {

@@ -14,6 +14,7 @@ import {
 import {
   AssistantChatState,
   AssistantPendingQuestions,
+  DraftAttachment,
 } from '../../../core/course-assistant/assistant-chat-state';
 import {
   AssistantStreamState,
@@ -120,6 +121,9 @@ function mockAssistant() {
     toolActivity: signal<AssistantToolActivity[]>([]),
     pendingQuestions: signal<AssistantPendingQuestions | null>(null),
     questionsExpired: signal(false),
+    draftAttachments: signal<DraftAttachment[]>([]),
+    attachFiles: vi.fn().mockResolvedValue([]),
+    removeAttachment: vi.fn().mockResolvedValue(undefined),
     loadConversations: vi.fn().mockResolvedValue(undefined),
     startNewConversation: vi.fn(),
     openConversation: vi.fn().mockResolvedValue(undefined),

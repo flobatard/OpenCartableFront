@@ -195,5 +195,15 @@
     "unavailable": "AI provider unreachable — try again in a moment.",
     "generic": "Generation failed — try again.",
     "settingsLink": "Open AI settings"
+  },
+  "attachments": {
+    "add": "Attach a file",
+    "dropHere": "Drop your files here",
+    "openFailed": "Could not open this attachment.",
+    "remove": "Remove attachment",
+    "tooLarge": "File too large to attach.",
+    "tooMany": "No more than 5 attachments per message.",
+    "unsupported": "Unsupported format (images, PDF, text, Word, PowerPoint, OpenDocument).",
+    "uploadFailed": "Upload failed"
   }
 }

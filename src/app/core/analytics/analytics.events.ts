@@ -1,6 +1,7 @@
 import { BlockType, CourseVisibility } from '../courses/course.model';
 import { PublicAccess } from '../public-courses/public-course.model';
 import { AssistantContext } from '../course-assistant/assistant.model';
+import { AttachmentKind } from '../course-assistant/attachment.model';
 import { ProposalMode } from '../course-assistant/proposals';
 import { SubmissionEffort, SubmissionKind, SubmissionVerdict } from '../student/exercise-correction';
 
@@ -49,8 +50,18 @@ export interface AnalyticsEvents {
     revealed: boolean;
   };
 
-  /** `allowEdit` : édition globale activée pour ce tour (panneau flottant). */
-  assistant_message_sent: { context: AssistantContext; allowEdit: boolean };
+  /**
+   * `allowEdit` : édition globale activée pour ce tour (panneau flottant).
+   * `attachments` : COMBIEN de pièces jointes partent avec le message — jamais
+   * un nom de fichier, jamais une taille.
+   */
+  assistant_message_sent: {
+    context: AssistantContext;
+    allowEdit: boolean;
+    attachments: number;
+  };
+  /** Famille de la pièce jointe seulement (énuméré fermé). */
+  assistant_attachment_added: { kind: AttachmentKind };
   /** `auto` : décision prise par le mode « édition auto », sans revue. */
   assistant_proposal_decided: { accepted: boolean; auto: boolean };
   assistant_proposal_mode_changed: { mode: ProposalMode };
